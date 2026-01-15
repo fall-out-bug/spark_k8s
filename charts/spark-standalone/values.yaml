@@ -13,6 +13,33 @@ s3:
   pathStyleAccess: true
   sslEnabled: false
 
+# MinIO (S3-compatible storage) - optional for local/test
+minio:
+  enabled: true
+  image:
+    repository: quay.io/minio/minio
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+  buckets:
+    - warehouse
+    - spark-standalone-logs
+    - mlflow-artifacts
+    - spark-jobs
+    - raw-data
+    - processed-data
+    - checkpoints
+
 # Standalone cluster (detailed in subsequent workstreams)
 sparkMaster:
   enabled: true
@@ -148,6 +175,32 @@ airflow:
 
 mlflow:
   enabled: true
+  image:
+    repository: ghcr.io/mlflow/mlflow
+    tag: "v2.14.0"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 5000
+  artifactBucket: "mlflow-artifacts"
+  postgresql:
+    enabled: true
+    host: "postgresql-mlflow"
+    port: 5432
+    database: "mlflow"
+    username: "mlflow"
+    password: "mlflow123"
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClass: ""
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
 
 ingress:
   enabled: true
