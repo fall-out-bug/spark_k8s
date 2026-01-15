@@ -1,0 +1,43 @@
+{{- if .Values.airflow.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spark-standalone.fullname" . }}-airflow-config
+  labels:
+    app: airflow
+    {{- include "spark-standalone.labels" . | nindent 4 }}
+data:
+  AIRFLOW__CORE__EXECUTOR: "KubernetesExecutor"
+  AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+  AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "False"
+  AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "True"
+  AIRFLOW__KUBERNETES__NAMESPACE: {{ default .Release.Namespace .Values.airflow.kubernetesExecutor.namespace | quote }}
+  AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY: {{ default .Values.sparkMaster.image.repository .Values.airflow.kubernetesExecutor.workerImage.repository | quote }}
+  AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG: {{ default .Values.sparkMaster.image.tag .Values.airflow.kubernetesExecutor.workerImage.tag | quote }}
+  AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: {{ printf "postgresql+psycopg2://%s:%s@%s:%d/%s" .Values.airflow.postgresql.username .Values.airflow.postgresql.password .Values.airflow.postgresql.host (int .Values.airflow.postgresql.port) .Values.airflow.postgresql.database | quote }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spark-standalone.fullname" . }}-airflow-dags
+  labels:
+    app: airflow
+    {{- include "spark-standalone.labels" . | nindent 4 }}
+data:
+  example_bash_operator.py: |
+    from datetime import datetime
+    from airflow import DAG
+    from airflow.operators.bash import BashOperator
+
+    with DAG(
+        dag_id="example_bash_operator",
+        start_date=datetime(2024, 1, 1),
+        schedule=None,
+        catchup=False,
+        tags=["test"],
+    ) as dag:
+        BashOperator(
+            task_id="echo",
+            bash_command="echo hello-from-airflow",
+        )
+{{- end }}

@@ -103,6 +103,48 @@ hiveMetastore:
 
 airflow:
   enabled: true
+  image:
+    repository: apache/airflow
+    tag: "2.11.0-python3.11"
+    pullPolicy: IfNotPresent
+  webserver:
+    service:
+      type: ClusterIP
+      port: 8080
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
+  scheduler:
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
+  auth:
+    username: "admin"
+    password: "admin"
+  postgresql:
+    enabled: true
+    host: "postgresql-airflow"
+    port: 5432
+    database: "airflow"
+    username: "airflow"
+    password: "airflow123"
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClass: ""
+  kubernetesExecutor:
+    namespace: "" # defaults to .Release.Namespace
+    workerImage:
+      repository: ""
+      tag: ""
 
 mlflow:
   enabled: true
