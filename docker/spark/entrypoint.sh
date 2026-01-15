@@ -70,6 +70,11 @@ case "${SPARK_MODE:-driver}" in
       --cores "${SPARK_WORKER_CORES:-2}" \
       --memory "${SPARK_WORKER_MEMORY:-2g}"
     ;;
+  shuffle)
+    echo "Starting External Shuffle Service..."
+    export SPARK_SHUFFLE_SERVICE_PORT=${SPARK_SHUFFLE_SERVICE_PORT:-7337}
+    exec /opt/spark/bin/spark-class org.apache.spark.deploy.ExternalShuffleService
+    ;;
   connect)
     echo "Starting Spark Connect server..."
     exec /opt/spark/bin/spark-submit \
