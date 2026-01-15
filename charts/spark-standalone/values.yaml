@@ -40,6 +40,23 @@ sparkMaster:
 sparkWorker:
   enabled: true
   replicas: 2
+  image:
+    repository: spark-custom
+    tag: "3.5.7"
+    pullPolicy: IfNotPresent
+  cores: 2
+  memory: "2g"
+  service:
+    ports:
+      worker: 7078
+      webui: 8081
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "500m"
+    limits:
+      memory: "4Gi"
+      cpu: "2000m"
 
 shuffleService:
   enabled: true

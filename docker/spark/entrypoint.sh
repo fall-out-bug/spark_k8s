@@ -54,6 +54,22 @@ case "${SPARK_MODE:-driver}" in
       --port "$SPARK_MASTER_PORT" \
       --webui-port "$SPARK_MASTER_WEBUI_PORT"
     ;;
+  worker)
+    echo "Starting Spark Worker..."
+    export SPARK_WORKER_PORT=${SPARK_WORKER_PORT:-7078}
+    export SPARK_WORKER_WEBUI_PORT=${SPARK_WORKER_WEBUI_PORT:-8081}
+    # Wait for master to be ready
+    until nc -z "${SPARK_MASTER_HOST:-spark-master}" "${SPARK_MASTER_PORT:-7077}"; do
+      echo "Waiting for Spark Master..."
+      sleep 2
+    done
+    exec /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker \
+      "spark://${SPARK_MASTER_HOST:-spark-master}:${SPARK_MASTER_PORT:-7077}" \
+      --port "$SPARK_WORKER_PORT" \
+      --webui-port "$SPARK_WORKER_WEBUI_PORT" \
+      --cores "${SPARK_WORKER_CORES:-2}" \
+      --memory "${SPARK_WORKER_MEMORY:-2g}"
+    ;;
   connect)
     echo "Starting Spark Connect server..."
     exec /opt/spark/bin/spark-submit \
