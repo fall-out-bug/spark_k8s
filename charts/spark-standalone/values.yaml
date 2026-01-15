@@ -1,0 +1,48 @@
+# Spark Standalone Helm Chart Values
+
+# Global settings
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+
+# S3 credentials (MinIO or external S3)
+s3:
+  endpoint: "http://minio:9000"
+  accessKey: "minioadmin"
+  secretKey: "minioadmin"
+  pathStyleAccess: true
+  sslEnabled: false
+
+# Standalone cluster (detailed in subsequent workstreams)
+sparkMaster:
+  enabled: true
+
+sparkWorker:
+  enabled: true
+  replicas: 2
+
+shuffleService:
+  enabled: true
+
+hiveMetastore:
+  enabled: true
+
+airflow:
+  enabled: true
+
+mlflow:
+  enabled: true
+
+ingress:
+  enabled: true
+
+security:
+  podSecurityStandards: true
+
+serviceAccount:
+  create: true
+  name: spark-standalone
+  annotations: {}
+
+rbac:
+  create: true
