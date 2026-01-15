@@ -1,0 +1,63 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "spark-standalone.fullname" . }}-ingress
+  labels:
+    {{- include "spark-standalone.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  {{- if .Values.ingress.tls }}
+  tls:
+    {{- range .Values.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+  {{- if .Values.sparkMaster.enabled }}
+  - host: {{ .Values.ingress.hosts.sparkMaster | default "spark.local" }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "spark-standalone.fullname" . }}-master
+            port:
+              number: {{ .Values.sparkMaster.service.ports.webui }}
+  {{- end }}
+  {{- if .Values.airflow.enabled }}
+  - host: {{ .Values.ingress.hosts.airflow | default "airflow.local" }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "spark-standalone.fullname" . }}-airflow-webserver
+            port:
+              number: {{ .Values.airflow.webserver.service.port }}
+  {{- end }}
+  {{- if .Values.mlflow.enabled }}
+  - host: {{ .Values.ingress.hosts.mlflow | default "mlflow.local" }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "spark-standalone.fullname" . }}-mlflow
+            port:
+              number: {{ .Values.mlflow.service.port }}
+  {{- end }}
+{{- end }}

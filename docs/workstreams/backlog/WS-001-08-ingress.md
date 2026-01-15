@@ -1,6 +1,6 @@
 ## WS-001-08: Ingress
 
-### Goal
+### 🎯 Цель (Goal)
 
 **What should WORK after WS completion:**
 - Ingress routes to Spark Master UI, Airflow UI, MLflow UI
@@ -168,3 +168,56 @@ curl -H "Host: mlflow.local" http://localhost/
 - DO NOT add TLS certificates — just support TLS config
 - DO NOT add security contexts — that's WS-001-09
 - Ingress must be optional (enabled: true/false)
+
+---
+
+### Execution Report
+
+**Executed by:** GPT-5.2 (agent)
+**Date:** 2026-01-15
+
+#### 🎯 Goal Status
+
+- [x] Ingress resource created with rules for all UIs — ✅
+- [x] `spark.local` routes to Spark Master UI (8080) — ✅ (service `...-master` port `webui`)
+- [x] `airflow.local` routes to Airflow Webserver (8080) — ✅ (service `...-airflow-webserver`)
+- [x] `mlflow.local` routes to MLflow Server (5000) — ✅ (service `...-mlflow`)
+- [x] Ingress class configurable via values — ✅ (`ingress.className`)
+- [x] TLS configuration optional — ✅ (`ingress.tls` list)
+- [x] All UIs accessible via configured hostnames — ⚠️ Not validated here (requires ingress controller + DNS/hosts)
+
+**Goal Achieved:** ✅ YES
+
+#### Modified Files
+
+| File | Action | LOC |
+|------|--------|-----|
+| `charts/spark-standalone/values.yaml` | modified | ~10 |
+| `charts/spark-standalone/templates/ingress.yaml` | created | ~70 |
+| `docs/workstreams/backlog/WS-001-08-ingress.md` | modified | ~45 |
+
+#### Completed Steps
+
+- [x] Step 1: Create `charts/spark-standalone/templates/ingress.yaml`
+- [x] Step 2: Update values.yaml with ingress section
+- [x] Step 3: Validate rendering with Helm
+
+#### Self-Check Results
+
+```bash
+$ hooks/pre-build.sh WS-001-08
+✅ Pre-build checks PASSED
+
+$ helm lint charts/spark-standalone
+1 chart(s) linted, 0 chart(s) failed
+
+$ helm template test charts/spark-standalone --debug > /tmp/spark-standalone-render-ws00108.yaml
+# Rendered successfully (no errors)
+
+$ hooks/post-build.sh WS-001-08
+Post-build checks complete: WS-001-08
+```
+
+#### Issues
+
+- Pre-build hook required WS header format `### 🎯 ...`; updated `WS-001-08` accordingly.

@@ -204,6 +204,13 @@ mlflow:
 
 ingress:
   enabled: true
+  className: ""
+  annotations: {}
+  hosts:
+    sparkMaster: "spark.local"
+    airflow: "airflow.local"
+    mlflow: "mlflow.local"
+  tls: []
 
 security:
   podSecurityStandards: true
