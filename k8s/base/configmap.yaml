@@ -1,0 +1,79 @@
+# Common Spark configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spark-config
+  namespace: spark
+data:
+  spark-defaults.conf: |
+    # Spark Master - local mode for Spark Connect server
+    spark.master=local[*]
+
+    # Spark Connect Server
+    spark.connect.grpc.binding.port=15002
+    spark.connect.grpc.arrow.maxBatchSize=4194304
+    spark.connect.grpc.maxInboundMessageSize=134217728
+
+    # S3A Configuration for MinIO (Hadoop 3.4.1 + AWS SDK v2)
+    spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem
+    spark.hadoop.fs.s3a.endpoint=http://minio:9000
+    spark.hadoop.fs.s3a.access.key=minioadmin
+    spark.hadoop.fs.s3a.secret.key=minioadmin
+    spark.hadoop.fs.s3a.path.style.access=true
+    spark.hadoop.fs.s3a.connection.ssl.enabled=false
+    spark.hadoop.fs.s3a.aws.credentials.provider=org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider
+    spark.hadoop.fs.s3a.fast.upload=true
+    spark.hadoop.fs.s3a.fast.upload.buffer=bytebuffer
+    spark.hadoop.fs.s3a.multipart.size=104857600
+    spark.hadoop.fs.s3a.threads.max=64
+    spark.hadoop.fs.s3a.connection.maximum=100
+    # S3A magic committer
+    spark.hadoop.fs.s3a.committer.name=magic
+    spark.hadoop.fs.s3a.committer.magic.enabled=true
+    spark.sql.sources.commitProtocolClass=org.apache.spark.internal.io.cloud.PathOutputCommitProtocol
+    spark.sql.parquet.output.committer.class=org.apache.spark.internal.io.cloud.BindingParquetOutputCommitter
+
+    # Event logging (local directory for now)
+    spark.eventLog.enabled=true
+    spark.eventLog.dir=/tmp/spark-events
+    spark.eventLog.compress=true
+
+    # UI
+    spark.ui.enabled=true
+    spark.ui.port=4040
+
+    # Memory
+    spark.driver.memory=2g
+
+    # Performance
+    spark.serializer=org.apache.spark.serializer.KryoSerializer
+    spark.sql.adaptive.enabled=true
+    spark.sql.adaptive.coalescePartitions.enabled=true
+    spark.sql.execution.arrow.pyspark.enabled=true
+    spark.sql.execution.arrow.pyspark.fallback.enabled=true
+
+    # Dynamic allocation disabled for local mode
+    spark.dynamicAllocation.enabled=false
+
+  log4j2.properties: |
+    rootLogger.level=INFO
+    rootLogger.appenderRef.stdout.ref=console
+    appender.console.type=Console
+    appender.console.name=console
+    appender.console.layout.type=PatternLayout
+    appender.console.layout.pattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n
+    logger.spark.name=org.apache.spark
+    logger.spark.level=WARN
+    logger.hadoop.name=org.apache.hadoop
+    logger.hadoop.level=WARN
+---
+# Environment variables ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spark-env
+  namespace: spark
+data:
+  S3_ENDPOINT: "http://minio:9000"
+  SPARK_CONNECT_SERVER: "sc://spark-connect:15002"
+  SPARK_HISTORY_SERVER_URL: "http://spark-history-server:18080"

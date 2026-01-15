@@ -1,0 +1,82 @@
+{{- if .Values.jupyter.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jupyter
+  labels:
+    app: jupyter
+    {{- include "spark-platform.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jupyter
+  template:
+    metadata:
+      labels:
+        app: jupyter
+        {{- include "spark-platform.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "spark-platform.serviceAccountName" . }}
+      containers:
+      - name: jupyter
+        image: "{{ .Values.jupyter.image.repository }}:{{ .Values.jupyter.image.tag }}"
+        imagePullPolicy: {{ .Values.jupyter.image.pullPolicy }}
+        env:
+        - name: SPARK_REMOTE
+          value: "sc://spark-connect:15002"
+        - name: SPARK_CONNECT_SERVER
+          value: "sc://spark-connect:15002"
+        - name: PYARROW_IGNORE_TIMEZONE
+          value: "1"
+        - name: PYTHONPATH
+          value: "/home/jupyter"
+        - name: S3_ENDPOINT
+          value: {{ .Values.s3.endpoint | quote }}
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: s3-credentials
+              key: access-key
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: s3-credentials
+              key: secret-key
+        ports:
+        - name: http
+          containerPort: 8888
+        resources:
+          {{- toYaml .Values.jupyter.resources | nindent 10 }}
+        readinessProbe:
+          httpGet:
+            path: /api
+            port: 8888
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /api
+            port: 8888
+          initialDelaySeconds: 30
+          periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jupyter
+  labels:
+    app: jupyter
+    {{- include "spark-platform.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.jupyter.service.type }}
+  ports:
+  - name: http
+    port: 8888
+    targetPort: 8888
+    {{- if and (eq .Values.jupyter.service.type "NodePort") .Values.jupyter.service.nodePort }}
+    nodePort: {{ .Values.jupyter.service.nodePort }}
+    {{- end }}
+  selector:
+    app: jupyter
+{{- end }}

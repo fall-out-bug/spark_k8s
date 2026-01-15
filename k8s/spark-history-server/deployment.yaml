@@ -1,0 +1,118 @@
+# Spark History Server deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-history-server
+  namespace: spark
+  labels:
+    app: spark-history-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-history-server
+  template:
+    metadata:
+      labels:
+        app: spark-history-server
+    spec:
+      serviceAccountName: spark
+      containers:
+      - name: spark-history-server
+        image: spark-custom:3.5.7
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: SPARK_MODE
+          value: "history"
+        - name: S3_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: spark-env
+              key: S3_ENDPOINT
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: s3-credentials
+              key: access-key
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: s3-credentials
+              key: secret-key
+        - name: SPARK_HISTORY_OPTS
+          value: >-
+            -Dspark.history.fs.logDirectory=s3a://spark-logs/events
+            -Dspark.hadoop.fs.s3a.endpoint=$(S3_ENDPOINT)
+            -Dspark.hadoop.fs.s3a.access.key=$(AWS_ACCESS_KEY_ID)
+            -Dspark.hadoop.fs.s3a.secret.key=$(AWS_SECRET_ACCESS_KEY)
+            -Dspark.hadoop.fs.s3a.path.style.access=true
+            -Dspark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem
+            -Dspark.history.ui.port=18080
+        ports:
+        - name: http
+          containerPort: 18080
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 18080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 18080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        volumeMounts:
+        - name: spark-config
+          mountPath: /opt/spark/conf/spark-defaults.conf
+          subPath: spark-defaults.conf
+      volumes:
+      - name: spark-config
+        configMap:
+          name: spark-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-history-server
+  namespace: spark
+  labels:
+    app: spark-history-server
+spec:
+  ports:
+  - name: http
+    port: 18080
+    targetPort: 18080
+  selector:
+    app: spark-history-server
+---
+# Ingress/Route for external access
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: spark-history-server
+  namespace: spark
+  annotations:
+    # For OpenShift, use Route instead
+    # For nginx ingress:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: spark-history.local  # Change to your domain
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: spark-history-server
+            port:
+              number: 18080

@@ -1,0 +1,107 @@
+# Spark Connect Server deployment
+# Provides lightweight client-server protocol for Spark
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-connect
+  namespace: spark
+  labels:
+    app: spark-connect
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-connect
+  template:
+    metadata:
+      labels:
+        app: spark-connect
+    spec:
+      serviceAccountName: spark
+      containers:
+      - name: spark-connect
+        image: spark-custom:3.5.7
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: SPARK_MODE
+          value: "connect"
+        - name: S3_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: spark-env
+              key: S3_ENDPOINT
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: s3-credentials
+              key: access-key
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: s3-credentials
+              key: secret-key
+        ports:
+        - name: grpc
+          containerPort: 15002
+        - name: ui
+          containerPort: 4040
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "500m"
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+        readinessProbe:
+          tcpSocket:
+            port: 15002
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 15002
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        volumeMounts:
+        - name: spark-config
+          mountPath: /opt/spark/conf/spark-defaults.conf
+          subPath: spark-defaults.conf
+      volumes:
+      - name: spark-config
+        configMap:
+          name: spark-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-connect
+  namespace: spark
+  labels:
+    app: spark-connect
+spec:
+  ports:
+  - name: grpc
+    port: 15002
+    targetPort: 15002
+  - name: ui
+    port: 4040
+    targetPort: 4040
+  selector:
+    app: spark-connect
+---
+# Service for Spark UI access
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-connect-ui
+  namespace: spark
+  labels:
+    app: spark-connect
+spec:
+  type: ClusterIP
+  ports:
+  - name: ui
+    port: 4040
+    targetPort: 4040
+  selector:
+    app: spark-connect

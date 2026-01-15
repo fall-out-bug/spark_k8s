@@ -1,0 +1,98 @@
+{
+  // SDP (Spec-Driven Protocol) Workspace Settings
+  // Copy this file to .vscode/settings.json in your project root
+  
+  // Python settings
+  "python.linting.enabled": true,
+  "python.linting.ruffEnabled": true,
+  "python.linting.mypyEnabled": true,
+  "python.formatting.provider": "ruff",
+  "python.analysis.typeCheckingMode": "strict",
+  
+  // File size limits (SDP requirement: < 200 LOC)
+  "files.maxMemoryForLargeFilesMB": 50,
+  "[python]": {
+    "editor.rulers": [200],
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.wordWrapColumn": 200
+  },
+  
+  // Exclude patterns for indexing
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/node_modules": true,
+    "**/.venv": true,
+    "**/venv": true
+  },
+  
+  // Search exclude patterns
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/venv": true,
+    "**/.venv": true,
+    "**/.git": true
+  },
+  
+  // Editor settings
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit",
+    "source.fixAll": "explicit"
+  },
+  "editor.rulers": [88],
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true,
+  
+  // File associations
+  "files.associations": {
+    "*.md": "markdown",
+    "*.mdc": "markdown",
+    ".cursorrules": "plaintext"
+  },
+  
+  // Git settings
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+  "git.autofetch": true,
+  "git.ignoreLimitWarning": true,
+  
+  // Terminal settings
+  "terminal.integrated.defaultProfile.linux": "bash",
+  "terminal.integrated.cwd": "${workspaceFolder}",
+  "terminal.integrated.fontSize": 12,
+  
+  // Test discovery (pytest)
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": [
+    "tests",
+    "--cov=src",
+    "--cov-report=term-missing",
+    "--cov-fail-under=80"
+  ],
+  "python.testing.unittestEnabled": false,
+  
+  // Type checking
+  "python.analysis.typeCheckingMode": "strict",
+  "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.autoImportCompletions": true,
+  
+  // Cursor-specific settings
+  "cursor.chat.maxContextLength": 50000,
+  "cursor.chat.model": "claude-sonnet-4.5",
+  
+  // File watcher exclusions (performance)
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/.pytest_cache/**": true,
+    "**/.mypy_cache/**": true,
+    "**/__pycache__/**": true
+  }
+}

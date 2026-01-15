@@ -1,0 +1,65 @@
+Spark Platform has been deployed!
+
+=== Access Services ===
+
+{{- if .Values.jupyterhub.enabled }}
+JupyterHub (Multi-user):
+{{- if eq .Values.jupyterhub.service.type "NodePort" }}
+  URL: http://localhost:{{ .Values.jupyterhub.service.nodePort }}
+{{- else }}
+  kubectl port-forward svc/jupyterhub 8000:8000 -n {{ .Release.Namespace }}
+  Then open: http://localhost:8000
+{{- end }}
+  Admin credentials: admin / {{ .Values.jupyterhub.adminPassword }}
+  New users can self-register via "Sign up"
+{{- end }}
+
+{{- if .Values.jupyter.enabled }}
+JupyterLab (Single-user):
+{{- if eq .Values.jupyter.service.type "NodePort" }}
+  URL: http://localhost:{{ .Values.jupyter.service.nodePort }}
+{{- else }}
+  kubectl port-forward svc/jupyter 8888:8888 -n {{ .Release.Namespace }}
+  Then open: http://localhost:8888
+{{- end }}
+{{- end }}
+
+{{- if .Values.sparkConnect.enabled }}
+Spark UI:
+  kubectl port-forward svc/spark-connect 4040:4040 -n {{ .Release.Namespace }}
+  Then open: http://localhost:4040
+{{- end }}
+
+{{- if .Values.historyServer.enabled }}
+Spark History Server:
+  kubectl port-forward svc/spark-history-server 18080:18080 -n {{ .Release.Namespace }}
+  Then open: http://localhost:18080
+{{- end }}
+
+{{- if .Values.minio.enabled }}
+MinIO Console:
+  kubectl port-forward svc/minio 9001:9001 -n {{ .Release.Namespace }}
+  Then open: http://localhost:9001
+  Credentials: {{ .Values.s3.accessKey }} / {{ .Values.s3.secretKey }}
+{{- end }}
+
+=== Connect to Spark ===
+
+from pyspark.sql import SparkSession
+spark = SparkSession.builder \
+    .appName("MyApp") \
+    .remote("sc://spark-connect:15002") \
+    .getOrCreate()
+
+=== Monitor K8s Executors ===
+
+# Watch executor pods (created dynamically during job execution)
+kubectl get pods -n {{ .Release.Namespace }} -w | grep spark-exec
+
+# Check executor logs
+kubectl logs -n {{ .Release.Namespace }} <executor-pod-name>
+
+=== Check Status ===
+
+kubectl get pods -n {{ .Release.Namespace }}
+kubectl get svc -n {{ .Release.Namespace }}

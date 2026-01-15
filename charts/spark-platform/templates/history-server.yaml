@@ -1,0 +1,123 @@
+{{- if .Values.historyServer.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-history-server
+  labels:
+    app: spark-history-server
+    {{- include "spark-platform.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-history-server
+  template:
+    metadata:
+      labels:
+        app: spark-history-server
+        {{- include "spark-platform.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "spark-platform.serviceAccountName" . }}
+      initContainers:
+      - name: wait-for-minio
+        image: quay.io/minio/mc:latest
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Waiting for MinIO buckets..."
+          for i in $(seq 1 60); do
+            if mc alias set myminio http://minio:9000 $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY 2>/dev/null; then
+              if mc ls myminio/spark-logs/events/ 2>/dev/null; then
+                echo "MinIO buckets ready!"
+                exit 0
+              fi
+            fi
+            echo "Attempt $i: Waiting for buckets..."
+            sleep 5
+          done
+          echo "Timeout waiting for MinIO buckets"
+          exit 1
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: s3-credentials
+              key: access-key
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: s3-credentials
+              key: secret-key
+      containers:
+      - name: spark-history-server
+        image: "{{ .Values.historyServer.image.repository }}:{{ .Values.historyServer.image.tag }}"
+        imagePullPolicy: {{ .Values.historyServer.image.pullPolicy }}
+        env:
+        - name: SPARK_MODE
+          value: "history"
+        - name: S3_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: spark-env
+              key: S3_ENDPOINT
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: s3-credentials
+              key: access-key
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: s3-credentials
+              key: secret-key
+        - name: SPARK_HISTORY_OPTS
+          value: >-
+            -Dspark.history.fs.logDirectory={{ .Values.historyServer.logDirectory }}
+            -Dspark.hadoop.fs.s3a.endpoint=$(S3_ENDPOINT)
+            -Dspark.hadoop.fs.s3a.access.key=$(AWS_ACCESS_KEY_ID)
+            -Dspark.hadoop.fs.s3a.secret.key=$(AWS_SECRET_ACCESS_KEY)
+            -Dspark.hadoop.fs.s3a.path.style.access={{ .Values.s3.pathStyleAccess }}
+            -Dspark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem
+            -Dspark.history.ui.port=18080
+        ports:
+        - name: http
+          containerPort: 18080
+        resources:
+          {{- toYaml .Values.historyServer.resources | nindent 10 }}
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 18080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 18080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        volumeMounts:
+        - name: spark-config
+          mountPath: /opt/spark/conf/spark-defaults.conf
+          subPath: spark-defaults.conf
+      volumes:
+      - name: spark-config
+        configMap:
+          name: spark-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-history-server
+  labels:
+    app: spark-history-server
+    {{- include "spark-platform.labels" . | nindent 4 }}
+spec:
+  ports:
+  - name: http
+    port: 18080
+    targetPort: 18080
+  selector:
+    app: spark-history-server
+{{- end }}

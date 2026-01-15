@@ -1,0 +1,139 @@
+# Docker Compose for local development and testing
+# Focus: Spark, Spark Connect, pandas API, S3, Hive Metastore
+
+x-spark-common: &spark-common
+  build:
+    context: ./docker/spark
+    dockerfile: Dockerfile
+  environment: &spark-env
+    AWS_ACCESS_KEY_ID: minioadmin
+    AWS_SECRET_ACCESS_KEY: minioadmin
+    S3_ENDPOINT: http://minio:9000
+  depends_on:
+    minio-init:
+      condition: service_completed_successfully
+    postgres:
+      condition: service_healthy
+  networks:
+    - spark-network
+
+services:
+  # ===== Storage =====
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - spark-network
+
+  # Initialize MinIO buckets
+  minio-init:
+    image: quay.io/minio/mc:latest
+    container_name: minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      mc mb --ignore-existing myminio/warehouse;
+      mc mb --ignore-existing myminio/spark-logs;
+      mc mb --ignore-existing myminio/raw-data;
+      mc mb --ignore-existing myminio/processed-data;
+      exit 0;
+      "
+    networks:
+      - spark-network
+
+  # PostgreSQL for Hive Metastore backend
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: spark
+      POSTGRES_PASSWORD: spark
+      POSTGRES_DB: metastore
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U spark -d metastore"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - spark-network
+
+  # ===== Spark Services =====
+
+  # Spark Connect Server - main entry point for JupyterHub
+  spark-connect:
+    <<: *spark-common
+    container_name: spark-connect
+    environment:
+      <<: *spark-env
+      SPARK_MODE: connect
+    ports:
+      - "15002:15002"  # gRPC for Spark Connect
+      - "4040:4040"    # Spark UI
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "15002"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Spark History Server
+  spark-history:
+    <<: *spark-common
+    container_name: spark-history
+    environment:
+      <<: *spark-env
+      SPARK_MODE: history
+    ports:
+      - "18080:18080"
+
+  # ===== JupyterHub =====
+  jupyter:
+    build:
+      context: ./docker/jupyter
+      dockerfile: Dockerfile
+    container_name: jupyter
+    environment:
+      SPARK_CONNECT_SERVER: sc://spark-connect:15002
+      SPARK_REMOTE: sc://spark-connect:15002
+      S3_ENDPOINT: http://minio:9000
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+    ports:
+      - "8888:8888"
+    volumes:
+      - jupyter-data:/home/jupyter/work
+      - ./docker/jupyter/notebooks:/home/jupyter/notebooks:ro
+    depends_on:
+      spark-connect:
+        condition: service_healthy
+    networks:
+      - spark-network
+
+volumes:
+  minio-data:
+  postgres-data:
+  jupyter-data:
+
+networks:
+  spark-network:
+    driver: bridge
