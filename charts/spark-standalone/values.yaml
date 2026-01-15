@@ -75,6 +75,31 @@ shuffleService:
 
 hiveMetastore:
   enabled: true
+  image:
+    repository: spark-custom
+    tag: "3.5.7"
+    pullPolicy: IfNotPresent
+  service:
+    port: 9083
+  warehouseDir: "s3a://warehouse/standalone"
+  postgresql:
+    enabled: true
+    host: "postgresql-metastore"
+    port: 5432
+    database: "metastore_standalone"
+    username: "hive"
+    password: "hive123"
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClass: ""
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
 
 airflow:
   enabled: true

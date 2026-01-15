@@ -31,6 +31,14 @@ data:
     spark.shuffle.service.port={{ .Values.shuffleService.port }}
     spark.dynamicAllocation.shuffleTracking.enabled=true
 
+    {{- if .Values.hiveMetastore.enabled }}
+    # Hive Metastore Configuration
+    spark.sql.catalogImplementation=hive
+    spark.hive.metastore.uris=thrift://{{ include "spark-standalone.fullname" . }}-metastore:{{ .Values.hiveMetastore.service.port }}
+    spark.sql.warehouse.dir={{ .Values.hiveMetastore.warehouseDir }}
+    spark.hadoop.hive.metastore.warehouse.dir={{ .Values.hiveMetastore.warehouseDir }}
+    {{- end }}
+
   log4j2.properties: |
     rootLogger.level=INFO
     rootLogger.appenderRef.stdout.ref=console
