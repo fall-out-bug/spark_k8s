@@ -1,0 +1,15 @@
+# SDP runtime artifacts (generated during execution)
+docs/workstreams/in_progress/
+docs/workstreams/completed/
+notifications/
+
+# Local Cursor/IDE artifacts
+.cursor/
+
+# Common local artifacts
+.DS_Store
+*.log
+*.tmp
+tmp/
+.pytest_cache/
+__pycache__/
