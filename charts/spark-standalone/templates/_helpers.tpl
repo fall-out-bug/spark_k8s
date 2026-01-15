@@ -72,3 +72,23 @@ Image name helper
 {{- printf "%s:%s" $repository $tag }}
 {{- end }}
 {{- end }}
+
+{{/*
+Pod security context (PSS restricted compatible)
+*/}}
+{{- define "spark-standalone.podSecurityContext" -}}
+runAsNonRoot: true
+seccompProfile:
+  type: RuntimeDefault
+{{- end }}
+
+{{/*
+Container security context (PSS restricted compatible)
+*/}}
+{{- define "spark-standalone.containerSecurityContext" -}}
+allowPrivilegeEscalation: false
+readOnlyRootFilesystem: true
+capabilities:
+  drop:
+    - ALL
+{{- end }}

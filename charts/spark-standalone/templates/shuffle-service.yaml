@@ -24,6 +24,8 @@ spec:
       {{- end }}
       containers:
       - name: shuffle-service
+        securityContext:
+          {{- include "spark-standalone.containerSecurityContext" . | nindent 10 }}
         image: "{{ .Values.shuffleService.image.repository }}:{{ .Values.shuffleService.image.tag }}"
         imagePullPolicy: {{ .Values.shuffleService.image.pullPolicy }}
         env:
@@ -34,7 +36,9 @@ spec:
         ports:
         - name: shuffle
           containerPort: {{ .Values.shuffleService.port }}
+          {{- if not .Values.security.podSecurityStandards }}
           hostPort: {{ .Values.shuffleService.port }}
+          {{- end }}
         resources:
           {{- toYaml .Values.shuffleService.resources | nindent 10 }}
         volumeMounts:
@@ -42,9 +46,13 @@ spec:
           mountPath: /tmp/spark-shuffle
       volumes:
       - name: shuffle-data
+        {{- if .Values.security.podSecurityStandards }}
+        emptyDir: {}
+        {{- else }}
         hostPath:
           path: /tmp/spark-shuffle
           type: DirectoryOrCreate
+        {{- end }}
 ---
 apiVersion: v1
 kind: Service

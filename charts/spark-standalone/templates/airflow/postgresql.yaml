@@ -52,6 +52,8 @@ spec:
     spec:
       containers:
       - name: postgresql
+        securityContext:
+          {{- include "spark-standalone.containerSecurityContext" . | nindent 10 }}
         image: "postgres:16-alpine"
         imagePullPolicy: IfNotPresent
         envFrom:
@@ -63,6 +65,8 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /var/lib/postgresql/data
+        - name: tmp
+          mountPath: /tmp
       volumes:
       - name: data
         {{- if .Values.airflow.postgresql.persistence.enabled }}
@@ -71,6 +75,8 @@ spec:
         {{- else }}
         emptyDir: {}
         {{- end }}
+      - name: tmp
+        emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

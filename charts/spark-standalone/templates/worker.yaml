@@ -19,12 +19,16 @@ spec:
         {{- include "spark-standalone.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "spark-standalone.serviceAccountName" . }}
+      securityContext:
+        {{- include "spark-standalone.podSecurityContext" . | nindent 8 }}
       {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
       - name: spark-worker
+        securityContext:
+          {{- include "spark-standalone.containerSecurityContext" . | nindent 10 }}
         image: "{{ .Values.sparkWorker.image.repository }}:{{ .Values.sparkWorker.image.tag }}"
         imagePullPolicy: {{ .Values.sparkWorker.image.pullPolicy }}
         env:
@@ -61,6 +65,8 @@ spec:
         resources:
           {{- toYaml .Values.sparkWorker.resources | nindent 10 }}
         volumeMounts:
+        - name: tmp
+          mountPath: /tmp
         - name: spark-config
           mountPath: /opt/spark/conf/spark-defaults.conf
           subPath: spark-defaults.conf
@@ -68,6 +74,8 @@ spec:
           mountPath: /opt/spark/conf/log4j2.properties
           subPath: log4j2.properties
       volumes:
+      - name: tmp
+        emptyDir: {}
       - name: spark-config
         configMap:
           name: spark-config

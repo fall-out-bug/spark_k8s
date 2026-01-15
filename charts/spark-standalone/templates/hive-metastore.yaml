@@ -67,9 +67,13 @@ spec:
         {{- include "spark-standalone.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "spark-standalone.serviceAccountName" . }}
+      securityContext:
+        {{- include "spark-standalone.podSecurityContext" . | nindent 8 }}
       initContainers:
       - name: wait-for-postgresql
         image: busybox:1.36
+        securityContext:
+          {{- include "spark-standalone.containerSecurityContext" . | nindent 10 }}
         command:
         - sh
         - -c
@@ -78,6 +82,8 @@ spec:
           do echo "Waiting for PostgreSQL..."; sleep 2; done; echo "PostgreSQL is ready!"
       containers:
       - name: hive-metastore
+        securityContext:
+          {{- include "spark-standalone.containerSecurityContext" . | nindent 10 }}
         image: "{{ .Values.hiveMetastore.image.repository }}:{{ .Values.hiveMetastore.image.tag }}"
         imagePullPolicy: {{ .Values.hiveMetastore.image.pullPolicy }}
         env:
@@ -104,10 +110,14 @@ spec:
         resources:
           {{- toYaml .Values.hiveMetastore.resources | nindent 10 }}
         volumeMounts:
+        - name: tmp
+          mountPath: /tmp
         - name: hive-config
           mountPath: /opt/spark/conf/hive-site.xml
           subPath: hive-site.xml
       volumes:
+      - name: tmp
+        emptyDir: {}
       - name: hive-config
         configMap:
           name: {{ include "spark-standalone.fullname" . }}-hive-metastore-config

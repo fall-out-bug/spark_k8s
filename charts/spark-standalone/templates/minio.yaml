@@ -17,8 +17,12 @@ spec:
         app: minio
         {{- include "spark-standalone.selectorLabels" . | nindent 8 }}
     spec:
+      securityContext:
+        {{- include "spark-standalone.podSecurityContext" . | nindent 8 }}
       containers:
       - name: minio
+        securityContext:
+          {{- include "spark-standalone.containerSecurityContext" . | nindent 10 }}
         image: "{{ .Values.minio.image.repository }}:{{ .Values.minio.image.tag }}"
         imagePullPolicy: {{ .Values.minio.image.pullPolicy }}
         args:
@@ -45,6 +49,8 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /data
+        - name: tmp
+          mountPath: /tmp
         resources:
           {{- toYaml .Values.minio.resources | nindent 10 }}
         readinessProbe:
@@ -67,6 +73,8 @@ spec:
         {{- else }}
         emptyDir: {}
         {{- end }}
+      - name: tmp
+        emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -119,8 +127,12 @@ spec:
   template:
     spec:
       restartPolicy: OnFailure
+      securityContext:
+        {{- include "spark-standalone.podSecurityContext" . | nindent 8 }}
       containers:
       - name: mc
+        securityContext:
+          {{- include "spark-standalone.containerSecurityContext" . | nindent 10 }}
         image: quay.io/minio/mc:latest
         command:
         - /bin/sh
