@@ -40,6 +40,20 @@ fi
 
 # Main entry point
 case "${SPARK_MODE:-driver}" in
+  master)
+    echo "Starting Spark Master..."
+    export SPARK_MASTER_HOST=$(hostname -i)
+    export SPARK_MASTER_PORT=${SPARK_MASTER_PORT:-7077}
+    export SPARK_MASTER_WEBUI_PORT=${SPARK_MASTER_WEBUI_PORT:-8080}
+    # HA recovery via FILESYSTEM (supports s3a:// paths)
+    if [ -n "$SPARK_RECOVERY_DIR" ]; then
+      export SPARK_DAEMON_JAVA_OPTS="-Dspark.deploy.recoveryMode=FILESYSTEM -Dspark.deploy.recoveryDirectory=$SPARK_RECOVERY_DIR"
+    fi
+    exec /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master \
+      --host "$SPARK_MASTER_HOST" \
+      --port "$SPARK_MASTER_PORT" \
+      --webui-port "$SPARK_MASTER_WEBUI_PORT"
+    ;;
   connect)
     echo "Starting Spark Connect server..."
     exec /opt/spark/bin/spark-submit \

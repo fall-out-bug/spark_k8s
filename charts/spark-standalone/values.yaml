@@ -16,6 +16,26 @@ s3:
 # Standalone cluster (detailed in subsequent workstreams)
 sparkMaster:
   enabled: true
+  image:
+    repository: spark-custom
+    tag: "3.5.7"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    ports:
+      spark: 7077
+      webui: 8080
+      rest: 6066
+  ha:
+    enabled: true
+    recoveryDir: "s3a://spark-standalone-recovery/spark-recovery"
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "500m"
+    limits:
+      memory: "4Gi"
+      cpu: "2000m"
 
 sparkWorker:
   enabled: true

@@ -1,21 +1,21 @@
 # SDP runtime artifacts (generated during execution)
-docs/workstreams/in_progress/
-docs/workstreams/completed/
-notifications/
+/docs/workstreams/in_progress/
+/docs/workstreams/completed/
+/notifications/
 
 # SDP templates/tools (treat as local-only per request)
-hooks/
-prompts/
-schema/
-templates/
-RULES_COMMON.md
-PROTOCOL.md
-MODELS.md
-CLAUDE.md
-CODE_PATTERNS.md
+/hooks/
+/prompts/
+/schema/
+/templates/
+/RULES_COMMON.md
+/PROTOCOL.md
+/MODELS.md
+/CLAUDE.md
+/CODE_PATTERNS.md
 
 # Local Cursor/IDE artifacts
-.cursor/
+/.cursor/
 
 # Common local artifacts
 .DS_Store
