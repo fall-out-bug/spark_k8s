@@ -60,4 +60,16 @@ spec:
             port:
               number: {{ .Values.mlflow.service.port }}
   {{- end }}
+  {{- if .Values.historyServer.enabled }}
+  - host: {{ .Values.ingress.hosts.historyServer | default "history.local" }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "spark-standalone.fullname" . }}-history-server
+            port:
+              number: {{ .Values.historyServer.service.port }}
+  {{- end }}
 {{- end }}
