@@ -53,6 +53,7 @@ WS-001-01 (Chart Skeleton)
 |---------|----------|-----------|-------------|---------|
 | F01: Spark Standalone | 12 | 12 | 0 | 0 |
 | F02: Repo Documentation | 4 | 4 | 0 | 0 |
+| F03: History Server (SA) | 2 | 0 | 0 | 2 |
 
 ---
 
@@ -78,4 +79,24 @@ WS-001-01 (Chart Skeleton)
 WS-011-01
   ├── WS-011-02 → WS-011-03
   └── WS-011-04
+```
+
+---
+
+## Feature F03: Spark History Server for Standalone Chart
+
+**Source:** `docs/drafts/idea-add-history-server.md`  
+**Status:** Backlog  
+**Total Workstreams:** 2  
+**Estimated LOC:** ~170
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-012-01 | History Server Template | SMALL (~130 LOC) | - | backlog |
+| WS-012-02 | History Server Smoke Test | SMALL (~40 LOC) | WS-012-01 | backlog |
+
+### Dependency Graph
+
+```
+WS-012-01 → WS-012-02
 ```
