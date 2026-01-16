@@ -20,7 +20,7 @@ data:
 
     # Event logging (History Server configured elsewhere)
     spark.eventLog.enabled=true
-    spark.eventLog.dir=s3a://spark-standalone-logs/events
+    spark.eventLog.dir={{ .Values.historyServer.logDirectory }}
     spark.eventLog.compress=true
 
     # UI
@@ -59,3 +59,6 @@ metadata:
     {{- include "spark-standalone.labels" . | nindent 4 }}
 data:
   S3_ENDPOINT: {{ .Values.s3.endpoint | quote }}
+  # Compatibility keys with `charts/spark-platform` (Spark Connect)
+  SPARK_CONNECT_SERVER: {{ .Values.sparkConnectServer | default "" | quote }}
+  SPARK_HISTORY_SERVER_URL: {{ .Values.historyServer.url | default "" | quote }}

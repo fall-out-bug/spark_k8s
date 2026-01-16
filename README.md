@@ -207,6 +207,19 @@ nodes:
 
 ## Быстрый старт
 
+### Shared values overlay (spark-platform + spark-standalone)
+
+В репозитории есть два чарта:
+- `charts/spark-platform` (Spark Connect + platform services)
+- `charts/spark-standalone` (Spark Standalone master/workers + optional Airflow/MLflow)
+
+Чтобы конфигурация (S3/MinIO/SA/RBAC) была одинаковой, можно использовать общий overlay:
+
+```bash
+helm install spark-platform ./charts/spark-platform -n spark -f charts/values-common.yaml
+helm install spark-standalone ./charts/spark-standalone -n spark -f charts/values-common.yaml
+```
+
 ### 1. Сборка Docker образов
 
 ```bash

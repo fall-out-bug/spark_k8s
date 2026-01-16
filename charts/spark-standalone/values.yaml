@@ -13,6 +13,18 @@ s3:
   pathStyleAccess: true
   sslEnabled: false
 
+# Spark History Server (typically separate component)
+# Keep this section aligned with `charts/spark-platform` for easier shared values overlays.
+historyServer:
+  enabled: false
+  # Used by Spark for event logging.
+  logDirectory: "s3a://spark-logs/events"
+  # Optional informational URL (used by shared `spark-env` compatibility keys)
+  url: ""
+
+# Optional informational Spark Connect URL (compatibility with `charts/spark-platform`)
+sparkConnectServer: ""
+
 # MinIO (S3-compatible storage) - optional for local/test
 minio:
   enabled: true
@@ -33,6 +45,7 @@ minio:
     storageClass: ""
   buckets:
     - warehouse
+    - spark-logs
     - spark-standalone-logs
     - mlflow-artifacts
     - spark-jobs
@@ -244,7 +257,8 @@ security:
 
 serviceAccount:
   create: true
-  name: spark-standalone
+  # Keep default aligned with `charts/spark-platform`
+  name: spark
   annotations: {}
 
 rbac:

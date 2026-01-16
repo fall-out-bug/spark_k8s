@@ -1,0 +1,40 @@
+# Shared values overlay for `charts/spark-platform` (Spark Connect) and
+# `charts/spark-standalone` (Standalone master/workers).
+#
+# Usage:
+# - helm upgrade --install X charts/spark-platform -f charts/values-common.yaml -f charts/spark-platform/values.yaml ...
+# - helm upgrade --install Y charts/spark-standalone -f charts/values-common.yaml -f charts/spark-standalone/values.yaml ...
+
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+
+s3:
+  endpoint: "http://minio:9000"
+  accessKey: "minioadmin"
+  secretKey: "minioadmin"
+  pathStyleAccess: true
+  sslEnabled: false
+
+historyServer:
+  # Both charts use this value for `spark.eventLog.dir`.
+  logDirectory: "s3a://spark-logs/events"
+
+minio:
+  enabled: true
+  buckets:
+    - warehouse
+    - spark-logs
+    - spark-jobs
+    - raw-data
+    - processed-data
+    - checkpoints
+
+serviceAccount:
+  create: true
+  # Keep name consistent across charts when deploying into same namespace.
+  name: spark
+
+rbac:
+  create: true
+
