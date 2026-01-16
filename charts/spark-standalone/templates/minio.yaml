@@ -164,7 +164,9 @@ spec:
           mc mb --ignore-existing myminio/{{ . }}
           {{- end }}
 
-          # Create events subdirectory for history server-style layout
+          # Create events subdirectory for history server-style layout.
+          # Spark Standalone E2E expects `spark.eventLog.dir` to exist as a "directory".
+          mc mb --ignore-existing myminio/spark-logs/events
           mc mb --ignore-existing myminio/spark-standalone-logs/events
 
           echo "Buckets created successfully"
