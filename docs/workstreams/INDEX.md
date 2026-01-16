@@ -52,7 +52,31 @@ WS-001-01 (Chart Skeleton)
 | Feature | Total WS | Completed | In Progress | Backlog |
 |---------|----------|-----------|-------------|---------|
 | F01: Spark Standalone | 12 | 12 | 0 | 0 |
+| F02: Repo Documentation | 4 | 0 | 0 | 4 |
 
 ---
 
 *Last updated: 2026-01-16*
+
+## Feature F02: Repository Documentation (Charts + How-To Guides)
+
+**Source:** `docs/drafts/idea-repo-documentation.md`  
+**Status:** Planning Complete  
+**Total Workstreams:** 4  
+**Estimated LOC:** ~1400 (docs)
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-011-01 | Docs skeleton (README index + repo map) | SMALL (~200 LOC) | - | backlog |
+| WS-011-02 | Guides EN + overlays | MEDIUM (~600 LOC) | WS-011-01 | backlog |
+| WS-011-03 | Guides RU + overlays | MEDIUM (~600 LOC) | WS-011-02 | backlog |
+| WS-011-04 | Validation runbook + OpenShift notes | MEDIUM (~500 LOC) | WS-011-01 | backlog |
+
+### Dependency Graph
+
+```
+WS-011-01
+  ├── WS-011-02 → WS-011-03
+  └── WS-011-04
+```
+
