@@ -52,9 +52,21 @@ spec:
         resources:
           {{- toYaml .Values.shuffleService.resources | nindent 10 }}
         volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: spark-work
+          mountPath: /opt/spark/work
+        - name: spark-logs
+          mountPath: /opt/spark/logs
         - name: shuffle-data
           mountPath: /tmp/spark-shuffle
       volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: spark-work
+        emptyDir: {}
+      - name: spark-logs
+        emptyDir: {}
       - name: shuffle-data
         {{- if .Values.security.podSecurityStandards }}
         emptyDir: {}

@@ -144,6 +144,13 @@ hiveMetastore:
 
 airflow:
   enabled: true
+  # Fernet key must be shared across all Airflow components (scheduler/webserver/worker pods),
+  # otherwise Variables/Connections cannot be decrypted.
+  # Generate with: python3 -c 'import os,base64; print(base64.urlsafe_b64encode(os.urandom(32)).decode())'
+  fernetKey: ""
+  kubernetesExecutor:
+    # Delete ephemeral worker pods after completion (prod default).
+    deleteWorkerPods: true
   image:
     repository: apache/airflow
     tag: "2.11.0-python3.11"

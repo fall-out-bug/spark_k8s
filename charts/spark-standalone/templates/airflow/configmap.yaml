@@ -11,9 +11,20 @@ data:
   AIRFLOW__CORE__LOAD_EXAMPLES: "False"
   AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "False"
   AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "True"
+  # Newer Airflow uses [kubernetes_executor]; keep legacy [kubernetes] too for compatibility.
+  AIRFLOW__KUBERNETES_EXECUTOR__NAMESPACE: {{ default .Release.Namespace .Values.airflow.kubernetesExecutor.namespace | quote }}
   AIRFLOW__KUBERNETES__NAMESPACE: {{ default .Release.Namespace .Values.airflow.kubernetesExecutor.namespace | quote }}
-  AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY: {{ default .Values.sparkMaster.image.repository .Values.airflow.kubernetesExecutor.workerImage.repository | quote }}
-  AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG: {{ default .Values.sparkMaster.image.tag .Values.airflow.kubernetesExecutor.workerImage.tag | quote }}
+
+  # KubernetesExecutor worker pods must run the Airflow image (not the Spark image).
+  AIRFLOW__KUBERNETES_EXECUTOR__WORKER_CONTAINER_REPOSITORY: {{ default .Values.airflow.image.repository .Values.airflow.kubernetesExecutor.workerImage.repository | quote }}
+  AIRFLOW__KUBERNETES_EXECUTOR__WORKER_CONTAINER_TAG: {{ default .Values.airflow.image.tag .Values.airflow.kubernetesExecutor.workerImage.tag | quote }}
+  AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY: {{ default .Values.airflow.image.repository .Values.airflow.kubernetesExecutor.workerImage.repository | quote }}
+  AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG: {{ default .Values.airflow.image.tag .Values.airflow.kubernetesExecutor.workerImage.tag | quote }}
+
+  AIRFLOW__KUBERNETES_EXECUTOR__POD_TEMPLATE_FILE: "/opt/airflow/pod_templates/pod_template.yaml"
+  # Keep worker pods only when debugging.
+  AIRFLOW__KUBERNETES_EXECUTOR__DELETE_WORKER_PODS: {{ ternary "True" "False" (default true .Values.airflow.kubernetesExecutor.deleteWorkerPods) | quote }}
+  AIRFLOW__KUBERNETES__DELETE_WORKER_PODS: {{ ternary "True" "False" (default true .Values.airflow.kubernetesExecutor.deleteWorkerPods) | quote }}
   AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: {{ printf "postgresql+psycopg2://%s:%s@%s:%d/%s" .Values.airflow.postgresql.username .Values.airflow.postgresql.password .Values.airflow.postgresql.host (int .Values.airflow.postgresql.port) .Values.airflow.postgresql.database | quote }}
 ---
 apiVersion: v1
@@ -94,7 +105,22 @@ data:
                 "cat > /tmp/etl.py <<'PY'\n"
                 + ETL_SCRIPT
                 + "\nPY\n"
-                + f"spark-submit --master {SPARK_MASTER} /tmp/etl.py",
+                + "POD_IP=$(hostname -i) && "
+                + f"spark-submit --master {SPARK_MASTER} "
+                + "--conf spark.driver.memory=1g "
+                + "--conf spark.driver.bindAddress=0.0.0.0 "
+                + "--conf spark.driver.host=$POD_IP "
+                + "--conf spark.executor.instances=1 "
+                + "--conf spark.executor.cores=1 "
+                + "--conf spark.executor.memory=1g "
+                + "--conf spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem "
+                + "--conf spark.hadoop.fs.s3a.aws.credentials.provider=org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider "
+                + "--conf spark.hadoop.fs.s3a.endpoint=$S3_ENDPOINT "
+                + "--conf spark.hadoop.fs.s3a.access.key=$AWS_ACCESS_KEY_ID "
+                + "--conf spark.hadoop.fs.s3a.secret.key=$AWS_SECRET_ACCESS_KEY "
+                + "--conf spark.hadoop.fs.s3a.path.style.access=true "
+                + "--conf spark.hadoop.fs.s3a.connection.ssl.enabled=false "
+                + "/tmp/etl.py",
             ],
             env_vars={
                 "S3_ENDPOINT": S3_ENDPOINT,
@@ -180,7 +206,22 @@ data:
                 "cat > /tmp/train.py <<'PY'\n"
                 + TRAIN_SCRIPT
                 + "\nPY\n"
-                + f"spark-submit --master {SPARK_MASTER} /tmp/train.py",
+                + "POD_IP=$(hostname -i) && "
+                + f"spark-submit --master {SPARK_MASTER} "
+                + "--conf spark.driver.memory=1g "
+                + "--conf spark.driver.bindAddress=0.0.0.0 "
+                + "--conf spark.driver.host=$POD_IP "
+                + "--conf spark.executor.instances=1 "
+                + "--conf spark.executor.cores=1 "
+                + "--conf spark.executor.memory=1g "
+                + "--conf spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem "
+                + "--conf spark.hadoop.fs.s3a.aws.credentials.provider=org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider "
+                + "--conf spark.hadoop.fs.s3a.endpoint=$S3_ENDPOINT "
+                + "--conf spark.hadoop.fs.s3a.access.key=$AWS_ACCESS_KEY_ID "
+                + "--conf spark.hadoop.fs.s3a.secret.key=$AWS_SECRET_ACCESS_KEY "
+                + "--conf spark.hadoop.fs.s3a.path.style.access=true "
+                + "--conf spark.hadoop.fs.s3a.connection.ssl.enabled=false "
+                + "/tmp/train.py",
             ],
             env_vars={
                 "S3_ENDPOINT": S3_ENDPOINT,

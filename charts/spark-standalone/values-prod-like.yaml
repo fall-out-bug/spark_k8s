@@ -5,15 +5,18 @@
 
 security:
   podSecurityStandards: true
-  # Common OpenShift-ish UID/GID (tune for your cluster)
-  runAsUser: 1000
-  runAsGroup: 1000
-  fsGroup: 1000
   postgresql:
     # In real prod you likely use an external DB; for local "prod-like" tests keep embedded DB relaxed.
     relaxed: true
 
 sparkMaster:
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "1Gi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
   ha:
     enabled: true
     recoveryDir: "/opt/spark/recovery"
@@ -22,20 +25,66 @@ sparkMaster:
       size: 1Gi
       storageClass: ""
 
+sparkWorker:
+  replicas: 1
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "1Gi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+
+shuffleService:
+  enabled: true
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "128Mi"
+    limits:
+      cpu: "300m"
+      memory: "512Mi"
+
 minio:
   enabled: true
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "256Mi"
+    limits:
+      cpu: "300m"
+      memory: "1Gi"
   persistence:
     enabled: true
     size: 20Gi
     storageClass: ""
 
 hiveMetastore:
-  # Keep Spark warehouse on S3
-  warehouseDir: "s3a://warehouse/standalone"
+  # In real prod this is usually an external service; keep it off for airflow-focused prod-like tests.
+  enabled: false
 
 airflow:
   enabled: true
+  fernetKey: "ccWYFd6vDiSWvwz1NrFzpUQbexAQ_HiQR5_j_8YkXIA="
+  kubernetesExecutor:
+    deleteWorkerPods: true
+  webserver:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "512Mi"
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
+  scheduler:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "512Mi"
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
 
 mlflow:
-  enabled: true
+  enabled: false
 
