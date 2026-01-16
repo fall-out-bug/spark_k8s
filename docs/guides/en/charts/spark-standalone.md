@@ -185,3 +185,4 @@ kubectl logs <spark-driver-pod> -n spark-sa | grep -i "executor\|memory"
 - **Prod-like values:** `charts/spark-standalone/values-prod-like.yaml`
 - **Shared overlay:** `charts/values-common.yaml`
 - **Repository map:** [`docs/PROJECT_MAP.md`](../../../PROJECT_MAP.md)
+- **Russian version:** [`docs/guides/ru/charts/spark-standalone.md`](../../ru/charts/spark-standalone.md)

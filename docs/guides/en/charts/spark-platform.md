@@ -136,3 +136,4 @@ kubectl logs deploy/spark-platform-minio -n spark
 - **Full values:** `charts/spark-platform/values.yaml`
 - **Shared overlay:** `charts/values-common.yaml`
 - **Repository map:** [`docs/PROJECT_MAP.md`](../../../PROJECT_MAP.md)
+- **Russian version:** [`docs/guides/ru/charts/spark-platform.md`](../../ru/charts/spark-platform.md)
