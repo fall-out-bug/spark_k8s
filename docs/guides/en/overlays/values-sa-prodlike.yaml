@@ -1,0 +1,50 @@
+# Prod-like profile for Spark Standalone (tested on Minikube)
+# Based on: charts/spark-standalone/values-prod-like.yaml
+#
+# Usage:
+#   helm install spark-prodlike charts/spark-standalone -n spark-sa-prodlike \
+#     -f charts/spark-standalone/values-prod-like.yaml
+#
+# Or use this overlay as a reference and customize:
+#   helm install spark-prodlike charts/spark-standalone -n spark-sa-prodlike \
+#     -f docs/guides/en/overlays/values-sa-prodlike.yaml
+
+# This overlay references the tested values-prod-like.yaml.
+# For full configuration, see: charts/spark-standalone/values-prod-like.yaml
+
+# Key toggles for prod-like profile:
+
+security:
+  podSecurityStandards: true  # Enable PSS hardening
+  postgresql:
+    relaxed: true  # Keep embedded Postgres relaxed (prod uses external DB)
+
+sparkMaster:
+  ha:
+    enabled: true  # Enable HA with PVC-backed recovery
+    persistence:
+      enabled: true
+      size: 1Gi
+      storageClass: ""  # Use default StorageClass
+
+sparkWorker:
+  replicas: 1  # Reduced for small local clusters
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "1Gi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+
+shuffleService:
+  enabled: true
+
+airflow:
+  enabled: true
+  # IMPORTANT: Generate a secure Fernet key for production!
+  # Generate with: python3 -c 'import os,base64; print(base64.urlsafe_b64encode(os.urandom(32)).decode())'
+  fernetKey: ""  # MUST be set (see values-prod-like.yaml for example)
+
+# For full prod-like configuration, use:
+#   -f charts/spark-standalone/values-prod-like.yaml

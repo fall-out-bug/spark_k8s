@@ -67,3 +67,68 @@ helm lint charts/spark-platform
 helm lint charts/spark-standalone
 ```
 
+---
+
+### Execution Report
+
+**Executed by:** GPT-5.2 (agent)  
+**Date:** 2026-01-16
+
+#### 🎯 Goal Status
+
+- [x] `docs/guides/en/charts/spark-platform.md` exists — ✅
+- [x] `docs/guides/en/charts/spark-standalone.md` exists — ✅
+- [x] `docs/guides/en/overlays/` contains copy-pasteable YAML overlays (at least 2) — ✅
+- [x] Guides include "quickstart" commands and reference existing `values*.yaml` files — ✅
+- [x] Guides explicitly state: tested on Minikube; prepared for OpenShift-like constraints — ✅
+
+**Goal Achieved:** ✅ YES
+
+#### Modified Files
+
+| File | Action | LOC |
+|------|--------|-----|
+| `docs/guides/en/charts/spark-platform.md` | created | 138 |
+| `docs/guides/en/charts/spark-standalone.md` | created | 187 |
+| `docs/guides/en/overlays/values-anyk8s.yaml` | created | 48 |
+| `docs/guides/en/overlays/values-sa-prodlike.yaml` | created | 50 |
+
+**Total:** 423 LOC (within MEDIUM scope estimate: 400-600)
+
+#### Completed Steps
+
+- [x] Step 1: Add EN chart guides for both charts (what it deploys, key values, install examples)
+- [x] Step 2: Add overlays under `docs/guides/en/overlays/` (values-anyk8s.yaml, values-sa-prodlike.yaml)
+- [x] Step 3: Reference smoke scripts and expected "green" outcomes
+
+#### Self-Check Results
+
+```bash
+$ helm lint charts/spark-platform
+==> Linting charts/spark-platform
+[INFO] Chart.yaml: icon is recommended
+1 chart(s) linted, 0 chart(s) failed
+
+$ helm lint charts/spark-standalone
+==> Linting charts/spark-standalone
+[INFO] Chart.yaml: icon is recommended
+1 chart(s) linted, 0 chart(s) failed
+
+$ test -f docs/guides/en/charts/spark-platform.md && \
+  test -f docs/guides/en/charts/spark-standalone.md && \
+  test -f docs/guides/en/overlays/values-anyk8s.yaml && \
+  test -f docs/guides/en/overlays/values-sa-prodlike.yaml && echo "✓ All files exist"
+✓ All files exist
+
+$ grep -l "tested on Minikube\|Tested on:" docs/guides/en/charts/*.md
+docs/guides/en/charts/spark-platform.md
+docs/guides/en/charts/spark-standalone.md
+
+$ hooks/post-build.sh WS-011-02 docs
+Post-build checks complete: WS-011-02
+```
+
+#### Issues
+
+None.
+

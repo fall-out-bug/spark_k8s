@@ -1,0 +1,48 @@
+# Generic baseline values overlay for any Kubernetes cluster
+# Use with: helm install <release> charts/<chart> -f docs/guides/en/overlays/values-anyk8s.yaml
+
+# Global image registry (if using private registry)
+global:
+  imageRegistry: ""  # e.g., "registry.example.com"
+  imagePullSecrets: []  # e.g., [{"name": "regcred"}]
+
+# S3 configuration (adjust for your S3-compatible storage)
+s3:
+  endpoint: "http://minio:9000"  # Change to your S3 endpoint
+  accessKey: "minioadmin"  # Change to your access key
+  secretKey: "minioadmin"  # Change to your secret key
+  pathStyleAccess: true  # Set to false for AWS S3
+  sslEnabled: false  # Set to true for HTTPS endpoints
+
+# ServiceAccount and RBAC
+serviceAccount:
+  create: true
+  name: spark
+  annotations: {}  # Add annotations if needed (e.g., for IRSA on AWS)
+
+rbac:
+  create: true
+
+# MinIO (if enabled)
+minio:
+  enabled: true
+  persistence:
+    storageClass: ""  # Use default StorageClass, or specify your StorageClass name
+    size: 10Gi  # Adjust based on your needs
+
+# History Server (if enabled)
+historyServer:
+  logDirectory: "s3a://spark-logs/events"  # Adjust path if needed
+
+# For spark-standalone chart only:
+# sparkMaster:
+#   ha:
+#     persistence:
+#       storageClass: ""  # Specify StorageClass for HA PVC if needed
+
+# For spark-platform chart only:
+# sparkConnect:
+#   executor:
+#     memory: "1g"  # Adjust based on your cluster capacity
+#   dynamicAllocation:
+#     maxExecutors: 5  # Adjust based on your cluster capacity
