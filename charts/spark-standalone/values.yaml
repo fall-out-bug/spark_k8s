@@ -21,6 +21,20 @@ historyServer:
   logDirectory: "s3a://spark-logs/events"
   # Optional informational URL (used by shared `spark-env` compatibility keys)
   url: ""
+  image:
+    repository: spark-custom
+    tag: "3.5.7"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 18080
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
 
 # Optional informational Spark Connect URL (compatibility with `charts/spark-platform`)
 sparkConnectServer: ""
@@ -244,6 +258,7 @@ ingress:
     sparkMaster: "spark.local"
     airflow: "airflow.local"
     mlflow: "mlflow.local"
+    historyServer: "history.local"
   tls: []
 
 security:
