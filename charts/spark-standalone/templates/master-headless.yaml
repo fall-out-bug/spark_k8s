@@ -1,0 +1,19 @@
+{{- if .Values.sparkMaster.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "spark-standalone.fullname" . }}-master-hl
+  labels:
+    app: spark-master
+    {{- include "spark-standalone.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  selector:
+    app: spark-master
+    {{- include "spark-standalone.selectorLabels" . | nindent 4 }}
+  ports:
+  - name: spark
+    port: {{ .Values.sparkMaster.service.ports.spark }}
+    targetPort: spark
+{{- end }}
+

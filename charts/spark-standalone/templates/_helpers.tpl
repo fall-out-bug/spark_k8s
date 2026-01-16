@@ -78,6 +78,15 @@ Pod security context (PSS restricted compatible)
 */}}
 {{- define "spark-standalone.podSecurityContext" -}}
 runAsNonRoot: true
+{{- with .Values.security.runAsUser }}
+runAsUser: {{ . }}
+{{- end }}
+{{- with .Values.security.runAsGroup }}
+runAsGroup: {{ . }}
+{{- end }}
+{{- with .Values.security.fsGroup }}
+fsGroup: {{ . }}
+{{- end }}
 seccompProfile:
   type: RuntimeDefault
 {{- end }}

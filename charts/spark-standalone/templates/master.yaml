@@ -19,21 +19,31 @@ spec:
         {{- include "spark-standalone.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "spark-standalone.serviceAccountName" . }}
+      {{- if .Values.security.podSecurityStandards }}
       securityContext:
         {{- include "spark-standalone.podSecurityContext" . | nindent 8 }}
+      {{- end }}
       {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
       - name: spark-master
+        {{- if .Values.security.podSecurityStandards }}
         securityContext:
           {{- include "spark-standalone.containerSecurityContext" . | nindent 10 }}
+        {{- end }}
         image: "{{ .Values.sparkMaster.image.repository }}:{{ .Values.sparkMaster.image.tag }}"
         imagePullPolicy: {{ .Values.sparkMaster.image.pullPolicy }}
         env:
         - name: SPARK_MODE
           value: "master"
+        - name: SPARK_MASTER_HOST
+          value: "{{ include "spark-standalone.fullname" . }}-master-hl"
+        {{- if .Values.security.podSecurityStandards }}
+        - name: HADOOP_USER_NAME
+          value: "spark"
+        {{- end }}
         - name: S3_ENDPOINT
           valueFrom:
             configMapKeyRef:
@@ -65,6 +75,14 @@ spec:
         volumeMounts:
         - name: tmp
           mountPath: /tmp
+        - name: spark-work
+          mountPath: /opt/spark/work
+        - name: spark-logs
+          mountPath: /opt/spark/logs
+        {{- if .Values.sparkMaster.ha.enabled }}
+        - name: spark-recovery
+          mountPath: /opt/spark/recovery
+        {{- end }}
         - name: spark-config
           mountPath: /opt/spark/conf/spark-defaults.conf
           subPath: spark-defaults.conf
@@ -74,6 +92,19 @@ spec:
       volumes:
       - name: tmp
         emptyDir: {}
+      - name: spark-work
+        emptyDir: {}
+      - name: spark-logs
+        emptyDir: {}
+      {{- if .Values.sparkMaster.ha.enabled }}
+      - name: spark-recovery
+        {{- if .Values.sparkMaster.ha.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ include "spark-standalone.fullname" . }}-master-recovery
+        {{- else }}
+        emptyDir: {}
+        {{- end }}
+      {{- end }}
       - name: spark-config
         configMap:
           name: spark-config

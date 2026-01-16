@@ -114,6 +114,7 @@ data:
     from airflow import DAG
     from airflow.models import Variable
     from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
+    import textwrap
 
     SPARK_IMAGE = Variable.get("spark_image", default_var="spark-custom:3.5.7")
     SPARK_NAMESPACE = Variable.get("spark_namespace", default_var="default")

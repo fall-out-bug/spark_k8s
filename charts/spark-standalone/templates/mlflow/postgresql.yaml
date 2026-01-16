@@ -50,12 +50,25 @@ spec:
         app: postgresql-mlflow
         {{- include "spark-standalone.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if not .Values.security.postgresql.relaxed }}
+      securityContext:
+        {{- include "spark-standalone.podSecurityContext" . | nindent 8 }}
+      {{- end }}
       containers:
       - name: postgresql
+        {{- if not .Values.security.postgresql.relaxed }}
         securityContext:
           {{- include "spark-standalone.containerSecurityContext" . | nindent 10 }}
+          runAsUser: 999
+          runAsGroup: 999
+        {{- end }}
         image: "postgres:16-alpine"
         imagePullPolicy: IfNotPresent
+        env:
+        - name: PGDATA
+          value: /var/lib/postgresql/data
+        - name: POSTGRES_INITDB_ARGS
+          value: "--auth-host=md5 --auth-local=trust"
         envFrom:
         - secretRef:
             name: {{ include "spark-standalone.fullname" . }}-postgresql-mlflow-credentials
@@ -64,7 +77,15 @@ spec:
           containerPort: {{ .Values.mlflow.postgresql.port }}
         volumeMounts:
         - name: data
+          {{- if .Values.security.postgresql.relaxed }}
           mountPath: /var/lib/postgresql/data
+          {{- else }}
+          mountPath: /var/lib/postgresql
+          {{- end }}
+        {{- if not .Values.security.postgresql.relaxed }}
+        - name: run
+          mountPath: /var/run/postgresql
+        {{- end }}
         - name: tmp
           mountPath: /tmp
       volumes:
@@ -75,6 +96,10 @@ spec:
         {{- else }}
         emptyDir: {}
         {{- end }}
+      {{- if not .Values.security.postgresql.relaxed }}
+      - name: run
+        emptyDir: {}
+      {{- end }}
       - name: tmp
         emptyDir: {}
 ---

@@ -19,21 +19,29 @@ spec:
         {{- include "spark-standalone.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "spark-standalone.serviceAccountName" . }}
+      {{- if .Values.security.podSecurityStandards }}
       securityContext:
         {{- include "spark-standalone.podSecurityContext" . | nindent 8 }}
+      {{- end }}
       {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
       - name: spark-worker
+        {{- if .Values.security.podSecurityStandards }}
         securityContext:
           {{- include "spark-standalone.containerSecurityContext" . | nindent 10 }}
+        {{- end }}
         image: "{{ .Values.sparkWorker.image.repository }}:{{ .Values.sparkWorker.image.tag }}"
         imagePullPolicy: {{ .Values.sparkWorker.image.pullPolicy }}
         env:
         - name: SPARK_MODE
           value: "worker"
+        {{- if .Values.security.podSecurityStandards }}
+        - name: HADOOP_USER_NAME
+          value: "spark"
+        {{- end }}
         - name: SPARK_MASTER_HOST
           value: "{{ include "spark-standalone.fullname" . }}-master"
         - name: SPARK_MASTER_PORT
@@ -67,6 +75,10 @@ spec:
         volumeMounts:
         - name: tmp
           mountPath: /tmp
+        - name: spark-work
+          mountPath: /opt/spark/work
+        - name: spark-logs
+          mountPath: /opt/spark/logs
         - name: spark-config
           mountPath: /opt/spark/conf/spark-defaults.conf
           subPath: spark-defaults.conf
@@ -75,6 +87,10 @@ spec:
           subPath: log4j2.properties
       volumes:
       - name: tmp
+        emptyDir: {}
+      - name: spark-work
+        emptyDir: {}
+      - name: spark-logs
         emptyDir: {}
       - name: spark-config
         configMap:

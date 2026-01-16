@@ -17,7 +17,7 @@ MASTER_POD="$(kubectl get pod -n "${NAMESPACE}" -l "${MASTER_SELECTOR}" -o jsonp
 echo "   Master pod: ${MASTER_POD}"
 
 echo "2) Checking Spark Master UI responds..."
-kubectl exec -n "${NAMESPACE}" "${MASTER_POD}" -- sh -lc "curl -fsS http://localhost:8080/ | head -n 5" >/dev/null
+kubectl exec -n "${NAMESPACE}" "${MASTER_POD}" -- sh -lc "curl -fsS http://localhost:8080/ >/dev/null 2>&1"
 echo "   OK"
 
 echo "3) Checking at least 1 worker registered (best-effort)..."
@@ -30,7 +30,11 @@ fi
 
 echo "4) Running SparkPi via spark-submit (best-effort)..."
 kubectl exec -n "${NAMESPACE}" "${MASTER_POD}" -- sh -lc "\
-  spark-submit --master spark://localhost:7077 \
+  POD_IP=\$(hostname -i) && \
+  timeout 300s spark-submit --master spark://${RELEASE}-spark-standalone-master:7077 \
+    --conf spark.driver.bindAddress=0.0.0.0 \
+    --conf spark.driver.host=\$POD_IP \
+    --conf spark.sql.catalogImplementation=in-memory \
     --class org.apache.spark.examples.SparkPi \
     /opt/spark/examples/jars/spark-examples_2.12-3.5.7.jar 10 \
   | grep -q 'Pi is roughly' \

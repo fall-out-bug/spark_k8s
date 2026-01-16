@@ -30,13 +30,19 @@ spec:
         app: mlflow
         {{- include "spark-standalone.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if .Values.security.podSecurityStandards }}
       securityContext:
         {{- include "spark-standalone.podSecurityContext" . | nindent 8 }}
+      {{- end }}
       initContainers:
       - name: wait-for-postgresql
         image: busybox:1.36
+        {{- if .Values.security.podSecurityStandards }}
         securityContext:
           {{- include "spark-standalone.containerSecurityContext" . | nindent 10 }}
+          runAsUser: 1000
+          runAsGroup: 1000
+        {{- end }}
         command:
         - sh
         - -c
@@ -45,19 +51,28 @@ spec:
           do echo "Waiting for PostgreSQL..."; sleep 2; done; echo "PostgreSQL is ready!"
       containers:
       - name: mlflow
+        {{- if .Values.security.podSecurityStandards }}
         securityContext:
           {{- include "spark-standalone.containerSecurityContext" . | nindent 10 }}
+        {{- end }}
         image: "{{ .Values.mlflow.image.repository }}:{{ .Values.mlflow.image.tag }}"
         imagePullPolicy: {{ .Values.mlflow.image.pullPolicy }}
         command:
-        - mlflow
-        - server
-        - --host=0.0.0.0
-        - --port={{ .Values.mlflow.service.port }}
-        - --backend-store-uri=postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@{{ .Values.mlflow.postgresql.host }}:{{ .Values.mlflow.postgresql.port }}/{{ .Values.mlflow.postgresql.database }}
-        - --default-artifact-root=s3://{{ .Values.mlflow.artifactBucket }}
-        - --serve-artifacts
+        - bash
+        - -lc
+        - |
+          # ghcr.io/mlflow/mlflow doesn't ship psycopg2 by default.
+          # For local/test (prod uses external services), install the driver at runtime.
+          python -m pip install --no-cache-dir --user psycopg2-binary && \
+          exec mlflow server \
+            --host=0.0.0.0 \
+            --port={{ .Values.mlflow.service.port }} \
+            --backend-store-uri=postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@{{ .Values.mlflow.postgresql.host }}:{{ .Values.mlflow.postgresql.port }}/{{ .Values.mlflow.postgresql.database }} \
+            --default-artifact-root=s3://{{ .Values.mlflow.artifactBucket }} \
+            --serve-artifacts
         env:
+        - name: HOME
+          value: /home/mlflow
         - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:

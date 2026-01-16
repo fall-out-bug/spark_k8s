@@ -42,12 +42,12 @@ fi
 case "${SPARK_MODE:-driver}" in
   master)
     echo "Starting Spark Master..."
-    export SPARK_MASTER_HOST=$(hostname -i)
+    export SPARK_MASTER_HOST=${SPARK_MASTER_HOST:-$(hostname -i)}
     export SPARK_MASTER_PORT=${SPARK_MASTER_PORT:-7077}
     export SPARK_MASTER_WEBUI_PORT=${SPARK_MASTER_WEBUI_PORT:-8080}
-    # HA recovery via FILESYSTEM (supports s3a:// paths)
+    # HA recovery via FILESYSTEM (requires a POSIX filesystem path, typically PVC/NFS)
     if [ -n "$SPARK_RECOVERY_DIR" ]; then
-      export SPARK_DAEMON_JAVA_OPTS="-Dspark.deploy.recoveryMode=FILESYSTEM -Dspark.deploy.recoveryDirectory=$SPARK_RECOVERY_DIR"
+      export SPARK_DAEMON_JAVA_OPTS="${SPARK_DAEMON_JAVA_OPTS:-} -Dspark.deploy.recoveryMode=FILESYSTEM -Dspark.deploy.recoveryDirectory=$SPARK_RECOVERY_DIR"
     fi
     exec /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master \
       --host "$SPARK_MASTER_HOST" \
@@ -85,11 +85,29 @@ case "${SPARK_MODE:-driver}" in
     ;;
   metastore)
     echo "Starting Hive Metastore..."
+    # IMPORTANT:
+    # Spark images ship their own Hive + DataNucleus jars; mixing versions can break metastore
+    # (e.g. "principalName is unresolved"). We run metastore with a dedicated classpath
+    # that prioritizes the standalone metastore libs we ship in /opt/hive-metastore/lib.
+    HMS_LIB_DIR="/opt/hive-metastore/lib"
+    # Build Spark jars classpath, but exclude jars that conflict with metastore runtime.
+    SPARK_JARS_CP=""
+    for jar in /opt/spark/jars/*.jar; do
+      base="$(basename "$jar")"
+      case "$base" in
+        # Avoid pulling Spark's embedded Hive stack onto the metastore classpath.
+        # We rely on /opt/hive-metastore/lib for metastore + DataNucleus + Guava.
+        datanucleus-*|guava-*|hive-*|spark-hive_*|spark-hive-thriftserver_*|spark-sql_*|javax.jdo-*|jdo-api-*) continue ;;
+      esac
+      SPARK_JARS_CP="${SPARK_JARS_CP}:${jar}"
+    done
+
+    HMS_CLASSPATH="${HMS_LIB_DIR}/*${SPARK_JARS_CP}:/opt/spark/conf"
     # Initialize schema if needed (first run)
-    /opt/spark/bin/spark-class org.apache.hadoop.hive.metastore.tools.MetastoreSchemaTool \
+    java -cp "${HMS_CLASSPATH}" org.apache.hadoop.hive.metastore.tools.MetastoreSchemaTool \
       -dbType postgres -initSchema --verbose 2>/dev/null || true
     # Start metastore service
-    exec /opt/spark/bin/spark-class org.apache.hadoop.hive.metastore.HiveMetaStore
+    exec java -cp "${HMS_CLASSPATH}" org.apache.hadoop.hive.metastore.HiveMetaStore
     ;;
   history)
     echo "Starting Spark History Server..."

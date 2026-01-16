@@ -18,19 +18,29 @@ spec:
         {{- include "spark-standalone.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "spark-standalone.serviceAccountName" . }}
+      {{- if .Values.security.podSecurityStandards }}
+      securityContext:
+        {{- include "spark-standalone.podSecurityContext" . | nindent 8 }}
+      {{- end }}
       {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
       - name: shuffle-service
+        {{- if .Values.security.podSecurityStandards }}
         securityContext:
           {{- include "spark-standalone.containerSecurityContext" . | nindent 10 }}
+        {{- end }}
         image: "{{ .Values.shuffleService.image.repository }}:{{ .Values.shuffleService.image.tag }}"
         imagePullPolicy: {{ .Values.shuffleService.image.pullPolicy }}
         env:
         - name: SPARK_MODE
           value: "shuffle"
+        {{- if .Values.security.podSecurityStandards }}
+        - name: HADOOP_USER_NAME
+          value: "spark"
+        {{- end }}
         - name: SPARK_SHUFFLE_SERVICE_PORT
           value: "{{ .Values.shuffleService.port }}"
         ports:

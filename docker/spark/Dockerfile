@@ -19,9 +19,11 @@ ARG VERTICA_JDBC_VERSION=24.4.0-0
 ARG ORACLE_JDBC_VERSION=23.6.0.24.10
 ARG POSTGRES_JDBC_VERSION=42.7.3
 ARG HIVE_VERSION=3.1.3
-ARG DATANUCLEUS_API_JDO_VERSION=5.2.9
-ARG DATANUCLEUS_CORE_VERSION=5.2.10
-ARG DATANUCLEUS_RDBMS_VERSION=5.2.10
+# DataNucleus versions must match Hive Metastore expectations.
+# Hive 3.1.x is compatible with DataNucleus 5.1.x; newer 5.2.x can break at runtime.
+ARG DATANUCLEUS_API_JDO_VERSION=5.1.2
+ARG DATANUCLEUS_CORE_VERSION=5.1.2
+ARG DATANUCLEUS_RDBMS_VERSION=5.1.2
 
 # Install additional tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -71,16 +73,26 @@ RUN wget -q -P /opt/spark/jars/ \
     "https://repo1.maven.org/maven2/org/apache/spark/spark-hadoop-cloud_${SCALA_VERSION}/${SPARK_VERSION}/spark-hadoop-cloud_${SCALA_VERSION}-${SPARK_VERSION}.jar"
 
 # Hive Metastore standalone JARs
-RUN wget -q -P /opt/spark/jars/ \
-    "https://repo1.maven.org/maven2/org/apache/hive/hive-standalone-metastore/${HIVE_VERSION}/hive-standalone-metastore-${HIVE_VERSION}.jar" && \
-    wget -q -P /opt/spark/jars/ \
-    "https://repo1.maven.org/maven2/org/datanucleus/datanucleus-api-jdo/${DATANUCLEUS_API_JDO_VERSION}/datanucleus-api-jdo-${DATANUCLEUS_API_JDO_VERSION}.jar" && \
-    wget -q -P /opt/spark/jars/ \
-    "https://repo1.maven.org/maven2/org/datanucleus/datanucleus-core/${DATANUCLEUS_CORE_VERSION}/datanucleus-core-${DATANUCLEUS_CORE_VERSION}.jar" && \
-    wget -q -P /opt/spark/jars/ \
-    "https://repo1.maven.org/maven2/org/datanucleus/datanucleus-rdbms/${DATANUCLEUS_RDBMS_VERSION}/datanucleus-rdbms-${DATANUCLEUS_RDBMS_VERSION}.jar" && \
-    wget -q -P /opt/spark/jars/ \
-    "https://repo1.maven.org/maven2/javax/jdo/jdo-api/3.1/jdo-api-3.1.jar"
+# NOTE: keep them separate from Spark jars to avoid classpath conflicts.
+ARG DISRUPTOR_VERSION=3.4.4
+ARG GUAVA_VERSION=27.0-jre
+RUN mkdir -p /opt/hive-metastore/lib && \
+    wget -q -P /opt/hive-metastore/lib/ \
+      "https://repo1.maven.org/maven2/org/apache/hive/hive-standalone-metastore/${HIVE_VERSION}/hive-standalone-metastore-${HIVE_VERSION}.jar" && \
+    wget -q -P /opt/hive-metastore/lib/ \
+      "https://repo1.maven.org/maven2/org/apache/hive/hive-exec/${HIVE_VERSION}/hive-exec-${HIVE_VERSION}.jar" && \
+    wget -q -P /opt/hive-metastore/lib/ \
+      "https://repo1.maven.org/maven2/org/datanucleus/datanucleus-api-jdo/${DATANUCLEUS_API_JDO_VERSION}/datanucleus-api-jdo-${DATANUCLEUS_API_JDO_VERSION}.jar" && \
+    wget -q -P /opt/hive-metastore/lib/ \
+      "https://repo1.maven.org/maven2/org/datanucleus/datanucleus-core/${DATANUCLEUS_CORE_VERSION}/datanucleus-core-${DATANUCLEUS_CORE_VERSION}.jar" && \
+    wget -q -P /opt/hive-metastore/lib/ \
+      "https://repo1.maven.org/maven2/org/datanucleus/datanucleus-rdbms/${DATANUCLEUS_RDBMS_VERSION}/datanucleus-rdbms-${DATANUCLEUS_RDBMS_VERSION}.jar" && \
+    wget -q -P /opt/hive-metastore/lib/ \
+      "https://repo1.maven.org/maven2/org/datanucleus/javax.jdo/3.2.0-m3/javax.jdo-3.2.0-m3.jar" && \
+    wget -q -P /opt/hive-metastore/lib/ \
+      "https://repo1.maven.org/maven2/com/lmax/disruptor/${DISRUPTOR_VERSION}/disruptor-${DISRUPTOR_VERSION}.jar" && \
+    wget -q -P /opt/hive-metastore/lib/ \
+      "https://repo1.maven.org/maven2/com/google/guava/guava/${GUAVA_VERSION}/guava-${GUAVA_VERSION}.jar"
 
 # Install Python packages for pandas API and Spark Connect dependencies
 # PySpark is already in the base image, we just need connect extras

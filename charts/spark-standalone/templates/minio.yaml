@@ -17,12 +17,18 @@ spec:
         app: minio
         {{- include "spark-standalone.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if .Values.security.podSecurityStandards }}
       securityContext:
         {{- include "spark-standalone.podSecurityContext" . | nindent 8 }}
+      {{- end }}
       containers:
       - name: minio
+        {{- if .Values.security.podSecurityStandards }}
         securityContext:
           {{- include "spark-standalone.containerSecurityContext" . | nindent 10 }}
+          runAsUser: 1000
+          runAsGroup: 1000
+        {{- end }}
         image: "{{ .Values.minio.image.repository }}:{{ .Values.minio.image.tag }}"
         imagePullPolicy: {{ .Values.minio.image.pullPolicy }}
         args:
@@ -127,12 +133,18 @@ spec:
   template:
     spec:
       restartPolicy: OnFailure
+      {{- if .Values.security.podSecurityStandards }}
       securityContext:
         {{- include "spark-standalone.podSecurityContext" . | nindent 8 }}
+      {{- end }}
       containers:
       - name: mc
+        {{- if .Values.security.podSecurityStandards }}
         securityContext:
           {{- include "spark-standalone.containerSecurityContext" . | nindent 10 }}
+          runAsUser: 1000
+          runAsGroup: 1000
+        {{- end }}
         image: quay.io/minio/mc:latest
         command:
         - /bin/sh
@@ -140,7 +152,7 @@ spec:
         - |
           echo "Waiting for MinIO to be ready..."
           for i in $(seq 1 30); do
-            if mc alias set myminio http://minio:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD 2>/dev/null; then
+            if mc alias set myminio http://minio:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD; then
               echo "MinIO is ready!"
               break
             fi
@@ -158,6 +170,10 @@ spec:
           echo "Buckets created successfully"
           mc ls myminio/
         env:
+        - name: HOME
+          value: /tmp
+        - name: MC_CONFIG_DIR
+          value: /tmp/.mc
         - name: MINIO_ROOT_USER
           valueFrom:
             secretKeyRef:
@@ -168,4 +184,10 @@ spec:
             secretKeyRef:
               name: s3-credentials
               key: secret-key
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}
 {{- end }}
