@@ -4,7 +4,7 @@
 
 **Source:** `docs/drafts/idea-spark-standalone-chart.md`
 **Status:** Planning Complete
-**Total Workstreams:** 11
+**Total Workstreams:** 12
 **Estimated LOC:** ~2600
 
 | ID | Name | Scope | Dependency | Status |
@@ -20,6 +20,7 @@
 | WS-001-09 | Security Hardening | MEDIUM (~400 LOC) | WS-001-07 | backlog |
 | WS-001-10 | Example DAGs & Tests | MEDIUM (~400 LOC) | WS-001-09 | backlog |
 | WS-001-11 | Prod-like Airflow Tests | SMALL (~250 LOC) | WS-001-10 | backlog |
+| WS-001-12 | Shared Values Compatibility | SMALL (~150 LOC) | WS-001-10 | backlog |
 
 ### Dependency Graph
 
@@ -36,6 +37,7 @@ WS-001-01 (Chart Skeleton)
                     └── WS-001-09 (Security Hardening)
                             └── WS-001-10 (DAGs & Tests)
                                     └── WS-001-11 (Prod-like Airflow Tests)
+                                    └── WS-001-12 (Shared Values Compatibility)
 ```
 
 ### Parallel Execution Paths
@@ -49,7 +51,7 @@ WS-001-01 (Chart Skeleton)
 
 | Feature | Total WS | Completed | In Progress | Backlog |
 |---------|----------|-----------|-------------|---------|
-| F01: Spark Standalone | 11 | 0 | 0 | 11 |
+| F01: Spark Standalone | 12 | 0 | 0 | 12 |
 
 ---
 
