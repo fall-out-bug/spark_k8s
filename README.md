@@ -2,6 +2,18 @@
 
 Apache Spark 3.5.7 с динамическими K8s executor-подами, Hive Metastore, S3 хранилищем (MinIO), JupyterHub (многопользовательский режим) и JupyterLab.
 
+## Spec-Driven Protocol (SDP)
+
+Работа в этом репозитории ведётся по **Spec-Driven Protocol (SDP)**: идеи → workstreams → build → review → deploy.
+
+- SDP репозиторий: `https://github.com/fall-out-bug/sdp`
+- Артефакты по фичам:
+  - `docs/drafts/` — драфты требований
+  - `docs/workstreams/` — workstreams (backlog/in_progress/completed)
+  - `docs/adr/` — ADR
+  - `docs/issues/` — issue-отчёты по проблемам
+  - `docs/uat/` — UAT гайды
+
 ## Оглавление
 
 - [Архитектура](#архитектура)

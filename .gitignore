@@ -3,6 +3,7 @@
 
 # Local Cursor/IDE artifacts
 /.cursor/
+/.cursorrules
 
 # Common local artifacts
 .DS_Store
