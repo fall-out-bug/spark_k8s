@@ -20,7 +20,7 @@
 | WS-001-09 | Security Hardening | MEDIUM (~400 LOC) | WS-001-07 | completed |
 | WS-001-10 | Example DAGs & Tests | MEDIUM (~400 LOC) | WS-001-09 | completed |
 | WS-001-11 | Prod-like Airflow Tests | SMALL (~250 LOC) | WS-001-10 | completed |
-| WS-001-12 | Shared Values Compatibility | SMALL (~150 LOC) | WS-001-10 | backlog |
+| WS-001-12 | Shared Values Compatibility | SMALL (~150 LOC) | WS-001-10 | completed |
 
 ### Dependency Graph
 
@@ -51,7 +51,7 @@ WS-001-01 (Chart Skeleton)
 
 | Feature | Total WS | Completed | In Progress | Backlog |
 |---------|----------|-----------|-------------|---------|
-| F01: Spark Standalone | 12 | 11 | 0 | 1 |
+| F01: Spark Standalone | 12 | 12 | 0 | 0 |
 
 ---
 

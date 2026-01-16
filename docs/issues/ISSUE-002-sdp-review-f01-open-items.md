@@ -1,5 +1,9 @@
 ## ISSUE-002: SDP review — F01 open items / follow-ups
 
+### Status
+
+Closed (WS-001-12 completed)
+
 ### Summary
 
 During strict SDP review of **F01: Spark Standalone Helm Chart**, the implementation is functionally validated
@@ -23,4 +27,8 @@ During strict SDP review of **F01: Spark Standalone Helm Chart**, the implementa
 - `helm lint` for `charts/spark-standalone` passes
 - Runtime smoke in `spark-sa-prodlike`:
   - `scripts/test-sa-prodlike-all.sh` passes (SparkPi + Airflow `example_bash_operator` + `spark_etl_synthetic`)
+
+### Resolution
+
+- WS-001-12 was executed and moved to `docs/workstreams/completed/WS-001-12-shared-values-compat.md`.
 
