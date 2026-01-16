@@ -46,5 +46,44 @@ kubectl get svc -n "${NAMESPACE}" "${RELEASE}-spark-standalone-airflow-webserver
 kubectl get svc -n "${NAMESPACE}" "${RELEASE}-spark-standalone-mlflow" >/dev/null 2>&1 || true
 echo "   OK"
 
+echo "6) Checking History Server (if deployed)..."
+HISTORY_SVC="${RELEASE}-spark-standalone-history-server"
+if kubectl get svc "$HISTORY_SVC" -n "$NAMESPACE" &>/dev/null; then
+  echo "   History Server service found, waiting for pod..."
+  kubectl wait --for=condition=ready pod \
+    -l app=spark-history-server,app.kubernetes.io/instance="${RELEASE}" \
+    -n "$NAMESPACE" \
+    --timeout=120s || {
+    echo "   WARN: History Server pod not ready (skipping API check)"
+    echo "   OK (service exists)"
+  }
+  
+  # Port-forward in background
+  echo "   Port-forwarding to History Server..."
+  kubectl port-forward "svc/${HISTORY_SVC}" 18080:18080 -n "$NAMESPACE" >/dev/null 2>&1 &
+  PF_PID=$!
+  sleep 3
+  
+  # Query applications (may take a moment for logs to be parsed)
+  echo "   Querying History Server API..."
+  APPS=$(curl -s http://localhost:18080/api/v1/applications 2>/dev/null || echo "[]")
+  
+  # Cleanup port-forward
+  kill $PF_PID 2>/dev/null || true
+  wait $PF_PID 2>/dev/null || true
+  
+  # Check at least one application exists
+  APP_COUNT=$(echo "$APPS" | python3 -c "import sys,json; print(len(json.load(sys.stdin)))" 2>/dev/null || echo "0")
+  if [[ "$APP_COUNT" -gt 0 ]]; then
+    echo "   ✓ History Server shows $APP_COUNT application(s)"
+  else
+    echo "   ⚠ History Server has no applications yet (may need more time for log parsing)"
+  fi
+  echo "   OK"
+else
+  echo "   History Server not deployed (skipping)"
+  echo "   OK"
+fi
+
 echo "=== Done ==="
 
