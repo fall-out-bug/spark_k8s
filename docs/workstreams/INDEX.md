@@ -4,7 +4,7 @@
 
 **Source:** `docs/drafts/idea-spark-standalone-chart.md`
 **Status:** Planning Complete
-**Total Workstreams:** 10
+**Total Workstreams:** 11
 **Estimated LOC:** ~2600
 
 | ID | Name | Scope | Dependency | Status |
@@ -19,6 +19,7 @@
 | WS-001-08 | Ingress | SMALL (~120 LOC) | WS-001-06, WS-001-07 | backlog |
 | WS-001-09 | Security Hardening | MEDIUM (~400 LOC) | WS-001-07 | backlog |
 | WS-001-10 | Example DAGs & Tests | MEDIUM (~400 LOC) | WS-001-09 | backlog |
+| WS-001-11 | Prod-like Airflow Tests | SMALL (~250 LOC) | WS-001-10 | backlog |
 
 ### Dependency Graph
 
@@ -34,11 +35,12 @@ WS-001-01 (Chart Skeleton)
             └── WS-001-08 (Ingress)
                     └── WS-001-09 (Security Hardening)
                             └── WS-001-10 (DAGs & Tests)
+                                    └── WS-001-11 (Prod-like Airflow Tests)
 ```
 
 ### Parallel Execution Paths
 
-1. **Critical Path:** WS-001-01 → WS-001-02 → WS-001-03 → WS-001-06 → WS-001-08 → WS-001-09 → WS-001-10
+1. **Critical Path:** WS-001-01 → WS-001-02 → WS-001-03 → WS-001-06 → WS-001-08 → WS-001-09 → WS-001-10 → WS-001-11
 2. **Parallel:** WS-001-04, WS-001-05, WS-001-07 can run after their dependencies
 
 ---
@@ -47,7 +49,7 @@ WS-001-01 (Chart Skeleton)
 
 | Feature | Total WS | Completed | In Progress | Backlog |
 |---------|----------|-----------|-------------|---------|
-| F01: Spark Standalone | 10 | 0 | 0 | 10 |
+| F01: Spark Standalone | 11 | 0 | 0 | 11 |
 
 ---
 
