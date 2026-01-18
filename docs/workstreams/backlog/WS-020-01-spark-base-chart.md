@@ -166,3 +166,65 @@ helm template spark-base charts/spark-base \
 - DO NOT hardcode credentials (use parameterized secrets)
 - DO NOT create NOTES.txt (reserved for version-specific charts)
 - Templates MUST support PSS `restricted` when `security.podSecurityStandards=true`
+
+---
+
+### Execution Report
+
+**Executed by:** gpt-5.2-codex-high  
+**Date:** 2026-01-18
+
+#### 🎯 Goal Status
+
+- [x] AC1: `charts/spark-base/Chart.yaml` defines chart metadata — ✅
+- [x] AC2: `charts/spark-base/values.yaml` contains RBAC/MinIO/PostgreSQL defaults — ✅
+- [x] AC3: `templates/rbac.yaml` defines ServiceAccount, Role, RoleBinding — ✅
+- [x] AC4: `templates/minio.yaml` defines MinIO Deployment + Service + init job — ✅
+- [x] AC5: `templates/postgresql.yaml` defines PostgreSQL StatefulSet + Service — ✅
+- [x] AC6: `templates/_helpers.tpl` defines shared helper functions — ✅
+- [x] AC7: `helm lint charts/spark-base` passes — ✅
+
+**Goal Achieved:** ✅ YES
+
+#### Modified Files
+
+| File | Action | LOC |
+|------|--------|-----|
+| `charts/spark-base/Chart.yaml` | created | 6 |
+| `charts/spark-base/values.yaml` | created | 68 |
+| `charts/spark-base/templates/_helpers.tpl` | created | 91 |
+| `charts/spark-base/templates/rbac.yaml` | created | 47 |
+| `charts/spark-base/templates/minio.yaml` | created | 190 |
+| `charts/spark-base/templates/postgresql.yaml` | created | 126 |
+
+#### Completed Steps
+
+- [x] Created `spark-base` chart structure and metadata
+- [x] Implemented shared helpers (labels, selectors, security contexts)
+- [x] Added RBAC resources (ServiceAccount, Role, RoleBinding)
+- [x] Added MinIO deployment/service/init job
+- [x] Added PostgreSQL StatefulSet/service/init scripts
+- [x] Ran helm lint and render checks
+
+#### Self-Check Results
+
+```bash
+$ helm lint charts/spark-base
+1 chart(s) linted, 0 chart(s) failed
+
+$ helm template spark-base charts/spark-base --debug
+# Render succeeded
+
+$ helm template spark-base charts/spark-base \
+  --set minio.enabled=true \
+  --set postgresql.enabled=true \
+  --set security.podSecurityStandards=true
+# Render succeeded
+
+$ hooks/post-build.sh WS-020-01
+Skipping tests/coverage/linters for this repo layout
+```
+
+#### Issues
+
+None.
