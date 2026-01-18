@@ -28,6 +28,16 @@ Apache Spark 3.5.7 Helm charts для Kubernetes: Spark Connect (gRPC) и Spark 
 - **Validation:** [`docs/guides/en/validation.md`](docs/guides/en/validation.md) / [`docs/guides/ru/validation.md`](docs/guides/ru/validation.md)
 - **OpenShift notes:** [`docs/guides/en/openshift-notes.md`](docs/guides/en/openshift-notes.md) / [`docs/guides/ru/openshift-notes.md`](docs/guides/ru/openshift-notes.md)
 
+## Architectural Decision Records (ADRs)
+
+- [ADR-0001: Spark Standalone Master HA (PVC)](docs/adr/ADR-0001-spark-standalone-master-ha-pvc.md)
+- [ADR-0002: Airflow KubernetesExecutor Pod Template](docs/adr/ADR-0002-airflow-kubernetesexecutor-pod-template-and-fernet.md)
+- [ADR-0003: Shared Values Contract](docs/adr/ADR-0003-shared-values-contract.md)
+- [ADR-0004: Spark 4.1.0 Modular Architecture](docs/adr/ADR-0004-spark-410-modular-architecture.md)
+- [ADR-0005: Celeborn Disaggregated Shuffle](docs/adr/ADR-0005-celeborn-disaggregated-shuffle.md)
+- [ADR-0006: Spark Operator as Optional Component](docs/adr/ADR-0006-spark-operator-optional.md)
+- [ADR-0007: Version-Specific Hive Metastores](docs/adr/ADR-0007-version-specific-metastores.md)
+
 ### Scripts
 
 | Script | Purpose |
