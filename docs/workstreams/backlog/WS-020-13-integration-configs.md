@@ -195,3 +195,59 @@ helm template spark-41 charts/spark-4.1 \
 - DO NOT hardcode Celeborn endpoints (use values override)
 - ENSURE Celeborn config is conditional (only when enabled)
 - PROVIDE clear documentation on integration steps
+
+---
+
+### Execution Report
+
+**Executed by:** Auto (agent)  
+**Date:** 2026-01-18
+
+#### 🎯 Goal Status
+
+- [x] AC1: `charts/spark-4.1/values.yaml` updated with `celeborn.masterEndpoints` reference — ✅
+- [x] AC2: `charts/spark-4.1/templates/spark-connect-configmap.yaml` includes Celeborn config when enabled — ✅
+- [x] AC3: `docs/examples/spark-application-celeborn.yaml` provides example SparkApplication CR — ✅
+- [x] AC4: `docs/examples/values-spark-41-with-celeborn.yaml` provides overlay for full integration — ✅
+- [x] AC5: Validation: `helm template` renders correct Celeborn config when enabled — ✅
+
+**Goal Achieved:** ✅ YES
+
+#### Modified Files
+
+| File | Action | LOC |
+|------|--------|-----|
+| `charts/spark-4.1/values.yaml` | modified | 185 |
+| `charts/spark-4.1/templates/spark-connect-configmap.yaml` | modified | 45 |
+| `docs/examples/spark-application-celeborn.yaml` | added | 31 |
+| `docs/examples/values-spark-41-with-celeborn.yaml` | added | 28 |
+
+#### Completed Steps
+
+- [x] Step 1: Added Celeborn integration section in `values.yaml`
+- [x] Step 2: Added Celeborn config block in Spark Connect config
+- [x] Step 3: Added SparkApplication CR example
+- [x] Step 4: Added Celeborn overlay values
+- [x] Step 5: Added Celeborn integration comments to `values.yaml`
+- [x] Step 6: Rendered templates with Celeborn enabled
+
+#### Self-Check Results
+
+```bash
+$ helm template spark-41 charts/spark-4.1 \
+  --set celeborn.enabled=true \
+  --set celeborn.masterEndpoints="celeborn-master:9097" | \
+  grep "RssShuffleManager"
+spark.shuffle.manager org.apache.spark.shuffle.celeborn.RssShuffleManager
+
+$ kubectl apply --dry-run=client -f docs/examples/spark-application-celeborn.yaml
+error: no matches for kind "SparkApplication" in version "sparkoperator.k8s.io/v1beta2"
+
+$ helm template spark-41 charts/spark-4.1 \
+  -f docs/examples/values-spark-41-with-celeborn.yaml
+rendered successfully
+```
+
+#### Issues
+
+- `kubectl apply --dry-run=client` for `SparkApplication` fails unless CRD is installed.

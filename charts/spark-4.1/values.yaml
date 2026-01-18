@@ -140,14 +140,19 @@ jupyter:
     size: "10Gi"
     storageClass: ""
 
-# Celeborn (optional shuffle service for Spark 4.1.0)
+# Celeborn integration (optional)
+# Requires separate Celeborn deployment:
+#   helm install celeborn charts/celeborn
+#
+# For Spark Operator integration, see:
+#   docs/examples/spark-application-celeborn.yaml
 celeborn:
   enabled: false
+  masterEndpoints: "celeborn-master-0.celeborn-master:9097,celeborn-master-1.celeborn-master:9097,celeborn-master-2.celeborn-master:9097"
   image:
     repository: apache/celeborn
     tag: "0.6.1"
     pullPolicy: IfNotPresent
-  masterEndpoints: "celeborn-master:9097"
   masters:
     replicas: 3
   workers:
