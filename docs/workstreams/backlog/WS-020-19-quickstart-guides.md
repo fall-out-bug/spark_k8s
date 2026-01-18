@@ -209,3 +209,47 @@ markdownlint docs/guides/SPARK-4.1-QUICKSTART*.md || echo "Linter not installed,
 - DO NOT assume prior Spark knowledge (beginner-friendly)
 - ENSURE all code blocks are tested
 - USE consistent formatting (same style as existing guides)
+
+---
+
+### Execution Report
+
+**Executed by:** Auto (agent)  
+**Date:** 2026-01-18
+
+#### 🎯 Goal Status
+
+- [x] AC1: `docs/guides/SPARK-4.1-QUICKSTART.md` exists — ✅
+- [x] AC2: `docs/guides/SPARK-4.1-QUICKSTART-RU.md` exists — ✅
+- [x] AC3: Guides include Minikube setup, Helm install, port-forward, PySpark code — ✅
+- [x] AC4: All commands are copy-pasteable — ✅
+- [x] AC5: Guides link to production guide — ✅
+
+**Goal Achieved:** ✅ YES
+
+#### Modified Files
+
+| File | Action | LOC |
+|------|--------|-----|
+| `docs/guides/SPARK-4.1-QUICKSTART.md` | added | 76 |
+| `docs/guides/SPARK-4.1-QUICKSTART-RU.md` | added | 76 |
+| `README.md` | modified | 69 |
+
+#### Completed Steps
+
+- [x] Step 1: Added EN quickstart guide
+- [x] Step 2: Added RU quickstart guide
+- [x] Step 3: Updated README with quickstart links
+- [x] Step 4: Verified copy-pasteable commands
+
+#### Self-Check Results
+
+```bash
+$ ls docs/guides/SPARK-4.1-QUICKSTART*.md
+docs/guides/SPARK-4.1-QUICKSTART.md
+docs/guides/SPARK-4.1-QUICKSTART-RU.md
+```
+
+#### Issues
+
+- None
