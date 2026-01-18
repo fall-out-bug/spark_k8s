@@ -217,3 +217,62 @@ helm template spark-41 charts/spark-4.1 --set connect.enabled=true | \
 - DO NOT include Hive config here (separate template in WS-020-07)
 - ENSURE PSS compliance (security contexts, emptyDir volumes)
 - USE envsubst pattern for dynamic property injection (as in external repo)
+
+---
+
+### Execution Report
+
+**Executed by:** Auto (agent)  
+**Date:** 2026-01-18
+
+#### 🎯 Goal Status
+
+- [x] AC1: `charts/spark-4.1/templates/spark-connect.yaml` defines Deployment + Service — ✅
+- [x] AC2: `charts/spark-4.1/templates/spark-connect-configmap.yaml` defines spark-properties ConfigMap — ✅
+- [x] AC3: `charts/spark-4.1/templates/executor-pod-template-configmap.yaml` defines executor pod template — ✅
+- [x] AC4: Templates support `.Values.connect.enabled`, `.Values.celeborn.enabled` — ✅
+- [x] AC5: Security contexts use `{{ include "spark-base.podSecurityContext" . }}` — ✅
+- [x] AC6: `helm template` renders successfully with value combinations — ✅
+
+**Goal Achieved:** ✅ YES
+
+#### Modified Files
+
+| File | Action | LOC |
+|------|--------|-----|
+| `charts/spark-4.1/templates/spark-connect.yaml` | added | 104 |
+| `charts/spark-4.1/templates/spark-connect-configmap.yaml` | added | 44 |
+| `charts/spark-4.1/templates/executor-pod-template-configmap.yaml` | added | 45 |
+| `charts/spark-4.1/values.yaml` | modified | 158 |
+
+**Total:** 3 added, 1 modified, 351 LOC
+
+#### Completed Steps
+
+- [x] Step 1: Added `spark-connect.yaml` Deployment + Service with envsubst flow
+- [x] Step 2: Added `spark-connect-configmap.yaml` with spark-properties template
+- [x] Step 3: Added executor pod template ConfigMap (PSS + emptyDir)
+- [x] Step 4: Updated `values.yaml` connect/executor/dynamicAllocation and global s3
+- [x] Step 5: Rendered templates for default and Celeborn-enabled configs
+
+#### Self-Check Results
+
+```bash
+$ helm template spark-41 charts/spark-4.1 --set connect.enabled=true --set spark-base.enabled=true
+rendered successfully
+
+$ helm template spark-41 charts/spark-4.1 --set connect.enabled=true \
+  --set celeborn.enabled=true --set celeborn.masterEndpoints="celeborn-master:9097"
+rendered successfully
+
+$ helm template spark-41 charts/spark-4.1 --set connect.enabled=true | \
+  kubectl apply --dry-run=client -f -
+configmap/spark-41-spark-41-executor-pod-template created (dry run)
+configmap/spark-41-spark-41-connect-config created (dry run)
+service/spark-41-spark-41-connect created (dry run)
+deployment.apps/spark-41-spark-41-connect created (dry run)
+```
+
+#### Issues
+
+- None
