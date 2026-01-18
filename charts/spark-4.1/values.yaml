@@ -110,6 +110,7 @@ ingress:
   enabled: false
   hosts:
     historyServer: "history-41.local"
+    jupyter: "jupyter-41.local"
 
 # Jupyter (Spark Connect client)
 jupyter:
@@ -125,11 +126,15 @@ jupyter:
     SPARK_CONNECT_URL: "sc://spark-connect:15002"
   resources:
     requests:
-      memory: "512Mi"
-      cpu: "200m"
+      memory: "1Gi"
+      cpu: "500m"
     limits:
-      memory: "2Gi"
-      cpu: "1000m"
+      memory: "4Gi"
+      cpu: "2"
+  persistence:
+    enabled: false
+    size: "10Gi"
+    storageClass: ""
 
 # Celeborn (optional shuffle service for Spark 4.1.0)
 celeborn:

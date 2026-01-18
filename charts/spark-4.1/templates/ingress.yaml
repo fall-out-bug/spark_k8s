@@ -19,4 +19,16 @@ spec:
                 port:
                   number: 18080
     {{- end }}
+    {{- if and .Values.jupyter.enabled .Values.ingress.hosts.jupyter }}
+    - host: {{ .Values.ingress.hosts.jupyter }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "spark-4.1.fullname" . }}-jupyter
+                port:
+                  number: 8888
+    {{- end }}
 {{- end }}
