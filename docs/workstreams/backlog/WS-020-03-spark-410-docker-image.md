@@ -281,3 +281,62 @@ minikube image ls | grep spark-custom:4.1.0
 - USE non-root user (uid 185)
 - ENSURE PSS `restricted` compatibility (writable paths via emptyDir in K8s)
 - Pin all dependency versions (no `latest` tags)
+
+---
+
+### Execution Report
+
+**Executed by:** Auto (agent)  
+**Date:** 2026-01-15
+
+#### 🎯 Goal Status
+
+- [x] AC1: `docker/spark-4.1/Dockerfile` exists with builder and runtime stages — ✅
+- [x] AC2: `docker/spark-4.1/deps/pom.xml` defines Maven dependencies (spark-connect, celeborn, hadoop-aws) — ✅
+- [x] AC3: `docker/spark-4.1/deps/requirements.txt` defines Python dependencies (pyspark 4.1.0, pandas, pyarrow) — ✅
+- [x] AC4: `docker/spark-4.1/entrypoint.sh` supports modes: `connect`, `driver`, `executor`, `history` — ✅
+- [x] AC5: `docker/spark-4.1/conf/` contains Spark configuration templates — ✅
+- [ ] AC6: Image builds: `docker build -t spark-custom:4.1.0 docker/spark-4.1` — ⏭️ (build exceeded runtime; rerun needed)
+- [ ] AC7: Image loaded into Minikube: `minikube image load spark-custom:4.1.0` — ⏭️ (blocked by build)
+
+**Goal Achieved:** ⚠️ PARTIAL (code complete; image build/load pending)
+
+#### Modified Files
+
+| File | Action | LOC |
+|------|--------|-----|
+| `docker/spark-4.1/Dockerfile` | added | 71 |
+| `docker/spark-4.1/entrypoint.sh` | added | 107 |
+| `docker/spark-4.1/conf/spark-defaults.conf` | added | 11 |
+| `docker/spark-4.1/conf/log4j2.properties` | added | 47 |
+| `docker/spark-4.1/deps/pom.xml` | added | 24 |
+| `docker/spark-4.1/deps/requirements.txt` | added | 6 |
+
+**Total:** 6 added, 266 LOC
+
+#### Completed Steps
+
+- [x] Step 1: Created `docker/spark-4.1/{conf,deps}` structure
+- [x] Step 2: Added multi-stage `Dockerfile` (build Spark 4.1.0, runtime)
+- [x] Step 3: Added `deps/pom.xml` with `spark-connect_2.13`, `celeborn-client-spark-4-shaded_2.13`, `hadoop-aws`
+- [x] Step 4: Added `deps/requirements.txt` with pyspark + data libs
+- [x] Step 5: Added `entrypoint.sh` supporting connect/driver/executor/history + S3 env wiring
+- [x] Step 6: Added Spark `conf/` templates (defaults + log4j2)
+- [~] Step 7: Started `docker build -t spark-custom:4.1.0 docker/spark-4.1` (terminated after ~15 minutes to avoid long-running job)
+- [ ] Minikube image load (pending build)
+
+#### Self-Check Results
+
+```bash
+$ docker build -t spark-custom:4.1.0 docker/spark-4.1
+⏱️ Build started; Spark source compilation exceeded 15 minutes, stopped to avoid long-running job.
+```
+
+#### Issues
+
+- Docker build from source is long-running; rerun required to complete AC6/AC7.
+
+#### Notes
+
+- Spark Connect dependency uses Scala 2.13 (`spark-connect_2.13:4.1.0`) for Spark 4.1.0.
+- Celeborn client uses Spark 4 shaded artifact (`celeborn-client-spark-4-shaded_2.13:0.6.1`).
