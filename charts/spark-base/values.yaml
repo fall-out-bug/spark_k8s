@@ -32,6 +32,7 @@ minio:
   buckets:
     - warehouse
     - spark-logs
+    - spark-standalone-logs
     - spark-jobs
     - raw-data
     - processed-data

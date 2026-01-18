@@ -164,6 +164,13 @@ spec:
           mc mb --ignore-existing myminio/{{ . }}
           {{- end }}
 
+          {{- if has "spark-logs" .Values.minio.buckets }}
+          echo "" | mc pipe myminio/spark-logs/events/.keep
+          {{- end }}
+          {{- if has "spark-standalone-logs" .Values.minio.buckets }}
+          echo "" | mc pipe myminio/spark-standalone-logs/events/.keep
+          {{- end }}
+
           echo "Buckets created successfully"
           mc ls myminio/
         env:

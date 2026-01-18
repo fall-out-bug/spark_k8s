@@ -32,6 +32,13 @@ Create chart name and version as used by the chart label.
 Common labels
 */}}
 {{- define "spark-platform.labels" -}}
+{{- $useBase := false -}}
+{{- if .Values.global }}
+{{- $useBase = (default false .Values.global.useSparkBaseHelpers) -}}
+{{- end }}
+{{- if $useBase -}}
+{{- include "spark-base.labels" . }}
+{{- else }}
 helm.sh/chart: {{ include "spark-platform.chart" . }}
 {{ include "spark-platform.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
@@ -39,23 +46,40 @@ app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
+{{- end }}
 
 {{/*
 Selector labels
 */}}
 {{- define "spark-platform.selectorLabels" -}}
+{{- $useBase := false -}}
+{{- if .Values.global }}
+{{- $useBase = (default false .Values.global.useSparkBaseHelpers) -}}
+{{- end }}
+{{- if $useBase -}}
+{{- include "spark-base.selectorLabels" . }}
+{{- else }}
 app.kubernetes.io/name: {{ include "spark-platform.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
 {{- end }}
 
 {{/*
 Service account name
 */}}
 {{- define "spark-platform.serviceAccountName" -}}
+{{- $useBase := false -}}
+{{- if .Values.global }}
+{{- $useBase = (default false .Values.global.useSparkBaseHelpers) -}}
+{{- end }}
+{{- if $useBase -}}
+{{- include "spark-base.serviceAccountName" . }}
+{{- else }}
 {{- if .Values.serviceAccount.create }}
 {{- default "spark" .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
+{{- end }}
 {{- end }}
 {{- end }}
 
