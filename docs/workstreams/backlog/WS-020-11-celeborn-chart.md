@@ -244,3 +244,71 @@ helm template celeborn charts/celeborn | grep "volumeClaimTemplates"
 - DO NOT create ClusterRole (namespace-scoped only)
 - ENSURE workers use persistent storage (StatefulSet + PVC)
 - USE headless services for StatefulSet DNS
+
+---
+
+### Execution Report
+
+**Executed by:** Auto (agent)  
+**Date:** 2026-01-18
+
+#### 🎯 Goal Status
+
+- [x] AC1: `charts/celeborn/Chart.yaml` defines chart metadata — ✅
+- [x] AC2: `charts/celeborn/values.yaml` contains configuration (masters, workers, storage) — ✅
+- [x] AC3: `charts/celeborn/templates/master-statefulset.yaml` defines Celeborn master (3 replicas for HA) — ✅
+- [x] AC4: `charts/celeborn/templates/worker-statefulset.yaml` defines Celeborn workers with PVC — ✅
+- [x] AC5: `charts/celeborn/templates/configmap.yaml` contains Celeborn configuration — ✅
+- [x] AC6: `helm lint charts/celeborn` passes — ✅
+
+**Goal Achieved:** ✅ YES
+
+#### Modified Files
+
+| File | Action | LOC |
+|------|--------|-----|
+| `charts/celeborn/Chart.yaml` | added | 5 |
+| `charts/celeborn/values.yaml` | added | 37 |
+| `charts/celeborn/templates/_helpers.tpl` | added | 15 |
+| `charts/celeborn/templates/configmap.yaml` | added | 12 |
+| `charts/celeborn/templates/master-service.yaml` | added | 15 |
+| `charts/celeborn/templates/worker-service.yaml` | added | 15 |
+| `charts/celeborn/templates/master-statefulset.yaml` | added | 37 |
+| `charts/celeborn/templates/worker-statefulset.yaml` | added | 51 |
+
+**Total:** 8 added, 187 LOC
+
+#### Completed Steps
+
+- [x] Step 1: Created `charts/celeborn/templates` directory
+- [x] Step 2: Added `Chart.yaml`
+- [x] Step 3: Added `values.yaml`
+- [x] Step 4: Added master StatefulSet template
+- [x] Step 5: Added worker StatefulSet template with PVC
+- [x] Step 6: Added Celeborn config ConfigMap
+- [x] Step 7: Added headless services for master/worker
+- [x] Step 8: Lint + template validation
+
+#### Self-Check Results
+
+```bash
+$ helm lint charts/celeborn
+1 chart(s) linted, 0 chart(s) failed
+
+$ helm template celeborn charts/celeborn
+rendered successfully
+
+$ helm template celeborn charts/celeborn | kubectl apply --dry-run=client -f -
+configmap/celeborn-celeborn-config created (dry run)
+service/celeborn-celeborn-master created (dry run)
+service/celeborn-celeborn-worker created (dry run)
+statefulset.apps/celeborn-celeborn-master created (dry run)
+statefulset.apps/celeborn-celeborn-worker created (dry run)
+
+$ helm template celeborn charts/celeborn | grep "volumeClaimTemplates"
+volumeClaimTemplates:
+```
+
+#### Issues
+
+- None
