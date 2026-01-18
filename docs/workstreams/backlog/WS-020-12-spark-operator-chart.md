@@ -214,3 +214,71 @@ helm template spark-operator charts/spark-operator | grep "kind: CustomResourceD
 - DO NOT create namespace-scoped Role (operator needs ClusterRole)
 - ENSURE webhook is optional (configurable)
 - USE official Spark Operator image (no custom build)
+
+---
+
+### Execution Report
+
+**Executed by:** Auto (agent)  
+**Date:** 2026-01-18
+
+#### 🎯 Goal Status
+
+- [x] AC1: `charts/spark-operator/Chart.yaml` defines chart metadata — ✅
+- [x] AC2: `charts/spark-operator/values.yaml` contains operator configuration — ✅
+- [x] AC3: `charts/spark-operator/templates/crds/sparkapplication-crd.yaml` defines SparkApplication CRD — ✅
+- [x] AC4: `charts/spark-operator/templates/operator-deployment.yaml` defines operator Deployment — ✅
+- [x] AC5: `charts/spark-operator/templates/rbac.yaml` defines operator RBAC (ClusterRole for CRD management) — ✅
+- [x] AC6: `helm lint charts/spark-operator` passes — ✅
+
+**Goal Achieved:** ✅ YES
+
+#### Modified Files
+
+| File | Action | LOC |
+|------|--------|-----|
+| `charts/spark-operator/Chart.yaml` | added | 5 |
+| `charts/spark-operator/values.yaml` | added | 23 |
+| `charts/spark-operator/templates/_helpers.tpl` | added | 23 |
+| `charts/spark-operator/templates/operator-deployment.yaml` | added | 38 |
+| `charts/spark-operator/templates/rbac.yaml` | added | 40 |
+| `charts/spark-operator/templates/webhook-service.yaml` | added | 15 |
+| `charts/spark-operator/templates/crds/sparkapplication-crd.yaml` | added | 12414 |
+
+**Total:** 7 added, 12558 LOC
+
+#### Completed Steps
+
+- [x] Step 1: Created `charts/spark-operator/templates/crds` directory
+- [x] Step 2: Added `Chart.yaml`
+- [x] Step 3: Added `values.yaml`
+- [x] Step 4: Added upstream SparkApplication CRD with Helm conditional
+- [x] Step 5: Added operator Deployment template
+- [x] Step 6: Added ClusterRole/ClusterRoleBinding and ServiceAccount
+- [x] Step 7: Added optional webhook Service
+- [x] Step 8: Lint + template validation
+
+#### Self-Check Results
+
+```bash
+$ helm lint charts/spark-operator
+1 chart(s) linted, 0 chart(s) failed
+
+$ helm template spark-operator charts/spark-operator
+rendered successfully
+
+$ helm template spark-operator charts/spark-operator | kubectl apply --dry-run=client -f -
+serviceaccount/spark-operator-spark-operator created (dry run)
+customresourcedefinition.apiextensions.k8s.io/sparkapplications.sparkoperator.k8s.io created (dry run)
+clusterrole.rbac.authorization.k8s.io/spark-operator-spark-operator created (dry run)
+clusterrolebinding.rbac.authorization.k8s.io/spark-operator-spark-operator created (dry run)
+service/spark-operator-spark-operator-webhook created (dry run)
+deployment.apps/spark-operator-spark-operator created (dry run)
+
+$ rg "kind: CustomResourceDefinition" charts/spark-operator/templates/crds/sparkapplication-crd.yaml
+4:kind: CustomResourceDefinition
+```
+
+#### Issues
+
+- None
