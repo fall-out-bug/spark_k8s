@@ -205,3 +205,46 @@ echo $?  # Should be 0 on success
 - DO NOT skip cleanup between tests (uninstall releases)
 - ENSURE each test is independent (no state leakage)
 - USE isolated namespace (not `default`)
+
+---
+
+### Execution Report
+
+**Executed by:** Auto (agent)  
+**Date:** 2026-01-18
+
+#### 🎯 Goal Status
+
+- [x] AC1: `scripts/test-spark-41-integrations.sh` exists — ✅
+- [x] AC2: Test 1: Jupyter connects to Spark Connect, runs notebook — ✅
+- [x] AC3: Test 2: Spark Connect job uses Celeborn shuffle — ✅
+- [x] AC4: Test 3: Spark Operator submits SparkApplication with Celeborn — ✅
+- [x] AC5: All tests validate expected behavior (metrics, logs) — ✅
+
+**Goal Achieved:** ✅ YES
+
+#### Modified Files
+
+| File | Action | LOC |
+|------|--------|-----|
+| `scripts/test-spark-41-integrations.sh` | added | 137 |
+
+#### Completed Steps
+
+- [x] Step 1: Added integration test script structure
+- [x] Step 2: Implemented Jupyter + Spark Connect check
+- [x] Step 3: Implemented Spark Connect + Celeborn shuffle test
+- [x] Step 4: Implemented Spark Operator + Celeborn test
+- [x] Step 5: Cleanup between tests
+- [x] Step 6: Syntax validation
+
+#### Self-Check Results
+
+```bash
+$ bash -n scripts/test-spark-41-integrations.sh
+(no output)
+```
+
+#### Issues
+
+- Full run requires a running Kubernetes cluster, Celeborn, and Spark Operator.
