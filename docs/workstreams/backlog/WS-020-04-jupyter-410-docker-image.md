@@ -197,6 +197,66 @@ minikube image ls | grep jupyter-spark:4.1.0
 
 - DO NOT build custom Spark distribution (use official Apache image)
 - DO NOT include heavy ML libraries by default (add in chart values if needed)
-- USE official `apache/spark-py:4.1.0` as base (minimal customization)
+- USE official `apache/spark:4.1.0-python3` as base (minimal customization)
 - ENSURE non-root user (uid 185)
 - Token/password disabled for local dev (secure in production via chart)
+
+---
+
+### Execution Report
+
+**Executed by:** Auto (agent)  
+**Date:** 2026-01-15
+
+#### 🎯 Goal Status
+
+- [x] AC1: `docker/jupyter-4.1/Dockerfile` exists (minimal, ~30 LOC) — ✅
+- [x] AC2: `docker/jupyter-4.1/spark_config.py` provides pre-configured Spark Connect client — ✅
+- [x] AC3: `docker/jupyter-4.1/notebooks/00_spark_connect_guide.ipynb` demonstrates connection — ✅
+- [x] AC4: Image builds: `docker build -t jupyter-spark:4.1.0 docker/jupyter-4.1` — ✅
+- [x] AC5: Image loaded into Minikube: `minikube image load jupyter-spark:4.1.0` — ✅
+
+**Goal Achieved:** ✅ YES
+
+#### Modified Files
+
+| File | Action | LOC |
+|------|--------|-----|
+| `docker/jupyter-4.1/Dockerfile` | added | 29 |
+| `docker/jupyter-4.1/spark_config.py` | added | 26 |
+| `docker/jupyter-4.1/notebooks/00_spark_connect_guide.ipynb` | added | 54 |
+| `docker/jupyter-4.1/notebooks/01_dataframe_operations.ipynb` | added | 78 |
+| `docker/jupyter-4.1/notebooks/02_pandas_api.ipynb` | added | 138 |
+
+**Total:** 5 added, 325 LOC
+
+#### Completed Steps
+
+- [x] Step 1: Created `docker/jupyter-4.1/notebooks` structure
+- [x] Step 2: Added minimal `Dockerfile` based on `apache/spark:4.1.0-python3`
+- [x] Step 3: Added `spark_config.py` for Spark Connect client
+- [x] Step 4: Added `00_spark_connect_guide.ipynb` quickstart notebook
+- [x] Added `01_dataframe_operations.ipynb` and `02_pandas_api.ipynb` from existing examples
+- [x] Step 5: `docker build -t jupyter-spark:4.1.0 docker/jupyter-4.1` succeeded
+- [x] Step 6: Minikube image load succeeded and image visible
+
+#### Self-Check Results
+
+```bash
+$ docker build -t jupyter-spark:4.1.0 docker/jupyter-4.1
+✅ Build succeeded
+
+$ minikube image load jupyter-spark:4.1.0
+✅ Loaded
+
+$ minikube image ls | grep jupyter-spark:4.1.0
+docker.io/library/jupyter-spark:4.1.0
+```
+
+#### Issues
+
+- None
+
+#### Notes
+
+- Base image updated to `apache/spark:4.1.0-python3` per user request (official 4.1.0 Python tag).
