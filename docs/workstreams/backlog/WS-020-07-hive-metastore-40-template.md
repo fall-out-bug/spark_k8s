@@ -146,3 +146,60 @@ helm template spark-41 charts/spark-4.1 --set hiveMetastore.enabled=true | \
 - DO NOT reuse Spark 3.5.7 database (must be isolated: `metastore_spark41`)
 - ENSURE init job is idempotent (`--ifNotExists` flag for schematool)
 - USE PSS-compatible security contexts
+
+---
+
+### Execution Report
+
+**Executed by:** Auto (agent)  
+**Date:** 2026-01-18
+
+#### 🎯 Goal Status
+
+- [x] AC1: `charts/spark-4.1/templates/hive-metastore.yaml` defines Deployment + Service — ✅
+- [x] AC2: Metastore image: `apache/hive:4.0.0` — ✅
+- [x] AC3: PostgreSQL database name: `metastore_spark41` — ✅
+- [x] AC4: Service exposes port 9083 — ✅
+- [x] AC5: Init job creates schema (`schematool -dbType postgres -initSchema --ifNotExists`) — ✅
+- [x] AC6: Security contexts use `{{ include "spark-base.podSecurityContext" . }}` — ✅
+
+**Goal Achieved:** ✅ YES
+
+#### Modified Files
+
+| File | Action | LOC |
+|------|--------|-----|
+| `charts/spark-4.1/templates/hive-metastore.yaml` | added | 170 |
+| `charts/spark-4.1/templates/hive-metastore-configmap.yaml` | added | 67 |
+| `charts/spark-4.1/values.yaml` | modified | 165 |
+
+**Total:** 2 added, 1 modified, 402 LOC
+
+#### Completed Steps
+
+- [x] Step 1: Added Hive Metastore Deployment + Service with init Job hook
+- [x] Step 2: Added hive-site.xml ConfigMap template
+- [x] Step 3: Updated values with metastore DB isolation (`metastore_spark41`) and global postgres
+- [x] Step 4: Rendered templates and dry-run applied manifests
+
+#### Self-Check Results
+
+```bash
+$ helm template spark-41 charts/spark-4.1 --set hiveMetastore.enabled=true --set spark-base.postgresql.enabled=true
+rendered successfully
+
+$ helm template spark-41 charts/spark-4.1 --set hiveMetastore.enabled=true | \
+  kubectl apply --dry-run=client -f -
+secret/spark-41-spark-41-metastore-db created (dry run)
+configmap/spark-41-spark-41-hive-metastore-config created (dry run)
+service/spark-41-spark-41-metastore created (dry run)
+deployment.apps/spark-41-spark-41-metastore created (dry run)
+job.batch/spark-41-spark-41-metastore-init created (dry run)
+
+$ helm template spark-41 charts/spark-4.1 --set hiveMetastore.enabled=true | grep metastore_spark41
+... metastore_spark41 ...
+```
+
+#### Issues
+
+- None

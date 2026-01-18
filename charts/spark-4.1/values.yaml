@@ -6,6 +6,11 @@ global:
     secretKey: "minioadmin"
     pathStyleAccess: true
     sslEnabled: false
+  postgresql:
+    host: "postgresql-metastore-41"
+    port: 5432
+    user: "hive"
+    password: "hive123"
 
 spark-base:
   enabled: true
@@ -60,11 +65,13 @@ hiveMetastore:
     port: 9083
   warehouseDir: "s3a://warehouse/spark-41"
   metastoreWarehouseDir: "file:/tmp/hive-warehouse"
+  database:
+    name: "metastore_spark41"
   postgresql:
     enabled: true
     host: "postgresql-metastore-41"
     port: 5432
-    database: "metastore_41"
+    database: "metastore_spark41"
     username: "hive"
     password: "hive123"
     persistence:
