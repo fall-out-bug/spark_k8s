@@ -105,6 +105,12 @@ historyServer:
       memory: "2Gi"
       cpu: "1000m"
 
+# Ingress
+ingress:
+  enabled: false
+  hosts:
+    historyServer: "history-41.local"
+
 # Jupyter (Spark Connect client)
 jupyter:
   enabled: true

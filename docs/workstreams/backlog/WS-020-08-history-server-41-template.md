@@ -138,3 +138,58 @@ helm template spark-41 charts/spark-4.1 --set historyServer.enabled=true | \
 - DO NOT test backward compatibility here (dedicated WS-020-16 for that)
 - ENSURE PSS compliance (readOnlyRootFilesystem requires /tmp emptyDir)
 - USE same S3 credentials as Spark Connect (from spark-base Secret)
+
+---
+
+### Execution Report
+
+**Executed by:** Auto (agent)  
+**Date:** 2026-01-18
+
+#### 🎯 Goal Status
+
+- [x] AC1: `charts/spark-4.1/templates/history-server.yaml` defines Deployment + Service — ✅
+- [x] AC2: Image: `spark-custom:4.1.0` with `SPARK_MODE=history` — ✅
+- [x] AC3: Env: `SPARK_HISTORY_LOG_DIR=s3a://spark-logs/4.1/events` — ✅
+- [x] AC4: Service port: 18080 — ✅
+- [x] AC5: Ingress rule added to `charts/spark-4.1/templates/ingress.yaml` (if enabled) — ✅
+- [x] AC6: Security contexts use PSS helpers — ✅
+
+**Goal Achieved:** ✅ YES
+
+#### Modified Files
+
+| File | Action | LOC |
+|------|--------|-----|
+| `charts/spark-4.1/templates/history-server.yaml` | added | 87 |
+| `charts/spark-4.1/templates/ingress.yaml` | added | 22 |
+| `charts/spark-4.1/values.yaml` | modified | 171 |
+
+**Total:** 2 added, 1 modified, 280 LOC
+
+#### Completed Steps
+
+- [x] Step 1: Added History Server Deployment + Service (S3 log dir, PSS contexts)
+- [x] Step 2: Added Ingress rule for History Server when enabled
+- [x] Step 3: Added ingress hosts defaults in `values.yaml`
+- [x] Step 4: Rendered templates, dry-run applied, verified log prefix
+
+#### Self-Check Results
+
+```bash
+$ helm template spark-41 charts/spark-4.1 --set historyServer.enabled=true --set ingress.enabled=true
+rendered successfully
+
+$ helm template spark-41 charts/spark-4.1 --set historyServer.enabled=true | \
+  kubectl apply --dry-run=client -f -
+service/spark-41-spark-41-history created (dry run)
+deployment.apps/spark-41-spark-41-history created (dry run)
+
+$ helm template spark-41 charts/spark-4.1 --set historyServer.enabled=true | \
+  grep "s3a://spark-logs/4.1/events"
+s3a://spark-logs/4.1/events
+```
+
+#### Issues
+
+- None
