@@ -159,3 +159,60 @@ helm show values charts/spark-4.1 | grep -E "(connect|metastore|celeborn)"
 - DO NOT duplicate spark-base configs (use overrides only)
 - ENSURE values.yaml is well-documented (inline comments)
 - USE consistent naming convention (fullname helper)
+
+---
+
+### Execution Report
+
+**Executed by:** Auto (agent)  
+**Date:** 2026-01-18
+
+#### 🎯 Goal Status
+
+- [x] AC1: `charts/spark-4.1/Chart.yaml` defines chart metadata and `spark-base` dependency — ✅
+- [x] AC2: `charts/spark-4.1/values.yaml` contains comprehensive configuration — ✅
+- [x] AC3: `charts/spark-4.1/templates/NOTES.txt` provides deployment info — ✅
+- [x] AC4: `charts/spark-4.1/templates/_helpers.tpl` defines chart-specific helpers — ✅
+- [x] AC5: `helm lint charts/spark-4.1` passes — ✅
+
+**Goal Achieved:** ✅ YES
+
+#### Modified Files
+
+| File | Action | LOC |
+|------|--------|-----|
+| `charts/spark-4.1/Chart.yaml` | added | 11 |
+| `charts/spark-4.1/values.yaml` | added | 154 |
+| `charts/spark-4.1/templates/_helpers.tpl` | added | 15 |
+| `charts/spark-4.1/templates/NOTES.txt` | added | 19 |
+
+**Total:** 4 added, 199 LOC
+
+#### Completed Steps
+
+- [x] Step 1: Created `charts/spark-4.1/templates` directory
+- [x] Step 2: Added `Chart.yaml` with `spark-base` dependency
+- [x] Step 3: Added comprehensive `values.yaml` for Spark 4.1.0 components
+- [x] Step 4: Added `_helpers.tpl` with fullname/labels helpers
+- [x] Step 5: Added `NOTES.txt` with component endpoints
+- [x] Step 6: Ran `helm dependency update charts/spark-4.1`
+- [x] Step 7: `helm lint charts/spark-4.1` and `helm template` succeeded
+
+#### Self-Check Results
+
+```bash
+$ helm dependency update charts/spark-4.1
+Saving 1 charts
+Deleting outdated charts
+
+$ helm lint charts/spark-4.1
+[INFO] Chart.yaml: icon is recommended
+1 chart(s) linted, 0 chart(s) failed
+
+$ helm template spark-41 charts/spark-4.1 --set spark-base.enabled=true --debug
+rendered successfully
+```
+
+#### Issues
+
+- None
