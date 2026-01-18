@@ -20,6 +20,7 @@ Apache Spark 3.5.7 Helm charts для Kubernetes: Spark Connect (gRPC) и Spark 
 
 - **Operator guides:** [`docs/guides/`](docs/guides/README.md) (EN + RU)
 - **Spark 4.1.0 quickstart:** [EN](docs/guides/SPARK-4.1-QUICKSTART.md) / [RU](docs/guides/SPARK-4.1-QUICKSTART-RU.md)
+- **Spark 4.1.0 production:** [EN](docs/guides/SPARK-4.1-PRODUCTION.md) / [RU](docs/guides/SPARK-4.1-PRODUCTION-RU.md)
 - **Repository map:** [`docs/PROJECT_MAP.md`](docs/PROJECT_MAP.md)
 - **Validation:** [`docs/guides/en/validation.md`](docs/guides/en/validation.md) / [`docs/guides/ru/validation.md`](docs/guides/ru/validation.md)
 - **OpenShift notes:** [`docs/guides/en/openshift-notes.md`](docs/guides/en/openshift-notes.md) / [`docs/guides/ru/openshift-notes.md`](docs/guides/ru/openshift-notes.md)

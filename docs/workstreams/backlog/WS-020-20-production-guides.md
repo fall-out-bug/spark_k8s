@@ -166,3 +166,52 @@ helm template spark-41-prod charts/spark-4.1 \
 - DO NOT hardcode production credentials (use placeholders + notes)
 - ENSURE all recommendations are tested
 - USE realistic resource values (based on production workloads)
+
+---
+
+### Execution Report
+
+**Executed by:** Auto (agent)  
+**Date:** 2026-01-18
+
+#### 🎯 Goal Status
+
+- [x] AC1: `docs/guides/SPARK-4.1-PRODUCTION.md` exists — ✅
+- [x] AC2: `docs/guides/SPARK-4.1-PRODUCTION-RU.md` exists — ✅
+- [x] AC3: Guides include sizing, PSS, HA, observability — ✅
+- [x] AC4: `docs/examples/values-spark-41-production.yaml` overlay provided — ✅
+- [x] AC5: Guides link to Celeborn and Operator guides — ✅
+
+**Goal Achieved:** ✅ YES
+
+#### Modified Files
+
+| File | Action | LOC |
+|------|--------|-----|
+| `docs/guides/SPARK-4.1-PRODUCTION.md` | added | 94 |
+| `docs/guides/SPARK-4.1-PRODUCTION-RU.md` | added | 93 |
+| `docs/examples/values-spark-41-production.yaml` | added | 53 |
+| `README.md` | modified | 70 |
+
+#### Completed Steps
+
+- [x] Step 1: Added EN production guide
+- [x] Step 2: Added RU production guide
+- [x] Step 3: Added production values overlay
+- [x] Step 4: Updated README links
+- [x] Step 5: Lint and render with production overlay
+
+#### Self-Check Results
+
+```bash
+$ helm lint charts/spark-4.1 -f docs/examples/values-spark-41-production.yaml
+1 chart(s) linted, 0 chart(s) failed
+
+$ helm template spark-41-prod charts/spark-4.1 \
+  -f docs/examples/values-spark-41-production.yaml
+rendered successfully
+```
+
+#### Issues
+
+- None

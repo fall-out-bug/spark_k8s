@@ -1,0 +1,69 @@
+# Production values for Spark 4.1.0
+
+spark-base:
+  enabled: true
+  rbac:
+    create: true
+  minio:
+    enabled: false  # Use external S3
+  postgresql:
+    enabled: false  # Use external PostgreSQL
+  security:
+    podSecurityStandards: true
+
+global:
+  s3:
+    endpoint: "https://s3.amazonaws.com"
+  postgresql:
+    host: "postgres.prod.svc.cluster.local"
+    user: "spark"
+    password: "changeme"  # Use Secrets/SealedSecrets in prod
+
+connect:
+  enabled: true
+  replicas: 3
+  resources:
+    requests:
+      memory: "4Gi"
+      cpu: "2"
+    limits:
+      memory: "8Gi"
+      cpu: "4"
+  executor:
+    cores: "2"
+    coresLimit: "4"
+    memory: "4Gi"
+    memoryLimit: "8Gi"
+  dynamicAllocation:
+    enabled: true
+    minExecutors: 2
+    maxExecutors: 50
+
+hiveMetastore:
+  enabled: true
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "4Gi"
+      cpu: "2"
+
+historyServer:
+  enabled: true
+  logDirectory: "s3a://prod-spark-logs/4.1/events"
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "1"
+    limits:
+      memory: "8Gi"
+      cpu: "4"
+
+jupyter:
+  enabled: false  # Use dedicated JupyterHub in prod
+
+ingress:
+  enabled: true
+  hosts:
+    historyServer: "spark-history-41.prod.company.com"
