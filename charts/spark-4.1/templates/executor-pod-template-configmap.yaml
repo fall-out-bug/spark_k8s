@@ -18,7 +18,7 @@ data:
       securityContext:
         {{- include "spark-base.podSecurityContext" . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "spark-base.serviceAccountName" (dict "Values" (index .Values "spark-base") "Release" .Release "Chart" .Chart) }}
+      serviceAccountName: {{ include "spark-4.1.serviceAccountName" . }}
       containers:
       - name: executor
         {{- if .Values.security.podSecurityStandards }}

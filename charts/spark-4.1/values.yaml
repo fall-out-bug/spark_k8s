@@ -26,6 +26,10 @@ spark-base:
   security:
     podSecurityStandards: false
 
+rbac:
+  create: true
+  serviceAccountName: "spark-41"
+
 # Spark Connect server (4.1.0)
 connect:
   enabled: true

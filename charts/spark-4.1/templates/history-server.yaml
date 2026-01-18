@@ -18,7 +18,7 @@ spec:
         app: spark-history-server
         {{- include "spark-4.1.selectorLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "spark-base.serviceAccountName" (dict "Values" (index .Values "spark-base") "Release" .Release "Chart" .Chart) }}
+      serviceAccountName: {{ include "spark-4.1.serviceAccountName" . }}
       {{- if .Values.security.podSecurityStandards }}
       securityContext:
         {{- include "spark-base.podSecurityContext" . | nindent 8 }}

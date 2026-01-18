@@ -148,3 +148,63 @@ helm template spark-41 charts/spark-4.1 --set rbac.create=true | \
 - DO NOT grant excessive permissions (principle of least privilege)
 - ENSURE all pods use ServiceAccount (executor pod template inherits from driver)
 - USE conditional creation (allow users to provide existing ServiceAccount)
+
+---
+
+### Execution Report
+
+**Executed by:** Auto (agent)  
+**Date:** 2026-01-18
+
+#### 🎯 Goal Status
+
+- [x] AC1: `charts/spark-4.1/templates/rbac.yaml` defines ServiceAccount, Role, RoleBinding — ✅
+- [x] AC2: Role includes required permissions (pods/services/configmaps) — ✅
+- [x] AC3: Templates conditionally use `spark-base` SA or create new SA — ✅
+- [x] AC4: All Spark 4.1.0 pods reference correct ServiceAccount — ✅
+
+**Goal Achieved:** ✅ YES
+
+#### Modified Files
+
+| File | Action | LOC |
+|------|--------|-----|
+| `charts/spark-4.1/templates/rbac.yaml` | added | 40 |
+| `charts/spark-4.1/templates/_helpers.tpl` | modified | 23 |
+| `charts/spark-4.1/templates/spark-connect.yaml` | modified | 104 |
+| `charts/spark-4.1/templates/executor-pod-template-configmap.yaml` | modified | 45 |
+| `charts/spark-4.1/templates/history-server.yaml` | modified | 87 |
+| `charts/spark-4.1/templates/jupyter.yaml` | modified | 96 |
+| `charts/spark-4.1/templates/hive-metastore.yaml` | modified | 170 |
+| `charts/spark-4.1/values.yaml` | modified | 180 |
+
+**Total:** 1 added, 7 modified, 745 LOC
+
+#### Completed Steps
+
+- [x] Step 1: Added `rbac.yaml` (ServiceAccount/Role/RoleBinding)
+- [x] Step 2: Added `spark-4.1.serviceAccountName` helper
+- [x] Step 3: Updated templates to reference shared SA helper
+- [x] Step 4: Added `rbac` values defaults
+- [x] Step 5: Rendered templates and dry-run applied manifests
+
+#### Self-Check Results
+
+```bash
+$ helm template spark-41 charts/spark-4.1 --set rbac.create=true
+rendered successfully
+
+$ helm template spark-41 charts/spark-4.1 --set rbac.create=true | \
+  kubectl apply --dry-run=client -f -
+serviceaccount/spark-41 created (dry run)
+role.rbac.authorization.k8s.io/spark-41-spark-41-spark-role created (dry run)
+rolebinding.rbac.authorization.k8s.io/spark-41-spark-41-spark-rolebinding created (dry run)
+
+$ helm template spark-41 charts/spark-4.1 --set rbac.create=true | \
+  grep "serviceAccountName: spark-41" | wc -l
+6
+```
+
+#### Issues
+
+- None
