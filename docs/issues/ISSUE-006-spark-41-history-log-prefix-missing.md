@@ -1,7 +1,7 @@
 # ISSUE-006: Spark 4.1 History Server crashes if log prefix missing
 
 **Created:** 2026-01-19  
-**Status:** Open  
+**Status:** Resolved  
 **Severity:** 🔴 CRITICAL (blocks runtime tests)  
 **Feature:** F04 - Spark 4.1.0 Charts
 
@@ -38,16 +38,15 @@ the directory.
 
 ---
 
-## Proposed Fix
+## Resolution
 
-Create the versioned prefix during bucket initialization, for example:
+Create the versioned prefix during bucket initialization:
 
 ```
 echo "" | mc pipe myminio/spark-logs/4.1/events/.keep
 ```
 
-Alternatively, set default log directory to `s3a://spark-logs/events`
-and keep versioning outside of the path.
+This keeps PSS `restricted` compatibility and avoids History Server crashes.
 
 ---
 
@@ -58,6 +57,10 @@ and keep versioning outside of the path.
 - `charts/spark-4.1/templates/history-server.yaml`
 
 ---
+
+## Fix Reference
+
+- Workstream: `docs/workstreams/completed/WS-BUG-006-history-log-prefix.md`
 
 ## Related
 
