@@ -1,7 +1,7 @@
 # ISSUE-007: Spark 4.1 assumes `s3-credentials` secret exists
 
 **Created:** 2026-01-19  
-**Status:** Open  
+**Status:** Resolved  
 **Severity:** 🔴 CRITICAL (blocks runtime tests)  
 **Feature:** F04 - Spark 4.1.0 Charts
 
@@ -36,12 +36,12 @@ without providing a way to create it or override the secret name.
 
 ---
 
-## Proposed Fix
+## Resolution
 
-Add a configurable secret name and optional secret creation, e.g.:
+Added configurable secret name:
 
 - `global.s3.existingSecret` (default `s3-credentials`)
-- If `existingSecret` not set, create a Secret from values (dev only)
+- Templates reference the configured secret
 
 This keeps compatibility with OpenShift/PSS requirements.
 
@@ -55,6 +55,10 @@ This keeps compatibility with OpenShift/PSS requirements.
 - `charts/spark-base/templates/minio.yaml`
 
 ---
+
+## Fix Reference
+
+- Workstream: `docs/workstreams/completed/WS-BUG-007-s3-credentials-secret.md`
 
 ## Related
 
