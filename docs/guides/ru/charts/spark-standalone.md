@@ -132,6 +132,25 @@ helm upgrade spark-standalone charts/spark-standalone -n spark-sa -f my-values.y
 
 **Ожидается:** DAG достигают состояния `success`.
 
+**Airflow Variables:**
+Тестовый скрипт автоматически устанавливает требуемые Airflow Variables для DAG:
+- `spark_image` — Docker образ Spark (по умолчанию: `spark-custom:3.5.7`)
+- `spark_namespace` — Kubernetes namespace для заданий Spark (по умолчанию: аргумент namespace скрипта)
+- `spark_standalone_master` — URL Spark Master (по умолчанию: `spark://<release>-spark-standalone-master:7077`)
+- `s3_endpoint` — URL S3 endpoint (по умолчанию: `http://minio:9000`)
+- `s3_access_key` — S3 access key (из секрета `s3-credentials`, если доступен)
+- `s3_secret_key` — S3 secret key (из секрета `s3-credentials`, если доступен)
+
+Для переопределения значений по умолчанию установите переменные окружения перед запуском скрипта:
+```bash
+export SPARK_NAMESPACE_VALUE=my-namespace
+export SPARK_STANDALONE_MASTER_VALUE=spark://custom-master:7077
+export S3_ENDPOINT_VALUE=http://custom-s3:9000
+./scripts/test-prodlike-airflow.sh spark-sa-prodlike spark-prodlike
+```
+
+См. [`docs/guides/ru/validation.md`](../validation.md) для полного справочника переменных окружения.
+
 ### Комбинированный smoke (рекомендуется)
 
 ```bash
@@ -167,6 +186,24 @@ kubectl logs deploy/spark-standalone-worker -n spark-sa
 ```bash
 python3 -c 'import os,base64; print(base64.urlsafe_b64encode(os.urandom(32)).decode())'
 ```
+
+### DAG Airflow падают из-за отсутствующих переменных
+
+**Симптом:** DAG падают с ошибками типа `Variable spark_namespace not found` или неправильный URL Spark Master.
+
+**Решение:** Убедитесь, что Airflow Variables установлены. Тестовый скрипт (`test-prodlike-airflow.sh`) автоматически заполняет их, но для ручного запуска:
+```bash
+# Установка переменных через Airflow CLI (в поде scheduler)
+kubectl exec -n <namespace> <scheduler-pod> -- \
+  airflow variables set spark_namespace <namespace>
+kubectl exec -n <namespace> <scheduler-pod> -- \
+  airflow variables set spark_standalone_master spark://<release>-spark-standalone-master:7077
+kubectl exec -n <namespace> <scheduler-pod> -- \
+  airflow variables set s3_endpoint http://minio:9000
+# ... (установите другие требуемые переменные)
+```
+
+См. исходные файлы DAG в `charts/spark-standalone/files/airflow/dags/` для полного списка переменных.
 
 ### Задание Spark зависло в WAITING
 
