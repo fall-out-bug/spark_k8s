@@ -31,9 +31,19 @@ sparkConnect:
   driver:
     memory: "2g"
 
-  # Spark master mode: "local" or "k8s"
-  # local: all processing in driver pod (simple, no scaling)
+  # Backend mode: "k8s" or "standalone"
   # k8s: dynamic executor pods created on demand (recommended)
+  # standalone: submit to existing Spark Standalone master/workers
+  backendMode: "k8s"
+  
+  # Standalone backend configuration (used when backendMode=standalone)
+  standalone:
+    masterService: "spark-sa-spark-standalone-master"
+    masterPort: 7077
+  
+  # Legacy: master mode (deprecated, use backendMode instead)
+  # local: all processing in driver pod (simple, no scaling)
+  # k8s: dynamic executor pods created on demand
   master: "k8s"
 
   # Executor configuration (used when master: k8s)

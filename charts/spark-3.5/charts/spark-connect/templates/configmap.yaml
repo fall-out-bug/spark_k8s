@@ -6,7 +6,19 @@ metadata:
     {{- include "spark-platform.labels" . | nindent 4 }}
 data:
   spark-defaults.conf: |
-    {{- if eq .Values.sparkConnect.master "k8s" }}
+    {{- if eq .Values.sparkConnect.backendMode "standalone" }}
+    # Spark Master - Standalone backend mode
+    spark.master=spark://{{ .Values.sparkConnect.standalone.masterService }}:{{ .Values.sparkConnect.standalone.masterPort }}
+    
+    # Dynamic allocation disabled for Standalone backend
+    spark.dynamicAllocation.enabled=false
+    
+    # Driver Configuration for Standalone
+    spark.driver.bindAddress=0.0.0.0
+    spark.driver.host=spark-connect
+    spark.driver.port=7078
+    spark.driver.blockManager.port=7079
+    {{- else if eq .Values.sparkConnect.master "k8s" }}
     # Spark Master - Kubernetes mode with dynamic executor pods
     spark.master=k8s://https://kubernetes.default.svc:443
 
