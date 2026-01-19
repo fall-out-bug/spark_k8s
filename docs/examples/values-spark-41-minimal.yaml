@@ -1,0 +1,22 @@
+# Minimal values for Spark 4.1.0 (local/dev)
+
+spark-base:
+  enabled: true
+  rbac:
+    create: true
+  minio:
+    enabled: true
+  postgresql:
+    enabled: true
+
+connect:
+  enabled: true
+
+hiveMetastore:
+  enabled: true
+
+historyServer:
+  enabled: true
+
+jupyter:
+  enabled: true

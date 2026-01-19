@@ -1,0 +1,28 @@
+apiVersion: sparkoperator.k8s.io/v1beta2
+kind: ScheduledSparkApplication
+metadata:
+  name: spark-pi-cron
+spec:
+  schedule: "0 2 * * *"
+  template:
+    type: Scala
+    mode: cluster
+    image: "spark-custom:4.1.0"
+    sparkVersion: "4.1.0"
+    mainClass: org.apache.spark.examples.SparkPi
+    mainApplicationFile: "local:///opt/spark/examples/jars/spark-examples.jar"
+    arguments:
+      - "1000"
+    sparkConf:
+      spark.eventLog.enabled: "true"
+      spark.eventLog.dir: "s3a://spark-logs/4.1/events"
+      spark.hadoop.fs.s3a.endpoint: "http://minio:9000"
+      spark.hadoop.fs.s3a.path.style.access: "true"
+    driver:
+      cores: 1
+      memory: "512m"
+      serviceAccount: spark-41
+    executor:
+      cores: 1
+      instances: 2
+      memory: "512m"

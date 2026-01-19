@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "celeborn.fullname" . }}-config
+  labels:
+    {{- include "celeborn.labels" . | nindent 4 }}
+data:
+  celeborn-defaults.conf: |
+    celeborn.master.host 0.0.0.0
+    celeborn.master.port {{ .Values.master.service.port }}
+    celeborn.worker.storage.dirs /mnt/celeborn
+    celeborn.worker.monitor.disk.enabled true

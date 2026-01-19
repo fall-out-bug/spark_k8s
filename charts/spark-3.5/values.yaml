@@ -1,0 +1,22 @@
+global:
+  useSparkBaseHelpers: true
+
+spark-base:
+  enabled: true
+  serviceAccount:
+    create: false
+    name: spark
+  rbac:
+    create: false
+  minio:
+    enabled: false
+  postgresql:
+    enabled: false
+  security:
+    podSecurityStandards: false
+
+spark-standalone:
+  enabled: true
+
+spark-connect:
+  enabled: false

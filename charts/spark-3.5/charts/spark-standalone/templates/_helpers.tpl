@@ -32,6 +32,13 @@ Create chart name and version as used by the chart label.
 Common labels
 */}}
 {{- define "spark-standalone.labels" -}}
+{{- $useBase := false -}}
+{{- if .Values.global }}
+{{- $useBase = (default false .Values.global.useSparkBaseHelpers) -}}
+{{- end }}
+{{- if $useBase -}}
+{{- include "spark-base.labels" . }}
+{{- else }}
 helm.sh/chart: {{ include "spark-standalone.chart" . }}
 {{ include "spark-standalone.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
@@ -39,23 +46,40 @@ app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
+{{- end }}
 
 {{/*
 Selector labels
 */}}
 {{- define "spark-standalone.selectorLabels" -}}
+{{- $useBase := false -}}
+{{- if .Values.global }}
+{{- $useBase = (default false .Values.global.useSparkBaseHelpers) -}}
+{{- end }}
+{{- if $useBase -}}
+{{- include "spark-base.selectorLabels" . }}
+{{- else }}
 app.kubernetes.io/name: {{ include "spark-standalone.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
 {{- end }}
 
 {{/*
 Service account name
 */}}
 {{- define "spark-standalone.serviceAccountName" -}}
+{{- $useBase := false -}}
+{{- if .Values.global }}
+{{- $useBase = (default false .Values.global.useSparkBaseHelpers) -}}
+{{- end }}
+{{- if $useBase -}}
+{{- include "spark-base.serviceAccountName" . }}
+{{- else }}
 {{- if .Values.serviceAccount.create }}
 {{- default "spark" .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
+{{- end }}
 {{- end }}
 {{- end }}
 
@@ -77,6 +101,13 @@ Image name helper
 Pod security context (PSS restricted compatible)
 */}}
 {{- define "spark-standalone.podSecurityContext" -}}
+{{- $useBase := false -}}
+{{- if .Values.global }}
+{{- $useBase = (default false .Values.global.useSparkBaseHelpers) -}}
+{{- end }}
+{{- if $useBase -}}
+{{- include "spark-base.podSecurityContext" . }}
+{{- else }}
 runAsNonRoot: true
 {{- with .Values.security.runAsUser }}
 runAsUser: {{ . }}
@@ -90,14 +121,23 @@ fsGroup: {{ . }}
 seccompProfile:
   type: RuntimeDefault
 {{- end }}
+{{- end }}
 
 {{/*
 Container security context (PSS restricted compatible)
 */}}
 {{- define "spark-standalone.containerSecurityContext" -}}
+{{- $useBase := false -}}
+{{- if .Values.global }}
+{{- $useBase = (default false .Values.global.useSparkBaseHelpers) -}}
+{{- end }}
+{{- if $useBase -}}
+{{- include "spark-base.containerSecurityContext" . }}
+{{- else }}
 allowPrivilegeEscalation: false
 readOnlyRootFilesystem: true
 capabilities:
   drop:
     - ALL
+{{- end }}
 {{- end }}

@@ -1,0 +1,6 @@
+dependencies:
+- name: spark-base
+  repository: file://../spark-base
+  version: 0.1.0
+digest: sha256:06e79337ec4508ec239338cf731f11ac4c083d10abd9e42c3eeb343ab5e7f1c2
+generated: "2026-01-18T17:10:05.082675243+03:00"

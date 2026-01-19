@@ -1,0 +1,19 @@
+Apache Spark 3.5.7 deployed successfully!
+
+Components:
+{{- if (index .Values "spark-standalone").enabled }}
+- Spark Standalone: {{ .Release.Name }}-spark-standalone (master/worker services)
+{{- end }}
+{{- if (index .Values "spark-connect").enabled }}
+- Spark Connect: {{ .Release.Name }}-spark-connect (gRPC service)
+{{- end }}
+{{- if (index .Values "spark-base").minio.enabled }}
+- MinIO: {{ .Release.Name }}-minio (S3-compatible storage)
+{{- end }}
+
+Get started:
+  # Standalone UI
+  kubectl port-forward svc/{{ .Release.Name }}-spark-standalone-master 8080:8080
+
+  # Spark Connect (if enabled)
+  kubectl port-forward svc/{{ .Release.Name }}-spark-connect 15002:15002

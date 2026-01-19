@@ -54,10 +54,103 @@ WS-001-01 (Chart Skeleton)
 | F01: Spark Standalone | 12 | 12 | 0 | 0 |
 | F02: Repo Documentation | 4 | 4 | 0 | 0 |
 | F03: History Server (SA) | 2 | 2 | 0 | 0 |
+| F04: Spark 4.1.0 Charts | 24 | 0 | 0 | 24 |
 
 ---
 
-*Last updated: 2026-01-16*
+## Feature F04: Apache Spark 4.1.0 Charts
+
+**Source:** `docs/drafts/idea-spark-410-charts.md`  
+**Status:** Backlog  
+**Total Workstreams:** 24  
+**Estimated LOC:** ~7500 (charts + docs + tests)
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-020-01 | Create spark-base chart | MEDIUM (~545 LOC) | - | backlog |
+| WS-020-02 | Refactor to spark-3.5 structure | MEDIUM (~500 LOC) | WS-020-01 | backlog |
+| WS-020-03 | Spark 4.1.0 Docker image | SMALL (~270 LOC) | - | backlog |
+| WS-020-04 | Jupyter 4.1.0 Docker image | SMALL (~345 LOC) | - | backlog |
+| WS-020-05 | spark-4.1 chart skeleton | MEDIUM (~595 LOC) | WS-020-01 | backlog |
+| WS-020-06 | Spark Connect 4.1.0 template | MEDIUM (~360 LOC) | WS-020-05 | backlog |
+| WS-020-07 | Hive Metastore 4.0.0 template | SMALL (~210 LOC) | WS-020-05 | backlog |
+| WS-020-08 | History Server 4.1.0 template | SMALL (~200 LOC) | WS-020-03 | backlog |
+| WS-020-09 | Jupyter 4.1.0 integration | SMALL (~150 LOC) | WS-020-04, WS-020-06 | backlog |
+| WS-020-10 | RBAC + Service templates | SMALL (~100 LOC) | WS-020-01 | backlog |
+| WS-020-11 | Celeborn chart | MEDIUM (~440 LOC) | - | backlog |
+| WS-020-12 | Spark Operator chart | MEDIUM (~860 LOC) | - | backlog |
+| WS-020-13 | Integration configs | SMALL (~130 LOC) | WS-020-06, WS-020-11, WS-020-12 | backlog |
+| WS-020-14 | Smoke test script | SMALL (~200 LOC) | WS-020-06 to WS-020-10 | backlog |
+| WS-020-15 | Coexistence test | SMALL (~180 LOC) | WS-020-02, WS-020-14 | backlog |
+| WS-020-16 | History Server compat test | SMALL (~180 LOC) | WS-020-08, WS-020-15 | backlog |
+| WS-020-17 | Integration tests | SMALL (~200 LOC) | WS-020-09, WS-020-11, WS-020-12 | backlog |
+| WS-020-18 | Performance benchmark | MEDIUM (~300 LOC) | WS-020-14, WS-020-15 | backlog |
+| WS-020-19 | Quickstart guides EN+RU | SMALL (~300 LOC) | WS-020-06 to WS-020-10 | backlog |
+| WS-020-20 | Production guides EN+RU | MEDIUM (~700 LOC) | WS-020-19 | backlog |
+| WS-020-21 | Celeborn guide EN | SMALL (~250 LOC) | WS-020-11, WS-020-13 | backlog |
+| WS-020-22 | Spark Operator guide EN | MEDIUM (~305 LOC) | WS-020-12, WS-020-13 | backlog |
+| WS-020-23 | Multi-version guide EN+RU | MEDIUM (~400 LOC) | WS-020-15, WS-020-20 | backlog |
+| WS-020-24 | ADRs + values overlays | MEDIUM (~430 LOC) | - | backlog |
+
+### Dependency Graph
+
+**Phase 1: Infrastructure & Base**
+```
+WS-020-01 (spark-base) → WS-020-02 (refactor spark-3.5)
+                       → WS-020-05 (spark-4.1 skeleton)
+
+WS-020-03 (Spark 4.1.0 image) → independent
+WS-020-04 (Jupyter 4.1.0 image) → independent
+```
+
+**Phase 2: Core Spark 4.1 Components**
+```
+WS-020-05 → WS-020-06 (Spark Connect)
+         → WS-020-07 (Hive Metastore)
+         → WS-020-08 (History Server)
+         → WS-020-10 (RBAC)
+
+WS-020-04 + WS-020-06 → WS-020-09 (Jupyter integration)
+```
+
+**Phase 3: Optional Components**
+```
+WS-020-11 (Celeborn) → independent
+WS-020-12 (Spark Operator) → independent
+WS-020-06 + WS-020-11 + WS-020-12 → WS-020-13 (integration configs)
+```
+
+**Phase 4: Testing**
+```
+WS-020-06..WS-020-10 → WS-020-14 (smoke test)
+WS-020-02 + WS-020-14 → WS-020-15 (coexistence)
+WS-020-08 + WS-020-15 → WS-020-16 (history compat)
+WS-020-09 + WS-020-11 + WS-020-12 → WS-020-17 (integration tests)
+WS-020-14 + WS-020-15 → WS-020-18 (benchmark)
+```
+
+**Phase 5: Documentation**
+```
+WS-020-06..WS-020-10 → WS-020-19 (quickstart)
+WS-020-19 → WS-020-20 (production guides)
+WS-020-11 + WS-020-13 → WS-020-21 (Celeborn guide)
+WS-020-12 + WS-020-13 → WS-020-22 (Operator guide)
+WS-020-15 + WS-020-20 → WS-020-23 (multi-version guide)
+WS-020-24 (ADRs) → independent
+```
+
+### Parallel Execution Paths
+
+1. **Infrastructure Path:** WS-020-01 → WS-020-02 → WS-020-05
+2. **Docker Images Path:** WS-020-03, WS-020-04 (parallel)
+3. **Core Components Path:** WS-020-05 → WS-020-06, WS-020-07, WS-020-08, WS-020-09, WS-020-10 (some parallel)
+4. **Optional Components Path:** WS-020-11, WS-020-12, WS-020-13 (mostly parallel)
+5. **Testing Path:** WS-020-14 → WS-020-15 → WS-020-16, WS-020-17, WS-020-18
+6. **Documentation Path:** WS-020-19 → WS-020-20 → WS-020-21, WS-020-22, WS-020-23, WS-020-24
+
+---
+
+*Last updated: 2026-01-15*
 
 ## Feature F02: Repository Documentation (Charts + How-To Guides)
 

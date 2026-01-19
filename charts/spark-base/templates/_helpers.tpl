@@ -1,14 +1,14 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "spark-platform.name" -}}
+{{- define "spark-base.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Create a default fully qualified app name.
 */}}
-{{- define "spark-platform.fullname" -}}
+{{- define "spark-base.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -24,16 +24,16 @@ Create a default fully qualified app name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "spark-platform.chart" -}}
+{{- define "spark-base.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "spark-platform.labels" -}}
-helm.sh/chart: {{ include "spark-platform.chart" . }}
-{{ include "spark-platform.selectorLabels" . }}
+{{- define "spark-base.labels" -}}
+helm.sh/chart: {{ include "spark-base.chart" . }}
+{{ include "spark-base.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -43,15 +43,15 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "spark-platform.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "spark-platform.name" . }}
+{{- define "spark-base.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "spark-base.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Service account name
 */}}
-{{- define "spark-platform.serviceAccountName" -}}
+{{- define "spark-base.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
 {{- default "spark" .Values.serviceAccount.name }}
 {{- else }}
@@ -60,15 +60,32 @@ Service account name
 {{- end }}
 
 {{/*
-Image name helper
+Pod security context (PSS restricted compatible)
 */}}
-{{- define "spark-platform.image" -}}
-{{- $registry := .global.imageRegistry | default "" -}}
-{{- $repository := .image.repository -}}
-{{- $tag := .image.tag | default "latest" -}}
-{{- if $registry }}
-{{- printf "%s/%s:%s" $registry $repository $tag }}
-{{- else }}
-{{- printf "%s:%s" $repository $tag }}
+{{- define "spark-base.podSecurityContext" -}}
+runAsNonRoot: true
+{{- with .Values.security.runAsUser }}
+runAsUser: {{ . }}
 {{- end }}
+{{- with .Values.security.runAsGroup }}
+runAsGroup: {{ . }}
+{{- end }}
+{{- with .Values.security.fsGroup }}
+fsGroup: {{ . }}
+{{- end }}
+seccompProfile:
+  type: RuntimeDefault
+{{- end }}
+
+{{/*
+Container security context (PSS restricted compatible)
+*/}}
+{{- define "spark-base.containerSecurityContext" -}}
+allowPrivilegeEscalation: false
+{{- if hasKey .Values.security "readOnlyRootFilesystem" }}
+readOnlyRootFilesystem: {{ .Values.security.readOnlyRootFilesystem }}
+{{- end }}
+capabilities:
+  drop:
+    - ALL
 {{- end }}

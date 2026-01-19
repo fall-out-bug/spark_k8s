@@ -1,0 +1,28 @@
+# Full integration: Spark 4.1.0 + Celeborn
+spark-base:
+  enabled: true
+  rbac:
+    create: true
+  minio:
+    enabled: true
+  postgresql:
+    enabled: true
+
+connect:
+  enabled: true
+  dynamicAllocation:
+    enabled: true
+    maxExecutors: 20
+
+celeborn:
+  enabled: true
+  masterEndpoints: "celeborn-master-0.celeborn-master:9097,celeborn-master-1.celeborn-master:9097,celeborn-master-2.celeborn-master:9097"
+
+hiveMetastore:
+  enabled: true
+
+historyServer:
+  enabled: true
+
+jupyter:
+  enabled: true

@@ -1,0 +1,96 @@
+{{- if .Values.jupyter.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "spark-4.1.fullname" . }}-jupyter
+  labels:
+    app: jupyter
+    {{- include "spark-4.1.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jupyter
+  template:
+    metadata:
+      labels:
+        app: jupyter
+        {{- include "spark-4.1.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "spark-4.1.serviceAccountName" . }}
+      {{- if .Values.security.podSecurityStandards }}
+      securityContext:
+        {{- include "spark-base.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: jupyter
+          image: "{{ .Values.jupyter.image.repository }}:{{ .Values.jupyter.image.tag }}"
+          imagePullPolicy: {{ .Values.jupyter.image.pullPolicy }}
+          env:
+            - name: SPARK_CONNECT_URL
+              value: "sc://{{ include "spark-4.1.fullname" . }}-connect:15002"
+            - name: JUPYTER_ENABLE_LAB
+              value: "yes"
+            - name: PYARROW_IGNORE_TIMEZONE
+              value: "1"
+            - name: S3_ENDPOINT
+              value: {{ .Values.global.s3.endpoint | quote }}
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: s3-credentials
+                  key: access-key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: s3-credentials
+                  key: secret-key
+          {{- if .Values.security.podSecurityStandards }}
+          securityContext:
+            {{- include "spark-base.containerSecurityContext" . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: 8888
+          resources:
+            {{- toYaml .Values.jupyter.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /api
+              port: 8888
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api
+              port: 8888
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          volumeMounts:
+            - name: notebooks
+              mountPath: /home/spark/notebooks
+      volumes:
+        - name: notebooks
+          {{- if .Values.jupyter.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "spark-4.1.fullname" . }}-jupyter-notebooks
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "spark-4.1.fullname" . }}-jupyter
+  labels:
+    app: jupyter
+    {{- include "spark-4.1.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.jupyter.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.jupyter.service.port }}
+      targetPort: 8888
+  selector:
+    app: jupyter
+{{- end }}

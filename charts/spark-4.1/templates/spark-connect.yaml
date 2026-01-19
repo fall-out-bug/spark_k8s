@@ -1,0 +1,108 @@
+{{- if .Values.connect.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "spark-4.1.fullname" . }}-connect
+  labels:
+    app: spark-connect
+    {{- include "spark-4.1.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.connect.replicas }}
+  selector:
+    matchLabels:
+      app: spark-connect
+  template:
+    metadata:
+      labels:
+        app: spark-connect
+        {{- include "spark-4.1.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "spark-4.1.serviceAccountName" . }}
+      {{- if .Values.security.podSecurityStandards }}
+      securityContext:
+        {{- include "spark-base.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: spark-connect-config
+          configMap:
+            name: {{ include "spark-4.1.fullname" . }}-connect-config
+        - name: executor-pod-template
+          configMap:
+            name: {{ include "spark-4.1.fullname" . }}-executor-pod-template
+        - name: spark-connect-writable
+          emptyDir: {}
+      containers:
+        - name: spark-connect
+          image: "{{ .Values.connect.image.repository }}:{{ .Values.connect.image.tag }}"
+          imagePullPolicy: {{ .Values.connect.image.pullPolicy }}
+          env:
+            - name: SPARK_MODE
+              value: "connect"
+            - name: SPARK_CONNECT_URL
+              value: "sc://0.0.0.0:15002"
+            - name: SPARK_CONF_DIR
+              value: "/tmp/spark-conf"
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: s3-credentials
+                  key: access-key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: s3-credentials
+                  key: secret-key
+          {{- if .Values.security.podSecurityStandards }}
+          securityContext:
+            {{- include "spark-base.containerSecurityContext" . | nindent 12 }}
+          {{- end }}
+          command:
+            - "/bin/sh"
+            - "-c"
+          args:
+            - >-
+              envsubst < /opt/spark/conf-k8s-templates/spark-properties.conf.template > /tmp/spark-conf/spark-properties.conf &&
+              envsubst < /opt/spark/conf-k8s-templates/executor-pod-template.yaml.template > /tmp/spark-conf/executor-pod-template.yaml &&
+              /opt/spark/sbin/start-connect-server.sh --properties-file /tmp/spark-conf/spark-properties.conf
+          ports:
+            - name: grpc
+              containerPort: 15002
+              protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 15002
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 15002
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          volumeMounts:
+            - name: spark-connect-config
+              mountPath: /opt/spark/conf-k8s-templates/spark-properties.conf.template
+              subPath: spark-properties.conf.template
+            - name: executor-pod-template
+              mountPath: /opt/spark/conf-k8s-templates/executor-pod-template.yaml.template
+              subPath: executor-pod-template.yaml.template
+            - name: spark-connect-writable
+              mountPath: /tmp/spark-conf
+          resources:
+            {{- toYaml .Values.connect.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "spark-4.1.fullname" . }}-connect
+  labels:
+    app: spark-connect
+    {{- include "spark-4.1.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.connect.service.type }}
+  ports:
+    - name: grpc
+      port: {{ .Values.connect.service.port }}
+      targetPort: 15002
+  selector:
+    app: spark-connect
+{{- end }}

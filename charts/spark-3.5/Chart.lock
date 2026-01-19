@@ -1,0 +1,12 @@
+dependencies:
+- name: spark-base
+  repository: file://../spark-base
+  version: 0.1.0
+- name: spark-standalone
+  repository: file://charts/spark-standalone
+  version: 0.1.0
+- name: spark-platform
+  repository: file://charts/spark-connect
+  version: 1.1.0
+digest: sha256:f866650545d5396507dd72680104866a0658c13c53383c886655a65ed6a02d7c
+generated: "2026-01-18T12:26:02.161557413+03:00"
