@@ -44,7 +44,8 @@ The image defines a non-numeric user name (`hive`), and the chart enforces
 ## Resolution
 
 Explicitly set numeric `runAsUser`/`runAsGroup` for the metastore container
-when PSS is enabled, and expose UID/GID in values for OpenShift ranges.
+when PSS is enabled, and expose UID/GID under `hiveMetastore.security` for
+OpenShift ranges (avoids affecting Spark master/worker UIDs).
 
 This preserves OpenShift compatibility without relaxing PSS.
 

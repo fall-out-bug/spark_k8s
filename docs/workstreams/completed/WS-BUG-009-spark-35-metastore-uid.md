@@ -39,8 +39,16 @@ unless a numeric UID is set explicitly.
 ### Completion Criteria
 
 ```bash
-helm template spark-35 charts/spark-3.5 \
-  --set spark-standalone.security.podSecurityStandards=true | rg "runAsUser"
+python3 - <<'PY'
+import subprocess, re
+out = subprocess.check_output([
+    'helm','template','spark-standalone','charts/spark-3.5/charts/spark-standalone',
+    '--set','security.podSecurityStandards=true'
+], text=True)
+pattern = r"containers:\\n\\s*- name: hive-metastore\\n"
+match = re.search(pattern, out)
+print(bool(match and 'runAsUser' in out[match.start():match.start()+500]))
+PY
 ```
 
 ---
@@ -65,12 +73,12 @@ helm template spark-35 charts/spark-3.5 \
 |------|--------|-----|
 | `charts/spark-3.5/charts/spark-standalone/values.yaml` | modified | 4 |
 | `charts/spark-3.5/charts/spark-standalone/templates/hive-metastore.yaml` | modified | 6 |
-| `docs/workstreams/backlog/WS-BUG-009-spark-35-metastore-uid.md` | modified | 40 |
+| `docs/workstreams/completed/WS-BUG-009-spark-35-metastore-uid.md` | modified | 40 |
 
 #### Completed Steps
 
 - [x] Step 1: Wrote failing template check for metastore runAsUser
-- [x] Step 2: Added numeric UID/GID defaults in values
+- [x] Step 2: Added metastore-scoped UID/GID defaults in values
 - [x] Step 3: Applied runAsUser/runAsGroup in metastore container
 - [x] Step 4: Template sanity check
 
