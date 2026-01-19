@@ -66,7 +66,7 @@
 - `FORCE_SET_VARIABLES` — Перезаписывать существующие переменные (по умолчанию: `false`)
 - `SPARK_IMAGE_VALUE` — Образ Spark для DAG (по умолчанию: `spark-custom:3.5.7`)
 - `SPARK_NAMESPACE_VALUE` — Namespace для заданий Spark (по умолчанию: аргумент namespace скрипта)
-- `SPARK_STANDALONE_MASTER_VALUE` — URL Spark Master (по умолчанию: `spark://<release>-spark-standalone-master:7077`)
+- `SPARK_MASTER_VALUE` — URL Spark Master (по умолчанию: `spark://<release>-spark-standalone-master:7077`)
 - `S3_ENDPOINT_VALUE` — URL S3 endpoint (по умолчанию: `http://minio:9000`)
 - `S3_ACCESS_KEY_VALUE` — S3 access key (по умолчанию: из секрета `s3-credentials`, если доступен)
 - `S3_SECRET_KEY_VALUE` — S3 secret key (по умолчанию: из секрета `s3-credentials`, если доступен)

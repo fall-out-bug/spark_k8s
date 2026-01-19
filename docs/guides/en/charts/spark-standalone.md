@@ -142,7 +142,7 @@ The test script automatically sets required Airflow Variables for DAGs:
 To override defaults, set environment variables before running the script:
 ```bash
 export SPARK_NAMESPACE_VALUE=my-namespace
-export SPARK_STANDALONE_MASTER_VALUE=spark://custom-master:7077
+export SPARK_MASTER_VALUE=spark://custom-master:7077
 export S3_ENDPOINT_VALUE=http://custom-s3:9000
 ./scripts/test-prodlike-airflow.sh spark-sa-prodlike spark-prodlike
 ```

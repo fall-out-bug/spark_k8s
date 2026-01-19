@@ -66,7 +66,7 @@ This guide documents the smoke test scripts provided in the repository and what 
 - `FORCE_SET_VARIABLES` — Overwrite existing variables (default: `false`)
 - `SPARK_IMAGE_VALUE` — Spark image for DAGs (default: `spark-custom:3.5.7`)
 - `SPARK_NAMESPACE_VALUE` — Namespace for Spark jobs (default: script's namespace argument)
-- `SPARK_STANDALONE_MASTER_VALUE` — Spark Master URL (default: `spark://<release>-spark-standalone-master:7077`)
+- `SPARK_MASTER_VALUE` — Spark Master URL (default: `spark://<release>-spark-standalone-master:7077`)
 - `S3_ENDPOINT_VALUE` — S3 endpoint URL (default: `http://minio:9000`)
 - `S3_ACCESS_KEY_VALUE` — S3 access key (default: from `s3-credentials` secret if available)
 - `S3_SECRET_KEY_VALUE` — S3 secret key (default: from `s3-credentials` secret if available)

@@ -45,7 +45,7 @@ WS-021-01
 export SET_AIRFLOW_VARIABLES=true
 export FORCE_SET_VARIABLES=false
 export SPARK_NAMESPACE_VALUE=spark-sa-prodlike
-export SPARK_STANDALONE_MASTER_VALUE=spark://spark-prodlike-spark-standalone-master:7077
+export SPARK_MASTER_VALUE=spark://spark-prodlike-spark-standalone-master:7077
 export S3_ENDPOINT_VALUE=http://minio:9000
 ```
 
@@ -64,7 +64,7 @@ export S3_ENDPOINT_VALUE=http://minio:9000
 
 ```bash
 rg "SET_AIRFLOW_VARIABLES|FORCE_SET_VARIABLES|spark_namespace" docs/guides/ru/validation.md
-rg "Airflow Variables|spark_standalone_master|s3_endpoint" docs/guides/ru/charts/spark-standalone.md
+rg "Airflow Variables|SPARK_MASTER_VALUE|s3_endpoint" docs/guides/ru/charts/spark-standalone.md
 ```
 
 ### Constraints
@@ -112,7 +112,7 @@ $ grep -E "SET_AIRFLOW_VARIABLES|FORCE_SET_VARIABLES|spark_namespace" docs/guide
 3. Airflow Variables автоматически заполняются (если `SET_AIRFLOW_VARIABLES=true`)
 Скрипт автоматически устанавливает Airflow Variables, требуемые DAG (`spark_image`, `spark_namespace`, `spark_standalone_master`, `s3_endpoint`, `s3_access_key`, `s3_secret_key`), на основе:
 
-$ grep -E "Airflow Variables|spark_standalone_master|s3_endpoint" docs/guides/ru/charts/spark-standalone.md
+$ grep -E "Airflow Variables|SPARK_MASTER_VALUE|s3_endpoint" docs/guides/ru/charts/spark-standalone.md
 **Airflow Variables:**
 - `spark_standalone_master` — URL Spark Master (по умолчанию: `spark://<release>-spark-standalone-master:7077`)
 - `s3_endpoint` — URL S3 endpoint (по умолчанию: `http://minio:9000`)

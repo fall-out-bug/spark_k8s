@@ -144,7 +144,7 @@ helm upgrade spark-standalone charts/spark-standalone -n spark-sa -f my-values.y
 Для переопределения значений по умолчанию установите переменные окружения перед запуском скрипта:
 ```bash
 export SPARK_NAMESPACE_VALUE=my-namespace
-export SPARK_STANDALONE_MASTER_VALUE=spark://custom-master:7077
+export SPARK_MASTER_VALUE=spark://custom-master:7077
 export S3_ENDPOINT_VALUE=http://custom-s3:9000
 ./scripts/test-prodlike-airflow.sh spark-sa-prodlike spark-prodlike
 ```
