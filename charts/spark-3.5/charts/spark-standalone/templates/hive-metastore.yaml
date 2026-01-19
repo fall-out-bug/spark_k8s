@@ -119,6 +119,12 @@ spec:
         {{- if .Values.security.podSecurityStandards }}
         securityContext:
           {{- include "spark-standalone.containerSecurityContext" . | nindent 10 }}
+          {{- with .Values.security.runAsUser }}
+          runAsUser: {{ . }}
+          {{- end }}
+          {{- with .Values.security.runAsGroup }}
+          runAsGroup: {{ . }}
+          {{- end }}
         {{- end }}
         image: "{{ .Values.hiveMetastore.image.repository }}:{{ .Values.hiveMetastore.image.tag }}"
         imagePullPolicy: {{ .Values.hiveMetastore.image.pullPolicy }}

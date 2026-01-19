@@ -1,7 +1,7 @@
 # ISSUE-009: Spark 3.5 Hive Metastore fails with PSS `runAsNonRoot`
 
 **Created:** 2026-01-19  
-**Status:** Open  
+**Status:** Resolved  
 **Severity:** 🔴 CRITICAL (blocks coexistence/benchmark tests)  
 **Feature:** F04 - Spark 4.1.0 Charts (coexistence)
 
@@ -41,10 +41,10 @@ The image defines a non-numeric user name (`hive`), and the chart enforces
 
 ---
 
-## Proposed Fix
+## Resolution
 
-Use a Hive image with a numeric UID or explicitly set `runAsUser`
-to a non-root numeric UID known to exist in the image.
+Explicitly set numeric `runAsUser`/`runAsGroup` for the metastore container
+when PSS is enabled, and expose UID/GID in values for OpenShift ranges.
 
 This preserves OpenShift compatibility without relaxing PSS.
 
@@ -56,6 +56,10 @@ This preserves OpenShift compatibility without relaxing PSS.
 - `charts/spark-3.5/charts/spark-standalone/templates/hive-metastore.yaml`
 
 ---
+
+## Fix Reference
+
+- Workstream: `docs/workstreams/completed/WS-BUG-009-spark-35-metastore-uid.md`
 
 ## Related
 
