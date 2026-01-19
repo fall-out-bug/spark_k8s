@@ -18,7 +18,7 @@ data:
     spark.driver.host=spark-connect
     spark.driver.port=7078
     spark.driver.blockManager.port=7079
-    {{- else if eq .Values.sparkConnect.master "k8s" }}
+    {{- else if or (eq .Values.sparkConnect.backendMode "k8s") (eq .Values.sparkConnect.master "k8s") }}
     # Spark Master - Kubernetes mode with dynamic executor pods
     spark.master=k8s://https://kubernetes.default.svc:443
 

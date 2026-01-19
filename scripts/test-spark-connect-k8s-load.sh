@@ -43,9 +43,20 @@ kubectl wait --for=condition=ready pod \
 CONNECT_POD="$(kubectl get pod -n "${NAMESPACE}" -l "${CONNECT_SELECTOR}" -o jsonpath='{.items[0].metadata.name}')"
 echo "   Connect pod: ${CONNECT_POD}"
 
+CONNECT_SERVICE="$(kubectl get svc -n "${NAMESPACE}" -l "${CONNECT_SELECTOR}" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)"
+if [[ -z "${CONNECT_SERVICE}" ]]; then
+  if kubectl get svc spark-connect -n "${NAMESPACE}" >/dev/null 2>&1; then
+    CONNECT_SERVICE="spark-connect"
+  else
+    echo "   ERROR: Spark Connect service not found for release '${RELEASE}' in namespace '${NAMESPACE}'"
+    exit 1
+  fi
+fi
+echo "   Connect service: ${CONNECT_SERVICE}"
+
 echo ""
 echo "2) Setting up port-forward to Spark Connect..."
-kubectl port-forward "svc/${RELEASE}-connect" 15002:15002 -n "${NAMESPACE}" >/dev/null 2>&1 &
+kubectl port-forward "svc/${CONNECT_SERVICE}" 15002:15002 -n "${NAMESPACE}" >/dev/null 2>&1 &
 PF_PIDS+=($!)
 sleep 5
 

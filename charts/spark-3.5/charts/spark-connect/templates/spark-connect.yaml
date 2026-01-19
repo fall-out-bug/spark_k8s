@@ -76,7 +76,7 @@ spec:
           containerPort: 15002
         - name: ui
           containerPort: 4040
-        {{- if or (eq .Values.sparkConnect.backendMode "k8s") (eq .Values.sparkConnect.master "k8s") }}
+        {{- if or (eq .Values.sparkConnect.backendMode "k8s") (eq .Values.sparkConnect.backendMode "standalone") (eq .Values.sparkConnect.master "k8s") }}
         - name: driver
           containerPort: 7078
         - name: blockmanager
@@ -118,7 +118,7 @@ spec:
   - name: ui
     port: 4040
     targetPort: 4040
-  {{- if or (eq .Values.sparkConnect.backendMode "k8s") (eq .Values.sparkConnect.master "k8s") }}
+  {{- if or (eq .Values.sparkConnect.backendMode "k8s") (eq .Values.sparkConnect.backendMode "standalone") (eq .Values.sparkConnect.master "k8s") }}
   - name: driver
     port: 7078
     targetPort: 7078
