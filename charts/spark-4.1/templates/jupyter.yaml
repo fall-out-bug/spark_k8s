@@ -38,12 +38,12 @@ spec:
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: s3-credentials
+                  name: {{ .Values.global.s3.existingSecret | quote }}
                   key: access-key
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: s3-credentials
+                  name: {{ .Values.global.s3.existingSecret | quote }}
                   key: secret-key
           {{- if .Values.security.podSecurityStandards }}
           securityContext:
