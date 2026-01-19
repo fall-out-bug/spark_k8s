@@ -91,8 +91,31 @@ helm upgrade spark-platform charts/spark-platform -n spark -f my-values.yaml
 См. [`docs/guides/en/overlays/`](../../en/overlays/) для готовых overlays:
 - `values-anyk8s.yaml` — Базовый профиль для любого Kubernetes
 - `values-sa-prodlike.yaml` — Prod-like профиль (тестировалось на Minikube)
+- `values-connect-k8s.yaml` — Режим Connect-only (K8s executors, по умолчанию)
+- `values-connect-standalone.yaml` — Режим Connect + Standalone backend
 
 **Примечание:** Overlays одинаковы для EN и RU; используйте файлы из `docs/guides/en/overlays/`.
+
+### Режимы бэкенда Connect
+
+Spark Connect поддерживает два режима бэкенда:
+
+1. **Режим K8s executors** (по умолчанию) — Connect создаёт executor-поды динамически через Kubernetes API
+   ```bash
+   helm install spark-connect charts/spark-3.5 -n spark \
+     -f docs/guides/en/overlays/values-connect-k8s.yaml \
+     --set spark-connect.enabled=true
+   ```
+
+2. **Режим Standalone backend** — Connect отправляет задания в существующий кластер Spark Standalone
+   ```bash
+   helm install spark-connect charts/spark-3.5 -n spark \
+     -f docs/guides/en/overlays/values-connect-standalone.yaml \
+     --set spark-connect.enabled=true \
+     --set spark-connect.sparkConnect.standalone.masterService=<standalone-master-service>
+   ```
+
+См. файлы overlays для подробных примеров конфигурации для Spark 3.5 и 4.1.
 
 ## Smoke-тесты
 

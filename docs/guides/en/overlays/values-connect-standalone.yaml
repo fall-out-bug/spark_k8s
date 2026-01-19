@@ -1,0 +1,43 @@
+# Connect + Standalone backend mode: Spark Connect using existing Standalone cluster
+# Works with: Spark 3.5 (spark-3.5 chart) and Spark 4.1 (spark-4.1 chart)
+#
+# Prerequisites:
+#   - Spark Standalone cluster must be deployed and running
+#   - Standalone master service must be accessible from Connect namespace
+#
+# Usage:
+#   # Spark 3.5 (umbrella chart)
+#   helm install spark-connect charts/spark-3.5 -n spark \
+#     -f docs/guides/en/overlays/values-connect-standalone.yaml \
+#     --set spark-connect.enabled=true \
+#     --set spark-connect.sparkConnect.standalone.masterService=<standalone-master-service>
+#
+#   # Spark 4.1 (direct chart)
+#   helm install spark-connect charts/spark-4.1 -n spark \
+#     -f docs/guides/en/overlays/values-connect-standalone.yaml \
+#     --set connect.enabled=true \
+#     --set connect.standalone.masterService=<standalone-master-service>
+
+# Spark 3.5 configuration (umbrella chart)
+# Adjust masterService and masterPort to match your Standalone deployment:
+spark-connect:
+  sparkConnect:
+    backendMode: "standalone"
+    standalone:
+      masterService: "spark-sa-spark-standalone-master"  # Change to your Standalone master service name
+      masterPort: 7077  # Default Standalone master port
+    # Note: Dynamic allocation is disabled in Standalone backend mode
+
+# Spark 4.1 configuration (direct chart)
+# Adjust masterService and masterPort to match your Standalone deployment:
+# connect:
+#   backendMode: "standalone"
+#   standalone:
+#     masterService: "spark-sa-spark-standalone-master"  # Change to your Standalone master service name
+#     masterPort: 7077  # Default Standalone master port
+#   # Note: Dynamic allocation is disabled in Standalone backend mode
+
+# Example: If Standalone is in a different namespace:
+#   masterService: "spark-standalone-master.spark-standalone.svc.cluster.local"
+#   # Or use short name if in same namespace:
+#   masterService: "spark-standalone-master"

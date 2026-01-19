@@ -91,6 +91,29 @@ helm upgrade spark-platform charts/spark-platform -n spark -f my-values.yaml
 See [`docs/guides/en/overlays/`](../overlays/) for copy-pasteable overlays:
 - `values-anyk8s.yaml` — Generic baseline for any Kubernetes
 - `values-sa-prodlike.yaml` — Prod-like profile (tested on Minikube)
+- `values-connect-k8s.yaml` — Connect-only mode (K8s executors, default)
+- `values-connect-standalone.yaml` — Connect + Standalone backend mode
+
+### Connect Backend Modes
+
+Spark Connect supports two backend modes:
+
+1. **K8s executors mode** (default) — Connect creates executor pods dynamically via Kubernetes API
+   ```bash
+   helm install spark-connect charts/spark-3.5 -n spark \
+     -f docs/guides/en/overlays/values-connect-k8s.yaml \
+     --set spark-connect.enabled=true
+   ```
+
+2. **Standalone backend mode** — Connect submits jobs to an existing Spark Standalone cluster
+   ```bash
+   helm install spark-connect charts/spark-3.5 -n spark \
+     -f docs/guides/en/overlays/values-connect-standalone.yaml \
+     --set spark-connect.enabled=true \
+     --set spark-connect.sparkConnect.standalone.masterService=<standalone-master-service>
+   ```
+
+See overlay files for detailed configuration examples for both Spark 3.5 and 4.1.
 
 ## Smoke Tests
 
