@@ -6,6 +6,7 @@ global:
     secretKey: "minioadmin"
     pathStyleAccess: true
     sslEnabled: false
+    existingSecret: "s3-credentials"
   postgresql:
     host: "postgresql-metastore-41"
     port: 5432
