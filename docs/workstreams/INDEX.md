@@ -55,6 +55,7 @@ WS-001-01 (Chart Skeleton)
 | F02: Repo Documentation | 4 | 4 | 0 | 0 |
 | F03: History Server (SA) | 2 | 2 | 0 | 0 |
 | F04: Spark 4.1.0 Charts | 24 | 0 | 0 | 24 |
+| F05: Docs Refresh (prod-like Airflow vars) | 2 | 0 | 0 | 2 |
 
 ---
 
@@ -200,3 +201,23 @@ WS-012-01 → WS-012-02
 **Verdict:** ✅ APPROVED
 
 Both workstreams passed all quality checks. Static validation complete. Runtime validation available via UAT guide (`docs/uat/UAT-F03-history-server.md`).
+
+---
+
+## Feature F05: Documentation Refresh (prod-like Airflow vars)
+
+**Source:** `docs/drafts/idea-repo-documentation.md`  
+**Status:** Backlog  
+**Total Workstreams:** 2  
+**Estimated LOC:** ~200 (docs)
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-021-01 | Update validation docs EN (Airflow vars) | SMALL (~120 LOC) | - | backlog |
+| WS-021-02 | Update validation docs RU (Airflow vars) | SMALL (~120 LOC) | WS-021-01 | backlog |
+
+### Dependency Graph
+
+```
+WS-021-01 → WS-021-02
+```

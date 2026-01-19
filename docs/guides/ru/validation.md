@@ -62,11 +62,28 @@
 **Переменные окружения:**
 - `TIMEOUT_SECONDS` — Максимальное время ожидания на DAG (по умолчанию: `900`)
 - `POLL_SECONDS` — Интервал опроса (по умолчанию: `10`)
+- `SET_AIRFLOW_VARIABLES` — Автоматически заполнять Airflow Variables (по умолчанию: `true`)
+- `FORCE_SET_VARIABLES` — Перезаписывать существующие переменные (по умолчанию: `false`)
+- `SPARK_IMAGE_VALUE` — Образ Spark для DAG (по умолчанию: `spark-custom:3.5.7`)
+- `SPARK_NAMESPACE_VALUE` — Namespace для заданий Spark (по умолчанию: аргумент namespace скрипта)
+- `SPARK_MASTER_VALUE` — URL Spark Master (по умолчанию: `spark://<release>-spark-standalone-master:7077`)
+- `S3_ENDPOINT_VALUE` — URL S3 endpoint (по умолчанию: `http://minio:9000`)
+- `S3_ACCESS_KEY_VALUE` — S3 access key (по умолчанию: из секрета `s3-credentials`, если доступен)
+- `S3_SECRET_KEY_VALUE` — S3 secret key (по умолчанию: из секрета `s3-credentials`, если доступен)
 
 **Что проверяет:**
 1. Deployment Airflow scheduler готов
 2. Airflow CLI доступен
-3. DAG запускаются и достигают состояния `success`
+3. Airflow Variables автоматически заполняются (если `SET_AIRFLOW_VARIABLES=true`)
+4. DAG запускаются и достигают состояния `success`
+
+**Автоматическая настройка переменных:**
+Скрипт автоматически устанавливает Airflow Variables, требуемые DAG (`spark_image`, `spark_namespace`, `spark_standalone_master`, `s3_endpoint`, `s3_access_key`, `s3_secret_key`), на основе:
+- Аргументов скрипта (namespace, имя release)
+- Секрета `s3-credentials` в namespace (если присутствует)
+- Переопределений переменных окружения (если установлены)
+
+Это обеспечивает детерминированную работу prod-like DAG тестов без ручной настройки переменных.
 
 **Ожидаемый вывод:**
 ```
@@ -165,6 +182,30 @@ kubectl port-forward svc/<release>-spark-standalone-airflow-webserver 8080:8080 
 - Проверьте, что образ worker KubernetesExecutor совпадает с образом Airflow
 - Проверьте права RBAC для worker подов
 - Проверьте лимиты ресурсов (worker поды могут быть OOMKilled)
+
+### Перезапуск Airflow Scheduler после сбоя кластера
+
+**Симптомы:**
+- Под scheduler в состоянии `Error` после перезапуска кластера
+- `test-prodlike-airflow.sh` падает с "timed out waiting for the condition"
+- Логи scheduler показывают ошибки подключения к PostgreSQL
+
+**Устранение неполадок:**
+```bash
+# Проверка статуса пода scheduler
+kubectl get pods -n <namespace> -l app=airflow-scheduler
+
+# Проверка логов scheduler
+kubectl logs -n <namespace> deploy/<release>-spark-standalone-airflow-scheduler --all-containers | tail -100
+
+# Проверка готовности PostgreSQL
+kubectl exec -n <namespace> <postgres-pod> -- pg_isready -U airflow
+```
+
+**Частые исправления:**
+- Перезапустите deployment scheduler: `kubectl rollout restart deploy/<release>-spark-standalone-airflow-scheduler -n <namespace>`
+- Убедитесь, что под PostgreSQL в состоянии `Running` перед запуском scheduler
+- Проверьте, что init контейнеры scheduler завершились успешно
 
 ### Workers не регистрируются
 
