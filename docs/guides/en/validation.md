@@ -62,11 +62,28 @@ This guide documents the smoke test scripts provided in the repository and what 
 **Environment Variables:**
 - `TIMEOUT_SECONDS` — Max wait time per DAG (default: `900`)
 - `POLL_SECONDS` — Poll interval (default: `10`)
+- `SET_AIRFLOW_VARIABLES` — Auto-populate Airflow Variables (default: `true`)
+- `FORCE_SET_VARIABLES` — Overwrite existing variables (default: `false`)
+- `SPARK_IMAGE_VALUE` — Spark image for DAGs (default: `spark-custom:3.5.7`)
+- `SPARK_NAMESPACE_VALUE` — Namespace for Spark jobs (default: script's namespace argument)
+- `SPARK_STANDALONE_MASTER_VALUE` — Spark Master URL (default: `spark://<release>-spark-standalone-master:7077`)
+- `S3_ENDPOINT_VALUE` — S3 endpoint URL (default: `http://minio:9000`)
+- `S3_ACCESS_KEY_VALUE` — S3 access key (default: from `s3-credentials` secret if available)
+- `S3_SECRET_KEY_VALUE` — S3 secret key (default: from `s3-credentials` secret if available)
 
 **What It Tests:**
 1. Airflow scheduler deployment is ready
 2. Airflow CLI is reachable
-3. DAGs are triggered and reach `success` state
+3. Airflow Variables are auto-populated (if `SET_AIRFLOW_VARIABLES=true`)
+4. DAGs are triggered and reach `success` state
+
+**Auto Variable Setup:**
+The script automatically sets Airflow Variables required by DAGs (`spark_image`, `spark_namespace`, `spark_standalone_master`, `s3_endpoint`, `s3_access_key`, `s3_secret_key`) based on:
+- Script arguments (namespace, release name)
+- `s3-credentials` secret in the namespace (if present)
+- Environment variable overrides (if set)
+
+This ensures prod-like DAG tests work deterministically without manual variable setup.
 
 **Expected Output:**
 ```
@@ -165,6 +182,30 @@ kubectl port-forward svc/<release>-spark-standalone-airflow-webserver 8080:8080 
 - Check KubernetesExecutor worker image matches Airflow image
 - Verify RBAC permissions for worker pods
 - Check resource limits (worker pods may be OOMKilled)
+
+### Airflow Scheduler Restart After Cluster Outage
+
+**Symptoms:**
+- Scheduler pod in `Error` state after cluster restart
+- `test-prodlike-airflow.sh` fails with "timed out waiting for the condition"
+- Scheduler logs show PostgreSQL connection errors
+
+**Troubleshooting:**
+```bash
+# Check scheduler pod status
+kubectl get pods -n <namespace> -l app=airflow-scheduler
+
+# Check scheduler logs
+kubectl logs -n <namespace> deploy/<release>-spark-standalone-airflow-scheduler --all-containers | tail -100
+
+# Verify PostgreSQL is ready
+kubectl exec -n <namespace> <postgres-pod> -- pg_isready -U airflow
+```
+
+**Common Fixes:**
+- Restart scheduler deployment: `kubectl rollout restart deploy/<release>-spark-standalone-airflow-scheduler -n <namespace>`
+- Ensure PostgreSQL pod is `Running` before scheduler starts
+- Check scheduler init containers completed successfully
 
 ### Workers Not Registering
 

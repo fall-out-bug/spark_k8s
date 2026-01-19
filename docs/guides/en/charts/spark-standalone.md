@@ -130,6 +130,25 @@ The repository provides smoke test scripts:
 
 **Expected:** DAGs reach `success` state.
 
+**Airflow Variables:**
+The test script automatically sets required Airflow Variables for DAGs:
+- `spark_image` — Spark Docker image (default: `spark-custom:3.5.7`)
+- `spark_namespace` — Kubernetes namespace for Spark jobs (default: script namespace argument)
+- `spark_standalone_master` — Spark Master URL (default: `spark://<release>-spark-standalone-master:7077`)
+- `s3_endpoint` — S3 endpoint URL (default: `http://minio:9000`)
+- `s3_access_key` — S3 access key (from `s3-credentials` secret if available)
+- `s3_secret_key` — S3 secret key (from `s3-credentials` secret if available)
+
+To override defaults, set environment variables before running the script:
+```bash
+export SPARK_NAMESPACE_VALUE=my-namespace
+export SPARK_STANDALONE_MASTER_VALUE=spark://custom-master:7077
+export S3_ENDPOINT_VALUE=http://custom-s3:9000
+./scripts/test-prodlike-airflow.sh spark-sa-prodlike spark-prodlike
+```
+
+See [`docs/guides/en/validation.md`](../validation.md) for full environment variable reference.
+
 ### Combined Smoke (Recommended)
 
 ```bash
@@ -165,6 +184,24 @@ kubectl logs deploy/spark-standalone-worker -n spark-sa
 ```bash
 python3 -c 'import os,base64; print(base64.urlsafe_b64encode(os.urandom(32)).decode())'
 ```
+
+### Airflow DAGs Failing Due to Missing Variables
+
+**Symptom:** DAGs fail with errors like `Variable spark_namespace not found` or incorrect Spark Master URL.
+
+**Fix:** Ensure Airflow Variables are set. The test script (`test-prodlike-airflow.sh`) auto-populates them, but for manual runs:
+```bash
+# Set variables via Airflow CLI (in scheduler pod)
+kubectl exec -n <namespace> <scheduler-pod> -- \
+  airflow variables set spark_namespace <namespace>
+kubectl exec -n <namespace> <scheduler-pod> -- \
+  airflow variables set spark_standalone_master spark://<release>-spark-standalone-master:7077
+kubectl exec -n <namespace> <scheduler-pod> -- \
+  airflow variables set s3_endpoint http://minio:9000
+# ... (set other required variables)
+```
+
+See DAG source files in `charts/spark-standalone/files/airflow/dags/` for complete variable list.
 
 ### Spark Job Stuck in WAITING
 
