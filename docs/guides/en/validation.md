@@ -101,6 +101,158 @@ This ensures prod-like DAG tests work deterministically without manual variable 
 
 **Exit Code:** `0` if all DAGs reach `success`, `1` if any DAG fails, `2` on timeout.
 
+### `scripts/test-spark-connect-k8s-load.sh`
+
+**Purpose:** Runtime load test for Spark Connect with K8s executors backend (Connect-only mode).
+
+**Usage:**
+```bash
+./scripts/test-spark-connect-k8s-load.sh <namespace> <release-name>
+
+# Example:
+./scripts/test-spark-connect-k8s-load.sh spark spark-connect-k8s
+
+# With custom load parameters:
+export LOAD_ROWS=2000000
+export LOAD_PARTITIONS=100
+export LOAD_ITERATIONS=5
+export LOAD_EXECUTORS=5
+./scripts/test-spark-connect-k8s-load.sh spark spark-connect-k8s
+```
+
+**Environment Variables:**
+- `LOAD_ROWS` — Rows per DataFrame operation (default: `1000000`)
+- `LOAD_PARTITIONS` — Partitions for data operations (default: `50`)
+- `LOAD_ITERATIONS` — Number of iterations (default: `3`)
+- `LOAD_EXECUTORS` — Number of executors to request (default: `3`)
+
+**What It Tests:**
+1. Spark Connect pod is ready
+2. Port-forward to Connect service (15002)
+3. Multiple iterations of DataFrame operations:
+   - Large DataFrame creation and repartitioning
+   - Aggregations (sum)
+   - Filter and count operations
+   - Join operations (self-join)
+4. Executor pods were created (best-effort check)
+
+**Expected Output:**
+```
+=== Spark Connect K8s Executors Load Test (spark-connect-k8s in spark) ===
+Load parameters:
+  Rows: 1000000
+  Partitions: 50
+  Iterations: 3
+  Executors: 3
+
+1) Checking Spark Connect pod...
+   Connect pod: spark-connect-k8s-connect-xxx
+
+2) Setting up port-forward to Spark Connect...
+
+3) Running load test (3 iterations)...
+✓ Spark Connect session created
+
+Iteration 1/3...
+  Created DataFrame: 2.45s
+  Aggregation: 1.23s (sum=499999500000)
+  Filter+Count: 0.89s (count=500000)
+  Join: 1.56s (count=100000)
+  Total iteration time: 6.13s
+...
+✓ All load test iterations passed
+
+4) Checking executor pods were created...
+   ✓ Found 3 executor pod(s)
+
+=== Load Test PASSED ===
+```
+
+**Exit Code:** `0` on success, non-zero on failure.
+
+**Minikube Tuning:**
+For resource-constrained Minikube clusters, reduce load parameters:
+```bash
+export LOAD_ROWS=100000      # Reduce from 1M to 100K
+export LOAD_PARTITIONS=10    # Reduce from 50 to 10
+export LOAD_ITERATIONS=1    # Reduce from 3 to 1
+export LOAD_EXECUTORS=1      # Reduce from 3 to 1
+```
+
+### `scripts/test-spark-connect-standalone-load.sh`
+
+**Purpose:** Runtime load test for Spark Connect with Standalone backend mode.
+
+**Usage:**
+```bash
+./scripts/test-spark-connect-standalone-load.sh <namespace> <release-name> [standalone-master]
+
+# Example:
+./scripts/test-spark-connect-standalone-load.sh spark spark-connect-standalone \
+  spark://spark-sa-spark-standalone-master:7077
+
+# With custom load parameters:
+export LOAD_ROWS=2000000
+export LOAD_PARTITIONS=100
+export LOAD_ITERATIONS=5
+./scripts/test-spark-connect-standalone-load.sh spark spark-connect-standalone \
+  spark://spark-sa-spark-standalone-master:7077
+```
+
+**Environment Variables:**
+- `LOAD_ROWS` — Rows per DataFrame operation (default: `1000000`)
+- `LOAD_PARTITIONS` — Partitions for data operations (default: `50`)
+- `LOAD_ITERATIONS` — Number of iterations (default: `3`)
+
+**What It Tests:**
+1. Spark Connect pod is ready
+2. Standalone master service is accessible (best-effort)
+3. Port-forward to Connect service (15002)
+4. Multiple iterations of DataFrame operations:
+   - Large DataFrame creation and repartitioning
+   - Aggregations (sum)
+   - Filter and count operations
+   - Join operations (self-join)
+5. Jobs were submitted to Standalone backend (verification)
+
+**Expected Output:**
+```
+=== Spark Connect Standalone Backend Load Test (spark-connect-standalone in spark) ===
+Standalone Master: spark://spark-sa-spark-standalone-master:7077
+Load parameters:
+  Rows: 1000000
+  Partitions: 50
+  Iterations: 3
+
+1) Checking Spark Connect pod...
+   Connect pod: spark-connect-standalone-connect-xxx
+
+2) Verifying Standalone master is accessible...
+   ✓ Standalone master service found: spark-sa-spark-standalone-master
+
+3) Setting up port-forward to Spark Connect...
+
+4) Running load test (3 iterations)...
+✓ Spark Connect session created (Standalone backend)
+...
+✓ All load test iterations passed
+
+5) Verifying jobs were submitted to Standalone...
+   ✓ Standalone master service accessible
+
+=== Load Test PASSED ===
+```
+
+**Exit Code:** `0` on success, non-zero on failure.
+
+**Minikube Tuning:**
+For resource-constrained Minikube clusters, reduce load parameters:
+```bash
+export LOAD_ROWS=100000      # Reduce from 1M to 100K
+export LOAD_PARTITIONS=10    # Reduce from 50 to 10
+export LOAD_ITERATIONS=1    # Reduce from 3 to 1
+```
+
 ### `scripts/test-sa-prodlike-all.sh`
 
 **Purpose:** Combined smoke test (Spark E2E + Airflow DAGs).
