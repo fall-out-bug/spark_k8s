@@ -29,6 +29,8 @@ spec:
         - name: executor-pod-template
           configMap:
             name: {{ include "spark-4.1.fullname" . }}-executor-pod-template
+        - name: spark-connect-writable
+          emptyDir: {}
       containers:
         - name: spark-connect
           image: "{{ .Values.connect.image.repository }}:{{ .Values.connect.image.tag }}"
@@ -39,7 +41,7 @@ spec:
             - name: SPARK_CONNECT_URL
               value: "sc://0.0.0.0:15002"
             - name: SPARK_CONF_DIR
-              value: "/opt/spark/conf-k8s"
+              value: "/tmp/spark-conf"
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
@@ -59,9 +61,9 @@ spec:
             - "-c"
           args:
             - >-
-              envsubst < /opt/spark/conf-k8s/spark-properties.conf.template > /opt/spark/conf-k8s/spark-properties.conf &&
-              envsubst < /opt/spark/conf-k8s/executor-pod-template.yaml.template > /opt/spark/conf-k8s/executor-pod-template.yaml &&
-              /opt/spark/sbin/start-connect-server.sh --properties-file /opt/spark/conf-k8s/spark-properties.conf
+              envsubst < /opt/spark/conf-k8s-templates/spark-properties.conf.template > /tmp/spark-conf/spark-properties.conf &&
+              envsubst < /opt/spark/conf-k8s-templates/executor-pod-template.yaml.template > /tmp/spark-conf/executor-pod-template.yaml &&
+              /opt/spark/sbin/start-connect-server.sh --properties-file /tmp/spark-conf/spark-properties.conf
           ports:
             - name: grpc
               containerPort: 15002
@@ -78,11 +80,13 @@ spec:
             periodSeconds: 30
           volumeMounts:
             - name: spark-connect-config
-              mountPath: /opt/spark/conf-k8s/spark-properties.conf.template
+              mountPath: /opt/spark/conf-k8s-templates/spark-properties.conf.template
               subPath: spark-properties.conf.template
             - name: executor-pod-template
-              mountPath: /opt/spark/conf-k8s/executor-pod-template.yaml.template
+              mountPath: /opt/spark/conf-k8s-templates/executor-pod-template.yaml.template
               subPath: executor-pod-template.yaml.template
+            - name: spark-connect-writable
+              mountPath: /tmp/spark-conf
           resources:
             {{- toYaml .Values.connect.resources | nindent 12 }}
 ---
