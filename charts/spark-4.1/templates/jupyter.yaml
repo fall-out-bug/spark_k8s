@@ -33,6 +33,10 @@ spec:
               value: "yes"
             - name: PYARROW_IGNORE_TIMEZONE
               value: "1"
+            - name: HOME
+              value: "/home/spark"
+            - name: JUPYTER_RUNTIME_DIR
+              value: "/tmp/jupyter-runtime"
             - name: S3_ENDPOINT
               value: {{ .Values.global.s3.endpoint | quote }}
             - name: AWS_ACCESS_KEY_ID
@@ -69,6 +73,8 @@ spec:
           volumeMounts:
             - name: notebooks
               mountPath: /home/spark/notebooks
+            - name: jupyter-runtime
+              mountPath: /tmp/jupyter-runtime
       volumes:
         - name: notebooks
           {{- if .Values.jupyter.persistence.enabled }}
@@ -77,6 +83,8 @@ spec:
           {{- else }}
           emptyDir: {}
           {{- end }}
+        - name: jupyter-runtime
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

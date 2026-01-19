@@ -1,7 +1,7 @@
 # ISSUE-008: Jupyter 4.1 fails to start (runtime dir permission)
 
 **Created:** 2026-01-19  
-**Status:** Open  
+**Status:** Resolved  
 **Severity:** 🔴 CRITICAL (blocks runtime tests)  
 **Feature:** F04 - Spark 4.1.0 Charts
 
@@ -37,13 +37,13 @@ Jupyter defaults to `/nonexistent` and cannot create runtime directories.
 
 ---
 
-## Proposed Fix
+## Resolution
 
 Set writable runtime directories in the chart:
 
 - `HOME=/home/spark`
 - `JUPYTER_RUNTIME_DIR=/tmp/jupyter-runtime`
-- Mount `emptyDir` at `/tmp/jupyter-runtime` if needed
+- Mount `emptyDir` at `/tmp/jupyter-runtime`
 
 This remains compatible with PSS `restricted`.
 
@@ -55,6 +55,10 @@ This remains compatible with PSS `restricted`.
 - `docker/jupyter-4.1/Dockerfile` (optional, if HOME needs creation)
 
 ---
+
+## Fix Reference
+
+- Workstream: `docs/workstreams/completed/WS-BUG-008-jupyter-runtime-dir.md`
 
 ## Related
 
