@@ -168,6 +168,10 @@ hiveMetastore:
     limits:
       memory: "2Gi"
       cpu: "1000m"
+  security:
+    # Use numeric UID/GID for PSS runAsNonRoot (override for OpenShift UID ranges).
+    runAsUser: 1000
+    runAsGroup: 1000
 
 airflow:
   enabled: true
@@ -264,10 +268,6 @@ ingress:
 security:
   podSecurityStandards: true
   createNamespace: false
-  # Use numeric UID/GID for PSS runAsNonRoot (override for OpenShift UID ranges).
-  runAsUser: 1000
-  runAsGroup: 1000
-  fsGroup: 1000
   # Embedded Postgres is only for local/test (prod uses external DB).
   # The official `postgres:16-alpine` image is not compatible with strict PSS `restricted`
   # hardening in many setups, so we run it in a relaxed mode by default.

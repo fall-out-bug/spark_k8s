@@ -119,10 +119,10 @@ spec:
         {{- if .Values.security.podSecurityStandards }}
         securityContext:
           {{- include "spark-standalone.containerSecurityContext" . | nindent 10 }}
-          {{- with .Values.security.runAsUser }}
+          {{- with .Values.hiveMetastore.security.runAsUser }}
           runAsUser: {{ . }}
           {{- end }}
-          {{- with .Values.security.runAsGroup }}
+          {{- with .Values.hiveMetastore.security.runAsGroup }}
           runAsGroup: {{ . }}
           {{- end }}
         {{- end }}
