@@ -43,6 +43,8 @@ spec:
               value: {{ .Values.global.postgresql.host | quote }}
             - name: POSTGRES_DB
               value: {{ .Values.hiveMetastore.database.name | quote }}
+            - name: HIVE_CONF_DIR
+              value: "/tmp/hive-conf"
           envFrom:
             - secretRef:
                 name: {{ include "spark-4.1.fullname" . }}-metastore-db
@@ -54,7 +56,7 @@ spec:
             - /bin/bash
             - -lc
             - |
-              envsubst < /opt/hive/conf/hive-site.xml.template > /opt/hive/conf/hive-site.xml
+              envsubst < /opt/hive/conf/hive-site.xml.template > /tmp/hive-conf/hive-site.xml
               /opt/hive/bin/schematool -dbType postgres -initSchema --ifNotExists
           volumeMounts:
             - name: hive-config
@@ -62,11 +64,15 @@ spec:
               subPath: hive-site.xml.template
             - name: tmp
               mountPath: /tmp
+            - name: hive-conf
+              mountPath: /tmp/hive-conf
       volumes:
         - name: hive-config
           configMap:
             name: {{ include "spark-4.1.fullname" . }}-hive-metastore-config
         - name: tmp
+          emptyDir: {}
+        - name: hive-conf
           emptyDir: {}
 ---
 apiVersion: apps/v1
@@ -121,6 +127,8 @@ spec:
               value: {{ .Values.global.postgresql.host | quote }}
             - name: POSTGRES_DB
               value: {{ .Values.hiveMetastore.database.name | quote }}
+            - name: HIVE_CONF_DIR
+              value: "/tmp/hive-conf"
           envFrom:
             - secretRef:
                 name: {{ include "spark-4.1.fullname" . }}-metastore-db
@@ -132,7 +140,7 @@ spec:
             - /bin/bash
             - -lc
             - |
-              envsubst < /opt/hive/conf/hive-site.xml.template > /opt/hive/conf/hive-site.xml
+              envsubst < /opt/hive/conf/hive-site.xml.template > /tmp/hive-conf/hive-site.xml
               exec /opt/hive/bin/hive --service metastore
           ports:
             - name: thrift
@@ -145,11 +153,15 @@ spec:
               subPath: hive-site.xml.template
             - name: tmp
               mountPath: /tmp
+            - name: hive-conf
+              mountPath: /tmp/hive-conf
       volumes:
         - name: hive-config
           configMap:
             name: {{ include "spark-4.1.fullname" . }}-hive-metastore-config
         - name: tmp
+          emptyDir: {}
+        - name: hive-conf
           emptyDir: {}
 ---
 apiVersion: v1

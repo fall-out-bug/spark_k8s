@@ -1,7 +1,7 @@
 # ISSUE-005: Spark 4.1 Hive Metastore cannot write hive-site.xml
 
 **Created:** 2026-01-19  
-**Status:** Open  
+**Status:** Resolved  
 **Severity:** 🔴 CRITICAL (blocks runtime tests)  
 **Feature:** F04 - Spark 4.1.0 Charts
 
@@ -40,16 +40,16 @@ from ConfigMap, which is read-only.
 
 ---
 
-## Proposed Fix
+## Resolution
 
-Render `hive-site.xml` into a writable path (e.g. `/tmp/hive-conf`) and
-point Hive to it:
+Render `hive-site.xml` into a writable path (`/tmp/hive-conf`) and point
+Hive to it:
 
 - Mount `emptyDir` at `/tmp/hive-conf`
-- Write rendered config there
+- Write rendered config to `/tmp/hive-conf/hive-site.xml`
 - Set `HIVE_CONF_DIR=/tmp/hive-conf`
 
-This keeps PSS `restricted` compatibility (no privileged paths).
+This keeps PSS `restricted` compatibility.
 
 ---
 
@@ -59,6 +59,10 @@ This keeps PSS `restricted` compatibility (no privileged paths).
 - `charts/spark-4.1/templates/hive-metastore-configmap.yaml`
 
 ---
+
+## Fix Reference
+
+- Workstream: `docs/workstreams/completed/WS-BUG-005-spark-41-metastore-readonly-config.md`
 
 ## Related
 
