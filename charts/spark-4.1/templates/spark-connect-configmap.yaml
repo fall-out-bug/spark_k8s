@@ -7,8 +7,12 @@ metadata:
     {{- include "spark-4.1.labels" . | nindent 4 }}
 data:
   spark-properties.conf.template: |-
+    {{- if eq .Values.connect.backendMode "standalone" }}
+    # Spark Master - Standalone backend mode
+    spark.master spark://{{ .Values.connect.standalone.masterService }}:{{ .Values.connect.standalone.masterPort }}
+    {{- else }}
+    # Spark Master - Kubernetes executors mode
     spark.master k8s://https://kubernetes.default.svc.cluster.local:443
-    spark.connect.grpc.binding.port 15002
 
     # K8s executor config
     spark.kubernetes.namespace {{ .Release.Namespace }}
@@ -23,6 +27,8 @@ data:
     spark.dynamicAllocation.shuffleTracking.enabled true
     spark.dynamicAllocation.minExecutors {{ .Values.connect.dynamicAllocation.minExecutors }}
     spark.dynamicAllocation.maxExecutors {{ .Values.connect.dynamicAllocation.maxExecutors }}
+    {{- end }}
+    spark.connect.grpc.binding.port 15002
 
     # Event log (for History Server)
     spark.eventLog.enabled true

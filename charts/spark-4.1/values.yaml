@@ -49,6 +49,14 @@ connect:
     limits:
       memory: "4Gi"
       cpu: "2"
+  # Backend mode: "k8s" or "standalone"
+  # k8s: dynamic executor pods created on demand (recommended)
+  # standalone: submit to existing Spark Standalone master/workers
+  backendMode: "k8s"
+  # Standalone backend configuration (used when backendMode=standalone)
+  standalone:
+    masterService: "spark-sa-spark-standalone-master"
+    masterPort: 7077
   executor:
     cores: "1"
     coresLimit: "2"
