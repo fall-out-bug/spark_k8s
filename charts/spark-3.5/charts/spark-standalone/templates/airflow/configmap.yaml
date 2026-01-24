@@ -11,6 +11,10 @@ data:
   AIRFLOW__CORE__LOAD_EXAMPLES: "False"
   AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "False"
   AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "True"
+  {{- $deleteWorkerPods := true }}
+  {{- if hasKey .Values.airflow.kubernetesExecutor "deleteWorkerPods" }}
+  {{- $deleteWorkerPods = .Values.airflow.kubernetesExecutor.deleteWorkerPods }}
+  {{- end }}
   # Newer Airflow uses [kubernetes_executor]; keep legacy [kubernetes] too for compatibility.
   AIRFLOW__KUBERNETES_EXECUTOR__NAMESPACE: {{ default .Release.Namespace .Values.airflow.kubernetesExecutor.namespace | quote }}
   AIRFLOW__KUBERNETES__NAMESPACE: {{ default .Release.Namespace .Values.airflow.kubernetesExecutor.namespace | quote }}
@@ -23,9 +27,18 @@ data:
 
   AIRFLOW__KUBERNETES_EXECUTOR__POD_TEMPLATE_FILE: "/opt/airflow/pod_templates/pod_template.yaml"
   # Keep worker pods only when debugging.
-  AIRFLOW__KUBERNETES_EXECUTOR__DELETE_WORKER_PODS: {{ ternary "True" "False" (default true .Values.airflow.kubernetesExecutor.deleteWorkerPods) | quote }}
-  AIRFLOW__KUBERNETES__DELETE_WORKER_PODS: {{ ternary "True" "False" (default true .Values.airflow.kubernetesExecutor.deleteWorkerPods) | quote }}
-  AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: {{ printf "postgresql+psycopg2://%s:%s@%s:%d/%s" .Values.airflow.postgresql.username .Values.airflow.postgresql.password .Values.airflow.postgresql.host (int .Values.airflow.postgresql.port) .Values.airflow.postgresql.database | quote }}
+  AIRFLOW__KUBERNETES_EXECUTOR__DELETE_WORKER_PODS: {{ ternary "True" "False" $deleteWorkerPods | quote }}
+  AIRFLOW__KUBERNETES__DELETE_WORKER_PODS: {{ ternary "True" "False" $deleteWorkerPods | quote }}
+  {{- $dbHost := .Values.airflow.postgresql.host }}
+  {{- if not (contains "." $dbHost) }}
+  {{- $svc := lookup "v1" "Service" .Release.Namespace $dbHost }}
+  {{- if $svc }}
+  {{- $dbHost = $svc.spec.clusterIP }}
+  {{- else }}
+  {{- $dbHost = printf "%s.%s.svc" $dbHost .Release.Namespace }}
+  {{- end }}
+  {{- end }}
+  AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: {{ printf "postgresql+psycopg2://%s:%s@%s:%d/%s" .Values.airflow.postgresql.username .Values.airflow.postgresql.password $dbHost (int .Values.airflow.postgresql.port) .Values.airflow.postgresql.database | quote }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -43,4 +56,13 @@ data:
 
   mlflow_training_synthetic.py: |-
 {{ .Files.Get "files/airflow/dags/mlflow_training_synthetic.py" | nindent 4 }}
+
+  spark_connect_e2e.py: |-
+{{ .Files.Get "files/airflow/dags/spark_connect_e2e.py" | nindent 4 }}
+
+  spark_k8s_submit_e2e.py: |-
+{{ .Files.Get "files/airflow/dags/spark_k8s_submit_e2e.py" | nindent 4 }}
+
+  spark_operator_e2e.py: |-
+{{ .Files.Get "files/airflow/dags/spark_operator_e2e.py" | nindent 4 }}
 {{- end }}

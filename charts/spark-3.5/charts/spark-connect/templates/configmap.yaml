@@ -15,9 +15,13 @@ data:
     
     # Driver Configuration for Standalone
     spark.driver.bindAddress=0.0.0.0
-    spark.driver.host=spark-connect
-    spark.driver.port=7078
-    spark.driver.blockManager.port=7079
+    spark.driver.host={{ default "spark-connect" .Values.sparkConnect.driver.host }}
+    spark.driver.port={{ default 7078 .Values.sparkConnect.driver.port }}
+    spark.driver.blockManager.port={{ default 7079 .Values.sparkConnect.driver.blockManagerPort }}
+
+    # Standalone scheduler - don't wait for executors at startup
+    spark.scheduler.minRegisteredResourcesRatio=0.0
+    spark.scheduler.maxRegisteredResourcesWaitingTime=30s
     {{- else if or (eq .Values.sparkConnect.backendMode "k8s") (eq .Values.sparkConnect.master "k8s") }}
     # Spark Master - Kubernetes mode with dynamic executor pods
     spark.master=k8s://https://kubernetes.default.svc:443
@@ -49,9 +53,9 @@ data:
 
     # Driver Configuration for K8s
     spark.driver.bindAddress=0.0.0.0
-    spark.driver.host=spark-connect
-    spark.driver.port=7078
-    spark.driver.blockManager.port=7079
+    spark.driver.host={{ default (include "spark-platform.fullname" .) .Values.sparkConnect.driver.host }}-connect
+    spark.driver.port={{ default 7078 .Values.sparkConnect.driver.port }}
+    spark.driver.blockManager.port={{ default 7079 .Values.sparkConnect.driver.blockManagerPort }}
 
     # Scheduler - don't wait for executors at startup
     spark.scheduler.minRegisteredResourcesRatio=0.0

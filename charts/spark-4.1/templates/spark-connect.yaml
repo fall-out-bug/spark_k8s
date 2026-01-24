@@ -31,6 +31,45 @@ spec:
             name: {{ include "spark-4.1.fullname" . }}-executor-pod-template
         - name: spark-connect-writable
           emptyDir: {}
+      initContainers:
+        - name: render-spark-config
+          image: alpine:3.19
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - >-
+              apk add --no-cache gettext &&
+              envsubst < /opt/spark/conf-k8s-templates/spark-properties.conf.template > /tmp/spark-conf/spark-defaults.conf &&
+              envsubst < /opt/spark/conf-k8s-templates/executor-pod-template.yaml.template > /tmp/spark-conf/executor-pod-template.yaml
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.s3.existingSecret | quote }}
+                  key: access-key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.s3.existingSecret | quote }}
+                  key: secret-key
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          {{- if .Values.security.podSecurityStandards }}
+          securityContext:
+            {{- include "spark-base.containerSecurityContext" . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: spark-connect-config
+              mountPath: /opt/spark/conf-k8s-templates/spark-properties.conf.template
+              subPath: spark-properties.conf.template
+            - name: executor-pod-template
+              mountPath: /opt/spark/conf-k8s-templates/executor-pod-template.yaml.template
+              subPath: executor-pod-template.yaml.template
+            - name: spark-connect-writable
+              mountPath: /tmp/spark-conf
       containers:
         - name: spark-connect
           image: "{{ .Values.connect.image.repository }}:{{ .Values.connect.image.tag }}"
@@ -52,6 +91,10 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.global.s3.existingSecret | quote }}
                   key: secret-key
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
           {{- if .Values.security.podSecurityStandards }}
           securityContext:
             {{- include "spark-base.containerSecurityContext" . | nindent 12 }}
@@ -61,13 +104,19 @@ spec:
             - "-c"
           args:
             - >-
-              envsubst < /opt/spark/conf-k8s-templates/spark-properties.conf.template > /tmp/spark-conf/spark-properties.conf &&
-              envsubst < /opt/spark/conf-k8s-templates/executor-pod-template.yaml.template > /tmp/spark-conf/executor-pod-template.yaml &&
-              /opt/spark/sbin/start-connect-server.sh --properties-file /tmp/spark-conf/spark-properties.conf
+              /opt/spark/bin/spark-submit --properties-file /tmp/spark-conf/spark-defaults.conf --class org.apache.spark.sql.connect.service.SparkConnectServer local:///opt/spark/jars/spark-connect_2.13-4.1.0.jar
           ports:
             - name: grpc
               containerPort: 15002
               protocol: TCP
+            {{- if or (eq .Values.connect.backendMode "k8s") (eq .Values.connect.backendMode "standalone") }}
+            - name: driver
+              containerPort: 7078
+              protocol: TCP
+            - name: blockmanager
+              containerPort: 7079
+              protocol: TCP
+            {{- end }}
           readinessProbe:
             tcpSocket:
               port: 15002
@@ -103,6 +152,14 @@ spec:
     - name: grpc
       port: {{ .Values.connect.service.port }}
       targetPort: 15002
+    {{- if or (eq .Values.connect.backendMode "k8s") (eq .Values.connect.backendMode "standalone") }}
+    - name: driver
+      port: 7078
+      targetPort: 7078
+    - name: blockmanager
+      port: 7079
+      targetPort: 7079
+    {{- end }}
   selector:
     app: spark-connect
 {{- end }}

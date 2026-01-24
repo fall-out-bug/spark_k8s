@@ -22,7 +22,7 @@ metadata:
 rules:
 - apiGroups: [""]
   resources: ["pods"]
-  verbs: ["create", "get", "list", "watch", "delete", "patch"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection", "patch"]
 - apiGroups: [""]
   resources: ["pods/log"]
   verbs: ["get", "list"]
@@ -31,13 +31,13 @@ rules:
   verbs: ["create"]
 - apiGroups: [""]
   resources: ["configmaps"]
-  verbs: ["create", "get", "list", "watch", "delete", "update", "patch"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection", "update", "patch"]
 - apiGroups: [""]
   resources: ["services"]
-  verbs: ["create", "get", "list", "watch", "delete", "update", "patch"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection", "update", "patch"]
 - apiGroups: [""]
   resources: ["persistentvolumeclaims"]
-  verbs: ["create", "get", "list", "watch", "delete"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection"]
 - apiGroups: [""]
   resources: ["secrets"]
   verbs: ["get", "list"]
@@ -47,6 +47,9 @@ rules:
 - apiGroups: [""]
   resources: ["endpoints"]
   verbs: ["get", "list"]
+- apiGroups: ["sparkoperator.k8s.io"]
+  resources: ["sparkapplications", "scheduledsparkapplications"]
+  verbs: ["create", "get", "list", "watch", "delete", "update", "patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

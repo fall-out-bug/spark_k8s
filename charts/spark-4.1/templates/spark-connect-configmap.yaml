@@ -9,43 +9,62 @@ data:
   spark-properties.conf.template: |-
     {{- if eq .Values.connect.backendMode "standalone" }}
     # Spark Master - Standalone backend mode
-    spark.master spark://{{ .Values.connect.standalone.masterService }}:{{ .Values.connect.standalone.masterPort }}
+    spark.master=spark://{{ .Values.connect.standalone.masterService }}:{{ .Values.connect.standalone.masterPort }}
+    spark.driver.bindAddress=0.0.0.0
+    spark.driver.host={{ default (printf "%s-connect" (include "spark-4.1.fullname" .)) .Values.connect.driver.host }}
+    spark.driver.port={{ .Values.connect.driver.port }}
+    spark.driver.blockManager.port={{ .Values.connect.driver.blockManagerPort }}
     {{- else }}
     # Spark Master - Kubernetes executors mode
-    spark.master k8s://https://kubernetes.default.svc.cluster.local:443
+    spark.master=k8s://https://kubernetes.default.svc.cluster.local:443
 
     # K8s executor config
-    spark.kubernetes.namespace {{ .Release.Namespace }}
-    spark.kubernetes.executor.podTemplateFile /opt/spark/conf-k8s/executor-pod-template.yaml
-    spark.kubernetes.executor.request.cores {{ .Values.connect.executor.cores }}
-    spark.kubernetes.executor.limit.cores {{ .Values.connect.executor.coresLimit }}
-    spark.kubernetes.executor.request.memory {{ .Values.connect.executor.memory }}
-    spark.kubernetes.container.image {{ .Values.connect.image.repository }}:{{ .Values.connect.image.tag }}
+    spark.kubernetes.namespace={{ .Release.Namespace }}
+    spark.kubernetes.executor.podTemplateFile=/tmp/spark-conf/executor-pod-template.yaml
+    spark.kubernetes.executor.request.cores={{ .Values.connect.executor.cores }}
+    spark.kubernetes.executor.limit.cores={{ .Values.connect.executor.coresLimit }}
+    spark.kubernetes.executor.request.memory={{ .Values.connect.executor.memory }}
+    spark.kubernetes.container.image={{ .Values.connect.image.repository }}:{{ .Values.connect.image.tag }}
+    spark.driver.bindAddress=0.0.0.0
+    spark.driver.host={{ default (printf "%s-connect" (include "spark-4.1.fullname" .)) .Values.connect.driver.host }}
+    spark.driver.port={{ .Values.connect.driver.port }}
+    spark.driver.blockManager.port={{ .Values.connect.driver.blockManagerPort }}
 
     # Dynamic allocation
-    spark.dynamicAllocation.enabled {{ .Values.connect.dynamicAllocation.enabled }}
-    spark.dynamicAllocation.shuffleTracking.enabled true
-    spark.dynamicAllocation.minExecutors {{ .Values.connect.dynamicAllocation.minExecutors }}
-    spark.dynamicAllocation.maxExecutors {{ .Values.connect.dynamicAllocation.maxExecutors }}
+    spark.dynamicAllocation.enabled={{ .Values.connect.dynamicAllocation.enabled }}
+    spark.dynamicAllocation.shuffleTracking.enabled=true
+    spark.dynamicAllocation.minExecutors={{ .Values.connect.dynamicAllocation.minExecutors }}
+    spark.dynamicAllocation.maxExecutors={{ .Values.connect.dynamicAllocation.maxExecutors }}
     {{- end }}
-    spark.connect.grpc.binding.port 15002
+    spark.connect.grpc.binding.port=15002
 
     # Event log (for History Server)
-    spark.eventLog.enabled true
-    spark.eventLog.dir s3a://spark-logs/4.1/events
+    {{- if .Values.connect.eventLog.enabled }}
+    spark.eventLog.enabled=true
+    spark.eventLog.dir={{ .Values.connect.eventLog.dir }}
+    {{- else }}
+    spark.eventLog.enabled=false
+    {{- end }}
+
+    {{- if .Values.connect.sparkConf }}
+    # Extra Spark conf (user overrides)
+    {{- range $key, $value := .Values.connect.sparkConf }}
+    {{ $key }}={{ $value }}
+    {{- end }}
+    {{- end }}
 
     {{- if .Values.celeborn.enabled }}
     # Celeborn shuffle
-    spark.shuffle.manager org.apache.spark.shuffle.celeborn.RssShuffleManager
-    spark.celeborn.master.endpoints {{ .Values.celeborn.masterEndpoints }}
-    spark.celeborn.push.replicate.enabled true
-    spark.celeborn.client.spark.shuffle.writer hash
-    spark.celeborn.client.spark.fetch.throwsFetchFailure true
+    spark.shuffle.manager=org.apache.spark.shuffle.celeborn.RssShuffleManager
+    spark.celeborn.master.endpoints={{ .Values.celeborn.masterEndpoints }}
+    spark.celeborn.push.replicate.enabled=true
+    spark.celeborn.client.spark.shuffle.writer=hash
+    spark.celeborn.client.spark.fetch.throwsFetchFailure=true
     {{- end }}
 
     # S3 config
-    spark.hadoop.fs.s3a.endpoint {{ .Values.global.s3.endpoint }}
-    spark.hadoop.fs.s3a.access.key ${AWS_ACCESS_KEY_ID}
-    spark.hadoop.fs.s3a.secret.key ${AWS_SECRET_ACCESS_KEY}
-    spark.hadoop.fs.s3a.path.style.access {{ .Values.global.s3.pathStyleAccess }}
+    spark.hadoop.fs.s3a.endpoint={{ .Values.global.s3.endpoint }}
+    spark.hadoop.fs.s3a.access.key=${AWS_ACCESS_KEY_ID}
+    spark.hadoop.fs.s3a.secret.key=${AWS_SECRET_ACCESS_KEY}
+    spark.hadoop.fs.s3a.path.style.access={{ .Values.global.s3.pathStyleAccess }}
 {{- end }}

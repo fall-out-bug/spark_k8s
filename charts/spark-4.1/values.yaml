@@ -49,6 +49,10 @@ connect:
     limits:
       memory: "4Gi"
       cpu: "2"
+  driver:
+    host: ""
+    port: 7078
+    blockManagerPort: 7079
   # Backend mode: "k8s" or "standalone"
   # k8s: dynamic executor pods created on demand (recommended)
   # standalone: submit to existing Spark Standalone master/workers
@@ -66,6 +70,10 @@ connect:
     enabled: true
     minExecutors: 0
     maxExecutors: 10
+  eventLog:
+    enabled: true
+    dir: "s3a://spark-logs/4.1/events"
+  sparkConf: {}
 
 # Hive Metastore 4.0.0 (separate instance for Spark 4.1.0)
 hiveMetastore:
