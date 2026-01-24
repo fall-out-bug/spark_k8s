@@ -15,7 +15,7 @@ data:
     
     # Driver Configuration for Standalone
     spark.driver.bindAddress=0.0.0.0
-    spark.driver.host={{ default "spark-connect" .Values.sparkConnect.driver.host }}
+    spark.driver.host={{ default (printf "%s-connect" (include "spark-platform.fullname" .)) .Values.sparkConnect.driver.host }}
     spark.driver.port={{ default 7078 .Values.sparkConnect.driver.port }}
     spark.driver.blockManager.port={{ default 7079 .Values.sparkConnect.driver.blockManagerPort }}
 
@@ -53,7 +53,7 @@ data:
 
     # Driver Configuration for K8s
     spark.driver.bindAddress=0.0.0.0
-    spark.driver.host={{ default (include "spark-platform.fullname" .) .Values.sparkConnect.driver.host }}-connect
+    spark.driver.host={{ default (printf "%s-connect" (include "spark-platform.fullname" .)) .Values.sparkConnect.driver.host }}
     spark.driver.port={{ default 7078 .Values.sparkConnect.driver.port }}
     spark.driver.blockManager.port={{ default 7079 .Values.sparkConnect.driver.blockManagerPort }}
 
@@ -83,6 +83,7 @@ data:
     {{- end }}
 
     # Spark Connect Server
+    spark.connect.grpc.binding.address=0.0.0.0
     spark.connect.grpc.binding.port=15002
     spark.connect.grpc.arrow.maxBatchSize=4194304
     spark.connect.grpc.maxInboundMessageSize=134217728

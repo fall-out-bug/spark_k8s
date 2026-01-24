@@ -13,6 +13,7 @@ s3:
   secretKey: "minioadmin"
   pathStyleAccess: true
   sslEnabled: false
+  existingSecret: ""
 
 # Spark Connect Server (driver + dynamic K8s executors)
 sparkConnect:
@@ -30,6 +31,9 @@ sparkConnect:
       cpu: "4000m"
   driver:
     memory: "2g"
+    host: "spark-connect"
+    port: 7078
+    blockManagerPort: 7079
 
   # Backend mode: "k8s" or "standalone"
   # k8s: dynamic executor pods created on demand (recommended)

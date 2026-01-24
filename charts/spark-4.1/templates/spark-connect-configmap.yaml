@@ -36,6 +36,7 @@ data:
     spark.dynamicAllocation.minExecutors={{ .Values.connect.dynamicAllocation.minExecutors }}
     spark.dynamicAllocation.maxExecutors={{ .Values.connect.dynamicAllocation.maxExecutors }}
     {{- end }}
+    spark.connect.grpc.binding.address=0.0.0.0
     spark.connect.grpc.binding.port=15002
 
     # Event log (for History Server)
