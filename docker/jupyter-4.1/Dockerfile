@@ -5,6 +5,9 @@ USER root
 RUN pip install --no-cache-dir \
     jupyterlab==4.0.0 \
     pyspark==4.1.0 \
+    "grpcio>=1.48.1" \
+    "grpcio-status>=1.48.1" \
+    "zstandard>=0.25.0" \
     pandas>=2.0.0 \
     pyarrow>=10.0.0 \
     matplotlib \

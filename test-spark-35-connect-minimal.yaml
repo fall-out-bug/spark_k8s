@@ -1,0 +1,161 @@
+# Minimal Spark 3.5 Connect deployment for K8s mode test
+# This is a simplified deployment without MinIO, PostgreSQL, JupyterHub, etc.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spark-config
+  namespace: minimal-spark-35
+data:
+  spark-defaults.conf: |
+    # Spark Master - Kubernetes mode with dynamic executor pods
+    spark.master=k8s://https://kubernetes.default.svc:443
+
+    # Kubernetes Configuration
+    spark.kubernetes.namespace=minimal-spark-35
+    spark.kubernetes.authenticate.driver.serviceAccountName=spark
+    spark.kubernetes.container.image=spark-custom:3.5.7
+    spark.kubernetes.container.image.pullPolicy=IfNotPresent
+
+    # Driver Configuration for K8s
+    spark.driver.bindAddress=0.0.0.0
+    spark.driver.host=spark-connect.minimal-spark-35.svc.cluster.local
+    spark.driver.port=7078
+    spark.driver.blockManager.port=7079
+    spark.driver.memory=1g
+
+    # Executor Configuration
+    spark.executor.memory=1g
+    spark.executor.cores=1
+    spark.kubernetes.executor.podNamePrefix=spark-exec
+
+    # Dynamic Allocation
+    spark.dynamicAllocation.enabled=true
+    spark.dynamicAllocation.shuffleTracking.enabled=true
+    spark.dynamicAllocation.minExecutors=0
+    spark.dynamicAllocation.maxExecutors=2
+    spark.dynamicAllocation.initialExecutors=0
+    spark.dynamicAllocation.executorIdleTimeout=60s
+    spark.dynamicAllocation.schedulerBacklogTimeout=1s
+
+    # Scheduler - don't wait for executors at startup
+    spark.scheduler.minRegisteredResourcesRatio=0.0
+    spark.scheduler.maxRegisteredResourcesWaitingTime=30s
+
+    # Spark Connect Server
+    spark.connect.grpc.binding.address=0.0.0.0
+    spark.connect.grpc.binding.port=15002
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: spark
+  namespace: minimal-spark-35
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: spark-role
+  namespace: minimal-spark-35
+rules:
+- apiGroups: [""]
+  resources: ["pods", "configmaps", "secrets", "services"]
+  verbs: ["get", "list", "watch", "create", "update", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: spark-role-binding
+  namespace: minimal-spark-35
+subjects:
+- kind: ServiceAccount
+  name: spark
+roleRef:
+  kind: Role
+  name: spark-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-connect
+  namespace: minimal-spark-35
+spec:
+  ports:
+  - name: grpc
+    port: 15002
+    targetPort: 15002
+  - name: driver
+    port: 7078
+    targetPort: 7078
+  - name: blockmanager
+    port: 7079
+    targetPort: 7079
+  selector:
+    app: spark-connect
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-connect
+  namespace: minimal-spark-35
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-connect
+  template:
+    metadata:
+      labels:
+        app: spark-connect
+    spec:
+      serviceAccountName: spark
+      containers:
+      - name: spark-connect
+        image: spark-custom:3.5.7
+        command: ["/opt/spark/bin/spark-submit"]
+        args:
+          - --class
+          - org.apache.spark.sql.connect.service.SparkConnectServer
+          - --master
+          - local[*]
+          - --properties-file
+          - /opt/spark/conf/spark-defaults.conf
+          - local:///opt/spark/examples/jars/spark-sql_2.12-3.5.7.jar
+        ports:
+        - containerPort: 15002
+          name: grpc
+        - containerPort: 7078
+          name: driver
+        - containerPort: 7079
+          name: blockmanager
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "1Gi"
+          limits:
+            cpu: "1000m"
+            memory: "2Gi"
+        livenessProbe:
+          tcpSocket:
+            port: 15002
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 1
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: 15002
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 1
+          failureThreshold: 3
+        volumeMounts:
+        - name: spark-config
+          mountPath: /opt/spark/conf/spark-defaults.conf
+          subPath: spark-defaults.conf
+      volumes:
+      - name: spark-config
+        configMap:
+          name: spark-config

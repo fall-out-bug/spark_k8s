@@ -1,4 +1,18 @@
 {{- if .Values.minio.enabled }}
+{{- if not .Values.s3.existingSecret }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: s3-credentials
+  labels:
+    app: minio
+    {{- include "spark-base.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  access-key: {{ .Values.s3.accessKey | default "minioadmin" }}
+  secret-key: {{ .Values.s3.secretKey | default "minioadmin" }}
+---
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:

@@ -1,83 +1,303 @@
-# Spark Platform на Kubernetes
+# Spark K8s Constructor: Apache Spark on Kubernetes
 
-Apache Spark 3.5.7 Helm charts для Kubernetes: Spark Connect (gRPC) и Spark Standalone (master/workers) с опциональными Airflow, MLflow, MinIO, Hive Metastore.
+[![Spark Version](https://img.shields.io/badge/Spark-3.5.7%20%7C%204.1.0-orange)](https://spark.apache.org/)
+[![Helm](https://img.shields.io/badge/Helm-3.x-blue)](https://helm.sh)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+
+**Version:** 0.1.0 | **Last Updated:** 2025-01-26
+
+Modular Helm charts for deploying Apache Spark on Kubernetes. Deploy Spark Connect, Spark Standalone, and supporting components (Jupyter, Airflow, MLflow, MinIO, Hive Metastore, History Server) with preset configurations.
+
+---
+
+## Quick Links
+
+| Resource | Description | Link |
+|----------|-------------|------|
+| **Usage Guide** | Complete user guide (RU/EN) | [RU](docs/guides/ru/spark-k8s-constructor.md) \| [EN](docs/guides/en/spark-k8s-constructor.md) |
+| **Quick Reference** | Command cheat sheet (RU/EN) | [RU](docs/guides/ru/quick-reference.md) \| [EN](docs/guides/en/quick-reference.md) |
+| **Architecture** | System architecture and components | [Architecture](docs/architecture/spark-k8s-charts.md) |
+| **Recipes** | Operations, Troubleshooting, Deployment, Integration | [Recipes](#recipes) |
+| **What's New** | Changelog and release notes | [CHANGELOG.md](CHANGELOG.md) |
+
+---
 
 ## Testing Status
 
-- **Tested on:** Minikube
-- **Prepared for:** OpenShift-like constraints (PSS `restricted` / SCC `restricted`), with explicit caveats (see [OpenShift notes](docs/guides/en/openshift-notes.md))
+| Platform | Status | Notes |
+|----------|--------|-------|
+| **Minikube** | ✅ Tested | E2E + load tests validated |
+| **OpenShift** | ✅ Prepared | PSS `restricted` / SCC `restricted` compatible |
 
-## Quick Navigation
-
-### Charts
-
-| Chart | Description | Guide |
-|-------|-------------|-------|
-| `charts/spark-platform` | Spark Connect (gRPC server + dynamic K8s executors) + JupyterHub | [EN](docs/guides/en/charts/spark-platform.md) / [RU](docs/guides/ru/charts/spark-platform.md) |
-| `charts/spark-standalone` | Spark Standalone (master/workers) + optional Airflow/MLflow | [EN](docs/guides/en/charts/spark-standalone.md) / [RU](docs/guides/ru/charts/spark-standalone.md) |
-
-### Documentation
-
-- **Operator guides:** [`docs/guides/`](docs/guides/README.md) (EN + RU)
-- **Spark 4.1.0 quickstart:** [EN](docs/guides/SPARK-4.1-QUICKSTART.md) / [RU](docs/guides/SPARK-4.1-QUICKSTART-RU.md)
-- **Spark 4.1.0 production:** [EN](docs/guides/SPARK-4.1-PRODUCTION.md) / [RU](docs/guides/SPARK-4.1-PRODUCTION-RU.md)
-- **Celeborn integration:** [EN](docs/guides/CELEBORN-GUIDE.md)
-- **Spark Operator guide:** [EN](docs/guides/SPARK-OPERATOR-GUIDE.md)
-- **Multi-version deployment:** [EN](docs/guides/MULTI-VERSION-DEPLOYMENT.md) / [RU](docs/guides/MULTI-VERSION-DEPLOYMENT-RU.md)
-- **Repository map:** [`docs/PROJECT_MAP.md`](docs/PROJECT_MAP.md)
-- **Validation:** [`docs/guides/en/validation.md`](docs/guides/en/validation.md) / [`docs/guides/ru/validation.md`](docs/guides/ru/validation.md)
-- **OpenShift notes:** [`docs/guides/en/openshift-notes.md`](docs/guides/en/openshift-notes.md) / [`docs/guides/ru/openshift-notes.md`](docs/guides/ru/openshift-notes.md)
-
-## Architectural Decision Records (ADRs)
-
-- [ADR-0001: Spark Standalone Master HA (PVC)](docs/adr/ADR-0001-spark-standalone-master-ha-pvc.md)
-- [ADR-0002: Airflow KubernetesExecutor Pod Template](docs/adr/ADR-0002-airflow-kubernetesexecutor-pod-template-and-fernet.md)
-- [ADR-0003: Shared Values Contract](docs/adr/ADR-0003-shared-values-contract.md)
-- [ADR-0004: Spark 4.1.0 Modular Architecture](docs/adr/ADR-0004-spark-410-modular-architecture.md)
-- [ADR-0005: Celeborn Disaggregated Shuffle](docs/adr/ADR-0005-celeborn-disaggregated-shuffle.md)
-- [ADR-0006: Spark Operator as Optional Component](docs/adr/ADR-0006-spark-operator-optional.md)
-- [ADR-0007: Version-Specific Hive Metastores](docs/adr/ADR-0007-version-specific-metastores.md)
-
-### Scripts
-
-| Script | Purpose |
-|--------|---------|
-| `scripts/test-spark-standalone.sh` | E2E smoke for Spark Standalone |
-| `scripts/test-prodlike-airflow.sh` | Airflow DAG trigger+wait |
-| `scripts/test-sa-prodlike-all.sh` | Combined smoke (Spark + Airflow) |
-
-### Spec-Driven Protocol (SDP)
-
-Работа в этом репозитории ведётся по **Spec-Driven Protocol (SDP)**: идеи → workstreams → build → review → deploy.
-
-- SDP репозиторий: `https://github.com/fall-out-bug/sdp`
-- Артефакты по фичам:
-  - `docs/drafts/` — драфты требований
-  - `docs/workstreams/` — workstreams (backlog/in_progress/completed)
-  - `docs/adr/` — ADR
-  - `docs/issues/` — issue-отчёты по проблемам
-  - `docs/uat/` — UAT гайды
+See [OpenShift notes](docs/guides/en/openshift-notes.md) for details.
 
 ---
 
-## Detailed Documentation
+## Charts
 
-For detailed guides, see [`docs/guides/`](docs/guides/README.md):
+### Spark 3.5 (Modular Charts)
 
-- **Architecture & Components:** See chart guides
-- **Quickstart:** See chart guides (Minikube tested)
-- **Configuration:** See chart guides + overlays
-- **Usage:** See chart guides
-- **Monitoring & Troubleshooting:** See [validation guide](docs/guides/en/validation.md) / [RU](docs/guides/ru/validation.md)
+| Chart | Description | Quick Start |
+|-------|-------------|-------------|
+| [spark-connect](charts/spark-3.5/charts/spark-connect) | Spark Connect server (gRPC) | `helm install spark-connect charts/spark-3.5/charts/spark-connect` |
+| [spark-standalone](charts/spark-3.5/charts/spark-standalone) | Master + Workers + Airflow + MLflow | `helm install spark-standalone charts/spark-3.5/charts/spark-standalone` |
+
+### Spark 4.1 (Unified Chart)
+
+| Chart | Description | Quick Start |
+|-------|-------------|-------------|
+| [spark-4.1](charts/spark-4.1) | All-in-one: Connect, Jupyter, History Server, Hive Metastore | `helm install spark charts/spark-4.1` |
+
+### Component Versions
+
+| Component | Spark 3.5 | Spark 4.1 |
+|-----------|-----------|-----------|
+| Apache Spark | 3.5.7 | 4.1.0 |
+| Python | 3.10 | 3.10 |
+| Java | 17 | 17 |
 
 ---
 
-## Repository Structure
+## Preset Catalog
 
-See [`docs/PROJECT_MAP.md`](docs/PROJECT_MAP.md) for a complete map of what lives where.
+Pre-configured values files for common scenarios:
+
+| Scenario | Chart | Preset File | Backend |
+|----------|-------|-------------|---------|
+| Jupyter + Connect (K8s) | 4.1 | `values-scenario-jupyter-connect-k8s.yaml` | K8s |
+| Jupyter + Connect (Standalone) | 4.1 | `values-scenario-jupyter-connect-standalone.yaml` | Standalone |
+| Airflow + Connect (K8s) | 4.1 | `values-scenario-airflow-connect-k8s.yaml` | K8s |
+| Airflow + Connect (Standalone) | 4.1 | `values-scenario-airflow-connect-standalone.yaml` | Standalone |
+| Airflow + K8s Submit | 4.1 | `values-scenario-airflow-k8s-submit.yaml` | K8s |
+| Airflow + Spark Operator | 4.1 | `values-scenario-airflow-operator.yaml` | Operator |
+| Jupyter + Connect (K8s) | 3.5 | `values-scenario-jupyter-connect-k8s.yaml` | K8s |
+| Jupyter + Connect (Standalone) | 3.5 | `values-scenario-jupyter-connect-standalone.yaml` | Standalone |
+| Airflow + Connect | 3.5 | `values-scenario-airflow-connect.yaml` | Standalone |
+| Airflow + K8s Submit | 3.5 | `values-scenario-airflow-k8s-submit.yaml` | K8s |
+| Airflow + Operator | 3.5 | `values-scenario-airflow-operator.yaml` | Operator |
+
+**Usage:**
+```bash
+# Spark 4.1 example
+helm install spark charts/spark-4.1 -f charts/spark-4.1/values-scenario-jupyter-connect-k8s.yaml
+
+# Spark 3.5 example
+helm install spark-connect charts/spark-3.5/charts/spark-connect \
+  -f charts/spark-3.5/charts/spark-connect/values-scenario-jupyter-connect-k8s.yaml
+```
 
 ---
+
+## Components
+
+| Component | Description | Use Case |
+|-----------|-------------|----------|
+| **spark-connect** | Remote Spark server (gRPC) | Data Scientists, Engineers |
+| **spark-standalone** | Master + Workers cluster | Batch processing, ETL |
+| **jupyter** | JupyterLab with remote Spark | Interactive notebooks |
+| **hive-metastore** | Table metadata warehouse | SQL queries, ACID |
+| **history-server** | Job history and metrics | Debugging, monitoring |
+| **airflow** | Pipeline orchestration | DAG scheduling |
+| **mlflow** | Experiment tracking | ML workflows |
+| **minio** | S3-compatible storage | Object storage, event logs |
+
+---
+
+## Recipes
+
+[Documentation](docs/README.md) | Scripts |
+|-------------|----------|
+| [Operations](docs/recipes/operations) | [scripts/recipes/operations](scripts/recipes/operations) |
+| [Troubleshooting](docs/recipes/troubleshoot) | [scripts/recipes/troubleshoot](scripts/recipes/troubleshoot) |
+| [Deployment](docs/recipes/deployment) | — |
+| [Integration](docs/recipes/integration) | — |
+
+### Quick Recipe Index
+
+**Operations:**
+- Configure event log for MinIO
+- Enable event log (Spark 4.1)
+- Initialize Hive Metastore
+
+**Troubleshooting:**
+- S3 connection failed
+- History Server empty
+- Spark properties syntax
+- Zstandard library missing
+- Driver not starting
+- Driver host resolution
+- Helm installation label validation
+- S3 credentials secret missing
+- Connect crashloop (RBAC)
+- Jupyter Python dependencies
+
+**Deployment:**
+- Deploy Spark Connect for new team
+- Migrate Standalone → K8s
+- Add History Server HA
+- Setup resource quotas
+
+**Integration:**
+- Airflow + Spark Connect
+- MLflow experiment tracking
+- External Hive Metastore
+- Kerberos authentication
+- Prometheus monitoring
+
+---
+
+## What's New in v0.1.0
+
+### Features
+- ✅ Spark 3.5.7 and Spark 4.1.0 support
+- ✅ 11 preset values files for production scenarios
+- ✅ 23 operation, troubleshooting, deployment, and integration recipes
+- ✅ Jupyter notebooks with remote Spark Connect
+- ✅ MinIO S3-compatible storage with auto-configuration
+- ✅ E2E test suite (Minikube validated)
+- ✅ Load testing support (synthetic and parquet data)
+- ✅ Policy-as-code validation (OPA/Conftest)
+- ✅ Quick Reference Card
+
+### Fixes
+- ✅ ISSUE-031: Auto-create s3-credentials secret
+- ✅ ✅ ISSUE-033: RBAC configmaps create permission
+- ✅ ISSUE-034: Jupyter Python dependencies (grpcio, grpcio-status, zstandard)
+- ✅ ISSUE-035: Parquet data loader upload mechanism
+
+### Known Issues
+- ⚠️ ISSUE-030: Helm "N/A" label validation (workaround: install spark-base separately)
+
+---
+
+## Documentation Structure
+
+```
+docs/
+├── architecture/          # System architecture
+│   └── spark-k8s-charts.md
+├── guides/                # User guides
+│   ├── en/               # English
+│   │   ├── spark-k8s-constructor.md
+│   │   └── quick-reference.md
+│   └── ru/               # Russian
+│       ├── spark-k8s-constructor.md
+│       └── quick-reference.md
+├── recipes/               # How-to guides
+│   ├── operations/       # Day-to-day tasks
+│   ├── troubleshoot/     # Problem diagnosis
+│   ├── deployment/       # Setup procedures
+│   └── integration/      # External systems
+├── adr/                   # Architectural decisions
+├── issues/                # Issue reports
+└── PROJECT_MAP.md         # Repository map
+```
+
+See [docs/PROJECT_MAP.md](docs/PROJECT_MAP.md) for complete navigation.
+
+---
+
+## Quick Start
+
+### 1. Install Spark Connect + Jupyter (Spark 4.1)
+
+```bash
+# Using preset
+helm install spark charts/spark-4.1 \
+  -f charts/spark-4.1/values-scenario-jupyter-connect-k8s.yaml \
+  -n spark --create-namespace
+
+# Or customize
+helm install spark charts/spark-4.1 -n spark \
+  --set connect.enabled=true \
+  --set jupyter.enabled=true \
+  --set spark-base.minio.enabled=true
+```
+
+### 2. Connect to Spark
+
+```bash
+# Port-forward Jupyter
+kubectl port-forward -n spark svc/spark-4-1-spark-41-jupyter 8888:8888
+
+# Open http://localhost:8888
+```
+
+In Jupyter:
+```python
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.remote("sc://spark-4-1-spark-41-connect:15002").getOrCreate()
+df = spark.range(1000)
+df.show()
+```
+
+### 3. Run E2E Test
+
+```bash
+scripts/test-e2e-jupyter-connect.sh spark-test spark-connect 4.1
+```
+
+---
+
+## Backend Modes
+
+Spark Connect supports three backend modes:
+
+| Mode | Description | Use Case |
+|------|-------------|----------|
+| **k8s** | Dynamic executors via Kubernetes API | Cloud-native, auto-scaling |
+| **standalone** | Fixed cluster (master/workers) | Predictable resources, on-prem |
+| **operator** | Spark Operator CRD-based | Advanced scheduling, pod templates |
+
+**Example (Standalone mode):**
+```bash
+helm install spark charts/spark-4.1 -n spark \
+  --set connect.enabled=true \
+  --set connect.backendMode=standalone \
+  --set standalone.enabled=true
+```
+
+---
+
+## Validation
+
+### Preset Validation
+```bash
+# Validate all preset values
+./scripts/validate-presets.sh
+```
+
+### Policy Validation
+```bash
+# Validate against OPA policies
+./scripts/validate-policy.sh
+```
+
+### Linting
+```bash
+# Helm template validation
+helm template test charts/spark-4.1 -f charts/spark-4.1/values-scenario-*.yaml --dry-run
+```
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
 
 ## License
 
-MIT License
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- Apache Spark community
+- Kubernetes upstream
+- Helm charts maintainers
+
+---
+
+**Links:**
+- [Spark Documentation](https://spark.apache.org/docs/latest/)
+- [Kubernetes Documentation](https://kubernetes.io/docs/)
+- [Helm Documentation](https://helm.sh/docs/)

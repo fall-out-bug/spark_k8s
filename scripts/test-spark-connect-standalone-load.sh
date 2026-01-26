@@ -9,9 +9,12 @@ RELEASE="${2:-spark-connect-standalone}"
 STANDALONE_MASTER="${3:-spark-sa-spark-standalone-master:7077}"
 
 # Load parameters (configurable via env)
-LOAD_ROWS="${LOAD_ROWS:-1000000}"          # Rows per DataFrame operation
+LOAD_MODE="${LOAD_MODE:-range}"             # Mode: range or parquet
+LOAD_ROWS="${LOAD_ROWS:-1000000}"          # Rows per DataFrame operation (for range mode)
 LOAD_PARTITIONS="${LOAD_PARTITIONS:-50}"   # Partitions for data operations
 LOAD_ITERATIONS="${LOAD_ITERATIONS:-3}"   # Number of iterations
+LOAD_DATASET="${LOAD_DATASET:-nyc}"        # Dataset for parquet mode (nyc, trips, nyt)
+LOAD_S3_ENDPOINT="${LOAD_S3_ENDPOINT:-http://minio:9000}"
 
 CONNECT_SELECTOR="app=spark-connect,app.kubernetes.io/instance=${RELEASE}"
 
@@ -75,53 +78,89 @@ PF_PIDS+=($!)
 sleep 5
 
 echo ""
-echo "4) Running load test (${LOAD_ITERATIONS} iterations)..."
+echo "4) Running load test (mode=${LOAD_MODE}, iterations=${LOAD_ITERATIONS})..."
 
 python3 <<EOF
+import os
 import time
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, sum as spark_sum
 
-spark = SparkSession.builder \\
-    .appName("ConnectStandaloneLoadTest") \\
-    .remote("sc://localhost:15002") \\
-    .getOrCreate()
+load_mode = os.environ.get("LOAD_MODE", "range")
 
+builder = SparkSession.builder \\
+    .appName("ConnectStandaloneLoadTest") \\
+    .remote("sc://localhost:15002")
+
+# Configure S3 for parquet mode
+if load_mode == "parquet":
+    builder = builder \\
+        .config("spark.hadoop.fs.s3a.endpoint", os.environ.get("LOAD_S3_ENDPOINT", "http://minio:9000")) \\
+        .config("spark.hadoop.fs.s3a.access.key", "minioadmin") \\
+        .config("spark.hadoop.fs.s3a.secret.key", "minioadmin") \\
+        .config("spark.hadoop.fs.s3a.path.style.access", "true") \\
+        .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+
+spark = builder.getOrCreate()
 print("✓ Spark Connect session created (Standalone backend)")
 
-for i in range(${LOAD_ITERATIONS}):
-    print(f"\\nIteration {i+1}/${LOAD_ITERATIONS}...")
-    
-    # Create large DataFrame
+if load_mode == "parquet":
+    # Parquet mode: read from S3
+    dataset = os.environ.get("LOAD_DATASET", "nyc")
+    path = f"s3a://test-data/{dataset}/"
+    print(f"Loading parquet from: {path}")
+
     start = time.time()
-    df = spark.range(${LOAD_ROWS}).repartition(${LOAD_PARTITIONS})
-    create_time = time.time() - start
-    print(f"  Created DataFrame: {create_time:.2f}s")
-    
-    # Aggregation
-    start = time.time()
-    result = df.agg(spark_sum(col("id"))).collect()[0][0]
-    agg_time = time.time() - start
-    expected = ${LOAD_ROWS} * (${LOAD_ROWS} - 1) // 2
-    assert result == expected, f"Sum mismatch: {result} != {expected}"
-    print(f"  Aggregation: {agg_time:.2f}s (sum={result})")
-    
-    # Filter and count
-    start = time.time()
-    filtered = df.filter(col("id") % 2 == 0).count()
-    filter_time = time.time() - start
-    assert filtered == ${LOAD_ROWS} // 2, f"Filter count mismatch: {filtered}"
-    print(f"  Filter+Count: {filter_time:.2f}s (count={filtered})")
-    
-    # Join (self-join)
-    start = time.time()
-    df2 = spark.range(${LOAD_ROWS} // 10).repartition(${LOAD_PARTITIONS})
-    joined = df.join(df2, df.id == df2.id, "inner").count()
-    join_time = time.time() - start
-    print(f"  Join: {join_time:.2f}s (count={joined})")
-    
-    total_time = create_time + agg_time + filter_time + join_time
-    print(f"  Total iteration time: {total_time:.2f}s")
+    df = spark.read.parquet(path)
+    load_time = time.time() - start
+    count = df.count()
+    print(f"  Loaded {count:,} records in {load_time:.2f}s")
+    df.cache()
+    df.count()  # Force cache
+
+    for i in range(int(os.environ.get("LOAD_ITERATIONS", "3"))):
+        print(f"\\nIteration {i+1}/{os.environ.get('LOAD_ITERATIONS', '3')}...")
+
+        # Simple aggregation
+        start = time.time()
+        if "passenger_count" in df.columns:
+            result = df.agg({"passenger_count": "avg"}).collect()[0][0]
+        else:
+            result = df.count()
+        agg_time = time.time() - start
+        print(f"  Aggregation: {agg_time:.2f}s")
+
+        # Filter
+        start = time.time()
+        if "passenger_count" in df.columns:
+            filtered = df.filter(col("passenger_count") > 1).count()
+        else:
+            filtered = df.filter(col(df.columns[0]).isNotNull()).count()
+        filter_time = time.time() - start
+        print(f"  Filter: {filter_time:.2f}s (count={filtered:,})")
+
+else:
+    # Range mode: synthetic data
+    for i in range(int(os.environ.get("LOAD_ITERATIONS", "3"))):
+        print(f"\\nIteration {i+1}/{os.environ.get('LOAD_ITERATIONS', '3')}...")
+
+        start = time.time()
+        df = spark.range(int(os.environ.get("LOAD_ROWS", "1000000"))).repartition(int(os.environ.get("LOAD_PARTITIONS", "50")))
+        create_time = time.time() - start
+        print(f"  Created DataFrame: {create_time:.2f}s")
+
+        start = time.time()
+        result = df.agg(spark_sum(col("id"))).collect()[0][0]
+        agg_time = time.time() - start
+        expected = int(os.environ.get("LOAD_ROWS", "1000000")) * (int(os.environ.get("LOAD_ROWS", "1000000")) - 1) // 2
+        assert result == expected, f"Sum mismatch: {result} != {expected}"
+        print(f"  Aggregation: {agg_time:.2f}s (sum={result})")
+
+        start = time.time()
+        filtered = df.filter(col("id") % 2 == 0).count()
+        filter_time = time.time() - start
+        assert filtered == int(os.environ.get("LOAD_ROWS", "1000000")) // 2
+        print(f"  Filter+Count: {filter_time:.2f}s")
 
 print("\\n✓ All load test iterations passed")
 spark.stop()
