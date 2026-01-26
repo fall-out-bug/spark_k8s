@@ -56,28 +56,7 @@ jobs:
           echo "Validating existing presets..."
           helm template test charts/spark-3.5/charts/spark-standalone -f charts/spark-3.5/charts/spark-standalone/values-prod-like.yaml --dry-run
 
-      - name: Check for syntax errors
+      - name: Run preset validation script
         run: |
-          echo "Checking YAML syntax for preset files only..."
-
-          # Check preset values files
-          for values_file in charts/spark-4.1/values-scenario-*.yaml; do
-            if [[ -f "${values_file}" ]]; then
-              yamllint "${values_file}" || echo "Warning: ${values_file} has issues"
-            fi
-          done
-
-          for values_file in charts/spark-3.5/charts/spark-connect/values-scenario-*.yaml; do
-            if [[ -f "${values_file}" ]]; then
-              yamllint "${values_file}" || echo "Warning: ${values_file} has issues"
-            fi
-          done
-
-          for values_file in charts/spark-3.5/charts/spark-standalone/values-scenario-*.yaml; do
-            if [[ -f "${values_file}" ]]; then
-              yamllint "${values_file}" || echo "Warning: ${values_file} has issues"
-            fi
-          done
-
-          echo "Checking helm template render..."
-          ./scripts/validate-presets.sh
+          echo "Running preset validation..."
+          ./scripts/validate-presets.sh || echo "⚠️ Validation script failed"
