@@ -181,24 +181,26 @@ kubectl exec -n "${NAMESPACE}" "${MINIO_POD}" -- \
 
 # Copy files to MinIO
 echo "Uploading files to MinIO..."
-kubectl cp "${DATA_DIR}"/ "${NAMESPACE}/${MINIO_POD}:/tmp/data-upload/" >/dev/null 2>&1 || {
-  echo "  Copying files individually..."
-  for file in "${DATA_DIR}"/*; do
-    if [[ -f "${file}" ]]; then
-      filename=$(basename "${file}")
-      echo "  Uploading ${filename}..."
-      cat "${file}" | kubectl exec -i -n "${NAMESPACE}" "${MINIO_POD}" -- \
-        mc pipe local/"${BUCKET}"/"${DATASET}"/"${filename}"
+UPLOADED=0
+for file in "${DATA_DIR}"/*; do
+  if [[ -f "${file}" ]]; then
+    filename=$(basename "${file}")
+    echo "  Uploading ${filename}..."
+    if cat "${file}" | kubectl exec -i -n "${NAMESPACE}" "${MINIO_POD}" -- \
+      mc pipe local/"${BUCKET}"/"${DATASET}"/"${filename}" >/dev/null 2>&1; then
+      ((UPLOADED++))
+    else
+      echo "  ERROR: Failed to upload ${filename}"
     fi
-  done
-}
+  fi
+done
 
-# Alternative: use mc cp from within pod
-if kubectl exec -n "${NAMESPACE}" "${MINIO_POD}" -- \
-  test -d /tmp/data-upload; then
-  kubectl exec -n "${NAMESPACE}" "${MINIO_POD}" -- \
-    mc cp /tmp/data-upload/* local/"${BUCKET}"/"${DATASET}"/ >/dev/null 2>&1 || true
+if [[ ${UPLOADED} -eq 0 ]]; then
+  echo "ERROR: No files uploaded successfully"
+  exit 1
 fi
+
+echo "  Uploaded ${UPLOADED} file(s) successfully"
 
 # List uploaded files
 echo ""
