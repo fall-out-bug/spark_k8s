@@ -64,12 +64,12 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.21'
+          go-version: '1.22'
           cache: true
 
       - name: Install Conftest
         run: |
-          go install github.com/open-policy-agent/conftest/latest@latest
+          go install github.com/open-policy-agent/conftest@latest
           echo "$HOME/go/bin" >> $GITHUB_PATH
 
       - name: Validate against OPA policies
