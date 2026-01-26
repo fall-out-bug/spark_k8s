@@ -62,11 +62,28 @@ This guide documents the smoke test scripts provided in the repository and what 
 **Environment Variables:**
 - `TIMEOUT_SECONDS` — Max wait time per DAG (default: `900`)
 - `POLL_SECONDS` — Poll interval (default: `10`)
+- `SET_AIRFLOW_VARIABLES` — Auto-populate Airflow Variables (default: `true`)
+- `FORCE_SET_VARIABLES` — Overwrite existing variables (default: `false`)
+- `SPARK_IMAGE_VALUE` — Spark image for DAGs (default: `spark-custom:3.5.7`)
+- `SPARK_NAMESPACE_VALUE` — Namespace for Spark jobs (default: script's namespace argument)
+- `SPARK_MASTER_VALUE` — Spark Master URL (default: `spark://<release>-spark-standalone-master:7077`)
+- `S3_ENDPOINT_VALUE` — S3 endpoint URL (default: `http://minio:9000`)
+- `S3_ACCESS_KEY_VALUE` — S3 access key (default: from `s3-credentials` secret if available)
+- `S3_SECRET_KEY_VALUE` — S3 secret key (default: from `s3-credentials` secret if available)
 
 **What It Tests:**
 1. Airflow scheduler deployment is ready
 2. Airflow CLI is reachable
-3. DAGs are triggered and reach `success` state
+3. Airflow Variables are auto-populated (if `SET_AIRFLOW_VARIABLES=true`)
+4. DAGs are triggered and reach `success` state
+
+**Auto Variable Setup:**
+The script automatically sets Airflow Variables required by DAGs (`spark_image`, `spark_namespace`, `spark_standalone_master`, `s3_endpoint`, `s3_access_key`, `s3_secret_key`) based on:
+- Script arguments (namespace, release name)
+- `s3-credentials` secret in the namespace (if present)
+- Environment variable overrides (if set)
+
+This ensures prod-like DAG tests work deterministically without manual variable setup.
 
 **Expected Output:**
 ```
@@ -83,6 +100,158 @@ This guide documents the smoke test scripts provided in the repository and what 
 ```
 
 **Exit Code:** `0` if all DAGs reach `success`, `1` if any DAG fails, `2` on timeout.
+
+### `scripts/test-spark-connect-k8s-load.sh`
+
+**Purpose:** Runtime load test for Spark Connect with K8s executors backend (Connect-only mode).
+
+**Usage:**
+```bash
+./scripts/test-spark-connect-k8s-load.sh <namespace> <release-name>
+
+# Example:
+./scripts/test-spark-connect-k8s-load.sh spark spark-connect-k8s
+
+# With custom load parameters:
+export LOAD_ROWS=2000000
+export LOAD_PARTITIONS=100
+export LOAD_ITERATIONS=5
+export LOAD_EXECUTORS=5
+./scripts/test-spark-connect-k8s-load.sh spark spark-connect-k8s
+```
+
+**Environment Variables:**
+- `LOAD_ROWS` — Rows per DataFrame operation (default: `1000000`)
+- `LOAD_PARTITIONS` — Partitions for data operations (default: `50`)
+- `LOAD_ITERATIONS` — Number of iterations (default: `3`)
+- `LOAD_EXECUTORS` — Number of executors to request (default: `3`)
+
+**What It Tests:**
+1. Spark Connect pod is ready
+2. Port-forward to Connect service (15002)
+3. Multiple iterations of DataFrame operations:
+   - Large DataFrame creation and repartitioning
+   - Aggregations (sum)
+   - Filter and count operations
+   - Join operations (self-join)
+4. Executor pods were created (best-effort check)
+
+**Expected Output:**
+```
+=== Spark Connect K8s Executors Load Test (spark-connect-k8s in spark) ===
+Load parameters:
+  Rows: 1000000
+  Partitions: 50
+  Iterations: 3
+  Executors: 3
+
+1) Checking Spark Connect pod...
+   Connect pod: spark-connect-k8s-connect-xxx
+
+2) Setting up port-forward to Spark Connect...
+
+3) Running load test (3 iterations)...
+✓ Spark Connect session created
+
+Iteration 1/3...
+  Created DataFrame: 2.45s
+  Aggregation: 1.23s (sum=499999500000)
+  Filter+Count: 0.89s (count=500000)
+  Join: 1.56s (count=100000)
+  Total iteration time: 6.13s
+...
+✓ All load test iterations passed
+
+4) Checking executor pods were created...
+   ✓ Found 3 executor pod(s)
+
+=== Load Test PASSED ===
+```
+
+**Exit Code:** `0` on success, non-zero on failure.
+
+**Minikube Tuning:**
+For resource-constrained Minikube clusters, reduce load parameters:
+```bash
+export LOAD_ROWS=100000      # Reduce from 1M to 100K
+export LOAD_PARTITIONS=10    # Reduce from 50 to 10
+export LOAD_ITERATIONS=1    # Reduce from 3 to 1
+export LOAD_EXECUTORS=1      # Reduce from 3 to 1
+```
+
+### `scripts/test-spark-connect-standalone-load.sh`
+
+**Purpose:** Runtime load test for Spark Connect with Standalone backend mode.
+
+**Usage:**
+```bash
+./scripts/test-spark-connect-standalone-load.sh <namespace> <release-name> [standalone-master]
+
+# Example:
+./scripts/test-spark-connect-standalone-load.sh spark spark-connect-standalone \
+  spark://spark-sa-spark-standalone-master:7077
+
+# With custom load parameters:
+export LOAD_ROWS=2000000
+export LOAD_PARTITIONS=100
+export LOAD_ITERATIONS=5
+./scripts/test-spark-connect-standalone-load.sh spark spark-connect-standalone \
+  spark://spark-sa-spark-standalone-master:7077
+```
+
+**Environment Variables:**
+- `LOAD_ROWS` — Rows per DataFrame operation (default: `1000000`)
+- `LOAD_PARTITIONS` — Partitions for data operations (default: `50`)
+- `LOAD_ITERATIONS` — Number of iterations (default: `3`)
+
+**What It Tests:**
+1. Spark Connect pod is ready
+2. Standalone master service is accessible (best-effort)
+3. Port-forward to Connect service (15002)
+4. Multiple iterations of DataFrame operations:
+   - Large DataFrame creation and repartitioning
+   - Aggregations (sum)
+   - Filter and count operations
+   - Join operations (self-join)
+5. Jobs were submitted to Standalone backend (verification)
+
+**Expected Output:**
+```
+=== Spark Connect Standalone Backend Load Test (spark-connect-standalone in spark) ===
+Standalone Master: spark://spark-sa-spark-standalone-master:7077
+Load parameters:
+  Rows: 1000000
+  Partitions: 50
+  Iterations: 3
+
+1) Checking Spark Connect pod...
+   Connect pod: spark-connect-standalone-connect-xxx
+
+2) Verifying Standalone master is accessible...
+   ✓ Standalone master service found: spark-sa-spark-standalone-master
+
+3) Setting up port-forward to Spark Connect...
+
+4) Running load test (3 iterations)...
+✓ Spark Connect session created (Standalone backend)
+...
+✓ All load test iterations passed
+
+5) Verifying jobs were submitted to Standalone...
+   ✓ Standalone master service accessible
+
+=== Load Test PASSED ===
+```
+
+**Exit Code:** `0` on success, non-zero on failure.
+
+**Minikube Tuning:**
+For resource-constrained Minikube clusters, reduce load parameters:
+```bash
+export LOAD_ROWS=100000      # Reduce from 1M to 100K
+export LOAD_PARTITIONS=10    # Reduce from 50 to 10
+export LOAD_ITERATIONS=1    # Reduce from 3 to 1
+```
 
 ### `scripts/test-sa-prodlike-all.sh`
 
@@ -165,6 +334,30 @@ kubectl port-forward svc/<release>-spark-standalone-airflow-webserver 8080:8080 
 - Check KubernetesExecutor worker image matches Airflow image
 - Verify RBAC permissions for worker pods
 - Check resource limits (worker pods may be OOMKilled)
+
+### Airflow Scheduler Restart After Cluster Outage
+
+**Symptoms:**
+- Scheduler pod in `Error` state after cluster restart
+- `test-prodlike-airflow.sh` fails with "timed out waiting for the condition"
+- Scheduler logs show PostgreSQL connection errors
+
+**Troubleshooting:**
+```bash
+# Check scheduler pod status
+kubectl get pods -n <namespace> -l app=airflow-scheduler
+
+# Check scheduler logs
+kubectl logs -n <namespace> deploy/<release>-spark-standalone-airflow-scheduler --all-containers | tail -100
+
+# Verify PostgreSQL is ready
+kubectl exec -n <namespace> <postgres-pod> -- pg_isready -U airflow
+```
+
+**Common Fixes:**
+- Restart scheduler deployment: `kubectl rollout restart deploy/<release>-spark-standalone-airflow-scheduler -n <namespace>`
+- Ensure PostgreSQL pod is `Running` before scheduler starts
+- Check scheduler init containers completed successfully
 
 ### Workers Not Registering
 

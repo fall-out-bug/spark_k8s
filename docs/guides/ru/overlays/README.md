@@ -6,6 +6,8 @@ Overlays значений для чартов Spark.
 
 - **`values-anyk8s.yaml`** — Базовый профиль для любого Kubernetes
 - **`values-sa-prodlike.yaml`** — Prod-like профиль для Spark Standalone (тестировалось на Minikube)
+- **`values-connect-k8s.yaml`** — Режим Connect-only (K8s executors, по умолчанию)
+- **`values-connect-standalone.yaml`** — Режим Connect + Standalone backend
 
 ## Использование
 

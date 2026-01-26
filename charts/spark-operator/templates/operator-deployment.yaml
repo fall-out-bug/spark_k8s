@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "spark-operator.fullname" . }}
+  labels:
+    {{- include "spark-operator.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: spark-operator
+      {{- include "spark-operator.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: spark-operator
+        {{- include "spark-operator.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "spark-operator.serviceAccountName" . }}
+      containers:
+        - name: spark-operator
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - -v=2
+            - -namespace={{ .Values.sparkJobNamespace }}
+            - -enable-webhook={{ .Values.webhook.enable }}
+            - -webhook-svc-name={{ include "spark-operator.fullname" . }}-webhook
+            - -webhook-svc-namespace={{ .Release.Namespace }}
+          ports:
+            - containerPort: 10254
+              name: metrics
+            {{- if .Values.webhook.enable }}
+            - containerPort: {{ .Values.webhook.port }}
+              name: webhook
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

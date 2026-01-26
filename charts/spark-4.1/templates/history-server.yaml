@@ -1,0 +1,87 @@
+{{- if .Values.historyServer.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "spark-4.1.fullname" . }}-history
+  labels:
+    app: spark-history-server
+    {{- include "spark-4.1.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-history-server
+      {{- include "spark-4.1.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: spark-history-server
+        {{- include "spark-4.1.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "spark-4.1.serviceAccountName" . }}
+      {{- if .Values.security.podSecurityStandards }}
+      securityContext:
+        {{- include "spark-base.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: history-server
+          image: "{{ .Values.historyServer.image.repository }}:{{ .Values.historyServer.image.tag }}"
+          imagePullPolicy: {{ .Values.historyServer.image.pullPolicy }}
+          {{- if .Values.security.podSecurityStandards }}
+          securityContext:
+            {{- include "spark-base.containerSecurityContext" . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: 18080
+              protocol: TCP
+          env:
+            - name: SPARK_MODE
+              value: "history"
+            - name: SPARK_HISTORY_LOG_DIR
+              value: {{ .Values.historyServer.logDirectory | quote }}
+            - name: S3_ENDPOINT
+              value: {{ .Values.global.s3.endpoint | quote }}
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.s3.existingSecret | quote }}
+                  key: access-key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.s3.existingSecret | quote }}
+                  key: secret-key
+            - name: HADOOP_USER_NAME
+              value: "spark"
+          resources:
+            {{- toYaml .Values.historyServer.resources | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "spark-4.1.fullname" . }}-history
+  labels:
+    app: spark-history-server
+    {{- include "spark-4.1.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.historyServer.service.type }}
+  ports:
+    - port: {{ .Values.historyServer.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: spark-history-server
+    {{- include "spark-4.1.selectorLabels" . | nindent 4 }}
+{{- end }}

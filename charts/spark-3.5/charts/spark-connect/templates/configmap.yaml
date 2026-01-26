@@ -1,0 +1,161 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spark-config
+  labels:
+    {{- include "spark-platform.labels" . | nindent 4 }}
+data:
+  spark-defaults.conf: |
+    {{- if eq .Values.sparkConnect.backendMode "standalone" }}
+    # Spark Master - Standalone backend mode
+    spark.master=spark://{{ .Values.sparkConnect.standalone.masterService }}:{{ .Values.sparkConnect.standalone.masterPort }}
+    
+    # Dynamic allocation disabled for Standalone backend
+    spark.dynamicAllocation.enabled=false
+    
+    # Driver Configuration for Standalone
+    spark.driver.bindAddress=0.0.0.0
+    spark.driver.host={{ default (printf "%s-connect" (include "spark-platform.fullname" .)) .Values.sparkConnect.driver.host }}
+    spark.driver.port={{ default 7078 .Values.sparkConnect.driver.port }}
+    spark.driver.blockManager.port={{ default 7079 .Values.sparkConnect.driver.blockManagerPort }}
+
+    # Standalone scheduler - don't wait for executors at startup
+    spark.scheduler.minRegisteredResourcesRatio=0.0
+    spark.scheduler.maxRegisteredResourcesWaitingTime=30s
+    {{- else if or (eq .Values.sparkConnect.backendMode "k8s") (eq .Values.sparkConnect.master "k8s") }}
+    # Spark Master - Kubernetes mode with dynamic executor pods
+    spark.master=k8s://https://kubernetes.default.svc:443
+
+    # Kubernetes Configuration
+    spark.kubernetes.namespace={{ .Release.Namespace }}
+    spark.kubernetes.authenticate.driver.serviceAccountName={{ include "spark-platform.serviceAccountName" . }}
+    spark.kubernetes.container.image={{ .Values.sparkConnect.image.repository }}:{{ .Values.sparkConnect.image.tag }}
+    spark.kubernetes.container.image.pullPolicy={{ .Values.sparkConnect.image.pullPolicy }}
+
+    # Executor Configuration
+    {{- if not .Values.sparkConnect.dynamicAllocation.enabled }}
+    spark.executor.instances={{ .Values.sparkConnect.executor.instances }}
+    {{- end }}
+    spark.executor.memory={{ .Values.sparkConnect.executor.memory }}
+    spark.executor.cores={{ .Values.sparkConnect.executor.cores }}
+    spark.kubernetes.executor.podNamePrefix=spark-exec
+
+    # Dynamic Allocation
+    spark.dynamicAllocation.enabled={{ .Values.sparkConnect.dynamicAllocation.enabled }}
+    {{- if .Values.sparkConnect.dynamicAllocation.enabled }}
+    spark.dynamicAllocation.shuffleTracking.enabled=true
+    spark.dynamicAllocation.minExecutors={{ .Values.sparkConnect.dynamicAllocation.minExecutors }}
+    spark.dynamicAllocation.maxExecutors={{ .Values.sparkConnect.dynamicAllocation.maxExecutors }}
+    spark.dynamicAllocation.initialExecutors={{ .Values.sparkConnect.dynamicAllocation.initialExecutors }}
+    spark.dynamicAllocation.executorIdleTimeout=60s
+    spark.dynamicAllocation.schedulerBacklogTimeout=1s
+    {{- end }}
+
+    # Driver Configuration for K8s
+    spark.driver.bindAddress=0.0.0.0
+    spark.driver.host={{ default (printf "%s-connect" (include "spark-platform.fullname" .)) .Values.sparkConnect.driver.host }}
+    spark.driver.port={{ default 7078 .Values.sparkConnect.driver.port }}
+    spark.driver.blockManager.port={{ default 7079 .Values.sparkConnect.driver.blockManagerPort }}
+
+    # Scheduler - don't wait for executors at startup
+    spark.scheduler.minRegisteredResourcesRatio=0.0
+    spark.scheduler.maxRegisteredResourcesWaitingTime=30s
+
+    # K8s executor settings - increase tolerance for failures
+    spark.kubernetes.executor.maxPendingPods=10
+    spark.kubernetes.allocation.batch.size=1
+    spark.kubernetes.allocation.batch.delay=5s
+    spark.task.maxFailures=8
+
+    # Network timeouts - give more time for executor registration
+    spark.network.timeout=300s
+    spark.executor.heartbeatInterval=20s
+    spark.rpc.lookupTimeout=120s
+
+    # Java 17 module options for executors
+    spark.executor.extraJavaOptions=-XX:+IgnoreUnrecognizedVMOptions --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/sun.nio.cs=ALL-UNNAMED --add-opens=java.base/sun.security.action=ALL-UNNAMED --add-opens=java.base/sun.util.calendar=ALL-UNNAMED --add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED -Djdk.reflect.useDirectMethodHandle=false
+    {{- else }}
+    # Spark Master - local mode for Spark Connect server
+    spark.master=local[*]
+
+    # Dynamic allocation disabled for local mode
+    spark.dynamicAllocation.enabled=false
+    {{- end }}
+
+    # Spark Connect Server
+    spark.connect.grpc.binding.address=0.0.0.0
+    spark.connect.grpc.binding.port=15002
+    spark.connect.grpc.arrow.maxBatchSize=4194304
+    spark.connect.grpc.maxInboundMessageSize=134217728
+
+    # S3A Configuration (Hadoop 3.4.1 + AWS SDK v2)
+    spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem
+    spark.hadoop.fs.s3a.endpoint={{ .Values.s3.endpoint }}
+    spark.hadoop.fs.s3a.access.key={{ .Values.s3.accessKey }}
+    spark.hadoop.fs.s3a.secret.key={{ .Values.s3.secretKey }}
+    spark.hadoop.fs.s3a.path.style.access={{ .Values.s3.pathStyleAccess }}
+    spark.hadoop.fs.s3a.connection.ssl.enabled={{ .Values.s3.sslEnabled }}
+    spark.hadoop.fs.s3a.aws.credentials.provider=org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider
+    spark.hadoop.fs.s3a.fast.upload=true
+    spark.hadoop.fs.s3a.fast.upload.buffer=bytebuffer
+    spark.hadoop.fs.s3a.multipart.size=104857600
+    spark.hadoop.fs.s3a.threads.max=64
+    spark.hadoop.fs.s3a.connection.maximum=100
+    # S3A magic committer for better write performance
+    spark.hadoop.fs.s3a.committer.name=magic
+    spark.hadoop.fs.s3a.committer.magic.enabled=true
+    spark.sql.sources.commitProtocolClass=org.apache.spark.internal.io.cloud.PathOutputCommitProtocol
+    spark.sql.parquet.output.committer.class=org.apache.spark.internal.io.cloud.BindingParquetOutputCommitter
+
+    # Event logging
+    spark.eventLog.enabled=true
+    spark.eventLog.dir={{ .Values.historyServer.logDirectory }}
+    spark.eventLog.compress=true
+
+    # UI
+    spark.ui.enabled=true
+    spark.ui.port=4040
+
+    # Memory
+    spark.driver.memory={{ .Values.sparkConnect.driver.memory }}
+
+    # Performance
+    spark.serializer=org.apache.spark.serializer.KryoSerializer
+    spark.sql.adaptive.enabled=true
+    spark.sql.adaptive.coalescePartitions.enabled=true
+    spark.sql.execution.arrow.pyspark.enabled=true
+    spark.sql.execution.arrow.pyspark.fallback.enabled=true
+
+    {{- if .Values.hiveMetastore.enabled }}
+    # Hive Metastore Configuration
+    spark.sql.catalogImplementation=hive
+    spark.hive.metastore.uris=thrift://hive-metastore:9083
+    spark.sql.warehouse.dir={{ .Values.hiveMetastore.warehouseDir }}
+    spark.hadoop.hive.metastore.warehouse.dir={{ .Values.hiveMetastore.warehouseDir }}
+    {{- end }}
+    {{- range $key, $value := .Values.sparkConnect.sparkConf }}
+    {{ $key }}={{ $value }}
+    {{- end }}
+
+  log4j2.properties: |
+    rootLogger.level=INFO
+    rootLogger.appenderRef.stdout.ref=console
+    appender.console.type=Console
+    appender.console.name=console
+    appender.console.layout.type=PatternLayout
+    appender.console.layout.pattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n
+    logger.spark.name=org.apache.spark
+    logger.spark.level=WARN
+    logger.hadoop.name=org.apache.hadoop
+    logger.hadoop.level=WARN
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spark-env
+  labels:
+    {{- include "spark-platform.labels" . | nindent 4 }}
+data:
+  S3_ENDPOINT: {{ .Values.s3.endpoint | quote }}
+  SPARK_CONNECT_SERVER: "sc://spark-connect:15002"
+  SPARK_HISTORY_SERVER_URL: "http://spark-history-server:18080"

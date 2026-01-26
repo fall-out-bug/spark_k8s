@@ -1,0 +1,41 @@
+# Connect-only mode: Spark Connect with K8s executors (default)
+# Works with: Spark 3.5 (spark-3.5 chart) and Spark 4.1 (spark-4.1 chart)
+#
+# Usage:
+#   # Spark 3.5 (umbrella chart)
+#   helm install spark-connect charts/spark-3.5 -n spark \
+#     -f docs/guides/en/overlays/values-connect-k8s.yaml \
+#     --set spark-connect.enabled=true
+#
+#   # Spark 4.1 (direct chart)
+#   helm install spark-connect charts/spark-4.1 -n spark \
+#     -f docs/guides/en/overlays/values-connect-k8s.yaml \
+#     --set connect.enabled=true
+
+# Spark 3.5 configuration (umbrella chart)
+# Uncomment and adjust if using spark-3.5 chart:
+# spark-connect:
+#   sparkConnect:
+#     backendMode: "k8s"  # Default: K8s executors mode
+#     executor:
+#       memory: "1g"
+#       cores: 1
+#     dynamicAllocation:
+#       enabled: true
+#       minExecutors: 0
+#       maxExecutors: 5
+
+# Spark 4.1 configuration (direct chart)
+# Uncomment and adjust if using spark-4.1 chart:
+# connect:
+#   backendMode: "k8s"  # Default: K8s executors mode
+#   executor:
+#     memory: "1Gi"
+#     cores: "1"
+#   dynamicAllocation:
+#     enabled: true
+#     minExecutors: 0
+#     maxExecutors: 10
+
+# Note: This is the default mode, so no explicit configuration is required.
+# The overlay is provided for documentation and explicit configuration if needed.

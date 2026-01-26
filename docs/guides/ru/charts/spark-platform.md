@@ -60,14 +60,14 @@ kubectl get pods -n spark
 ### Топ-10 параметров для понимания
 
 1. **`sparkConnect.enabled`** — Включить Spark Connect Server (по умолчанию: `true`)
-2. **`sparkConnect.master`** — Режим Spark master: `"local"` или `"k8s"` (по умолчанию: `"k8s"`)
-3. **`sparkConnect.executor.memory`** — Память на executor pod (по умолчанию: `"1g"`)
-4. **`sparkConnect.dynamicAllocation.maxExecutors`** — Максимум executor подов (по умолчанию: `5`)
-5. **`jupyterhub.enabled`** — Включить JupyterHub (по умолчанию: `true`)
-6. **`minio.enabled`** — Включить MinIO (по умолчанию: `true`)
-7. **`s3.endpoint`** — URL S3 endpoint (по умолчанию: `"http://minio:9000"`)
-8. **`s3.accessKey`** / **`s3.secretKey`** — Учётные данные S3
-9. **`historyServer.logDirectory`** — Директория event logs (по умолчанию: `"s3a://spark-logs/events"`)
+2. **`sparkConnect.backendMode`** — Режим бэкенда: `"k8s"` (K8s executors) или `"standalone"` (Standalone backend) (по умолчанию: `"k8s"`)
+3. **`sparkConnect.standalone.masterService`** — Имя сервиса Standalone master (требуется при `backendMode=standalone`)
+4. **`sparkConnect.standalone.masterPort`** — Порт Standalone master (по умолчанию: `7077`)
+5. **`sparkConnect.executor.memory`** — Память на executor pod (по умолчанию: `"1g"`)
+6. **`sparkConnect.dynamicAllocation.maxExecutors`** — Максимум executor подов (по умолчанию: `5`, только для режима K8s)
+7. **`jupyterhub.enabled`** — Включить JupyterHub (по умолчанию: `true`)
+8. **`minio.enabled`** — Включить MinIO (по умолчанию: `true`)
+9. **`s3.endpoint`** — URL S3 endpoint (по умолчанию: `"http://minio:9000"`)
 10. **`serviceAccount.name`** — Имя ServiceAccount (по умолчанию: `"spark"`)
 
 ### Пример: Настройка ресурсов executor
@@ -91,12 +91,140 @@ helm upgrade spark-platform charts/spark-platform -n spark -f my-values.yaml
 См. [`docs/guides/en/overlays/`](../../en/overlays/) для готовых overlays:
 - `values-anyk8s.yaml` — Базовый профиль для любого Kubernetes
 - `values-sa-prodlike.yaml` — Prod-like профиль (тестировалось на Minikube)
+- `values-connect-k8s.yaml` — Режим Connect-only (K8s executors, по умолчанию)
+- `values-connect-standalone.yaml` — Режим Connect + Standalone backend
 
 **Примечание:** Overlays одинаковы для EN и RU; используйте файлы из `docs/guides/en/overlays/`.
 
+### Режимы бэкенда Connect
+
+Spark Connect поддерживает два режима бэкенда для Spark 3.5 и 4.1:
+
+#### 1. Режим K8s Executors (по умолчанию)
+
+Connect создаёт executor-поды динамически через Kubernetes API. Это рекомендуемый режим для большинства случаев использования.
+
+**Конфигурация:**
+```yaml
+# Spark 3.5 (umbrella chart)
+spark-connect:
+  sparkConnect:
+    backendMode: "k8s"  # По умолчанию
+    executor:
+      memory: "1g"
+      cores: 1
+    dynamicAllocation:
+      enabled: true
+      minExecutors: 0
+      maxExecutors: 5
+
+# Spark 4.1 (direct chart)
+connect:
+  backendMode: "k8s"  # По умолчанию
+  executor:
+    memory: "1Gi"
+    cores: "1"
+  dynamicAllocation:
+    enabled: true
+    minExecutors: 0
+    maxExecutors: 10
+```
+
+**Развёртывание:**
+```bash
+# Spark 3.5
+helm install spark-connect charts/spark-3.5 -n spark \
+  -f docs/guides/en/overlays/values-connect-k8s.yaml \
+  --set spark-connect.enabled=true
+
+# Spark 4.1
+helm install spark-connect charts/spark-4.1 -n spark \
+  --set connect.enabled=true \
+  --set connect.backendMode=k8s
+```
+
+#### 2. Режим Standalone Backend
+
+Connect отправляет задания в существующий кластер Spark Standalone. Используйте этот режим, когда хотите использовать существующие Standalone workers.
+
+**⚠️ Важно:** Сервис Standalone master должен быть доступен из namespace Connect. Для развёртываний в одном namespace используйте имя сервиса напрямую. Для кросс-namespace используйте полный FQDN: `<service>.<namespace>.svc.cluster.local`.
+
+**Конфигурация:**
+```yaml
+# Spark 3.5 (umbrella chart)
+spark-connect:
+  sparkConnect:
+    backendMode: "standalone"
+    standalone:
+      masterService: "spark-sa-spark-standalone-master"  # Тот же namespace
+      # masterService: "spark-standalone-master.spark-sa.svc.cluster.local"  # Кросс-namespace
+      masterPort: 7077
+
+# Spark 4.1 (direct chart)
+connect:
+  backendMode: "standalone"
+  standalone:
+    masterService: "spark-sa-spark-standalone-master"  # Тот же namespace
+    masterPort: 7077
+```
+
+**Развёртывание:**
+```bash
+# Spark 3.5 (тот же namespace)
+helm install spark-connect charts/spark-3.5 -n spark \
+  -f docs/guides/en/overlays/values-connect-standalone.yaml \
+  --set spark-connect.enabled=true \
+  --set spark-connect.sparkConnect.standalone.masterService=spark-sa-spark-standalone-master
+
+# Spark 4.1 (тот же namespace)
+helm install spark-connect charts/spark-4.1 -n spark \
+  --set connect.enabled=true \
+  --set connect.backendMode=standalone \
+  --set connect.standalone.masterService=spark-sa-spark-standalone-master
+```
+
+**Требования:**
+- Кластер Spark Standalone должен быть развёрнут и работать
+- Сервис Standalone master должен быть доступен (рекомендуется тот же namespace)
+- Standalone workers должны быть зарегистрированы у master
+
+См. файлы overlays для подробных примеров конфигурации для Spark 3.5 и 4.1.
+
 ## Smoke-тесты
 
-Специальных smoke-скриптов для `spark-platform` пока нет. Ручная проверка:
+### Нагрузочные тесты
+
+Для комплексной проверки под нагрузкой используйте специальные скрипты нагрузочных тестов:
+
+**Режим K8s Executors:**
+```bash
+./scripts/test-spark-connect-k8s-load.sh <namespace> <release-name>
+
+# Пример:
+./scripts/test-spark-connect-k8s-load.sh spark spark-connect-k8s
+
+# С пользовательскими параметрами нагрузки:
+export LOAD_ROWS=2000000
+export LOAD_PARTITIONS=100
+export LOAD_ITERATIONS=5
+export LOAD_EXECUTORS=5
+./scripts/test-spark-connect-k8s-load.sh spark spark-connect-k8s
+```
+
+**Режим Standalone Backend:**
+```bash
+./scripts/test-spark-connect-standalone-load.sh <namespace> <release-name> [standalone-master]
+
+# Пример:
+./scripts/test-spark-connect-standalone-load.sh spark spark-connect-standalone \
+  spark://spark-sa-spark-standalone-master:7077
+```
+
+См. [`docs/guides/ru/validation.md`](../validation.md) для подробной документации по скриптам нагрузочных тестов.
+
+### Ручная проверка
+
+Для быстрой ручной проверки:
 
 ```bash
 # 1. Проверка доступности Spark Connect
@@ -132,6 +260,31 @@ kubectl logs deploy/spark-platform-minio -n spark
 ```
 
 **Решение:** Проверьте, что `s3.endpoint` соответствует имени сервиса MinIO и `s3.sslEnabled: false` для MinIO.
+
+### Проблемы подключения к Standalone Backend
+
+**Симптомы:**
+- Connect не может отправить задания в Standalone master
+- Ошибки типа `Connection refused` или `No route to host`
+
+**Проверка:**
+```bash
+# Проверка существования сервиса Standalone master
+kubectl get svc <standalone-master-service> -n <namespace>
+
+# Проверка доступности Standalone master из пода Connect
+kubectl exec -it deploy/<connect-deployment> -n <namespace> -- \
+  nc -zv <standalone-master-service> 7077
+
+# Проверка логов Standalone master
+kubectl logs -n <namespace> <standalone-master-pod>
+```
+
+**Решение:**
+- Убедитесь, что сервис Standalone master находится в том же namespace (рекомендуется) или используйте FQDN для кросс-namespace
+- Проверьте, что `sparkConnect.standalone.masterService` соответствует фактическому имени сервиса
+- Проверьте network policies при использовании кросс-namespace коммуникации
+- Убедитесь, что Standalone workers зарегистрированы у master
 
 ## Справочник
 

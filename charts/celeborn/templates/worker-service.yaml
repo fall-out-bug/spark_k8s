@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "celeborn.fullname" . }}-worker
+  labels:
+    {{- include "celeborn.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  ports:
+    - name: rpc
+      port: {{ .Values.worker.service.port }}
+      targetPort: rpc
+  selector:
+    app: celeborn-worker
+    {{- include "celeborn.selectorLabels" . | nindent 4 }}

@@ -1,0 +1,198 @@
+{{- if .Values.minio.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+  labels:
+    app: minio
+    {{- include "spark-base.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+        {{- include "spark-base.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.security.podSecurityStandards }}
+      securityContext:
+        {{- include "spark-base.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: minio
+        {{- if .Values.security.podSecurityStandards }}
+        securityContext:
+          {{- include "spark-base.containerSecurityContext" . | nindent 10 }}
+          runAsUser: 1000
+          runAsGroup: 1000
+        {{- end }}
+        image: "{{ .Values.minio.image.repository }}:{{ .Values.minio.image.tag }}"
+        imagePullPolicy: {{ .Values.minio.image.pullPolicy }}
+        args:
+        - server
+        - /data
+        - --console-address
+        - ":{{ .Values.minio.service.consolePort }}"
+        env:
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              name: s3-credentials
+              key: access-key
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: s3-credentials
+              key: secret-key
+        ports:
+        - name: api
+          containerPort: {{ .Values.minio.service.port }}
+        - name: console
+          containerPort: {{ .Values.minio.service.consolePort }}
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: tmp
+          mountPath: /tmp
+        resources:
+          {{- toYaml .Values.minio.resources | nindent 10 }}
+        readinessProbe:
+          httpGet:
+            path: /minio/health/ready
+            port: {{ .Values.minio.service.port }}
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /minio/health/live
+            port: {{ .Values.minio.service.port }}
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      volumes:
+      - name: data
+        {{- if .Values.minio.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: minio-pvc
+        {{- else }}
+        emptyDir: {}
+        {{- end }}
+      - name: tmp
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+  labels:
+    app: minio
+    {{- include "spark-base.labels" . | nindent 4 }}
+spec:
+  ports:
+  - name: api
+    port: {{ .Values.minio.service.port }}
+    targetPort: {{ .Values.minio.service.port }}
+  - name: console
+    port: {{ .Values.minio.service.consolePort }}
+    targetPort: {{ .Values.minio.service.consolePort }}
+  selector:
+    app: minio
+{{- if .Values.minio.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minio-pvc
+  labels:
+    {{- include "spark-base.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .Values.minio.persistence.storageClass }}
+  storageClassName: {{ .Values.minio.persistence.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.minio.persistence.size }}
+{{- end }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-init-buckets
+  labels:
+    {{- include "spark-base.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      restartPolicy: OnFailure
+      {{- if .Values.security.podSecurityStandards }}
+      securityContext:
+        {{- include "spark-base.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: mc
+        {{- if .Values.security.podSecurityStandards }}
+        securityContext:
+          {{- include "spark-base.containerSecurityContext" . | nindent 10 }}
+          runAsUser: 1000
+          runAsGroup: 1000
+        {{- end }}
+        image: quay.io/minio/mc:latest
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Waiting for MinIO to be ready..."
+          for i in $(seq 1 30); do
+            if mc alias set myminio http://minio:{{ .Values.minio.service.port }} $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD; then
+              echo "MinIO is ready!"
+              break
+            fi
+            echo "Attempt $i: MinIO not ready yet, waiting..."
+            sleep 5
+          done
+
+          {{- range .Values.minio.buckets }}
+          mc mb --ignore-existing myminio/{{ . }}
+          {{- end }}
+
+          {{- if has "spark-logs" .Values.minio.buckets }}
+          echo "" | mc pipe myminio/spark-logs/events/.keep
+          echo "" | mc pipe myminio/spark-logs/4.1/events/.keep
+          {{- end }}
+          {{- if has "spark-standalone-logs" .Values.minio.buckets }}
+          echo "" | mc pipe myminio/spark-standalone-logs/events/.keep
+          {{- end }}
+
+          echo "Buckets created successfully"
+          mc ls myminio/
+        env:
+        - name: HOME
+          value: /tmp
+        - name: MC_CONFIG_DIR
+          value: /tmp/.mc
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              name: s3-credentials
+              key: access-key
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: s3-credentials
+              key: secret-key
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}
+{{- end }}

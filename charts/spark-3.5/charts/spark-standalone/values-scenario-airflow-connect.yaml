@@ -1,0 +1,81 @@
+# Preset: Airflow + Spark Connect + Standalone
+# Source: scripts/test-e2e-airflow-connect.sh (Spark 3.5, BACKEND_MODE=standalone)
+# Components: Airflow + Connect + Standalone + MinIO
+
+airflow:
+  enabled: true
+  fernetKey: "9_jzOiAmnzfASdT81H2Epx6R56z3XQP9N8vr3W76wro="
+  kubernetesExecutor:
+    deleteWorkerPods: false
+  scheduler:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
+  webserver:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
+
+minio:
+  enabled: true
+  persistence:
+    enabled: false
+
+mlflow:
+  enabled: false
+
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+sparkMaster:
+  enabled: true
+  image:
+    tag: "3.5.7"
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+  ha:
+    enabled: false
+  sparkConf: {}
+
+sparkWorker:
+  enabled: true
+  replicas: 1
+  image:
+    tag: "3.5.7"
+  cores: 1
+  memory: "1g"
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "1Gi"
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+
+shuffleService:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false
+
+s3:
+  existingSecret: ""  # Set to "s3-credentials" if using shared secret

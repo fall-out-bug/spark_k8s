@@ -1,0 +1,126 @@
+{{- if .Values.postgresql.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "spark-base.fullname" . }}-postgresql-credentials
+  labels:
+    app: postgresql
+    {{- include "spark-base.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  POSTGRES_USER: {{ .Values.postgresql.auth.username | quote }}
+  POSTGRES_PASSWORD: {{ .Values.postgresql.auth.password | quote }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spark-base.fullname" . }}-postgresql-init
+  labels:
+    app: postgresql
+    {{- include "spark-base.labels" . | nindent 4 }}
+data:
+  init-dbs.sh: |
+    #!/bin/sh
+    set -e
+    {{- range .Values.postgresql.databases }}
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-'EOSQL'
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '{{ . }}') THEN
+        CREATE DATABASE "{{ . }}";
+      END IF;
+    END $$;
+    EOSQL
+    {{- end }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "spark-base.fullname" . }}-postgresql
+  labels:
+    app: postgresql
+    {{- include "spark-base.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "spark-base.fullname" . }}-postgresql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgresql
+      {{- include "spark-base.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: postgresql
+        {{- include "spark-base.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.security.podSecurityStandards }}
+      securityContext:
+        {{- include "spark-base.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: postgresql
+        {{- if .Values.security.podSecurityStandards }}
+        securityContext:
+          {{- include "spark-base.containerSecurityContext" . | nindent 10 }}
+          runAsUser: 999
+          runAsGroup: 999
+        {{- end }}
+        image: "{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
+        imagePullPolicy: {{ .Values.postgresql.image.pullPolicy }}
+        envFrom:
+        - secretRef:
+            name: {{ include "spark-base.fullname" . }}-postgresql-credentials
+        ports:
+        - name: postgres
+          containerPort: {{ .Values.postgresql.service.port }}
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+        - name: init
+          mountPath: /docker-entrypoint-initdb.d
+        - name: tmp
+          mountPath: /tmp
+        resources:
+          {{- toYaml .Values.postgresql.resources | nindent 10 }}
+      volumes:
+      - name: init
+        configMap:
+          name: {{ include "spark-base.fullname" . }}-postgresql-init
+          defaultMode: 0755
+      - name: tmp
+        emptyDir: {}
+      {{- if not .Values.postgresql.persistence.enabled }}
+      - name: data
+        emptyDir: {}
+      {{- end }}
+  {{- if .Values.postgresql.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      {{- if .Values.postgresql.persistence.storageClass }}
+      storageClassName: {{ .Values.postgresql.persistence.storageClass | quote }}
+      {{- end }}
+      resources:
+        requests:
+          storage: {{ .Values.postgresql.persistence.size }}
+  {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "spark-base.fullname" . }}-postgresql
+  labels:
+    app: postgresql
+    {{- include "spark-base.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: postgresql
+    {{- include "spark-base.selectorLabels" . | nindent 4 }}
+  ports:
+  - name: postgres
+    port: {{ .Values.postgresql.service.port }}
+    targetPort: postgres
+{{- end }}

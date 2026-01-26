@@ -1,0 +1,28 @@
+# Shared values for multi-version deployments (3.5.7 + 4.1.0)
+
+global:
+  s3:
+    endpoint: "http://minio:9000"
+    pathStyleAccess: true
+  postgresql:
+    host: "postgresql"
+    user: "spark"
+    password: "spark"
+
+spark-standalone:
+  historyServer:
+    enabled: true
+    logDirectory: "s3a://spark-logs/3.5/events"
+  hiveMetastore:
+    enabled: true
+    database:
+      name: "metastore_spark35"
+
+hiveMetastore:
+  enabled: true
+  database:
+    name: "metastore_spark41"
+
+historyServer:
+  enabled: true
+  logDirectory: "s3a://spark-logs/4.1/events"

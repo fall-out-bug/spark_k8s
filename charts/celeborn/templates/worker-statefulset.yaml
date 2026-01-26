@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "celeborn.fullname" . }}-worker
+  labels:
+    {{- include "celeborn.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "celeborn.fullname" . }}-worker
+  replicas: {{ .Values.worker.replicas }}
+  selector:
+    matchLabels:
+      app: celeborn-worker
+      {{- include "celeborn.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: celeborn-worker
+        {{- include "celeborn.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: worker
+          image: "{{ .Values.worker.image.repository }}:{{ .Values.worker.image.tag }}"
+          imagePullPolicy: {{ .Values.worker.image.pullPolicy }}
+          command:
+            - /opt/celeborn/sbin/start-worker.sh
+          env:
+            - name: CELEBORN_MASTER_ENDPOINTS
+              value: "{{ include "celeborn.fullname" . }}-master-0:{{ .Values.master.service.port }},{{ include "celeborn.fullname" . }}-master-1:{{ .Values.master.service.port }},{{ include "celeborn.fullname" . }}-master-2:{{ .Values.master.service.port }}"
+          ports:
+            - containerPort: {{ .Values.worker.service.port }}
+              name: rpc
+          volumeMounts:
+            - name: config
+              mountPath: /opt/celeborn/conf
+            - name: shuffle-data
+              mountPath: /mnt/celeborn
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "celeborn.fullname" . }}-config
+  volumeClaimTemplates:
+    - metadata:
+        name: shuffle-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: {{ .Values.worker.storage.storageClass }}
+        resources:
+          requests:
+            storage: {{ .Values.worker.storage.size }}

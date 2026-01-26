@@ -1,0 +1,37 @@
+master:
+  replicas: 3
+  image:
+    repository: apache/celeborn
+    tag: "0.6.1"
+    pullPolicy: IfNotPresent
+  service:
+    port: 9097
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1"
+
+worker:
+  replicas: 3
+  image:
+    repository: apache/celeborn
+    tag: "0.6.1"
+    pullPolicy: IfNotPresent
+  service:
+    port: 9098
+  storage:
+    size: "100Gi"
+    storageClass: "standard"
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "1"
+    limits:
+      memory: "8Gi"
+      cpu: "4"
+
+security:
+  podSecurityStandards: false

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: celeborn
+version: 0.1.0
+appVersion: "0.6.1"
+description: Apache Celeborn - Disaggregated shuffle service for Apache Spark

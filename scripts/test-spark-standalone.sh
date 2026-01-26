@@ -4,6 +4,9 @@ set -euo pipefail
 NAMESPACE="${1:-default}"
 RELEASE="${2:-spark-sa}"
 
+# Install example (Spark 3.5 umbrella chart):
+# helm install "${RELEASE}" charts/spark-3.5 --set spark-standalone.enabled=true
+
 MASTER_SELECTOR="app=spark-master,app.kubernetes.io/instance=${RELEASE}"
 WORKER_SELECTOR="app=spark-worker,app.kubernetes.io/instance=${RELEASE}"
 

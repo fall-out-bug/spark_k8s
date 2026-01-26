@@ -1,0 +1,34 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "spark-4.1.fullname" . }}-ingress
+  labels:
+    {{- include "spark-4.1.labels" . | nindent 4 }}
+spec:
+  rules:
+    {{- if and .Values.historyServer.enabled .Values.ingress.hosts.historyServer }}
+    - host: {{ .Values.ingress.hosts.historyServer }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "spark-4.1.fullname" . }}-history
+                port:
+                  number: 18080
+    {{- end }}
+    {{- if and .Values.jupyter.enabled .Values.ingress.hosts.jupyter }}
+    - host: {{ .Values.ingress.hosts.jupyter }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "spark-4.1.fullname" . }}-jupyter
+                port:
+                  number: 8888
+    {{- end }}
+{{- end }}

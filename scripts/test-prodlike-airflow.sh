@@ -25,6 +25,53 @@ echo "2) Sanity: airflow CLI reachable..."
 kubectl exec -n "${NAMESPACE}" "${SCHEDULER_POD}" -- sh -lc "PYTHONWARNINGS=ignore airflow version >/dev/null"
 echo "   OK"
 
+SET_AIRFLOW_VARIABLES="${SET_AIRFLOW_VARIABLES:-true}"
+FORCE_SET_VARIABLES="${FORCE_SET_VARIABLES:-false}"
+
+if [ "${SET_AIRFLOW_VARIABLES}" = "true" ]; then
+  echo ""
+  echo "3) Ensuring Airflow Variables for DAGs..."
+
+  SPARK_IMAGE_VALUE="${SPARK_IMAGE_VALUE:-spark-custom:3.5.7}"
+  SPARK_NAMESPACE_VALUE="${SPARK_NAMESPACE_VALUE:-${NAMESPACE}}"
+  SPARK_MASTER_VALUE="${SPARK_MASTER_VALUE:-spark://${RELEASE}-spark-standalone-master:7077}"
+
+  S3_ENDPOINT_VALUE="${S3_ENDPOINT_VALUE:-http://minio:9000}"
+  S3_ACCESS_KEY_VALUE="${S3_ACCESS_KEY_VALUE:-}"
+  S3_SECRET_KEY_VALUE="${S3_SECRET_KEY_VALUE:-}"
+
+  if [ -z "${S3_ACCESS_KEY_VALUE}" ] || [ -z "${S3_SECRET_KEY_VALUE}" ]; then
+    if kubectl get secret -n "${NAMESPACE}" s3-credentials >/dev/null 2>&1; then
+      S3_ACCESS_KEY_VALUE="${S3_ACCESS_KEY_VALUE:-$(kubectl get secret -n "${NAMESPACE}" s3-credentials -o jsonpath='{.data.access-key}' | base64 -d)}"
+      S3_SECRET_KEY_VALUE="${S3_SECRET_KEY_VALUE:-$(kubectl get secret -n "${NAMESPACE}" s3-credentials -o jsonpath='{.data.secret-key}' | base64 -d)}"
+    fi
+  fi
+
+  set_var() {
+    local key="$1"
+    local value="$2"
+    if [ -z "${value}" ]; then
+      echo "   WARN: ${key} is empty, skipping"
+      return 0
+    fi
+    if [ "${FORCE_SET_VARIABLES}" != "true" ]; then
+      if kubectl exec -n "${NAMESPACE}" "${SCHEDULER_POD}" -- sh -lc "PYTHONWARNINGS=ignore airflow variables get '${key}' >/dev/null 2>&1"; then
+        echo "   ${key} already set"
+        return 0
+      fi
+    fi
+    kubectl exec -n "${NAMESPACE}" "${SCHEDULER_POD}" -- sh -lc "PYTHONWARNINGS=ignore airflow variables set '${key}' '${value}'"
+    echo "   set ${key}"
+  }
+
+  set_var "spark_image" "${SPARK_IMAGE_VALUE}"
+  set_var "spark_namespace" "${SPARK_NAMESPACE_VALUE}"
+  set_var "spark_standalone_master" "${SPARK_MASTER_VALUE}"
+  set_var "s3_endpoint" "${S3_ENDPOINT_VALUE}"
+  set_var "s3_access_key" "${S3_ACCESS_KEY_VALUE}"
+  set_var "s3_secret_key" "${S3_SECRET_KEY_VALUE}"
+fi
+
 wait_for_run_state() {
   local dag_id="$1"
   local run_id="$2"
@@ -66,15 +113,15 @@ wait_for_run_state() {
 for dag in "${DAGS[@]}"; do
   run_id="prodlike-$(date +%Y%m%d-%H%M%S)-${dag}"
   echo ""
-  echo "3) Triggering DAG: ${dag} (run_id=${run_id})"
+  echo "4) Triggering DAG: ${dag} (run_id=${run_id})"
   kubectl exec -n "${NAMESPACE}" "${SCHEDULER_POD}" -- sh -lc "PYTHONWARNINGS=ignore airflow dags trigger -r '${run_id}' '${dag}'"
 
-  echo "4) Waiting for DAG completion (timeout=${TIMEOUT_SECONDS}s, poll=${POLL_SECONDS}s)..."
+  echo "5) Waiting for DAG completion (timeout=${TIMEOUT_SECONDS}s, poll=${POLL_SECONDS}s)..."
   wait_for_run_state "${dag}" "${run_id}" "${TIMEOUT_SECONDS}"
 done
 
 echo ""
-echo "5) Best-effort: ensure no lingering Airflow worker pods..."
+echo "6) Best-effort: ensure no lingering Airflow worker pods..."
 kubectl get pods -n "${NAMESPACE}" -l app=airflow-worker --no-headers 2>/dev/null || true
 
 echo "=== Done ==="

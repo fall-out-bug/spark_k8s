@@ -1,0 +1,211 @@
+# Spark Platform Helm Chart Values
+# Spark 3.5.7 with Hadoop 3.4.1 and AWS SDK v2
+
+# Global settings
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+
+# S3 credentials (MinIO or external S3)
+s3:
+  endpoint: "http://minio:9000"
+  accessKey: "minioadmin"
+  secretKey: "minioadmin"
+  pathStyleAccess: true
+  sslEnabled: false
+  existingSecret: ""
+
+# Spark Connect Server (driver + dynamic K8s executors)
+sparkConnect:
+  enabled: true
+  image:
+    repository: spark-custom
+    tag: "3.5.7"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "500m"
+    limits:
+      memory: "8Gi"
+      cpu: "4000m"
+  driver:
+    memory: "2g"
+    host: "spark-connect"
+    port: 7078
+    blockManagerPort: 7079
+
+  # Backend mode: "k8s" or "standalone"
+  # k8s: dynamic executor pods created on demand (recommended)
+  # standalone: submit to existing Spark Standalone master/workers
+  backendMode: "k8s"
+  
+  # Standalone backend configuration (used when backendMode=standalone)
+  standalone:
+    masterService: "spark-sa-spark-standalone-master"
+    masterPort: 7077
+  
+  # Legacy: master mode (deprecated, use backendMode instead)
+  # local: all processing in driver pod (simple, no scaling)
+  # k8s: dynamic executor pods created on demand
+  master: "k8s"
+
+  # Executor configuration (used when master: k8s)
+  executor:
+    memory: "1g"
+    cores: 1
+
+  # Dynamic allocation (used when master: k8s)
+  dynamicAllocation:
+    enabled: true
+    minExecutors: 0
+    maxExecutors: 5
+    initialExecutors: 0
+
+  # Custom Spark configuration
+  sparkConf: {}
+
+# Spark History Server
+historyServer:
+  enabled: true
+  image:
+    repository: spark-custom
+    tag: "3.5.7"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+  logDirectory: "s3a://spark-logs/events"
+
+# Jupyter Notebook (simple single-user - for development)
+jupyter:
+  enabled: false  # Disabled in favor of JupyterHub
+  image:
+    repository: jupyter-spark
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+  service:
+    type: NodePort
+    nodePort: 30888
+
+# JupyterHub with KubeSpawner (multi-user)
+jupyterhub:
+  enabled: true
+  image:
+    repository: jupyterhub-spark
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+  service:
+    type: NodePort
+    nodePort: 30888
+  # Admin password for JupyterHub
+  adminPassword: "admin123"
+  # Single-user notebook server settings
+  singleuser:
+    image:
+      repository: jupyter-spark
+      tag: "latest"
+    cpu:
+      limit: "2"
+      guarantee: "0.5"
+    memory:
+      limit: "4G"
+      guarantee: "1G"
+    # Storage for user home directories (optional)
+    storage:
+      enabled: false
+      size: "5Gi"
+      storageClass: ""
+
+# MinIO (S3-compatible storage)
+minio:
+  enabled: true
+  image:
+    repository: quay.io/minio/minio
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+  buckets:
+    - warehouse
+    - spark-logs
+    - spark-jobs
+    - raw-data
+    - processed-data
+    - checkpoints
+
+# Service Account for Spark
+serviceAccount:
+  create: true
+  name: spark
+  annotations: {}
+
+# RBAC for K8s executor pods
+rbac:
+  create: true
+
+# PostgreSQL (backend for Hive Metastore)
+postgresql:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "15-alpine"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: ""
+  database: metastore
+  username: hive
+  password: hive123
+
+# Hive Metastore
+hiveMetastore:
+  enabled: true
+  image:
+    repository: spark-custom
+    tag: "3.5.7"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+  # Warehouse location in S3
+  warehouseDir: "s3a://warehouse/hive"
