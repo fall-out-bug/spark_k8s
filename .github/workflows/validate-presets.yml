@@ -58,10 +58,26 @@ jobs:
 
       - name: Check for syntax errors
         run: |
-          echo "Checking YAML syntax..."
-          find charts -name "*.yaml" -type f | while read -r file; do
-            yamllint "$file" || echo "Warning: $file has issues"
-          done || echo "yamllint not installed, skipping"
+          echo "Checking YAML syntax for preset files only..."
+
+          # Check preset values files
+          for values_file in charts/spark-4.1/values-scenario-*.yaml; do
+            if [[ -f "${values_file}" ]]; then
+              yamllint "${values_file}" || echo "Warning: ${values_file} has issues"
+            fi
+          done
+
+          for values_file in charts/spark-3.5/charts/spark-connect/values-scenario-*.yaml; do
+            if [[ -f "${values_file}" ]]; then
+              yamllint "${values_file}" || echo "Warning: ${values_file} has issues"
+            fi
+          done
+
+          for values_file in charts/spark-3.5/charts/spark-standalone/values-scenario-*.yaml; do
+            if [[ -f "${values_file}" ]]; then
+              yamllint "${values_file}" || echo "Warning: ${values_file} has issues"
+            fi
+          done
 
           echo "Checking helm template render..."
           ./scripts/validate-presets.sh
