@@ -1,6 +1,12 @@
 global:
   imagePullSecrets: []
 
+s3:
+  accessKey: "minioadmin"
+  secretKey: "minioadmin"
+  endpoint: ""
+  existingSecret: ""  # Set to use existing secret instead of creating one
+
 serviceAccount:
   create: true
   name: "spark"
