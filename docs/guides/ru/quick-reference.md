@@ -1,5 +1,9 @@
 # Spark K8s Constructor — Быстрая справка
 
+**Дата:** 2025-01-26
+**Версия:** 0.1.0
+**Spark:** 3.5.7, 4.1.0
+
 > Краткая справка по командам, рецептам и пресетам Spark K8s Constructor
 
 ## Содержание
@@ -364,6 +368,10 @@ kubectl get cm -n spark spark-connect-configmap -o jsonpath='{.data.spark-defaul
 | [compression-library-missing.md](../recipes/troubleshoot/compression-library-missing.md) | Отсутствие библиотек сжатия |
 | [driver-not-starting.md](../recipes/troubleshoot/driver-not-starting.md) | Драйвер не запускается |
 | [driver-host-resolution.md](../recipes/troubleshoot/driver-host-resolution.md) | FQDN резолюция драйвера |
+| [helm-installation-label-validation.md](../recipes/troubleshoot/helm-installation-label-validation.md) | Ошибка валидации "N/A" label (ISSUE-030) |
+| [s3-credentials-secret-missing.md](../recipes/troubleshoot/s3-credentials-secret-missing.md) | Отсутствует секрет s3-credentials (ISSUE-031) |
+| [connect-crashloop-rbac-configmap.md](../recipes/troubleshoot/connect-crashloop-rbac-configmap.md) | RBAC permission для ConfigMaps (ISSUE-032/033) |
+| [jupyter-python-dependencies-missing.md](../recipes/troubleshoot/jupyter-python-dependencies-missing.md) | Отсутствуют Python зависимости (ISSUE-034) |
 
 ### Deployment (A) — Развертывание
 
