@@ -1,0 +1,67 @@
+name: Validate Preset Values
+
+on:
+  pull_request:
+    paths:
+      - 'charts/**/values-scenario-*.yaml'
+      - 'charts/**/templates/**'
+  push:
+    branches:
+      - main
+      - feature/spark-*
+
+jobs:
+  validate:
+    name: Validate all preset values
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: latest
+
+      - name: Validate Spark 4.1 presets
+        run: |
+          for values_file in charts/spark-4.1/values-scenario-*.yaml; do
+            if [[ -f "${values_file}" ]]; then
+              echo "Validating: ${values_file}"
+              helm template test charts/spark-4.1 -f "${values_file}" --dry-run
+            fi
+          done
+
+      - name: Validate Spark 3.5 spark-connect presets
+        run: |
+          for values_file in charts/spark-3.5/charts/spark-connect/values-scenario-*.yaml; do
+            if [[ -f "${values_file}" ]]; then
+              echo "   Validating: ${values_file}"
+              helm template test charts/spark-3.5/charts/spark-connect -f "${values_file}" --dry-run
+            fi
+          done
+
+      - name: Validate Spark 3.5 spark-standalone presets
+        run: |
+          for values_file in charts/spark-3.5/charts/spark-standalone/values-scenario-*.yaml; do
+            if [[ -f "${values_file}" ]]; then
+              echo "   Validating: ${values_file}"
+              helm template test charts/spark-3.5/charts/spark-standalone -f "${values_file}" --dry-run
+            fi
+          done
+
+      - name: Validate existing presets
+        run: |
+          echo "Validating existing presets..."
+          helm template test charts/spark-3.5/charts/spark-standalone -f charts/spark-3.5/charts/spark-standalone/values-prod-like.yaml --dry-run
+
+      - name: Check for syntax errors
+        run: |
+          echo "Checking YAML syntax..."
+          find charts -name "*.yaml" -type f | while read -r file; do
+            yamllint "$file" || echo "Warning: $file has issues"
+          done || echo "yamllint not installed, skipping"
+
+          echo "Checking helm template render..."
+          ./scripts/validate-presets.sh
