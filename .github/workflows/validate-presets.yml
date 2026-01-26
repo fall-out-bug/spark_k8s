@@ -60,3 +60,13 @@ jobs:
         run: |
           echo "Running preset validation..."
           ./scripts/validate-presets.sh || echo "⚠️ Validation script failed"
+
+      - name: Install Conftest
+        run: |
+          curl -sL https://raw.githubusercontent.com/open-policy-agent/conftest/master/install.sh | bash -s
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Validate against OPA policies
+        run: |
+          echo "Running policy validation..."
+          ./scripts/validate-policy.sh || echo "⚠️ Policy validation found issues"
