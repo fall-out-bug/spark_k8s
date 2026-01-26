@@ -61,10 +61,16 @@ jobs:
           echo "Running preset validation..."
           ./scripts/validate-presets.sh || echo "⚠️ Validation script failed"
 
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+          cache: true
+
       - name: Install Conftest
         run: |
-          curl -sL https://raw.githubusercontent.com/open-policy-agent/conftest/master/install.sh | bash -s
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          go install github.com/open-policy-agent/conftest/latest@latest
+          echo "$HOME/go/bin" >> $GITHUB_PATH
 
       - name: Validate against OPA policies
         run: |
