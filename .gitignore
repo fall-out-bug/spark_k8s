@@ -12,3 +12,6 @@
 tmp/
 .pytest_cache/
 __pycache__/
+
+# SDP local backups
+*.local.bak
