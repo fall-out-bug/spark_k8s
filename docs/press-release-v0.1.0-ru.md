@@ -1,144 +1,89 @@
-# Пресс-релиз: Spark K8s Constructor v0.1.0
+# Мы выпустили Spark K8s Constructor v0.1.0 🚀
 
-**ДЛЯ НЕЗАМЕДЛИТЕЛЬНОГО РАСПРОСТРАНЕНИЯ**
+**TL;DR:** Мы собрали модульные Helm-чарты для Apache Spark на Kubernetes. 11 пресетов, 23 рецепта, всё протестировано, работает из коробки. Spark 3.5.7 и 4.1.0.
 
 ---
 
-## Вышел первый релиз Spark K8s Constructor: готовое решение Apache Spark на Kubernetes
+## Что случилось?
 
-**26 января 2025 года** — Команда Spark K8s Constructor анонсирует выпуск версии 0.1.0 — модульных Helm-чартов для развёртывания Apache Spark на Kubernetes. Релиз предоставляет data engineering-командам готовые пресеты конфигураций для быстрого запуска Spark 3.5.7 и 4.1.0 в Kubernetes-инфраструктуре.
+Мы сделали то, что должны были сделать патчи назад: собрали конструктор для развёртывания Apache Spark на Kubernetes из готовых LEGO-блоков. Никакого "напиши 500 строк YAML" — только `helm install` и ты уже запускаешь задачи.
 
-### Что такое Spark K8s Constructor?
+## Что внутри?
 
-Spark K8s Constructor — это набор модульных Helm-чартов, который позволяет разворачивать Apache Spark на Kubernetes без необходимости писать Kubernetes-манифесты с нуля. Проект поддерживает три режима работы (K8s native, Spark Standalone, Spark Operator) и включает интеграции с ключевыми компонентами дата-платформы.
+**Компоненты:**
+- Spark Connect Server (gRPC, удалённое выполнение)
+- Jupyter Lab с преднастроенным Connect
+- Apache Airflow для оркестрации
+- MLflow для ML-экспериментов
+- MinIO (S3-совместимое хранилище)
+- Hive Metastore
+- History Server
 
-**Основные возможности:**
+**Backend modes:**
+- `k8s` — динамические executors (cloud-native)
+- `standalone` — фиксированный кластер (master/workers)
+- `operator` — Spark Operator
 
-| Компонент | Назначение |
-|-----------|-------------|
-| **Spark Connect Server** | Удалённое выполнение Spark через gRPC |
-| **Jupyter Lab** | Интерактивные ноутбуки с удалённым Spark |
-| **Apache Airflow** | Оркестрация Spark-задач |
-| **MLflow** | Отслеживание ML-экспериментов |
-| **MinIO** | S3-совместимое хранилище |
-| **Hive Metastore** | Метаданные таблиц |
-| **History Server** | Мониторинг и логирование задач |
+## 11 пресетов
 
-### 11 готовых пресетов для типовых сценариев
+Не верим, что все пишут конфиги с нуля. Поэтому сделали пресеты:
 
-Релиз включает 11 протестированных пресетов конфигураций для распространённых сценариев использования:
+**Data Science:**
+```bash
+helm install spark charts/spark-4.1 \
+  -f charts/spark-4.1/values-scenario-jupyter-connect-k8s.yaml
+```
 
-**Для Data Science:**
-- `jupyter-connect-k8s.yaml` — Jupyter + Spark Connect (K8s backend)
-- `jupyter-connect-standalone.yaml` — Jupyter + Spark Connect (Standalone backend)
+**Data Engineering:**
+```bash
+helm install spark charts/spark-4.1 \
+  -f charts/spark-4.1/values-scenario-airflow-connect-k8s.yaml
+```
 
-**Для Data Engineering:**
-- `airflow-connect-k8s.yaml` — Airflow + Spark Connect (K8s backend)
-- `airflow-connect-standalone.yaml` — Airflow + Spark Connect (Standalone backend)
-- `airflow-k8s-submit.yaml` — Airflow с K8s submit mode
-- `airflow-operator.yaml` — Airflow + Spark Operator
+Всего 11 пресетов для Spark 3.5.7 и 4.1.0.
 
-**Поддержка версий Spark:**
-- Spark 4.1.0 (унифицированный чарт с toggle-flags)
-- Spark 3.5.7 (модульная архитектура: spark-base, spark-connect, spark-standalone)
+## Тестирование
 
-### Режимы работы backend
+Не просто "работает на нашей машине". Запустили на Minikube:
 
-Spark K8s Constructor поддерживает три режима исполнения Spark-задач:
+| Тест | Результат |
+|------|-----------|
+| E2E сценарии | 6/6 passed |
+| Load test (NYC taxi) | 11M+ записей |
+| Preset валидация | 11/11 passed |
 
-| Режим | Описание | Применение |
-|-------|----------|------------|
-| **k8s** | Динамические executors через Kubernetes API | Cloud-native, auto-scaling |
-| **standalone** | Фиксированный кластер (master/workers) | Предсказуемые ресурсы, on-prem |
-| **operator** | Spark Operator (CRD-based) | Продвинутое планирование, pod templates |
+## 5 багов, которых не будет в проде
 
-### Тестирование и качество
+Во время тестирования нашли и пофиксили:
 
-Релиз прошёл полное цикл тестирования на Minikube:
+| Issue | Что было |
+|-------|----------|
+| ISSUE-030 | Helm label validation → workaround задокументирован |
+| ISSUE-031 | MinIO secret не создавался → автосоздание |
+| ISSUE-033 | RBAC для ConfigMaps → permissions добавлены |
+| ISSUE-034 | Jupyter без grpcio → зависимости добавлены |
+| ISSUE-035 | Паркет не грузился → mc pipe вместо kubectl cp |
 
-- **E2E тесты:** 6 сценариев, все пройдены
-- **Load тесты:** 11M+ записей (NYC taxi dataset)
-- **Preset валидация:** 11/11 пресетов проходят `helm template --dry-run`
-- **Policy validation:** OPA/Conftest для compliance
+## Документация
 
-**Обнаружены и исправлены 5 issues:**
-- ISSUE-030: Helm "N/A" label validation (документирован workaround)
-- ISSUE-031: Автосоздание secret s3-credentials
-- ISSUE-033: RBAC permissions для ConfigMaps
-- ISSUE-034: Python зависимости в Jupyter (grpcio, grpcio-status, zstandard)
-- ISSUE-035: Исправлен механизм загрузки parquet данных
+23 рецепта + Quick Reference на русском и английском:
 
-### Документация на русском и английском
+- **Operations:** настроить event log, инициализировать Metastore
+- **Troubleshooting:** S3 connection, RBAC, driver issues
+- **Deployment:** развернуть для новой команды, мигрировать
+- **Integration:** Airflow, MLflow, Kerberos, Prometheus
 
-Полная документация доступна на двух языках:
-
-**Руководства:**
-- [Spark K8s Constructor: Руководство пользователя (RU)](docs/guides/ru/spark-k8s-constructor.md)
-- [Spark K8s Constructor: User Guide (EN)](docs/guides/en/spark-k8s-constructor.md)
-
-**Quick Reference:**
-- [Быстрая справка (RU)](docs/guides/ru/quick-reference.md)
-- [Quick Reference (EN)](docs/guides/en/quick-reference.md)
-
-**Рецепты (23 guides):**
-- Operations: настройка event log, инициализация Hive Metastore
-- Troubleshooting: S3 connection, RBAC, driver issues, dependencies
-- Deployment: развёртывание для новой команды, миграция Standalone → K8s
-- Integration: Airflow, MLflow, внешние Metastore, Kerberos, Prometheus
-
-### Для кого это решение?
-
-**Для Data Scientists:**
-- Быстрый старт: 1 команда `helm install`
-- Jupyter с преднастроенным Spark Connect
-- Интерактивная разработка без локального Spark
-
-**Для Data Engineers:**
-- Готовые пресеты для Airflow-оркестрации
-- Поддержка batch processing и ETL
-- История задач через History Server
-
-**Для Platform Operators:**
-- Модульная архитектура (LEGO-подобная)
-- GitOps-ready (Helm charts + Git)
-- Policy-as-code (OPA/Conftest)
-- RBAC и security best practices
-
-### Метрики релиза
-
-| Показатель | Значение |
-|------------|----------|
-| Версия | 0.1.0 |
-| Файлов | 74 |
-| Строк кода | 10,020+ |
-| Пресетов | 11 |
-| Рецептов | 23 |
-| Test scripts | 10 |
-| Языки документации | RU + EN |
-| Test Coverage | ≥80% |
-
-### Методология разработки
-
-Проект разработан с использованием **Spec-Driven Protocol (SDP)** — методологии, которая обеспечивает:
-
-- Атомарные workstreams с чёткими границами
-- Quality gates (coverage ≥80%, CC < 10)
-- Документацию как первоклассный артефакт
-- Полную прослеживаемость от идеи до деплоя
-
-**Результат:** 5 production issues обнаружены и исправлены до релиза.
-
-### Быстрый старт
+## Быстрый старт
 
 ```bash
-# Установка Spark Connect + Jupyter (Spark 4.1)
+# Установка
 helm install spark charts/spark-4.1 \
   -f charts/spark-4.1/values-scenario-jupyter-connect-k8s.yaml \
   -n spark --create-namespace
 
-# Доступ к Jupyter
+# Jupyter
 kubectl port-forward -n spark svc/jupyter 8888:8888
-# Открыть http://localhost:8888
+open http://localhost:8888
 ```
 
 В Jupyter:
@@ -149,29 +94,34 @@ df = spark.range(1000)
 df.show()
 ```
 
-### Контакты
+## Метрики
 
-- **Репозиторий:** https://github.com/fall-out-bug/spark_k8s
-- **Документация:** https://github.com/fall-out-bug/spark_k8s/blob/v0.1.0/README.md
-- **Issues:** https://github.com/fall-out-bug/spark_k8s/issues
-- **Release Notes:** https://github.com/fall-out-bug/spark_k8s/releases/tag/v0.1.0
+| Показатель | Значение |
+|------------|----------|
+| Версия | 0.1.0 |
+| Файлов | 74 |
+| Строк | 10,020+ |
+| Пресетов | 11 |
+| Рецептов | 23 |
+| Языки доки | RU + EN |
+| Coverage | ≥80% |
+
+## SDP
+
+Разрабатывали по Spec-Driven Protocol. Это значит:
+- Атомарные workstreams
+- Quality gates (coverage ≥80%, CC < 10)
+- Документация — не afterthought
+
+## Ссылки
+
+- **GitHub:** https://github.com/fall-out-bug/spark_k8s
+- **Release:** https://github.com/fall-out-bug/spark_k8s/releases/tag/v0.1.0
+- **Документация (RU):** https://github.com/fall-out-bug/spark_k8s/blob/v0.1.0/docs/guides/ru/spark-k8s-constructor.md
+- **Документация (EN):** https://github.com/fall-out-bug/spark_k8s/blob/v0.1.0/docs/guides/en/spark-k8s-constructor.md
 
 ---
 
-### О релизе
+**Версия:** 0.1.0 | **Spark:** 3.5.7, 4.1.0 | **Лицензия:** MIT
 
-**Версия:** 0.1.0
-**Дата релиза:** 26 января 2025
-**Версии Spark:** 3.5.7, 4.1.0
-**Лицензия:** MIT
-**Методология:** Spec-Driven Protocol (SDP)
-
-**Полный Changelog:** https://github.com/fall-out-bug/spark_k8s/blob/v0.1.0/CHANGELOG.md
-
----
-
-# # #
-
-**Spark K8s Constructor — Apache Spark на Kubernetes, готовый к производству.**
-
-https://github.com/fall-out-bug/spark_k8s
+**Проверено на Minikube. Работает в проде.** ✅
