@@ -22,6 +22,14 @@ spec:
       securityContext:
         {{- include "spark-base.podSecurityContext" . | nindent 8 }}
       {{- end }}
+      {{- with .Values.connect.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.connect.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       volumes:
         - name: spark-connect-config
           configMap:
@@ -81,6 +89,10 @@ spec:
               value: "sc://0.0.0.0:15002"
             - name: SPARK_CONF_DIR
               value: "/tmp/spark-conf"
+            {{- range $key, $val := .Values.connect.sparkConf }}
+            - name: SPARK_{{ $key | replace "." "_" | upper }}
+              value: {{ $val | quote }}
+            {{- end }}
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
@@ -137,7 +149,17 @@ spec:
             - name: spark-connect-writable
               mountPath: /tmp/spark-conf
           resources:
+            {{- if and .Values.connect.executor.gpu .Values.connect.executor.gpu.enabled }}
+            limits:
+              cpu: {{ .Values.connect.resources.limits.cpu | default "2" }}
+              memory: {{ .Values.connect.resources.limits.memory | default "4Gi" }}
+              {{ .Values.connect.executor.gpu.vendor }}: {{ .Values.connect.executor.gpu.count | quote }}
+            requests:
+              cpu: {{ .Values.connect.resources.requests.cpu | default "1" }}
+              memory: {{ .Values.connect.resources.requests.memory | default "2Gi" }}
+            {{- else }}
             {{- toYaml .Values.connect.resources | nindent 12 }}
+            {{- end }}
 ---
 apiVersion: v1
 kind: Service

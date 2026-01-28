@@ -1,0 +1,97 @@
+# Iceberg-Enabled Preset for Spark K8s
+# This preset enables Apache Iceberg for ACID transactions, time travel, and schema evolution
+# Usage: helm install spark charts/spark-4.1 -f presets/iceberg-values.yaml
+
+# Prerequisites:
+# - Hive Metastore with Iceberg support
+# - S3 or compatible storage (MinIO, GCS, Azure)
+# - Spark 3.3+ (built-in Iceberg support)
+
+connect:
+  enabled: true
+  replicas: 1
+
+  # Iceberg catalog configuration
+  sparkConf:
+    # Enable Iceberg
+    "spark.sql.extensions": "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions"
+    "spark.sql.catalog.spark_catalog": "org.apache.iceberg.spark.SparkSessionCatalog"
+    "spark.sql.catalog.spark_catalog.type": "hadoop"
+    "spark.sql.catalog.iceberg": "org.apache.iceberg.spark.SparkCatalog"
+    "spark.sql.catalog.iceberg.type": "hadoop"
+    "spark.sql.catalog.iceberg.warehouse": "s3a://warehouse/iceberg"
+
+    # Iceberg with Hive catalog (alternative)
+    # "spark.sql.catalog.iceberg": "org.apache.iceberg.spark.SparkCatalog"
+    # "spark.sql.catalog.iceberg.type": "hive"
+    # "spark.sql.catalog.iceberg.uri": "thrift://hive-metastore:9083"
+
+    # Iceberg with REST catalog (production)
+    # "spark.sql.catalog.production": "org.apache.iceberg.spark.rest.RESTCatalog"
+    # "spark.sql.catalog.production.uri": "http://iceberg-rest-catalog:8181"
+    # "spark.sql.catalog.production.warehouse": "s3a://warehouse/iceberg"
+
+    # Iceberg configuration
+    "spark.sql.catalog.iceberg.io-impl": "org.apache.iceberg.hadoop.HadoopFileIO"
+    "spark.sql.catalog.iceberg.lock-impl": "org.apache.iceberg.hadoop.HadoopTableLock"
+
+    # S3 configuration for Iceberg
+    "spark.hadoop.fs.s3a.aws.credentials.provider": "com.amazonaws.auth.DefaultAWSCredentialsProviderChain"
+    "spark.hadoop.fs.s3a.path.style.access": "true"
+    "spark.hadoop.fs.s3a.impl": "org.apache.hadoop.fs.s3a.S3AFileSystem"
+    "spark.hadoop.fs.s3a.endpoint": "http://minio:9000"
+    "spark.hadoop.fs.s3a.access.key": "minioadmin"
+    "spark.hadoop.fs.s3a.secret.key": "minioadmin"
+
+    # Iceberg write properties
+    "spark.sql.iceberg.vectorization.enabled": "true"
+    "spark.sql.iceberg.v2.enabled": "true"
+
+    # Iceberg delete handling
+    "spark.sql.iceberg.delete-planning.enabled": "true"
+    "spark.sql.iceberg.deletes.enabled": "true"
+
+    # Iceberg snapshot management
+    "spark.sql.iceberg.snapshot-id.mode": "latest"
+
+    # Iceberg compatibility
+    "spark.sql.defaultCatalog": "iceberg"
+    "spark.sql.catalogImplementation": "hive"
+
+# Jupyter with Iceberg support
+jupyter:
+  enabled: true
+  env:
+    SPARK_CONNECT_URL: "sc://spark-connect:15002"
+    # Iceberg environment
+    PYSPARK_PYTHON: "/opt/conda/bin/python"
+    PYSPARK_DRIVER_PYTHON: "/opt/conda/bin/python"
+
+# Hive Metastore with Iceberg support
+hiveMetastore:
+  enabled: true
+  image:
+    repository: apache/hive
+    tag: "4.0.0"
+  warehouseDir: "s3a://warehouse/iceberg"
+  database:
+    name: "iceberg_db"
+
+  # Add Iceberg library to Hive
+  config:
+    hive.metastore.client.capability.check: "false"
+    iceberg.mro.enabled: "true"
+    iceberg.catalog.default: "iceberg"
+
+# History Server for Iceberg queries
+historyServer:
+  enabled: true
+  logDirectory: "s3a://spark-logs/4.1/events"
+
+# Monitoring for Iceberg
+monitoring:
+  serviceMonitor:
+    enabled: true
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "4040"

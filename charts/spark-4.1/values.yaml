@@ -13,6 +13,40 @@ global:
     user: "hive"
     password: "hive123"
 
+# Secret Management
+# Choose one: externalSecrets, sealedSecrets, or vault
+secrets:
+  externalSecrets:
+    enabled: false
+    provider: "aws"  # aws, gcp, azure, ibm
+    region: "us-east-1"
+    prefix: "spark"
+    aws:
+      iamRole: ""
+    gcp:
+      project: ""
+      clusterLocation: ""
+      clusterName: ""
+      serviceAccountEmail: ""
+    azure:
+      tenantId: ""
+      clientId: ""
+      vaultName: ""
+      secretName: ""
+    ibm:
+      serviceUrl: ""
+
+  sealedSecrets:
+    enabled: false
+    data:
+      access-key: ""
+      secret-key: ""
+
+  vault:
+    enabled: false
+    address: "https://vault.example.com:8200"
+    role: "spark-connect"
+
 spark-base:
   enabled: true
   serviceAccount:
@@ -200,3 +234,63 @@ security:
   runAsGroup: 185
   fsGroup: 185
   readOnlyRootFilesystem: false
+  networkPolicies:
+    enabled: false
+  rbac:
+    create: true
+    pspEnabled: false
+
+# Monitoring settings
+monitoring:
+  serviceMonitor:
+    enabled: false
+    interval: "15s"
+    scrapeTimeout: "10s"
+    labels: {}
+    relabelings: []
+  podMonitor:
+    enabled: false
+    interval: "30s"
+    scrapeTimeout: "10s"
+    labels: {}
+    relabelings: []
+  grafanaDashboards:
+    enabled: false
+    namespace: ""  # Defaults to release namespace
+  podAnnotations: {}
+  prometheusAnnotations:
+    prometheus.io/scrape: "false"
+    prometheus.io/port: "4040"
+    prometheus.io/path: "/metrics/executors"
+  # OpenTelemetry integration
+  openTelemetry:
+    enabled: false
+    endpoint: "http://opentelemetry-collector:4317"
+    protocol: "grpc"  # grpc or http
+
+# Auto-scaling configuration
+autoscaling:
+  clusterAutoscaler:
+    enabled: false
+    scaleDown:
+      enabled: true
+      delayAfterAdd: 10m
+      unneededTime: 5m
+      unreadyTime: 20m
+      utilizationThreshold: 0.5
+    nodeGroups: []
+  keda:
+    enabled: false
+    pollingInterval: 30
+    cooldownPeriod: 300
+    minReplicaCount: 0
+    maxReplicaCount: 10
+    s3:
+      bucket: ""
+      prefix: "spark-jobs/"
+      targetObjectSize: "10"
+      region: "us-east-1"
+      accessKey: ""
+      secretKey: ""
+      existingSecret: ""
+

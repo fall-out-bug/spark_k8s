@@ -1,0 +1,94 @@
+name: Promote to Staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: "Commit SHA to promote from dev"
+        required: true
+  push:
+    branches:
+      - dev
+    paths:
+      - 'charts/spark-4.1/environments/dev/**'
+      - 'charts/spark-4.1/environments/staging/**'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  validate-dev:
+    name: Validate Dev Configuration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Helm Lint Dev
+        run: |
+          helm lint charts/spark-4.1 \
+            -f charts/spark-4.1/environments/dev/values.yaml
+
+      - name: Helm Template Dev
+        run: |
+          helm template test-dev charts/spark-4.1 \
+            -f charts/spark-4.1/environments/dev/values.yaml \
+            --debug > /dev/null
+
+  validate-staging:
+    name: Validate Staging Configuration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Helm Lint Staging
+        run: |
+          helm lint charts/spark-4.1 \
+            -f charts/spark-4.1/environments/staging/values.yaml
+
+      - name: Helm Template Staging
+        run: |
+          helm template test-staging charts/spark-4.1 \
+            -f charts/spark-4.1/environments/staging/values.yaml \
+            --debug > /dev/null
+
+  create-promotion-pr:
+    name: Create Promotion PR
+    needs: [validate-dev, validate-staging]
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create Staging Branch
+        run: |
+          git checkout -b staging
+
+      - name: Copy Dev Values to Staging
+        run: |
+          cp charts/spark-4.1/environments/dev/values.yaml \
+             charts/spark-4.1/environments/staging/values.yaml.tmp
+          # Update staging-specific values
+          sed -i 's/replicas: 1/replicas: 2/' \
+             charts/spark-4.1/environments/staging/values.yaml.tmp
+          sed -i 's/memory: "2Gi"/memory: "4Gi"/' \
+             charts/spark-4.1/environments/staging/values.yaml.tmp
+          sed -i 's/maxExecutors: 5/maxExecutors: 20/' \
+             charts/spark-4.1/environments/staging/values.yaml.tmp
+          # User can manually adjust further
+
+      - name: Commit Changes
+        run: |
+          git add charts/spark-4.1/environments/staging/
+          git commit -m "Promote to staging: ${{ github.event.inputs.commit_sha }}"
+
+      - name: Push to Staging
+        run: |
+          git push origin staging

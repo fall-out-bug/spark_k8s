@@ -1,0 +1,33 @@
+{{- if .Values.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: spark-connect
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: spark-connect
+    chart: spark-4.1
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+rules:
+  # Pods management (minimal: get, list, watch, create, delete)
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+
+  # ConfigMaps management (for Spark configuration)
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "create", "update", "delete"]
+
+  # Secrets read-only (only s3-credentials)
+  - apiGroups: [""]
+    resourceNames: ["s3-credentials"]
+    resources: ["secrets"]
+    verbs: ["get"]
+
+  # PersistentVolumeClaims (optional, for dynamic allocation)
+  {{- if .Values.rbac.customRules }}
+  {{- toYaml .Values.rbac.customRules | nindent 2 }}
+  {{- end }}
+{{- end }}

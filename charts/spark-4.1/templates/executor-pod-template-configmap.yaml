@@ -26,12 +26,22 @@ data:
           {{- include "spark-base.containerSecurityContext" . | nindent 10 }}
         {{- end }}
         resources:
+          {{- if and .Values.connect.executor.gpu .Values.connect.executor.gpu.enabled }}
+          limits:
+            memory: {{ .Values.connect.executor.memoryLimit }}
+            cpu: {{ .Values.connect.executor.coresLimit }}
+            {{ .Values.connect.executor.gpu.vendor }}: {{ .Values.connect.executor.gpu.count | quote }}
+          requests:
+            memory: {{ .Values.connect.executor.memory }}
+            cpu: {{ .Values.connect.executor.cores }}
+          {{- else }}
           requests:
             memory: {{ .Values.connect.executor.memory }}
             cpu: {{ .Values.connect.executor.cores }}
           limits:
             memory: {{ .Values.connect.executor.memoryLimit }}
             cpu: {{ .Values.connect.executor.coresLimit }}
+          {{- end }}
         volumeMounts:
         - name: tmp
           mountPath: /tmp

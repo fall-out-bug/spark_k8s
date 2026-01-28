@@ -1,0 +1,42 @@
+{{- if .Values.autoscaling.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: spark-connect-s3-scaler
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    autoscaling.keda.sh/paused-replicas: "0"
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: spark-connect
+  pollingInterval: {{ .Values.autoscaling.keda.pollingInterval | default 30 }}
+  cooldownPeriod: {{ .Values.autoscaling.keda.cooldownPeriod | default 300 }}
+  minReplicaCount: {{ .Values.autoscaling.keda.minReplicaCount | default 0 }}
+  maxReplicaCount: {{ .Values.autoscaling.keda.maxReplicaCount | default 10 }}
+  triggers:
+    - type: aws-s3
+      metadata:
+        awsAccessKeyID: {{ .Values.autoscaling.keda.s3.accessKey | required "awsAccessKeyID required" }}
+        awsSecretAccessKey: {{ .Values.autoscaling.keda.s3.secretKey | required "awsSecretAccessKey required" }}
+        awsRegion: {{ .Values.autoscaling.keda.s3.region | default "us-east-1" }}
+        s3Bucket: {{ .Values.autoscaling.keda.s3.bucket | required "s3Bucket required" }}
+        s3Prefix: {{ .Values.autoscaling.keda.s3.prefix | default "spark-jobs/" }}
+        targetObjectSize: {{ .Values.autoscaling.keda.s3.targetObjectSize | default "10" }}
+      authenticationRef:
+        name: keda-aws-credentials
+---
+{{- if .Values.autoscaling.keda.s3.existingSecret }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: keda-aws-credentials
+  namespace: {{ .Release.Namespace }}
+type: Opaque
+data:
+  AWS_ACCESS_KEY_ID: {{ .Values.autoscaling.keda.s3.accessKey | b64enc }}
+  AWS_SECRET_ACCESS_KEY: {{ .Values.autoscaling.keda.s3.secretKey | b64enc }}
+{{- end }}
+---
+{{- end }}
