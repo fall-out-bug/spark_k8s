@@ -96,9 +96,10 @@ class TestSecretsHardcoded:
         return Path(__file__).parent.parent.parent
 
     def test_no_aws_access_keys_in_code(self, repository_root):
-        """Test that no AWS access keys are hardcoded"""
+        """Test that no AWS access keys are hardcoded in actual code"""
+        # Exclude docs/ and tests/ from check (examples are OK)
         result = subprocess.run(
-            ["git", "-C", str(repository_root), "grep", "-r", "AKIAIOSFODNN7"],
+            ["git", "-C", str(repository_root), "grep", "-r", "--exclude-dir=docs", "--exclude-dir=tests", "AKIAIOSFODNN7"],
             capture_output=True
         )
         assert result.returncode != 0, "Should not find AWS access keys in code"

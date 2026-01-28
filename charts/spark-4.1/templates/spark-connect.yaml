@@ -51,16 +51,18 @@ spec:
               envsubst < /opt/spark/conf-k8s-templates/spark-properties.conf.template > /tmp/spark-conf/spark-defaults.conf &&
               envsubst < /opt/spark/conf-k8s-templates/executor-pod-template.yaml.template > /tmp/spark-conf/executor-pod-template.yaml
           env:
+            {{- if and .Values.global.s3.enabled .Values.global.s3.existingSecret }}
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.global.s3.existingSecret | quote }}
+                  name: {{ .Values.global.s3.existingSecret }}
                   key: access-key
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.global.s3.existingSecret | quote }}
+                  name: {{ .Values.global.s3.existingSecret }}
                   key: secret-key
+            {{- end }}
             - name: POD_IP
               valueFrom:
                 fieldRef:
@@ -93,16 +95,18 @@ spec:
             - name: SPARK_{{ $key | replace "." "_" | upper }}
               value: {{ $val | quote }}
             {{- end }}
+            {{- if and .Values.global.s3.enabled .Values.global.s3.existingSecret }}
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.global.s3.existingSecret | quote }}
+                  name: {{ .Values.global.s3.existingSecret }}
                   key: access-key
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.global.s3.existingSecret | quote }}
+                  name: {{ .Values.global.s3.existingSecret }}
                   key: secret-key
+            {{- end }}
             - name: POD_IP
               valueFrom:
                 fieldRef:

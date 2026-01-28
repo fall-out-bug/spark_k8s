@@ -44,18 +44,22 @@ spec:
               value: "history"
             - name: SPARK_HISTORY_LOG_DIR
               value: {{ .Values.historyServer.logDirectory | quote }}
+            {{- if .Values.global.s3.enabled }}
             - name: S3_ENDPOINT
               value: {{ .Values.global.s3.endpoint | quote }}
+            {{- if .Values.global.s3.existingSecret }}
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.global.s3.existingSecret | quote }}
+                  name: {{ .Values.global.s3.existingSecret }}
                   key: access-key
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.global.s3.existingSecret | quote }}
+                  name: {{ .Values.global.s3.existingSecret }}
                   key: secret-key
+            {{- end }}
+            {{- end }}
             - name: HADOOP_USER_NAME
               value: "spark"
           resources:

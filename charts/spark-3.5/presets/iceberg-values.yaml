@@ -1,0 +1,37 @@
+# Iceberg Support Preset for Spark 3.5
+# Usage: helm install spark-3.5 charts/spark-3.5 -f presets/iceberg-values.yaml
+
+# Spark 3.5 + Apache Iceberg
+spark-connect:
+  enabled: true
+  image:
+    repository: spark-custom-iceberg
+    tag: "3.5.0"
+    pullPolicy: IfNotPresent
+  
+  executor:
+    cores: "2"
+    coresLimit: "4"
+    memory: "4Gi"
+    memoryLimit: "8G"
+  
+  dynamicAllocation:
+    enabled: true
+    minExecutors: 1
+    maxExecutors: 10
+    initialExecutors: 2
+  
+  # Iceberg Configuration
+  sparkConf:
+    spark.sql.extensions: "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions"
+    spark.sql.catalog.spark_catalog: "org.apache.iceberg.spark.SparkSessionCatalog"
+    spark.sql.catalog.spark_catalog.type: "hadoop"
+    spark.sql.catalog.spark_catalog.warehouse: "s3a://warehouse/iceberg"
+    spark.sql.catalog.iceberg: "org.apache.iceberg.spark.SparkCatalog"
+    spark.sql.catalog.iceberg.type: "hadoop"
+    spark.sql.catalog.iceberg.warehouse: "s3a://warehouse/iceberg"
+    spark.sql.catalog.iceberg.io-impl: "org.apache.iceberg.hadoop.HadoopFileIO"
+    spark.sql.catalogImplementation: "hive"
+
+spark-standalone:
+  enabled: false

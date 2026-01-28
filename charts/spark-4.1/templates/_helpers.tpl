@@ -15,8 +15,10 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{- define "spark-4.1.serviceAccountName" -}}
-{{- if .Values.rbac.create }}
-{{- default (include "spark-4.1.fullname" .) .Values.rbac.serviceAccountName }}
+{{- if .Values.rbac.serviceAccountName }}
+{{- .Values.rbac.serviceAccountName }}
+{{- else if .Values.rbac.create }}
+{{- include "spark-4.1.fullname" . }}
 {{- else }}
 {{- include "spark-base.serviceAccountName" (dict "Values" (index .Values "spark-base") "Release" .Release "Chart" .Chart) }}
 {{- end }}

@@ -1,0 +1,62 @@
+# GPU Support Preset for Spark 3.5 with RAPIDS
+# Usage: helm install spark-3.5 charts/spark-3.5 -f presets/gpu-values.yaml
+
+# Spark 3.5 + RAPIDS GPU support
+spark-connect:
+  enabled: true
+  image:
+    repository: spark-custom-gpu
+    tag: "3.5.0-gpu"
+    pullPolicy: IfNotPresent
+  
+  # GPU resources for Spark Connect driver
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "500m"
+    limits:
+      memory: "4Gi"
+      cpu: "2"
+  
+  # GPU node scheduling
+  nodeSelector:
+    nvidia.com/gpu.present: "true"
+  tolerations:
+    - key: "nvidia.com/gpu"
+      operator: "Exists"
+      effect: "NoSchedule"
+  
+  # Executor GPU configuration
+  executor:
+    cores: "4"
+    coresLimit: "8"
+    memory: "8Gi"
+    memoryLimit: "16G"
+    # GPU per executor
+    gpu:
+      enabled: true
+      count: "1"
+      vendor: "nvidia.com/gpu"
+  
+  # Dynamic allocation with GPU awareness
+  dynamicAllocation:
+    enabled: true
+    minExecutors: 1
+    maxExecutors: 10
+    initialExecutors: 2
+  
+  # RAPIDS Configuration
+  sparkConf:
+    # GPU Resources
+    spark.executor.resource.gpu.amount: "1"
+    spark.task.resource.gpu.amount: "0.25"
+    # RAPIDS Plugin
+    spark.plugins: "com.nvidia.spark.SQLPlugin"
+    spark.rapids.sql.enabled: "true"
+    spark.rapids.sql.python.gpu.enabled: "true"
+    spark.rapids.sql.castFloatToIntegralTypes.enabled: "true"
+    spark.rapids.sql.castStringToFloat.enabled: "true"
+    spark.rapids.sql.castStringToTimestamp.enabled: "true"
+
+spark-standalone:
+  enabled: false
