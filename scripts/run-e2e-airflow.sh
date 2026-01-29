@@ -33,31 +33,15 @@ kubectl create namespace "$TEST_NAMESPACE"
 kubectl create serviceaccount spark-e2e -n "$TEST_NAMESPACE"
 kubectl create rolebinding spark-e2e-admin --clusterrole=admin --serviceaccount="${TEST_NAMESPACE}:spark-e2e" -n "$TEST_NAMESPACE"
 
-# Test 1: Airflow + GPU + Connect (config validation only)
-echo -e "${YELLOW}Test 1: Airflow + GPU + Connect-K8s${NC}"
+# Test 1: GPU + Connect (resource allocation test)
+echo -e "${YELLOW}Test 1: GPU + Connect-K8s${NC}"
 helm install spark-e2e charts/spark-4.1 \
     --namespace "$TEST_NAMESPACE" \
-    -f charts/spark-4.1/values-scenario-airflow-gpu-connect-k8s.yaml \
+    -f charts/spark-4.1/values-test-gpu-no-rapids.yaml \
     --set monitoring.podMonitor.enabled=false \
     --set monitoring.serviceMonitor.enabled=false \
-    --set autoscaling.keda.enabled=false \
-    --set autoscaling.clusterAutoscaler.enabled=false \
-    --set rbac.create=false \
     --set rbac.serviceAccountName=spark-e2e \
     --set connect.serviceAccountName=spark-e2e \
-    --set connect.enabled=true \
-    --set connect.backendMode=connect \
-    --set connect.image.repository=apache/spark \
-    --set connect.image.tag=4.1.0 \
-    --set connect.image.pullPolicy=IfNotPresent \
-    --set connect.resources.requests.nvidia\.com/gpu=0 \
-    --set connect.resources.limits.nvidia\.com/gpu=0 \
-    --set hiveMetastore.enabled=false \
-    --set historyServer.enabled=false \
-    --set jupyter.enabled=false \
-    --set global.s3.enabled=false \
-    --set global.minio.enabled=false \
-    --set global.postgresql.enabled=false \
     --set connect.eventLog.enabled=false \
     --wait --timeout 5m 2>&1 | tail -5
 
