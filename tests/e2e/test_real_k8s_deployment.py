@@ -306,13 +306,10 @@ class TestRealIcebergWorkload:
                 spark.sql("CREATE DATABASE IF NOT EXISTS iceberg_db")
 
                 # Create table
-                spark.sql("""
-                    CREATE TABLE IF NOT EXISTS iceberg_db.test_table (
-                        id BIGINT,
-                        name STRING,
-                        value DOUBLE
-                    ) USING iceberg
-                """)
+                spark.sql(
+                    "CREATE TABLE IF NOT EXISTS iceberg_db.test_table "
+                    "(id BIGINT, name STRING, value DOUBLE) USING iceberg"
+                )
 
                 # INSERT
                 spark.sql("INSERT INTO iceberg_db.test_table VALUES (1, 'test', 123.45)")
