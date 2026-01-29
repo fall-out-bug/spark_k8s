@@ -1,0 +1,44 @@
+# Minimal values for Spark 3.5 E2E testing
+# Only spark-connect enabled, all other components disabled
+
+global:
+  useSparkBaseHelpers: true
+
+spark-base:
+  enabled: true
+  serviceAccount:
+    create: false
+    name: spark-35
+  rbac:
+    create: false
+  minio:
+    enabled: false
+  postgresql:
+    enabled: false
+  security:
+    podSecurityStandards: false
+
+spark-standalone:
+  enabled: false
+
+spark-connect:
+  enabled: true
+
+# Disable all spark-platform (spark-connect alias) components
+historyServer:
+  enabled: false
+
+jupyter:
+  enabled: false
+
+jupyterhub:
+  enabled: false
+
+minio:
+  enabled: false
+
+postgresql:
+  enabled: false
+
+hiveMetastore:
+  enabled: false
