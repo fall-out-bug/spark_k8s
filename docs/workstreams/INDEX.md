@@ -661,6 +661,84 @@ tests/e2e/phase06/
 
 ---
 
+## Feature F13: Load Tests (Phase 7)
+
+**Source:** `docs/phases/phase-07-load.md`
+**Status:** Backlog
+**Total Workstreams:** 5
+**Estimated LOC:** ~3000
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-007-01 | Baseline load (4 scenarios) | MEDIUM (~600 LOC) | Phase 0, Phase 6 | backlog |
+| WS-007-02 | GPU load (4 scenarios) | MEDIUM (~600 LOC) | Phase 0, Phase 6 (GPU E2E) | backlog |
+| WS-007-03 | Iceberg load (4 scenarios) | MEDIUM (~600 LOC) | Phase 0, Phase 6 (Iceberg E2E) | backlog |
+| WS-007-04 | Comparison load (4 scenarios) | MEDIUM (~600 LOC) | Phase 0, Phase 6 | backlog |
+| WS-007-05 | Security stability (4 scenarios) | MEDIUM (~600 LOC) | Phase 0, Phase 1 | backlog |
+
+### Dependency Graph
+
+```
+Phase 0, Phase 6
+    ↓
+WS-007-01 (Baseline Load) ────────────┐
+WS-007-02 (GPU Load) ───────────────────┤
+WS-007-03 (Iceberg Load) ────────────────┼── All independent (can run in parallel)
+WS-007-04 (Comparison Load) ─────────────┤
+WS-007-05 (Security Stability) ──────────┘
+```
+
+### Parallel Execution Paths
+
+All 5 workstreams are independent and can run in parallel after Phase 0 and Phase 6 are complete.
+
+### Test Structure
+
+```
+tests/load/phase07/
+├── conftest.py                    # Shared fixtures (30 min duration, metrics)
+├── __init__.py
+├── test_07_01_baseline_load.py   # 4 Baseline load scenarios
+├── test_07_02_gpu_load.py        # 4 GPU load scenarios (RAPIDS)
+├── test_07_03_iceberg_load.py    # 4 Iceberg load scenarios
+├── test_07_04_comparison_load.py  # 4 Comparison load scenarios
+└── test_07_05_security_stability.py # 4 Security stability scenarios
+```
+
+### Scenarios Breakdown
+
+**WS-007-01: Baseline Load (4)**
+- Spark 3.5.7 — Sustained SELECT COUNT (30 min, 1 qps)
+- Spark 3.5.8 — Sustained GROUP BY (30 min, 1 qps)
+- Spark 4.1.0 — Sustained JOIN (30 min, 0.5 qps)
+- Spark 4.1.1 — Sustained Mixed (30 min, 1 qps)
+
+**WS-007-02: GPU Load (4)**
+- Spark 3.5.7 GPU — Sustained cuDF COUNT (30 min, 1 qps)
+- Spark 3.5.7 GPU Optimized — Sustained cuDF GROUP BY (30 min, 0.5 qps)
+- Spark 4.1.0 GPU — Sustained cuDF JOIN (30 min, 0.5 qps)
+- Spark 4.1.0 GPU vs CPU — Comparison Load (30 min)
+
+**WS-007-03: Iceberg Load (4)**
+- Spark 3.5.7 Iceberg — Sustained INSERT (30 min, 10 inserts/sec)
+- Spark 3.5.8 Iceberg — Sustained MERGE/UPSERT (30 min, 5 merges/sec)
+- Spark 4.1.0 Iceberg — Sustained UPDATE/DELETE (30 min, 5 ops/sec)
+- Spark 4.1.1 Iceberg — Sustained TIME TRAVEL (30 min, 10 qps)
+
+**WS-007-04: Comparison Load (4)**
+- GPU vs CPU — Side-by-side (30 min, alternating)
+- Iceberg vs Parquet — Format comparison (30 min, alternating)
+- Spark 3.5 vs 4.1 — Version comparison (30 min, alternating)
+- Standalone vs K8s-submit — Deployment comparison (30 min, alternating)
+
+**WS-007-05: Security Stability (4)**
+- PSS Restricted — Sustained load (30 min)
+- SCC Restricted — Sustained load (30 min, mocked)
+- RBAC Least Privilege — Sustained load (30 min)
+- Network Policies — Sustained load (30 min)
+
+---
+
 ## Summary
 
 | Feature | Total WS | Completed | In Progress | Backlog |
@@ -678,7 +756,8 @@ tests/e2e/phase06/
 | F10: Docker Final Images (Phase 5) | 3 | 0 | 0 | 3 |
 | F11: Advanced Security (Phase 8) | 7 | 0 | 0 | 7 |
 | F12: E2E Tests (Phase 6) | 6 | 0 | 0 | 6 |
-| **TOTAL** | **86** | **18** | **0** | **68** |
+| F13: Load Tests (Phase 7) | 5 | 0 | 0 | 5 |
+| **TOTAL** | **91** | **18** | **0** | **73** |
 
 ---
 
