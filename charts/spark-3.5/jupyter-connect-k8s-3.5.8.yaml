@@ -1,0 +1,77 @@
+# Preset: Jupyter + Pure K8s backend
+# Source: Spark 3.5 k8s submit mode
+# Components: Jupyter + MinIO
+# Note: Spark Connect not available in base Spark 3.5 image, using direct k8s submit
+
+global:
+  s3:
+    endpoint: "http://minio:9000"
+    accessKey: "minioadmin"
+    secretKey: "minioadmin"
+    pathStyleAccess: true
+    sslEnabled: false
+
+spark-base:
+  enabled: true
+  minio:
+    enabled: true
+    resources:
+      requests:
+        cpu: "0"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "512Mi"
+    persistence:
+      enabled: false
+  postgresql:
+    enabled: false
+
+rbac:
+  create: true
+  serviceAccountName: "spark-35"
+
+connect:
+  enabled: false
+
+sparkStandalone:
+  enabled: false
+
+jupyter:
+  enabled: true
+  image:
+    repository: jupyter-spark
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8888
+  env:
+    SPARK_HOME: "/opt/spark"
+  resources:
+    requests:
+      cpu: "0"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+  persistence:
+    enabled: false
+
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false
+
+sparkOperator:
+  enabled: false
+
+celeborn:
+  enabled: false

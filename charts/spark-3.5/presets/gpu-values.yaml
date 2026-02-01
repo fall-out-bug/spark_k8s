@@ -1,31 +1,31 @@
-# GPU Support Preset for Spark 3.5 with RAPIDS
-# Usage: helm install spark-3.5 charts/spark-3.5 -f presets/gpu-values.yaml
+# GPU Support Preset for Spark K8s with RAPIDS
+# This preset enables GPU acceleration for Spark workloads using NVIDIA RAPIDS
+# Usage: helm install spark charts/spark-4.1 -f presets/gpu-values.yaml
 
-# Spark 3.5 + RAPIDS GPU support
-spark-connect:
+# Prerequisites:
+# - Kubernetes nodes with NVIDIA GPUs
+# - NVIDIA device plugin installed
+# - NVIDIA GPU operator (optional but recommended)
+
+connect:
   enabled: true
+  replicas: 1
   image:
-    repository: spark-custom-gpu
-    tag: "3.5.0-gpu"
+    repository: spark-custom
+    tag: "4.1.0-gpu"
     pullPolicy: IfNotPresent
-  
-  # GPU resources for Spark Connect driver
+
+  # GPU resources configuration
   resources:
     requests:
-      memory: "2Gi"
-      cpu: "500m"
-    limits:
       memory: "4Gi"
+      cpu: "1"
+      nvidia.com/gpu: "0"  # Driver doesn't need GPU
+    limits:
+      memory: "8Gi"
       cpu: "2"
-  
-  # GPU node scheduling
-  nodeSelector:
-    nvidia.com/gpu.present: "true"
-  tolerations:
-    - key: "nvidia.com/gpu"
-      operator: "Exists"
-      effect: "NoSchedule"
-  
+      nvidia.com/gpu: "0"
+
   # Executor GPU configuration
   executor:
     cores: "4"
@@ -37,26 +37,109 @@ spark-connect:
       enabled: true
       count: "1"
       vendor: "nvidia.com/gpu"
-  
+
   # Dynamic allocation with GPU awareness
   dynamicAllocation:
     enabled: true
     minExecutors: 1
     maxExecutors: 10
     initialExecutors: 2
-  
-  # RAPIDS Configuration
-  sparkConf:
-    # GPU Resources
-    spark.executor.resource.gpu.amount: "1"
-    spark.task.resource.gpu.amount: "0.25"
-    # RAPIDS Plugin
-    spark.plugins: "com.nvidia.spark.SQLPlugin"
-    spark.rapids.sql.enabled: "true"
-    spark.rapids.sql.python.gpu.enabled: "true"
-    spark.rapids.sql.castFloatToIntegralTypes.enabled: "true"
-    spark.rapids.sql.castStringToFloat.enabled: "true"
-    spark.rapids.sql.castStringToTimestamp.enabled: "true"
 
-spark-standalone:
-  enabled: false
+  # GPU node scheduling
+  nodeSelector:
+    # Schedule on GPU nodes
+    nvidia.com/gpu.present: "true"
+    # Alternative for AWS
+    # node.kubernetes.io/instance-type: p3.2xlarge
+    # Alternative for GCP
+    # cloud.google.com/gke-accelerator: nvidia-tesla-k80
+
+  tolerations:
+    # Taints for GPU nodes
+    - key: "nvidia.com/gpu"
+      operator: "Exists"
+      effect: "NoSchedule"
+    - key: "gpu"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
+
+  # RAPIDS configuration
+  sparkConf:
+    # Enable RAPIDS plugin
+    "spark.plugins": "com.nvidia.spark.SQLPlugin"
+    "spark.rapids.sql.enabled": "true"
+    "spark.rapids.sql.python.enabled": "true"
+    # Fallback to CPU for unsupported operations
+    "spark.rapids.sql.fallback.enabled": "true"
+    "spark.rapids.sql.fallback.allowed": "true"
+    # GPU memory configuration
+    "spark.rapids.memory.gpu.allocFraction": "0.8"
+    "spark.rapids.memory.gpu.maxAllocFraction": "0.9"
+    "spark.rapids.memory.gpu.minAllocFraction": "0.3"
+    # RAPIDS shuffle
+    "spark.rapids.shuffle.enabled": "true"
+    "spark.sql.shuffle.partitions": "200"
+    # RAPIDS caching
+    "spark.rapids.sql.concurrentGpuTasks": "2"
+    "spark.rapids.sql.batchSizeBytes": "1G"
+    # RAPIDS file cache
+    "spark.rapids.memory.pinnedPool.size": "2G"
+    # RAPIDS format support
+    "spark.rapids.sql.format.parquet.read.enabled": "true"
+    "spark.rapids.sql.format.parquet.write.enabled": "true"
+    "spark.rapids.sql.format.orc.read.enabled": "true"
+    "spark.rapids.sql.format.csv.read.enabled": "true"
+    "spark.rapids.sql.format.json.read.enabled": "true"
+    # Python UDF optimization
+    "spark.rapids.sql.udfCompiler.enabled": "true"
+    # GPU resource management
+    "spark.executor.resource.gpu.amount": "1"
+    "spark.executor.resource.gpu.discoveryScript": "/opt/spark/gpu-discovery.sh"
+    "spark.task.resource.gpu.amount": "1"
+    # Catalyst optimizer
+    "spark.rapids.sql.castFloatToIntegralTypes.enabled": "true"
+    "spark.rapids.sql.castStringToFloat.enabled": "true"
+    "spark.rapids.sql.castStringToTimestamp.enabled": "true"
+
+# Jupyter with GPU support
+jupyter:
+  enabled: true
+  image:
+    repository: jupyter-spark-gpu
+    tag: "4.1.0"
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "500m"
+      nvidia.com/gpu: "1"
+    limits:
+      memory: "8Gi"
+      cpu: "2"
+      nvidia.com/gpu: "1"
+  nodeSelector:
+    nvidia.com/gpu.present: "true"
+  tolerations:
+    - key: "nvidia.com/gpu"
+      operator: "Exists"
+      effect: "NoSchedule"
+  env:
+    SPARK_CONNECT_URL: "sc://spark-connect:15002"
+    CUDA_VISIBLE_DEVICES: "0"
+    # RAPIDS environment
+    DISABLE_FASTMM: "1"
+    CONDA_PREFIX: "/opt/conda"
+
+# GPU monitoring
+monitoring:
+  podAnnotations:
+    # Enable GPU metrics collection
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9400"
+    prometheus.io/path: "/metrics"
+  serviceMonitor:
+    enabled: true
+  # NVIDIA DCGM exporter
+  gpu:
+    enabled: true
+    port: 9400

@@ -1,0 +1,112 @@
+# Preset: Airflow + Spark Connect + K8s backend + Iceberg
+# Components: Airflow + Connect + Iceberg support
+# Note: Airflow deployed separately, this preset only for Connect with Iceberg
+
+global:
+  s3:
+    endpoint: "http://minio:9000"
+    accessKey: "minioadmin"
+    secretKey: "minioadmin"
+    pathStyleAccess: true
+    sslEnabled: false
+
+spark-base:
+  enabled: true
+  minio:
+    enabled: false
+  postgresql:
+    enabled: false
+
+rbac:
+  create: false  # Shared with Airflow
+  serviceAccountName: "spark"
+
+connect:
+  enabled: true
+  replicas: 1
+  backendMode: k8s
+  image:
+    repository: spark-custom
+    tag: "4.1.0"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+  driver:
+    host: ""
+    port: 7078
+    memory: "1g"
+  executor:
+    cores: "1"
+    coresLimit: "2"
+    memory: "2Gi"
+    memoryLimit: "4G"
+  dynamicAllocation:
+    enabled: true
+    minExecutors: 1
+    maxExecutors: 10
+    initialExecutors: 2
+  sparkConf:
+    # Iceberg Configuration
+    spark.sql.extensions: "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions"
+    spark.sql.catalog.spark_catalog: "org.apache.iceberg.spark.SparkSessionCatalog"
+    spark.sql.catalog.spark_catalog.type: "hadoop"
+    spark.sql.catalog.spark_catalog.warehouse: "s3a://warehouse/iceberg"
+    spark.sql.catalog.iceberg: "org.apache.iceberg.spark.SparkCatalog"
+    spark.sql.catalog.iceberg.type: "hadoop"
+    spark.sql.catalog.iceberg.warehouse: "s3a://warehouse/iceberg"
+    spark.sql.catalog.iceberg.io-impl: "org.apache.iceberg.hadoop.HadoopFileIO"
+    spark.sql.catalog.iceberg.lock-impl: "org.apache.iceberg.hadoop.HadoopTableLock"
+    spark.sql.catalogImplementation: "hive"
+    spark.sql.catalog.iceberg.enabled: "true"
+    spark.sql.defaultCatalog: "iceberg"
+    # Iceberg Performance
+    spark.sql.iceberg.v1.enabled: "false"
+    spark.sql.iceberg.handle-resolve-without-partition-filter: "true"
+    spark.sql.iceberg.scenario-based-parsing: "true"
+    spark.sql.iceberg.use-provided-schema: "true"
+
+jupyter:
+  enabled: true
+  image:
+    repository: jupyter-spark
+    tag: "4.1.0"
+  env:
+    PYSPARK_PYTHON: "/opt/conda/bin/python"
+    PYSPARK_DRIVER_PYTHON: "/opt/conda/bin/python"
+    SPARK_CONNECT_URL: "sc://spark-connect:15002"
+
+hiveMetastore:
+  enabled: true
+  image:
+    repository: apache/hive
+    tag: "4.0.0"
+  warehouseDir: "s3a://warehouse/iceberg"
+  database:
+    name: "iceberg_db"
+  config:
+    hive.metastore.client.capability.check: "false"
+    javax.jdo.option.ConnectionURL: "jdbc:postgresql://hive-metastore-postgresql/metastore"
+    javax.jdo.option.ConnectionDriverName: "org.postgresql.Driver"
+    javax.jdo.option.ConnectionUserName: "hive"
+    javax.jdo.option.ConnectionPassword: "hive"
+
+historyServer:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false
+
+# Disable optional components
+sparkOperator:
+  enabled: false
+
+celeborn:
+  enabled: false

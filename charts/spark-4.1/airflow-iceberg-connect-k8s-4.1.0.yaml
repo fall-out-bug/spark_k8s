@@ -1,0 +1,91 @@
+# Preset: Airflow + Spark Connect + K8s backend + Iceberg
+# Components: Connect + Iceberg support
+
+global:
+  s3:
+    enabled: false
+    endpoint: "http://minio:9000"
+    accessKey: "minioadmin"
+    secretKey: "minioadmin"
+    pathStyleAccess: true
+    sslEnabled: false
+
+spark-base:
+  # DISABLED FOR SMOKE TESTS
+  minio:
+    # DISABLED FOR SMOKE TESTS
+    resources:
+      requests:
+        cpu: "0"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "512Mi"
+    persistence:
+      enabled: false
+  postgresql:
+    enabled: false
+
+rbac:
+  create: true
+  serviceAccountName: "spark-41"
+
+connect:
+  # DISABLED FOR SMOKE TESTS
+  replicas: 1
+  backendMode: k8s
+  image:
+    repository: spark-custom
+    tag: "4.1.0"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+  driver:
+    host: ""
+    port: 7078
+  dynamicAllocation:
+    # DISABLED FOR SMOKE TESTS
+    enabled: false
+    minExecutors: 1
+    maxExecutors: 10
+    initialExecutors: 2
+  eventLog:
+    enabled: false
+  # Iceberg configuration (requires Iceberg JARs in classpath)
+  sparkConf:
+    spark.sql.extensions: "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions"
+    spark.sql.catalog.spark_catalog: "org.apache.iceberg.spark.SparkSessionCatalog"
+    spark.sql.catalog.spark_catalog.type: "hadoop"
+    spark.sql.catalog.spark_catalog.warehouse: "s3a://warehouse/iceberg"
+    spark.sql.catalog.iceberg: "org.apache.iceberg.spark.SparkCatalog"
+    spark.sql.catalog.iceberg.type: "hadoop"
+    spark.sql.catalog.iceberg.warehouse: "s3a://warehouse/iceberg"
+  extraJars:
+    enabled: true
+    configMap: spark-extra-jars
+
+jupyter:
+  enabled: false
+
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false
+
+sparkOperator:
+  enabled: false
+
+celeborn:
+  enabled: false

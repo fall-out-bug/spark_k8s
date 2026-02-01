@@ -2,10 +2,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "spark-4.1.fullname" . }}-connect
+  name: {{ include "spark-3.5.fullname" . }}-connect
   labels:
     app: spark-connect
-    {{- include "spark-4.1.labels" . | nindent 4 }}
+    {{- include "spark-3.5.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.connect.replicas }}
   selector:
@@ -15,9 +15,9 @@ spec:
     metadata:
       labels:
         app: spark-connect
-        {{- include "spark-4.1.selectorLabels" . | nindent 8 }}
+        {{- include "spark-3.5.selectorLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "spark-4.1.serviceAccountName" . }}
+      serviceAccountName: {{ include "spark-3.5.serviceAccountName" . }}
       {{- if .Values.security.podSecurityStandards }}
       securityContext:
         {{- include "spark-base.podSecurityContext" . | nindent 8 }}
@@ -33,17 +33,14 @@ spec:
       volumes:
         - name: spark-connect-config
           configMap:
-            name: {{ include "spark-4.1.fullname" . }}-connect-config
+            name: {{ include "spark-3.5.fullname" . }}-connect-config
         - name: executor-pod-template
           configMap:
-            name: {{ include "spark-4.1.fullname" . }}-executor-pod-template
+            name: {{ include "spark-3.5.fullname" . }}-executor-pod-template
         - name: spark-connect-writable
           emptyDir: {}
-{{- if .Values.connect.extraJars.enabled }}
-        - name: extra-jars
-          configMap:
-            name: {{ .Values.connect.extraJars.configMap }}
-{{- end }}
+        - name: ivy-cache
+          emptyDir: {}
       initContainers:
         - name: render-spark-config
           image: alpine:3.19
@@ -55,26 +52,6 @@ spec:
               apk add --no-cache gettext &&
               envsubst < /opt/spark/conf-k8s-templates/spark-properties.conf.template > /tmp/spark-conf/spark-defaults.conf &&
               envsubst < /opt/spark/conf-k8s-templates/executor-pod-template.yaml.template > /tmp/spark-conf/executor-pod-template.yaml
-{{- if .Values.connect.extraJars.enabled }}
-        - name: copy-extra-jars
-          image: alpine:3.19
-          command:
-            - /bin/sh
-            - -c
-          args:
-            - >-
-              apk add --no-cache ca-certificates &&
-              mkdir -p /tmp/spark-conf/jars &&
-              for jar in /extra-jars/*.jar; do
-                cp "$jar" /tmp/spark-conf/jars/
-              done &&
-              chmod 644 /tmp/spark-conf/jars/*.jar
-          volumeMounts:
-            - name: extra-jars
-              mountPath: /extra-jars
-            - name: spark-connect-writable
-              mountPath: /tmp/spark-conf
-{{- end }}
           env:
             {{- if and .Values.global.s3.enabled .Values.global.s3.existingSecret }}
             - name: AWS_ACCESS_KEY_ID
@@ -92,6 +69,9 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+            - name: IVY_DIR
+              value: "/home/spark/.ivy2"
+
           {{- if .Values.security.podSecurityStandards }}
           securityContext:
             {{- include "spark-base.containerSecurityContext" . | nindent 12 }}
@@ -136,6 +116,9 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+            - name: IVY_DIR
+              value: "/home/spark/.ivy2"
+
           {{- if .Values.security.podSecurityStandards }}
           securityContext:
             {{- include "spark-base.containerSecurityContext" . | nindent 12 }}
@@ -145,11 +128,7 @@ spec:
             - "-c"
           args:
             - >-
-              /opt/spark/bin/spark-submit --properties-file /tmp/spark-conf/spark-defaults.conf
-              {{- if .Values.connect.extraJars.enabled }}
-              --jars /tmp/spark-conf/jars/*.jar
-              {{- end }}
-              --class org.apache.spark.sql.connect.service.SparkConnectServer local:///opt/spark/jars/spark-connect_2.13-4.1.0.jar
+              /opt/spark/bin/spark-submit --properties-file /tmp/spark-conf/spark-defaults.conf --master local[*] --packages org.apache.spark:spark-connect_2.12:3.5.3 --class org.apache.spark.sql.connect.service.SparkConnectServer
           ports:
             - name: grpc
               containerPort: 15002
@@ -165,13 +144,15 @@ spec:
           readinessProbe:
             tcpSocket:
               port: 15002
-            initialDelaySeconds: 30
+            initialDelaySeconds: 180
             periodSeconds: 10
+            failureThreshold: 10
           livenessProbe:
             tcpSocket:
               port: 15002
-            initialDelaySeconds: 60
+            initialDelaySeconds: 180
             periodSeconds: 30
+            failureThreshold: 10
           volumeMounts:
             - name: spark-connect-config
               mountPath: /opt/spark/conf-k8s-templates/spark-properties.conf.template
@@ -181,6 +162,8 @@ spec:
               subPath: executor-pod-template.yaml.template
             - name: spark-connect-writable
               mountPath: /tmp/spark-conf
+            - name: ivy-cache
+              mountPath: /home/spark/.ivy2
           resources:
             {{- if and .Values.connect.executor.gpu .Values.connect.executor.gpu.enabled }}
             limits:
@@ -197,10 +180,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "spark-4.1.fullname" . }}-connect
+  name: {{ include "spark-3.5.fullname" . }}-connect
   labels:
     app: spark-connect
-    {{- include "spark-4.1.labels" . | nindent 4 }}
+    {{- include "spark-3.5.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.connect.service.type }}
   ports:

@@ -2,10 +2,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "spark-4.1.fullname" . }}-jupyter
+  name: {{ include "spark-3.5.fullname" . }}-jupyter
   labels:
     app: jupyter
-    {{- include "spark-4.1.labels" . | nindent 4 }}
+    {{- include "spark-3.5.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
@@ -15,9 +15,9 @@ spec:
     metadata:
       labels:
         app: jupyter
-        {{- include "spark-4.1.selectorLabels" . | nindent 8 }}
+        {{- include "spark-3.5.selectorLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "spark-4.1.serviceAccountName" . }}
+      serviceAccountName: {{ include "spark-3.5.serviceAccountName" . }}
       {{- if .Values.security.podSecurityStandards }}
       securityContext:
         {{- include "spark-base.podSecurityContext" . | nindent 8 }}
@@ -37,7 +37,7 @@ spec:
           env:
             {{- if .Values.connect.enabled }}
             - name: SPARK_CONNECT_URL
-              value: "sc://{{ include "spark-4.1.fullname" . }}-connect:15002"
+              value: "sc://{{ include "spark-3.5.fullname" . }}-connect:15002"
             {{- end }}
             - name: JUPYTER_ENABLE_LAB
               value: "yes"
@@ -107,7 +107,7 @@ spec:
         - name: notebooks
           {{- if .Values.jupyter.persistence.enabled }}
           persistentVolumeClaim:
-            claimName: {{ include "spark-4.1.fullname" . }}-jupyter-notebooks
+            claimName: {{ include "spark-3.5.fullname" . }}-jupyter-notebooks
           {{- else }}
           emptyDir: {}
           {{- end }}
@@ -117,10 +117,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "spark-4.1.fullname" . }}-jupyter
+  name: {{ include "spark-3.5.fullname" . }}-jupyter
   labels:
     app: jupyter
-    {{- include "spark-4.1.labels" . | nindent 4 }}
+    {{- include "spark-3.5.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.jupyter.service.type }}
   ports:

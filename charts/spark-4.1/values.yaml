@@ -108,6 +108,9 @@ connect:
     enabled: true
     dir: "s3a://spark-logs/4.1/events"
   sparkConf: {}
+  extraJars:
+    enabled: false
+    configMap: ""
 
 # Hive Metastore 4.0.0 (separate instance for Spark 4.1.0)
 hiveMetastore:

@@ -1,0 +1,112 @@
+# Preset: Jupyter + Spark Connect + Standalone backend
+# Source: scripts/test-e2e-jupyter-connect.sh (Spark 3.5, BACKEND_MODE=standalone)
+# Components: Connect + Jupyter + MinIO + Standalone
+# Note: Requires standalone master to be deployed separately
+
+global:
+  s3:
+    endpoint: "http://minio:9000"
+    accessKey: "minioadmin"
+    secretKey: "minioadmin"
+    pathStyleAccess: true
+    sslEnabled: false
+
+spark-base:
+  enabled: true
+  minio:
+    enabled: true
+    resources:
+      requests:
+        cpu: "0"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "512Mi"
+    persistence:
+      enabled: false
+  postgresql:
+    enabled: false
+
+rbac:
+  create: true
+  serviceAccountName: "spark-35"
+
+sparkStandalone:
+  enabled: true
+  image:
+    repository: spark-custom
+    tag: "3.5.8"
+  master:
+    enabled: true
+  worker:
+    enabled: true
+    replicas: 1
+
+connect:
+  enabled: true
+  replicas: 1
+  backendMode: standalone
+  image:
+    repository: spark-custom
+    tag: "3.5.8"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "0"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "2Gi"
+  driver:
+    host: ""
+    port: 7078
+  standalone:
+    masterService: "${release_name}-spark-35-master"
+    masterPort: 7077
+  eventLog:
+    enabled: true
+    dir: "s3a://spark-logs/3.5/events"
+  sparkConf:
+    spark.executor.instances: "1"
+    spark.executor.cores: "1"
+    spark.executor.memory: "512m"
+    spark.dynamicAllocation.enabled: "false"
+
+jupyter:
+  enabled: true
+  image:
+    repository: jupyter-spark
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8888
+  env:
+    SPARK_HOME: "/opt/spark"
+  resources:
+    requests:
+      cpu: "0"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+  persistence:
+    enabled: false
+
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false
+
+sparkOperator:
+  enabled: false
+
+celeborn:
+  enabled: false

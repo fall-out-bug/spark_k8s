@@ -2,16 +2,16 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "spark-4.1.fullname" . }}-connect-config
+  name: {{ include "spark-3.5.fullname" . }}-connect-config
   labels:
-    {{- include "spark-4.1.labels" . | nindent 4 }}
+    {{- include "spark-3.5.labels" . | nindent 4 }}
 data:
   spark-properties.conf.template: |-
     {{- if eq .Values.connect.backendMode "standalone" }}
     # Spark Master - Standalone backend mode
     spark.master=spark://{{ .Values.connect.standalone.masterService }}:{{ .Values.connect.standalone.masterPort }}
     spark.driver.bindAddress=0.0.0.0
-    spark.driver.host={{ default (printf "%s-connect" (include "spark-4.1.fullname" .)) .Values.connect.driver.host }}
+    spark.driver.host={{ default (printf "%s-connect" (include "spark-3.5.fullname" .)) .Values.connect.driver.host }}
     spark.driver.port={{ .Values.connect.driver.port }}
     spark.driver.blockManager.port={{ .Values.connect.driver.blockManagerPort }}
     {{- else }}
@@ -26,7 +26,7 @@ data:
     spark.kubernetes.executor.request.memory={{ .Values.connect.executor.memory }}
     spark.kubernetes.container.image={{ .Values.connect.image.repository }}:{{ .Values.connect.image.tag }}
     spark.driver.bindAddress=0.0.0.0
-    spark.driver.host={{ default (printf "%s-connect" (include "spark-4.1.fullname" .)) .Values.connect.driver.host }}
+    spark.driver.host={{ default (printf "%s-connect" (include "spark-3.5.fullname" .)) .Values.connect.driver.host }}
     spark.driver.port={{ .Values.connect.driver.port }}
     spark.driver.blockManager.port={{ .Values.connect.driver.blockManagerPort }}
 
@@ -63,11 +63,9 @@ data:
     spark.celeborn.client.spark.fetch.throwsFetchFailure=true
     {{- end }}
 
-    {{- if .Values.global.s3.enabled }}
     # S3 config
     spark.hadoop.fs.s3a.endpoint={{ .Values.global.s3.endpoint }}
     spark.hadoop.fs.s3a.access.key=${AWS_ACCESS_KEY_ID}
     spark.hadoop.fs.s3a.secret.key=${AWS_SECRET_ACCESS_KEY}
     spark.hadoop.fs.s3a.path.style.access={{ .Values.global.s3.pathStyleAccess }}
-    {{- end }}
 {{- end }}

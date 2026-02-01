@@ -1,0 +1,100 @@
+# Preset: Jupyter + Spark Connect + Standalone backend
+# Source: Spark 4.1.1 standalone mode
+# Components: Connect + Jupyter + MinIO + Standalone
+
+global:
+  s3:
+    endpoint: "http://minio:9000"
+    accessKey: "minioadmin"
+    secretKey: "minioadmin"
+    pathStyleAccess: true
+    sslEnabled: false
+
+spark-base:
+  # DISABLED FOR SMOKE TESTS
+  minio:
+    # DISABLED FOR SMOKE TESTS
+    resources:
+      requests:
+        cpu: "0"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "512Mi"
+    persistence:
+      enabled: false
+  postgresql:
+    enabled: false
+
+rbac:
+  create: true
+  serviceAccountName: "spark-41"
+
+connect:
+  # DISABLED FOR SMOKE TESTS
+  replicas: 1
+  backendMode: standalone
+  image:
+    repository: spark-custom
+    tag: "4.1.1"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "0"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "2Gi"
+  driver:
+    host: ""
+    port: 7078
+  standalone:
+    masterService: "${release_name}-spark-41-connect"
+    masterPort: 7077
+  # eventLog:
+    # DISABLED FOR SMOKE TESTS
+    /spark-logs/4.1/events"
+  sparkConf:
+    spark.executor.instances: "1"
+    spark.executor.cores: "1"
+    spark.executor.memory: "512m"
+    spark.dynamicAllocation.enabled: "false"
+
+jupyter:
+  # DISABLED FOR SMOKE TESTS
+  image:
+    repository: jupyter-spark
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8888
+  env:
+    SPARK_CONNECT_URL: "sc://spark-connect:15002"
+  resources:
+    requests:
+      cpu: "0"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+  persistence:
+    enabled: false
+
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false
+
+sparkOperator:
+  enabled: false
+
+celeborn:
+  enabled: false
