@@ -584,6 +584,83 @@ tests/security/phase08/
 
 ---
 
+## Feature F12: E2E Tests (Phase 6)
+
+**Source:** `docs/phases/phase-06-e2e.md`
+**Status:** Backlog
+**Total Workstreams:** 6
+**Estimated LOC:** ~4900
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-006-01 | Core E2E (24 scenarios) | LARGE (~1500 LOC) | Phase 0, Phase 1, Phase 5 | backlog |
+| WS-006-02 | GPU E2E (16 scenarios) | MEDIUM (~900 LOC) | Phase 0, Phase 5 (GPU images) | backlog |
+| WS-006-03 | Iceberg E2E (16 scenarios) | MEDIUM (~900 LOC) | Phase 0, Phase 5 (Iceberg images) | backlog |
+| WS-006-04 | GPU+Iceberg E2E (8 scenarios) | MEDIUM (~500 LOC) | Phase 0, Phase 5 (GPU+Iceberg) | backlog |
+| WS-006-05 | Standalone E2E (8 scenarios) | MEDIUM (~500 LOC) | Phase 0, Phase 1 | backlog |
+| WS-006-06 | Library compatibility (8 scenarios) | MEDIUM (~600 LOC) | Phase 0, Phase 1 | backlog |
+
+### Dependency Graph
+
+```
+Phase 0, Phase 1, Phase 5
+    ↓
+WS-006-01 (Core E2E) ─────────────┐
+WS-006-02 (GPU E2E) ──────────────┤
+WS-006-03 (Iceberg E2E) ───────────┤
+WS-006-04 (GPU+Iceberg E2E) ───────┼── All independent (can run in parallel)
+WS-006-05 (Standalone E2E) ────────┤
+WS-006-06 (Library compatibility) ──┘
+```
+
+### Parallel Execution Paths
+
+All 6 workstreams are independent and can run in parallel after Phase 0, Phase 1, and Phase 5 are complete.
+
+### Test Structure
+
+```
+tests/e2e/phase06/
+├── conftest.py                    # Shared fixtures (NYC Taxi dataset, Spark session)
+├── __init__.py
+├── test_06_01_core_e2e.py        # 24 Core E2E scenarios
+├── test_06_02_gpu_e2e.py         # 16 GPU E2E scenarios (RAPIDS)
+├── test_06_03_iceberg_e2e.py     # 16 Iceberg E2E scenarios
+├── test_06_04_gpu_iceberg_e2e.py # 8 GPU+Iceberg E2E scenarios
+├── test_06_05_standalone_e2e.py  # 8 Standalone E2E scenarios
+└── test_06_06_library_compat.py  # 8 Library compatibility scenarios
+```
+
+### Scenarios Breakdown
+
+**WS-006-01: Core E2E (24)**
+- Spark 3.5.7, 3.5.8, 4.1.0, 4.1.1 × spark-connect, spark-k8s-submit
+- 4 SQL queries per scenario (Q1: COUNT, Q2: GROUP BY, Q3: JOIN, Q4: Window)
+- NYC Taxi full dataset (11GB)
+
+**WS-006-02: GPU E2E (16)**
+- Spark 3.5.7, 3.5.8, 4.1.0, 4.1.1 × RAPIDS baseline, optimized
+- 4 GPU queries per scenario (cuDF COUNT, GROUP BY, JOIN, cuML Linear Regression)
+- GPU metrics: memory, utilization, speedup factor
+
+**WS-006-03: Iceberg E2E (16)**
+- Spark 3.5.7, 3.5.8, 4.1.0, 4.1.1 × Iceberg operations
+- Operations: CREATE, READ, UPDATE, DELETE, MERGE, TIME TRAVEL, SCHEMA EVOLUTION, PARTITIONING
+
+**WS-006-04: GPU+Iceberg E2E (8)**
+- Spark 3.5.7, 4.1.0 × GPU+Iceberg combo operations
+- RAPIDS + Iceberg integration tests
+
+**WS-006-05: Standalone E2E (8)**
+- Spark 3.5.7, 3.5.8, 4.1.0, 4.1.1 × Master/Worker coordination
+- Operations: Master status, Worker registration, Shuffle, Broadcast, Dynamic allocation, Fault tolerance
+
+**WS-006-06: Library Compatibility (8)**
+- Pandas API on Spark, Arrow serialization, MLlib, Delta Lake, Apache Hudi
+- Version compatibility matrix
+
+---
+
 ## Summary
 
 | Feature | Total WS | Completed | In Progress | Backlog |
@@ -600,7 +677,8 @@ tests/security/phase08/
 | F09: Docker Intermediate Layers (Phase 4) | 4 | 0 | 0 | 4 |
 | F10: Docker Final Images (Phase 5) | 3 | 0 | 0 | 3 |
 | F11: Advanced Security (Phase 8) | 7 | 0 | 0 | 7 |
-| **TOTAL** | **80** | **18** | **0** | **62** |
+| F12: E2E Tests (Phase 6) | 6 | 0 | 0 | 6 |
+| **TOTAL** | **86** | **18** | **0** | **68** |
 
 ---
 
