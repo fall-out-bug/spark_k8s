@@ -1,0 +1,11 @@
+{{- if .Values.core.minio.enabled -}}
+{{- include "spark.core.minio.secret" . }}
+---
+{{- include "spark.core.minio.deployment" . }}
+---
+{{- include "spark.core.minio.service" . }}
+---
+{{- include "spark.core.minio.pvc" . }}
+---
+{{- include "spark.core.minio.bucketInit" . }}
+{{- end }}

@@ -1,0 +1,118 @@
+# Scenario Preset: Jupyter + Spark Connect (Standalone backend)
+#
+# This preset enables JupyterLab with Spark Connect using Standalone backend mode.
+# Fixed executor instances managed by Spark Standalone master.
+#
+# Use Cases:
+# - Data scientists who want pandas-like experience with PySpark
+# - Clusters with Spark Standalone already deployed
+# - Predictable resource allocation with fixed executor count
+#
+# Components Enabled:
+# - Spark Connect (backendMode: standalone) - Fixed executors via Standalone
+# - Jupyter - PySpark notebook interface
+# - MinIO - S3-compatible storage for data
+#
+# Prerequisites:
+# - Spark Standalone master must be deployed separately
+# - Default master service: spark-sa-spark-standalone-master:7077
+#
+# Usage:
+#   helm install my-spark charts/spark-3.5 -f charts/spark-3.5/presets/scenarios/jupyter-connect-standalone.yaml
+#
+# Access Jupyter:
+#   kubectl port-forward svc/my-spark-jupyter 8888:8888
+#   # Open browser to http://localhost:8888
+#
+# Connect to Spark from Jupyter:
+#   The SPARK_CONNECT_URL is pre-configured to: sc://spark-connect:15002
+
+# Core Infrastructure (minimal)
+spark-base:
+  enabled: true
+  minio:
+    enabled: true
+    fullnameOverride: "minio-spark-35"
+    resources:
+      requests:
+        cpu: "0"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "512Mi"
+    persistence:
+      enabled: false
+  postgresql:
+    enabled: false
+
+# RBAC for Spark pods
+rbac:
+  create: true
+  serviceAccountName: "spark-35"
+
+# Spark Connect Server
+connect:
+  enabled: true
+  replicas: 1
+  backendMode: standalone
+  image:
+    repository: spark-custom
+    tag: "3.5.7"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "0"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "2Gi"
+  driver:
+    host: ""  # Set to "<release>-spark-35-connect.<namespace>.svc.cluster.local"
+    port: 7078
+  standalone:
+    masterService: "spark-sa-spark-standalone-master"
+    masterPort: 7077
+  eventLog:
+    enabled: true
+    dir: "s3a://spark-logs/3.5/events"
+  # Fixed executor instances for standalone backend
+  sparkConf:
+    spark.executor.instances: "1"
+    spark.executor.cores: "1"
+    spark.executor.memory: "512m"
+    spark.dynamicAllocation.enabled: "false"
+
+# Jupyter Notebook
+jupyter:
+  enabled: true
+  image:
+    repository: jupyter-spark
+    tag: "3.5.7"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8888
+  env:
+    SPARK_CONNECT_URL: "sc://spark-connect:15002"
+  resources:
+    requests:
+      cpu: "0"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+  persistence:
+    enabled: false
+
+# Disable other components
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false

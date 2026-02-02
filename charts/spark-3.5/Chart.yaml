@@ -1,21 +1,11 @@
 apiVersion: v2
 name: spark-3.5
-description: Apache Spark 3.5.7 LTS (Standalone + Spark Connect)
-type: application
 version: 0.1.0
-appVersion: "3.5.7"
+appVersion: "3.5.3"
+description: Apache Spark 3.5.3 (Spark Connect + K8s Native)
 
 dependencies:
   - name: spark-base
     version: 0.1.0
     repository: "file://../spark-base"
     condition: spark-base.enabled
-  - name: spark-standalone
-    version: 0.1.0
-    repository: "file://charts/spark-standalone"
-    condition: spark-standalone.enabled
-  - name: spark-platform
-    alias: spark-connect
-    version: 1.1.0
-    repository: "file://charts/spark-connect"
-    condition: spark-connect.enabled

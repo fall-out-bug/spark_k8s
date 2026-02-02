@@ -1,0 +1,65 @@
+# Core + Iceberg Preset for Spark 3.5
+#
+# This preset enables all core infrastructure components plus Apache Iceberg:
+# - Core Components: MinIO, PostgreSQL, Hive Metastore, History Server
+# - Iceberg: Modern table format for Lakehouse workloads
+#
+# Features:
+# - GPU: disabled
+# - Iceberg: enabled (Hadoop catalog with S3 warehouse)
+#
+# This configuration is ideal for Lakehouse deployments with ACID transactions,
+# time travel, and schema evolution capabilities.
+#
+# Usage:
+#   helm install my-spark charts/spark-3.5 -f charts/spark-3.5/presets/core-iceberg.yaml
+
+# Core Infrastructure Components
+core:
+  minio:
+    enabled: true
+    fullnameOverride: "minio-spark-35"
+    # Additional buckets for Iceberg warehouse
+    buckets:
+      - warehouse
+      - spark-logs
+      - spark-standalone-logs
+      - spark-jobs
+      - raw-data
+      - processed-data
+      - checkpoints
+      - iceberg-metadata
+
+  postgresql:
+    enabled: true
+    fullnameOverride: "postgresql-metastore-35"
+
+  hiveMetastore:
+    enabled: true
+    fullnameOverride: "hive-metastore-35"
+    # Configure for Iceberg compatibility
+    warehouseDir: "s3a://warehouse/spark-35"
+
+  historyServer:
+    enabled: true
+    fullnameOverride: "history-server-35"
+
+# Feature flags
+features:
+  iceberg:
+    enabled: true
+    catalogType: "hadoop"
+    warehouse: "s3a://warehouse/iceberg"
+    ioImpl: "org.apache.iceberg.hadoop.HadoopFileIO"
+  gpu:
+    enabled: false
+
+# Optional components (disabled)
+connect:
+  enabled: false
+
+jupyter:
+  enabled: false
+
+airflow:
+  enabled: false

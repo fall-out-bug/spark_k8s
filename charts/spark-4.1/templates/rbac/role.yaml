@@ -20,11 +20,13 @@ rules:
     resources: ["configmaps"]
     verbs: ["get", "create", "update", "delete"]
 
-  # Secrets read-only (only s3-credentials)
+  # Secrets read-only (only s3-credentials when S3 is enabled)
+  {{- if .Values.global.s3.enabled }}
   - apiGroups: [""]
     resourceNames: ["s3-credentials"]
     resources: ["secrets"]
     verbs: ["get"]
+  {{- end }}
 
   # PersistentVolumeClaims (optional, for dynamic allocation)
   {{- if .Values.rbac.customRules }}

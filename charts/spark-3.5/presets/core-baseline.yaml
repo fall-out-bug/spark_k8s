@@ -1,0 +1,49 @@
+# Core Baseline Preset for Spark 3.5
+#
+# This preset enables all core infrastructure components for a minimal Lakehouse stack:
+# - MinIO: S3-compatible object storage
+# - PostgreSQL: Relational database for metastore
+# - Hive Metastore: Metadata catalog for Spark SQL
+# - History Server: UI for completed Spark applications
+#
+# Features:
+# - GPU: disabled
+# - Iceberg: disabled
+#
+# Usage:
+#   helm install my-spark charts/spark-3.5 -f charts/spark-3.5/presets/core-baseline.yaml
+
+# Core Infrastructure Components
+core:
+  minio:
+    enabled: true
+    fullnameOverride: "minio-spark-35"
+
+  postgresql:
+    enabled: true
+    fullnameOverride: "postgresql-metastore-35"
+
+  hiveMetastore:
+    enabled: true
+    fullnameOverride: "hive-metastore-35"
+
+  historyServer:
+    enabled: true
+    fullnameOverride: "history-server-35"
+
+# Feature flags
+features:
+  iceberg:
+    enabled: false
+  gpu:
+    enabled: false
+
+# Optional components (disabled for baseline)
+connect:
+  enabled: false
+
+jupyter:
+  enabled: false
+
+airflow:
+  enabled: false

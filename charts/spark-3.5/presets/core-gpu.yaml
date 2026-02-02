@@ -1,0 +1,82 @@
+# Core + GPU Preset for Spark 3.5
+#
+# This preset enables all core infrastructure components plus GPU support:
+# - Core Components: MinIO, PostgreSQL, Hive Metastore, History Server
+# - GPU Support: RAPIDS accelerator for GPU-accelerated Spark
+#
+# Features:
+# - GPU: enabled (RAPIDS plugin)
+# - Iceberg: disabled
+#
+# This configuration is ideal for GPU-accelerated data processing and ML workloads.
+#
+# Usage:
+#   helm install my-spark charts/spark-3.5 -f charts/spark-3.5/presets/core-gpu.yaml
+
+# Core Infrastructure Components
+core:
+  minio:
+    enabled: true
+    fullnameOverride: "minio-spark-35"
+
+  postgresql:
+    enabled: true
+    fullnameOverride: "postgresql-metastore-35"
+
+  hiveMetastore:
+    enabled: true
+    fullnameOverride: "hive-metastore-35"
+
+  historyServer:
+    enabled: true
+    fullnameOverride: "history-server-35"
+
+# Feature flags
+features:
+  gpu:
+    enabled: true
+    cudaVersion: "12.0"
+    nvidiaVisibleDevices: "all"
+    taskResourceAmount: "0.25"
+    # RAPIDS configuration
+    rapids:
+      plugins: "com.nvidia.spark.SQLPlugin"
+      sql:
+        enabled: true
+        python:
+          enabled: true
+        fallback:
+          enabled: true
+      memory:
+        allocFraction: "0.8"
+        maxAllocFraction: "0.9"
+        minAllocFraction: "0.3"
+      shuffle:
+        enabled: true
+      format:
+        parquet:
+          read: true
+          write: true
+        orc:
+          read: true
+        csv:
+          read: true
+        json:
+          read: true
+  iceberg:
+    enabled: false
+
+# Spark Connect with GPU support
+connect:
+  enabled: true
+  executor:
+    gpu:
+      enabled: true
+      count: "1"
+
+# Optional components (disabled)
+jupyter:
+  enabled: false
+
+airflow:
+  enabled: false

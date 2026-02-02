@@ -70,4 +70,26 @@ data:
     spark.hadoop.fs.s3a.secret.key=${AWS_SECRET_ACCESS_KEY}
     spark.hadoop.fs.s3a.path.style.access={{ .Values.global.s3.pathStyleAccess }}
     {{- end }}
+
+    {{- if and .Values.features .Values.features.iceberg .Values.features.iceberg.enabled }}
+    # Iceberg configuration
+    spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions
+    spark.sql.catalog.spark_catalog=org.apache.iceberg.spark.SparkSessionCatalog
+    spark.sql.catalog.spark_catalog.type={{ .Values.features.iceberg.catalogType | default "hadoop" }}
+    spark.sql.catalog.iceberg=org.apache.iceberg.spark.SparkCatalog
+    spark.sql.catalog.iceberg.type={{ .Values.features.iceberg.catalogType | default "hadoop" }}
+    spark.sql.catalog.iceberg.warehouse={{ .Values.features.iceberg.warehouse | default "s3a://warehouse/iceberg" }}
+    spark.sql.catalog.iceberg.io-impl={{ .Values.features.iceberg.ioImpl | default "org.apache.iceberg.hadoop.HadoopFileIO" }}
+    {{- if eq .Values.features.iceberg.catalogType "hive" }}
+    spark.sql.catalog.iceberg.uri={{ .Values.hiveMetastore.service.host | default "hive-metastore" }}:9083
+    {{- end }}
+    {{- if eq .Values.features.iceberg.catalogType "rest" }}
+    spark.sql.catalog.iceberg.uri={{ .Values.features.iceberg.restCatalogUri | required "restCatalogUri required when catalogType is 'rest'" }}
+    spark.sql.catalog.iceberg.token={{ .Values.features.iceberg.restCatalogToken | default "" }}
+    {{- end }}
+    spark.sql.iceberg.vectorization.enabled=true
+    spark.sql.iceberg.v2.enabled=true
+    spark.sql.iceberg.delete-planning.enabled=true
+    spark.sql.iceberg.deletes.enabled=true
+    {{- end }}
 {{- end }}

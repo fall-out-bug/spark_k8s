@@ -1,0 +1,7 @@
+{{- if .Values.core.historyServer.enabled -}}
+{{- include "spark.core.historyServer.configmap" . }}
+---
+{{- include "spark.core.historyServer.deployment" . }}
+---
+{{- include "spark.core.historyServer.service" . }}
+{{- end }}

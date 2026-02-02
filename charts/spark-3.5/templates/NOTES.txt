@@ -1,19 +1,19 @@
-Apache Spark 3.5.7 deployed successfully!
+Apache Spark 4.1.0 deployed successfully!
 
 Components:
-{{- if (index .Values "spark-standalone").enabled }}
-- Spark Standalone: {{ .Release.Name }}-spark-standalone (master/worker services)
+{{- if .Values.connect.enabled }}
+- Spark Connect: {{ include "spark-3.5.fullname" . }}-connect:15002
 {{- end }}
-{{- if (index .Values "spark-connect").enabled }}
-- Spark Connect: {{ .Release.Name }}-spark-connect (gRPC service)
+{{- if .Values.hiveMetastore.enabled }}
+- Hive Metastore: {{ include "spark-3.5.fullname" . }}-metastore:9083
 {{- end }}
-{{- if (index .Values "spark-base").minio.enabled }}
-- MinIO: {{ .Release.Name }}-minio (S3-compatible storage)
+{{- if .Values.historyServer.enabled }}
+- History Server: {{ include "spark-3.5.fullname" . }}-history:18080
+{{- end }}
+{{- if .Values.jupyter.enabled }}
+- Jupyter: {{ include "spark-3.5.fullname" . }}-jupyter:8888
 {{- end }}
 
 Get started:
-  # Standalone UI
-  kubectl port-forward svc/{{ .Release.Name }}-spark-standalone-master 8080:8080
-
-  # Spark Connect (if enabled)
-  kubectl port-forward svc/{{ .Release.Name }}-spark-connect 15002:15002
+  kubectl port-forward svc/{{ include "spark-3.5.fullname" . }}-jupyter 8888:8888
+  # Open http://localhost:8888

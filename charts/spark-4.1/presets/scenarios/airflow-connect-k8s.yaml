@@ -1,0 +1,105 @@
+# Scenario Preset: Airflow + Spark Connect (K8s backend)
+#
+# This preset enables Spark Connect with Kubernetes backend mode for use with Airflow.
+# Airflow is deployed separately and connects to Spark Connect for job execution.
+#
+# Use Cases:
+# - Data engineers who want pipeline orchestration with Airflow
+# - Production ETL workflows with dynamic executor allocation
+# - Scheduled Spark jobs via Airflow DAGs
+#
+# Components Enabled:
+# - Spark Connect (backendMode: k8s) - Dynamic executors via K8s API
+# - MinIO (disabled by default, Airflow typically manages storage)
+#
+# Prerequisites:
+# - Airflow must be deployed separately
+# - Airflow SparkHook connects to: sc://<release>-spark-connect:15002
+#
+# Usage:
+#   helm install my-spark charts/spark-4.1 -f charts/spark-4.1/presets/scenarios/airflow-connect-k8s.yaml
+#
+# Airflow DAG Example:
+#   from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
+#   SparkSubmitOperator(
+#       task_id='spark_job',
+#       application='jobs/my_spark_job.py',
+#       conn_id='spark_connect',
+#       conf={
+#           'spark.connect.appName': 'my-job',
+#           'spark.remote': 'sc://my-spark-spark-41-connect:15002'
+#       }
+#   )
+
+# Core Infrastructure (minimal - Airflow manages storage)
+spark-base:
+  enabled: true
+  minio:
+    enabled: false
+  postgresql:
+    enabled: false
+
+# RBAC (shared with Airflow)
+rbac:
+  create: false
+  serviceAccountName: "spark"
+
+# Spark Connect Server
+connect:
+  enabled: true
+  replicas: 1
+  backendMode: k8s
+  image:
+    repository: spark-custom
+    tag: "4.1.0"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1"
+      memory: "2Gi"
+  driver:
+    host: ""  # Set to "<release>-spark-41-connect.<namespace>.svc.cluster.local"
+    port: 7078
+    memory: "512m"
+  executor:
+    cores: "0.1"
+    coresLimit: "0.5"
+    memory: "512Mi"
+    memoryLimit: "1Gi"
+  standalone:
+    masterService: ""
+    masterPort: 7077
+  eventLog:
+    enabled: true
+    dir: "s3a://spark-logs/4.1/events"
+  dynamicAllocation:
+    enabled: false
+    minExecutors: 1
+    maxExecutors: 1
+  sparkConf:
+    spark.driver.memory: "512m"
+    spark.executor.memory: "512m"
+    spark.executor.instances: "1"
+    spark.sql.shuffle.partitions: "2"
+    spark.kubernetes.executor.request.cores: "0.1"
+    spark.kubernetes.executor.limit.cores: "0.5"
+
+# Jupyter (disabled for Airflow scenario)
+jupyter:
+  enabled: false
+
+# Disable other components
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false

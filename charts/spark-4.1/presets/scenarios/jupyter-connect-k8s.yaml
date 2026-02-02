@@ -1,0 +1,109 @@
+# Scenario Preset: Jupyter + Spark Connect (K8s backend)
+#
+# This preset enables JupyterLab with Spark Connect using Kubernetes backend mode.
+# Dynamic executor allocation via Kubernetes API.
+#
+# Use Cases:
+# - Data scientists who want pandas-like experience with PySpark
+# - Interactive data exploration and analysis
+# - Development and testing of Spark applications
+#
+# Components Enabled:
+# - Spark Connect (backendMode: k8s) - Dynamic executors via K8s API
+# - Jupyter - PySpark notebook interface
+# - MinIO - S3-compatible storage for data
+#
+# Usage:
+#   helm install my-spark charts/spark-4.1 -f charts/spark-4.1/presets/scenarios/jupyter-connect-k8s.yaml
+#
+# Access Jupyter:
+#   kubectl port-forward svc/my-spark-jupyter 8888:8888
+#   # Open browser to http://localhost:8888
+#
+# Connect to Spark from Jupyter:
+#   The SPARK_CONNECT_URL is pre-configured to: sc://spark-connect:15002
+
+# Core Infrastructure (minimal)
+spark-base:
+  enabled: true
+  minio:
+    enabled: true
+    fullnameOverride: "minio-spark-41"
+    resources:
+      requests:
+        cpu: "0"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "512Mi"
+    persistence:
+      enabled: false
+  postgresql:
+    enabled: false
+
+# RBAC for Spark pods
+rbac:
+  create: true
+  serviceAccountName: "spark-41"
+
+# Spark Connect Server
+connect:
+  enabled: true
+  replicas: 1
+  backendMode: k8s  # Dynamic executors via K8s API
+  image:
+    repository: spark-custom
+    tag: "4.1.0"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "0"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "2Gi"
+  driver:
+    host: ""
+    port: 7078
+  eventLog:
+    enabled: true
+    dir: "s3a://spark-logs/4.1/events"
+  dynamicAllocation:
+    enabled: true
+    minExecutors: 0
+    maxExecutors: 10
+
+# Jupyter Notebook
+jupyter:
+  enabled: true
+  image:
+    repository: jupyter-spark
+    tag: "4.1.0"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8888
+  env:
+    SPARK_CONNECT_URL: "sc://spark-connect:15002"
+  resources:
+    requests:
+      cpu: "0"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+  persistence:
+    enabled: false
+
+# Disable other components
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false
