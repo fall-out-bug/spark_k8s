@@ -213,22 +213,22 @@ WS-021-01 → WS-021-02
 ## Feature F06: Phase 0 — Core Components + Feature Presets
 
 **Source:** `docs/drafts/idea-f06-core-components-presets.md`
-**Status:** Backlog
+**Status:** Completed
 **Total Workstreams:** 10
-**Estimated LOC:** ~3200
+**Actual LOC:** ~4000
 
 | ID | Name | Scope | Dependency | Status |
 |----|------|-------|------------|--------|
-| WS-006-01 | Core template structure foundation | MEDIUM (~300 LOC) | Independent | backlog |
-| WS-006-02 | Minio core template | MEDIUM (~350 LOC) | WS-006-01 | backlog |
-| WS-006-03 | PostgreSQL core template | MEDIUM (~300 LOC) | WS-006-01 | backlog |
-| WS-006-04 | Hive Metastore core template | MEDIUM (~400 LOC) | WS-006-01, WS-006-03 | backlog |
-| WS-006-05 | History Server core template | MEDIUM (~350 LOC) | WS-006-01, WS-006-02 | backlog |
-| WS-006-06 | GPU feature templates | MEDIUM (~250 LOC) | WS-006-01 | backlog |
-| WS-006-07 | Iceberg feature templates | MEDIUM (~250 LOC) | WS-006-01 | backlog |
-| WS-006-08 | Base presets (Core + Features) | MEDIUM (~400 LOC) | WS-006-01, WS-006-02, WS-006-03, WS-006-04, WS-006-05 | backlog |
-| WS-006-09 | Scenario presets (Jupyter + Airflow) | MEDIUM (~450 LOC) | WS-006-01, WS-006-08 | backlog |
-| WS-006-10 | Chart documentation (README) | MEDIUM (~600 LOC) | WS-006-08, WS-006-09 | backlog |
+| WS-006-01 | Core template structure foundation | MEDIUM (~300 LOC) | Independent | completed |
+| WS-006-02 | Minio core template | MEDIUM (~350 LOC) | WS-006-01 | completed |
+| WS-006-03 | PostgreSQL core template | MEDIUM (~300 LOC) | WS-006-01 | completed |
+| WS-006-04 | Hive Metastore core template | MEDIUM (~400 LOC) | WS-006-01, WS-006-03 | completed |
+| WS-006-05 | History Server core template | MEDIUM (~350 LOC) | WS-006-01, WS-006-02 | completed |
+| WS-006-06 | GPU feature templates | MEDIUM (~250 LOC) | WS-006-01 | completed |
+| WS-006-07 | Iceberg feature templates | MEDIUM (~250 LOC) | WS-006-01 | completed |
+| WS-006-08 | Base presets (Core + Features) | MEDIUM (~400 LOC) | WS-006-01, WS-006-02, WS-006-03, WS-006-04, WS-006-05 | completed |
+| WS-006-09 | Scenario presets (Jupyter + Airflow) | MEDIUM (~450 LOC) | WS-006-01, WS-006-08 | completed |
+| WS-006-10 | Chart documentation (README) | MEDIUM (~600 LOC) | WS-006-08, WS-006-09 | completed |
 
 ### Dependency Graph
 
@@ -279,6 +279,34 @@ WS-006-01 ───────────────────────�
 
 ---
 
+## Feature TESTING: Testing Infrastructure
+
+**Source:** `docs/issues/issue-001-minikube-pvc-provisioning.md`
+**Status:** In Progress
+**Total Workstreams:** 1+
+**Estimated LOC:** ~150 (diagnostics)
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-TESTING-001 | Minikube storage diagnostics | SMALL (~150 LOC) | - | backlog |
+| WS-TESTING-002 | Storage provisioner fix | TBD | WS-TESTING-001 | backlog |
+| WS-TESTING-003 | Complete E2E test | TBD | WS-TESTING-002 | backlog |
+
+### Context
+
+PVC provisioning in minikube (WSL2) fails, blocking E2E testing.
+This feature tracks diagnostics and fix implementation.
+
+### Dependency Graph
+
+```
+WS-TESTING-001 (Diagnostics)
+    └── WS-TESTING-002 (Fix Implementation)
+            └── WS-TESTING-003 (E2E Test)
+```
+
+---
+
 ## Summary
 
 | Feature | Total WS | Completed | In Progress | Backlog |
@@ -288,8 +316,9 @@ WS-006-01 ───────────────────────�
 | F03: History Server (SA) | 2 | 2 | 0 | 0 |
 | F04: Spark 4.1.0 Charts | 24 | 0 | 0 | 24 |
 | F05: Docs Refresh (Airflow vars) | 2 | 0 | 0 | 2 |
-| F06: Core Components + Presets | 10 | 0 | 0 | 10 |
-| **TOTAL** | **54** | **20** | **0** | **36** |
+| F06: Core Components + Presets | 10 | 10 | 0 | 0 |
+| TESTING: Testing Infrastructure | 3+ | 0 | 0 | 3+ |
+| **TOTAL** | **57+** | **30** | **0** | **29+** |
 
 ---
 
