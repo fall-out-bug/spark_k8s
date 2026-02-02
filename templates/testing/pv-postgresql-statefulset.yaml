@@ -1,0 +1,20 @@
+# PersistentVolume for PostgreSQL StatefulSet
+# Created dynamically to match StatefulSet PVC naming convention
+# Note: No storageClassName to bypass external provisioning
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-postgresql-metastore-41-0
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+  claimRef:
+    name: data-postgresql-metastore-41-0
+    namespace: spark-f06
+  hostPath:
+    path: /tmp/spark-testing/postgresql
+    type: DirectoryOrCreate
