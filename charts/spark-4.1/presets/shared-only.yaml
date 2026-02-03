@@ -50,8 +50,6 @@ historyServer:
   enabled: true
   fullnameOverride: "history-server-shared"
   logDirectory: "s3a://spark-logs/events"
-  # Use Hadoop-compatible credentials provider for Spark 4.1
-  credentialsProvider: "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider"
 
 # S3 configuration (shared)
 global:
