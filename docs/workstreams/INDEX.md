@@ -554,6 +554,38 @@ F06 (Phase 0), F07 (Phase 1), F11 (Phase 5) ────┐
 
 ---
 
+## Feature F13: Phase 7 — Load Tests
+
+**Source:** `docs/phases/phase-07-load.md`
+**Status:** Backlog
+**Total Workstreams:** 5
+**Estimated LOC:** ~3000
+
+| ID | Name | Scenarios | Dependency | Status |
+|----|------|-----------|------------|--------|
+| WS-013-01 | Baseline load | 4 | F06, F12 | backlog |
+| WS-013-02 | GPU load | 4 | F06, F12 | backlog |
+| WS-013-03 | Iceberg load | 4 | F06, F12 | backlog |
+| WS-013-04 | Comparison load | 4 | F06, F12 | backlog |
+| WS-013-05 | Security stability | 4 | F06, F07 | backlog |
+
+### Dependency Graph
+
+```
+F06 (Phase 0), F07 (Phase 1), F12 (Phase 6) ────┐
+                                                ├── WS-013-01 (Baseline load)
+                                                ├── WS-013-02 (GPU load)
+                                                ├── WS-013-03 (Iceberg load)
+                                                ├── WS-013-04 (Comparison load)
+                                                └── WS-013-05 (Security stability)
+```
+
+### Execution Order
+
+**All workstreams can run in parallel after Phases 0, 1, 6 complete.**
+
+---
+
 ## Summary
 
 | Feature | Total WS | Completed | In Progress | Backlog |
@@ -570,8 +602,9 @@ F06 (Phase 0), F07 (Phase 1), F11 (Phase 5) ────┐
 | F10: Phase 4 — Docker Intermediate Layers | 4 | 0 | 0 | 4 |
 | F11: Phase 5 — Docker Final Images | 3 | 0 | 0 | 3 |
 | F12: Phase 6 — E2E Tests | 6 | 0 | 0 | 6 |
+| F13: Phase 7 — Load Tests | 5 | 0 | 0 | 5 |
 | TESTING: Testing Infrastructure | 3+ | 0 | 0 | 3+ |
-| **TOTAL** | **84+** | **30** | **1** | **55+** |
+| **TOTAL** | **89+** | **30** | **1** | **60+** |
 
 ---
 
