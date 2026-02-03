@@ -47,6 +47,7 @@ WS-001-01 (Chart Skeleton)
 
 ---
 
+
 ## Feature F02: Repository Documentation (Charts + How-To Guides)
 
 **Source:** `docs/drafts/idea-repo-documentation.md`
@@ -345,6 +346,214 @@ WS-TESTING-001 (Diagnostics)
 
 ---
 
+## Feature F08: Phase 2 — Complete Smoke Tests
+
+**Source:** `docs/phases/phase-02-smoke.md`
+**Status:** In Progress
+**Total Workstreams:** 7
+**Estimated LOC:** ~6500
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-008-01 | Jupyter GPU/Iceberg scenarios (12) | SMALL (~500 LOC) | Phase 0, Phase 1, WS-006-06, WS-006-07 | backlog |
+| WS-008-02 | Standalone chart baseline scenarios (24) | MEDIUM (~800 LOC) | F01 | in_progress |
+| WS-008-03 | Spark Operator scenarios (32) | MEDIUM (~1200 LOC) | WS-020-12 | backlog |
+| WS-008-04 | History Server validation scenarios (32) | MEDIUM (~1000 LOC) | WS-012-01 | backlog |
+| WS-008-05 | MLflow scenarios (24) | MEDIUM (~800 LOC) | WS-001-07 | backlog |
+| WS-008-06 | Dataset generation utilities | SMALL (~400 LOC) | WS-008-01 | backlog |
+| WS-008-07 | Parallel execution improvements | SMALL (~600 LOC) | WS-008-02 | backlog |
+
+### Current State (15 scenarios implemented)
+
+| Компонент | Режим | Версия | Фича | Статус |
+|-----------|-------|--------|------|--------|
+| Jupyter | k8s-submit | 3.5.7, 3.5.8 | - | ✅ |
+| Jupyter | connect-k8s | 4.1.0, 4.1.1 | - | ✅ |
+| Jupyter | connect-standalone | 4.1.0, 4.1.1 | - | ✅ |
+| Airflow | connect-k8s | 4.1.0, 4.1.1 | - | ✅ |
+| Airflow | connect-standalone | 4.1.0, 4.1.1 | - | ✅ |
+| Airflow | connect-k8s | 4.1.0, 4.1.1 | GPU | ✅ |
+| Airflow | connect-k8s | 4.1.0, 4.1.1 | Iceberg | ✅ |
+
+### Dependency Graph
+
+```
+Phase 0 (WS-006-01 to WS-006-09) ──────┐
+Phase 1 (WS-022-01 to WS-022-04) ──────┼── WS-008-01 (Jupyter GPU/Iceberg) ──┐
+F01 (WS-001-01 to WS-001-12) ──────────┤                                │
+WS-006-06, WS-006-07 (GPU/Iceberg) ────┘                                │
+                                                                   │
+F01 (completed) ──────────────────────────────────────────────────────┼── WS-008-02 (Standalone) ────┐
+                                                                   │                            │
+WS-020-12 (Spark Operator) ─────────────────────────────────────────┼── WS-008-03 (Operator) ──────┤
+                                                                   │                            │
+WS-012-01 (History Server) ────────────────────────────────────────┼── WS-008-04 (History) ───────┼── WS-008-07 (Parallel
+                                                                   │                            │        Execution)
+WS-001-07 (MLflow) ─────────────────────────────────────────────────┼── WS-008-05 (MLflow) ────────┤
+                                                                   │                            │
+WS-008-01 ─────────────────────────────────────────────────────────┼── WS-008-06 (Dataset) ───────┘
+                                                                   │
+```
+
+### Execution Order
+
+**Phase 1: High Priority (P1)**
+- WS-008-01: Jupyter GPU/Iceberg scenarios
+- WS-008-02: Standalone chart scenarios
+- WS-008-06: Dataset generation utilities
+
+**Phase 3: Medium Priority (P2)**
+- WS-008-03: Spark Operator scenarios
+- WS-008-04: History Server scenarios
+
+**Phase 4: Infrastructure (P1)**
+- WS-008-07: Parallel execution improvements
+
+**Phase 5: Low Priority (P3)**
+- WS-008-05: MLflow scenarios
+
+---
+
+## Feature F09: Phase 3 — Docker Base Layers
+
+**Source:** `docs/phases/phase-03-docker-base.md`
+**Status:** Backlog
+**Total Workstreams:** 3
+**Estimated LOC:** ~1050
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-009-01 | JDK 17 base layer + test | SMALL (~300 LOC) | None | backlog |
+| WS-009-02 | Python 3.10 base layer + test | SMALL (~250 LOC) | None | backlog |
+| WS-009-03 | CUDA 12.1 base layer + test | MEDIUM (~500 LOC) | WS-009-01 | backlog |
+
+### Dependency Graph
+
+```
+WS-009-01 (JDK 17 base layer) ──────┐
+WS-009-02 (Python 3.10 base layer) ─┼── Independent (parallel)
+                                   │
+                                   │
+WS-009-01 ─────────────────────────┴── WS-009-03 (CUDA 12.1 base layer)
+```
+
+### Execution Order
+
+**Phase 1: Parallel Start (P1)**
+- WS-009-01: JDK 17 base layer
+- WS-009-02: Python 3.10 base layer
+
+**Phase 2: After JDK 17 (P1)**
+- WS-009-03: CUDA 12.1 base layer (extends JDK 17)
+
+---
+
+## Feature F10: Phase 4 — Docker Intermediate Layers
+
+**Source:** `docs/phases/phase-04-docker-intermediate.md`
+**Status:** Backlog
+**Total Workstreams:** 4
+**Estimated LOC:** ~2500
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-010-01 | Spark core layers (4) + tests | MEDIUM (~800 LOC) | F09 | backlog |
+| WS-010-02 | Python dependencies layer + test | MEDIUM (~600 LOC) | F09 | backlog |
+| WS-010-03 | JDBC drivers layer + test | SMALL (~400 LOC) | F09 | backlog |
+| WS-010-04 | JARs layers (RAPIDS, Iceberg) + tests | MEDIUM (~700 LOC) | F09, WS-010-01 | backlog |
+
+### Dependency Graph
+
+```
+F09 (Phase 3 - Base Layers) ──────┐
+                                   ├── WS-010-01 (Spark core) ────┐
+                                   │                            │
+                                   ├── WS-010-02 (Python deps)   ├── WS-010-04 (JARs)
+                                   │                            │
+                                   └── WS-010-03 (JDBC drivers) ──┘
+```
+
+### Execution Order
+
+**Phase 1: Parallel Start (after F09)**
+- WS-010-01: Spark core layers
+- WS-010-02: Python dependencies
+- WS-010-03: JDBC drivers
+
+**Phase 2: After Spark core (P1)**
+- WS-010-04: JARs layers (extends Spark core)
+
+---
+
+## Feature F11: Phase 5 — Docker Final Images
+
+**Source:** `docs/phases/phase-05-docker-final.md`
+**Status:** Backlog
+**Total Workstreams:** 3
+**Estimated LOC:** ~3900
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-011-01 | Spark 3.5 images (8) + tests | LARGE (~1200 LOC) | F10 | backlog |
+| WS-011-02 | Spark 4.1 images (8) + tests | LARGE (~1200 LOC) | F10 | backlog |
+| WS-011-03 | Jupyter images (12) + tests | LARGE (~1500 LOC) | F10, WS-011-01, WS-011-02 | backlog |
+
+### Dependency Graph
+
+```
+F10 (Phase 4 - Intermediate Layers) ───┐
+                                       ├── WS-011-01 (Spark 3.5) ────┐
+                                       │                            │
+                                       ├── WS-011-02 (Spark 4.1) ────┼── WS-011-03 (Jupyter)
+                                       │                            │
+                                       └── WS-009-02 (Python base) ────┘
+```
+
+### Execution Order
+
+**Phase 1: Parallel Start (after F10)**
+- WS-011-01: Spark 3.5 images
+- WS-011-02: Spark 4.1 images
+
+**Phase 2: After Spark images (P1)**
+- WS-011-03: Jupyter images (depends on Spark images)
+
+---
+
+## Feature F12: Phase 6 — E2E Tests
+
+**Source:** `docs/phases/phase-06-e2e.md`
+**Status:** Backlog
+**Total Workstreams:** 6
+**Estimated LOC:** ~4900
+
+| ID | Name | Scenarios | Dependency | Status |
+|----|------|-----------|------------|--------|
+| WS-012-01 | Core E2E | 24 | F06, F07, F11 | backlog |
+| WS-012-02 | GPU E2E | 16 | F06, F07, F11 | backlog |
+| WS-012-03 | Iceberg E2E | 16 | F06, F07, F11 | backlog |
+| WS-012-04 | GPU+Iceberg E2E | 8 | F06, F07, F11 | backlog |
+| WS-012-05 | Standalone E2E | 8 | F06, F07 | backlog |
+| WS-012-06 | Library compatibility | 8 | F06, F07 | backlog |
+
+### Dependency Graph
+
+```
+F06 (Phase 0), F07 (Phase 1), F11 (Phase 5) ────┐
+                                                ├── WS-012-01 (Core E2E)
+                                                ├── WS-012-02 (GPU E2E)
+                                                ├── WS-012-03 (Iceberg E2E)
+                                                ├── WS-012-04 (GPU+Iceberg E2E)
+                                                ├── WS-012-05 (Standalone E2E)
+                                                └── WS-012-06 (Library compatibility)
+```
+
+### Execution Order
+
+**All workstreams can run in parallel after Phases 0, 1, 5 complete.**
+
+---
+
 ## Summary
 
 | Feature | Total WS | Completed | In Progress | Backlog |
@@ -356,9 +565,14 @@ WS-TESTING-001 (Diagnostics)
 | F05: Docs Refresh (Airflow vars) | 2 | 0 | 0 | 2 |
 | F06: Core Components + Presets | 10 | 10 | 0 | 0 |
 | F07: Critical Security + Chart Updates | 4 | 0 | 1 | 3 |
+| F08: Phase 2 — Smoke Tests | 7 | 0 | 0 | 7 |
+| F09: Phase 3 — Docker Base Layers | 3 | 0 | 0 | 3 |
+| F10: Phase 4 — Docker Intermediate Layers | 4 | 0 | 0 | 4 |
+| F11: Phase 5 — Docker Final Images | 3 | 0 | 0 | 3 |
+| F12: Phase 6 — E2E Tests | 6 | 0 | 0 | 6 |
 | TESTING: Testing Infrastructure | 3+ | 0 | 0 | 3+ |
-| **TOTAL** | **61+** | **30** | **1** | **32+** |
+| **TOTAL** | **84+** | **30** | **1** | **55+** |
 
 ---
 
-*Last updated: 2026-02-02*
+*Last updated: 2026-02-04*
