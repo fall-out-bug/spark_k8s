@@ -28,6 +28,16 @@ data:
   init-dbs.sh: |
     #!/bin/sh
     set -e
+    # Create Hive user for Hive Metastore
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-'EOSQL'
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'hive') THEN
+        CREATE USER hive WITH PASSWORD 'hive123';
+      END IF;
+    END $$;
+    GRANT ALL PRIVILEGES ON DATABASE metastore_spark41 TO hive;
+    EOSQL
     {{- range .Values.core.postgresql.databases }}
     psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-'EOSQL'
     DO $$

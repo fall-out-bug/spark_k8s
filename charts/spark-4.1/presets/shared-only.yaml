@@ -1,0 +1,77 @@
+# Shared Components Only Preset for Spark 4.1
+#
+# This preset deploys ONLY the shared infrastructure components:
+# - MinIO: S3-compatible object storage
+# - PostgreSQL: Database for both Hive Metastores
+# - History Server: UI for both Spark versions
+#
+# Usage:
+#   helm upgrade --install shared charts/spark-4.1 -f charts/spark-4.1/presets/shared-only.yaml
+
+# Disable ALL components by default
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+connect:
+  enabled: false
+
+jupyter:
+  enabled: false
+
+airflow:
+  enabled: false
+
+# Shared Infrastructure Components
+minio:
+  enabled: true
+  fullnameOverride: "minio-spark-infra"
+  buckets:
+    - spark-logs
+    - warehouse
+
+postgresql:
+  enabled: true
+  fullnameOverride: "postgresql-spark-infra"
+  # Using shared PostgreSQL with superuser 'spark'
+  username: "spark"
+  password: "spark123"
+  database: "postgres"
+  # StatefulSet configuration for shared PostgreSQL
+  statefulset:
+    enabled: true
+
+historyServer:
+  enabled: true
+  fullnameOverride: "history-server-shared"
+  logDirectory: "s3a://spark-logs/events"
+  # Use Hadoop-compatible credentials provider for Spark 4.1
+  credentialsProvider: "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider"
+
+# S3 configuration (shared)
+global:
+  s3:
+    enabled: true
+    endpoint: "http://minio-spark-infra:9000"
+    pathStyleAccess: true
+    sslEnabled: false
+    accessKey: "minioadmin"
+    secretKey: "minioadmin"
+    existingSecret: "s3-credentials"
+
+  # PostgreSQL configuration (shared)
+  postgresql:
+    host: "postgresql-spark-infra"
+    port: 5432
+    user: "spark"
+    password: "spark123"
+    existingSecret: "postgresql-credentials"
+
+# Feature flags
+features:
+  iceberg:
+    enabled: false
+  gpu:
+    enabled: false

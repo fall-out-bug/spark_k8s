@@ -48,13 +48,13 @@ fi
 
 # Step 1: Delete PVs
 echo -e "${YELLOW}Step 1: Deleting PVs...${NC}"
-kubectl delete pv minio-pv postgresql-pv --ignore-not-found=true
+kubectl delete pv minio-pv data-postgresql-metastore-41-0 postgresql-pv --ignore-not-found=true
 echo -e "${GREEN}✓ PVs deleted${NC}"
 echo ""
 
 # Step 2: Clean up directories in minikube
 echo -e "${YELLOW}Step 2: Cleaning up storage directories...${NC}"
-minikube ssh "rm -rf $STORAGE_BASE/minio $STORAGE_BASE/postgresql" || {
+minikube ssh "sudo rm -rf $STORAGE_BASE/minio $STORAGE_BASE/postgresql" || {
     echo -e "${YELLOW}⚠ Failed to clean directories (may not exist)${NC}"
 }
 echo -e "${GREEN}✓ Directories cleaned${NC}"
@@ -62,7 +62,7 @@ echo ""
 
 # Step 3: Verify cleanup
 echo -e "${YELLOW}Step 3: Verifying cleanup...${NC}"
-REMAINING=$(kubectl get pv -o name | grep -E "minio-pv|postgresql-pv" || true)
+REMAINING=$(kubectl get pv -o name | grep -E "minio-pv|data-postgresql-metastore-41-0|postgresql-pv" || true)
 if [ -z "$REMAINING" ]; then
     echo -e "${GREEN}✓ All PVs removed successfully${NC}"
 else

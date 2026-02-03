@@ -52,6 +52,7 @@ spec:
             - sh
             - -c
             - >
+              echo "Waiting for network and DNS to initialize..."; sleep 20;
               until nc -z {{ include "spark.core.postgresql.fullname" . }} {{ .Values.core.postgresql.service.port }};
               do echo "Waiting for PostgreSQL..."; sleep 2; done; echo "PostgreSQL is ready!"
         {{- end }}
@@ -86,8 +87,15 @@ spec:
             - /bin/bash
             - -lc
             - |
-              envsubst < /opt/hive/conf/hive-site.xml.template > /tmp/hive-conf/hive-site.xml
-              /opt/hive/bin/schematool -dbType postgres -initSchema --ifNotExists
+              # Generate hive-site.xml by substituting environment variables
+              cat /opt/hive/conf/hive-site.xml.template | \
+              sed "s/\${POSTGRES_HOST}/${POSTGRES_HOST}/g" | \
+              sed "s/\${POSTGRES_PORT}/${POSTGRES_PORT}/g" | \
+              sed "s/\${POSTGRES_DB}/${POSTGRES_DB}/g" | \
+              sed "s/\${POSTGRES_USER}/${POSTGRES_USER}/g" | \
+              sed "s#\${POSTGRES_PASSWORD}#${POSTGRES_PASSWORD}#g" \
+              > /tmp/hive-conf/hive-site.xml
+              /opt/hive/bin/schematool -dbType postgres -initOrUpgradeSchema
           volumeMounts:
             - name: hive-config
               mountPath: /opt/hive/conf/hive-site.xml.template
@@ -146,6 +154,7 @@ spec:
             - sh
             - -c
             - >
+              echo "Waiting for network and DNS to initialize..."; sleep 20;
               until nc -z {{ include "spark.core.postgresql.fullname" . }} {{ .Values.core.postgresql.service.port }};
               do echo "Waiting for PostgreSQL..."; sleep 2; done; echo "PostgreSQL is ready!"
         {{- end }}
@@ -184,7 +193,14 @@ spec:
             - /bin/bash
             - -lc
             - |
-              envsubst < /opt/hive/conf/hive-site.xml.template > /tmp/hive-conf/hive-site.xml
+              # Generate hive-site.xml by substituting environment variables
+              cat /opt/hive/conf/hive-site.xml.template | \
+              sed "s/\${POSTGRES_HOST}/${POSTGRES_HOST}/g" | \
+              sed "s/\${POSTGRES_PORT}/${POSTGRES_PORT}/g" | \
+              sed "s/\${POSTGRES_DB}/${POSTGRES_DB}/g" | \
+              sed "s/\${POSTGRES_USER}/${POSTGRES_USER}/g" | \
+              sed "s#\${POSTGRES_PASSWORD}#${POSTGRES_PASSWORD}#g" \
+              > /tmp/hive-conf/hive-site.xml
               exec /opt/hive/bin/hive --service metastore
           ports:
             - name: thrift

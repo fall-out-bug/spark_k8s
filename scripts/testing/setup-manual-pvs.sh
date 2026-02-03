@@ -7,11 +7,12 @@
 # where dynamic provisioning doesn't work due to filesystem limitations.
 #
 # Usage:
-#   ./scripts/testing/setup-manual-pvs.sh [namespace] [storage_base]
+#   ./scripts/testing/setup-manual-pvs.sh [namespace] [storage_base] [spark_version]
 #
 # Arguments:
-#   namespace    Kubernetes namespace (default: default)
-#   storage_base Base path for storage (default: /tmp/spark-testing)
+#   namespace     Kubernetes namespace (default: default)
+#   storage_base  Base path for storage (default: /tmp/spark-testing)
+#   spark_version Spark version: 3.5 or 4.1 (default: 4.1)
 #
 # Production: Use cloud-specific StorageClass with dynamic provisioning.
 #
@@ -28,6 +29,7 @@ NC='\033[0m' # No Color
 # Parse arguments
 NAMESPACE=${1:-default}
 STORAGE_BASE=${2:-/tmp/spark-testing}
+SPARK_VERSION=${3:-4.1}
 
 # Validate minikube is running
 if ! minikube status &>/dev/null; then
@@ -60,7 +62,7 @@ echo ""
 # Step 2: Check if PVs already exist
 echo -e "${YELLOW}Step 2: Checking existing PVs...${NC}"
 EXISTING_MINIO=$(kubectl get pv minio-pv --ignore-not-found 2>/dev/null)
-EXISTING_PG=$(kubectl get pv postgresql-pv --ignore-not-found 2>/dev/null)
+EXISTING_PG=$(kubectl get pv data-postgresql-metastore-${SPARK_VERSION}-0 --ignore-not-found 2>/dev/null)
 
 if [ -n "$EXISTING_MINIO" ]; then
     echo -e "${YELLOW}⚠ minio-pv already exists, skipping...${NC}"
@@ -70,16 +72,33 @@ else
 fi
 
 if [ -n "$EXISTING_PG" ]; then
-    echo -e "${YELLOW}⚠ postgresql-pv already exists, skipping...${NC}"
+    echo -e "${YELLOW}⚠ data-postgresql-metastore-${SPARK_VERSION}-0 already exists, skipping...${NC}"
 else
-    kubectl apply -f templates/testing/pv-postgresql.yaml
-    echo -e "${GREEN}✓ postgresql-pv created${NC}"
+    # Create PV dynamically based on Spark version
+    cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-postgresql-metastore-${SPARK_VERSION}-0
+spec:
+  capacity:
+    storage: 8Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: standard
+  volumeMode: Filesystem
+  hostPath:
+    path: ${STORAGE_BASE}/postgresql
+    type: DirectoryOrCreate
+EOF
+    echo -e "${GREEN}✓ data-postgresql-metastore-${SPARK_VERSION}-0 created${NC}"
 fi
 echo ""
 
 # Step 3: Verify PVs are available
 echo -e "${YELLOW}Step 3: Verifying PVs...${NC}"
-kubectl get pv minio-pv postgresql-pv
+kubectl get pv minio-pv data-postgresql-metastore-${SPARK_VERSION}-0
 echo ""
 
 # Step 4: Summary

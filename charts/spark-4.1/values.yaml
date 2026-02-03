@@ -1,7 +1,7 @@
 global:
   imagePullSecrets: []
   s3:
-    endpoint: "http://minio:9000"
+    endpoint: "http://minio-spark-41:9000"
     accessKey: "minioadmin"
     secretKey: "minioadmin"
     pathStyleAccess: true
@@ -127,8 +127,8 @@ core:
     enabled: true  # Hive Metastore for Spark SQL
     fullnameOverride: ""
     image:
-      repository: apache/hive
-      tag: "4.0.0"
+      repository: spark-k8s/hive
+      tag: "4.0.0-pg"
       pullPolicy: IfNotPresent
     service:
       port: 9083
@@ -162,13 +162,13 @@ core:
       repository: spark-custom
       tag: "4.1.0"
       pullPolicy: IfNotPresent
-    logDirectory: "s3a://spark-logs/4.1/events"
+    logDirectory: "file:///tmp/spark-events"
     updateInterval: "10s"
-    provider: "org.apache.hadoop.fs.s3a.S3AFileSystem"
-    s3aImpl: "org.apache.hadoop.fs.s3a.S3AFileSystem"
-    credentialsProvider: "com.amazonaws.auth.SimpleAWSCredentialsProvider"
-    s3ConnectionMax: "200"
-    s3ConnectionTimeout: "200000"
+    provider: ""
+    s3aImpl: ""
+    credentialsProvider: ""
+    s3ConnectionMax: ""
+    s3ConnectionTimeout: ""
     maxApplications: "1000"
     service:
       type: ClusterIP
@@ -182,7 +182,7 @@ core:
         memory: "2Gi"
         cpu: "1000m"
     sparkConf:
-      spark.history.fs.cleaner.enabled: "true"
+      spark.history.fs.cleaner.enabled: true
       spark.history.fs.cleaner.interval: "1d"
       spark.history.fs.cleaner.maxAge: "7d"
 
@@ -293,8 +293,8 @@ connect:
 hiveMetastore:
   enabled: true
   image:
-    repository: apache/hive
-    tag: "4.0.0"
+    repository: spark-k8s/hive
+    tag: "4.0.0-pg"
     pullPolicy: IfNotPresent
   service:
     port: 9083
@@ -328,7 +328,7 @@ historyServer:
     repository: spark-custom
     tag: "4.1.0"
     pullPolicy: IfNotPresent
-  logDirectory: "s3a://spark-logs/4.1/events"
+  logDirectory: "file:///tmp/spark-events"
   service:
     type: ClusterIP
     port: 18080

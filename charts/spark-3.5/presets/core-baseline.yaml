@@ -13,23 +13,39 @@
 # Usage:
 #   helm install my-spark charts/spark-3.5 -f charts/spark-3.5/presets/core-baseline.yaml
 
-# Core Infrastructure Components
-core:
-  minio:
+# Global S3 configuration (used by History Server and Hive Metastore)
+global:
+  s3:
     enabled: true
-    fullnameOverride: "minio-spark-35"
+    endpoint: "http://minio-spark-35:9000"
+    pathStyleAccess: true
+    sslEnabled: false
+    existingSecret: "s3-credentials"
 
-  postgresql:
-    enabled: true
-    fullnameOverride: "postgresql-metastore-35"
+# Core Infrastructure Components (using top-level values for Spark 3.5)
+minio:
+  enabled: true
+  fullnameOverride: "minio-spark-35"
+  buckets:
+    - spark-logs
+    - warehouse
 
-  hiveMetastore:
-    enabled: true
-    fullnameOverride: "hive-metastore-35"
+postgresql:
+  enabled: true
+  fullnameOverride: "postgresql-metastore-35"
+  auth:
+    user: hive
+    database: metastore_spark35
+  existingSecret: "spark-35-metastore-db"
 
-  historyServer:
-    enabled: true
-    fullnameOverride: "history-server-35"
+hiveMetastore:
+  enabled: true
+  fullnameOverride: "hive-metastore-35"
+
+historyServer:
+  enabled: true
+  fullnameOverride: "history-server-35"
+  logDirectory: "s3a://spark-logs/3.5/events"
 
 # Feature flags
 features:

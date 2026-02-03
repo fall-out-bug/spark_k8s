@@ -254,7 +254,7 @@ data:
     # Spark History Server Configuration
     spark.history.fs.logDirectory {{ .Values.core.historyServer.logDirectory }}
     spark.history.fs.update.interval {{ .Values.core.historyServer.updateInterval | default "10s" }}
-    spark.history.provider {{ .Values.core.historyServer.provider | default "org.apache.hadoop.fs.s3a.S3AFileSystem" }}
+    spark.history.provider {{ .Values.core.historyServer.provider | default "org.apache.spark.deploy.history.FsHistoryProvider" }}
 
     {{- if .Values.global.s3 }}
     # S3 Configuration for Event Logs
@@ -264,11 +264,9 @@ data:
     spark.hadoop.fs.s3a.impl {{ .Values.core.historyServer.s3aImpl | default "org.apache.hadoop.fs.s3a.S3AFileSystem" }}
     spark.hadoop.fs.s3a.aws.credentials.provider {{ .Values.core.historyServer.credentialsProvider | default "com.amazonaws.auth.SimpleAWSCredentialsProvider" }}
 
-    {{- if not .Values.global.s3.existingSecret }}
-    # Direct S3 credentials (fallback when no secret provided)
+    # S3 credentials (from config for History Server compatibility)
     spark.hadoop.fs.s3a.access.key {{ .Values.global.s3.accessKey }}
     spark.hadoop.fs.s3a.secret.key {{ .Values.global.s3.secretKey }}
-    {{- end }}
 
     # S3 connection settings
     spark.hadoop.fs.s3a.connection.maximum {{ .Values.core.historyServer.s3ConnectionMax | default "200" }}

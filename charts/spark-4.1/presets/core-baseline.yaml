@@ -13,6 +13,13 @@
 # Usage:
 #   helm install my-spark charts/spark-4.1 -f charts/spark-4.1/presets/core-baseline.yaml
 
+# Disable top-level components (use core.* instead)
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
 # Core Infrastructure Components
 core:
   minio:
@@ -30,6 +37,8 @@ core:
   historyServer:
     enabled: true
     fullnameOverride: "history-server-41"
+    # History Server reads logs from S3
+    logDirectory: "s3a://spark-logs/4.1/events"
 
 # Feature flags
 features:

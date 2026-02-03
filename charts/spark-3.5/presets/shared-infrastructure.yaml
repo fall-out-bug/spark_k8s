@@ -1,0 +1,70 @@
+# Shared Infrastructure Preset for Spark 3.5
+#
+# This preset deploys ONLY Hive Metastore for Spark 3.5,
+# assuming MinIO, PostgreSQL, and History Server are already deployed.
+#
+# Use this AFTER deploying shared infrastructure:
+#   ./scripts/testing/deploy-shared-infrastructure.sh spark-infra
+#   ./scripts/testing/deploy-spark-41.sh spark-infra
+#   ./scripts/testing/deploy-spark-35.sh spark-infra
+#
+# Architecture:
+# - MinIO: shared (s3a://spark-logs/3.5/events and s3a://spark-logs/4.1/events)
+# - PostgreSQL: shared (databases metastore_spark35 and metastore_spark41)
+# - Hive Metastore: separate for each Spark version
+# - History Server: shared (reads from both log directories)
+
+# Disable all infrastructure components (use shared ones)
+minio:
+  enabled: false
+
+postgresql:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+# Enable only Hive Metastore
+hiveMetastore:
+  enabled: true
+  fullnameOverride: "hive-metastore-35"
+  database:
+    name: "metastore_spark35"
+  image:
+    repository: "spark-k8s/hive"
+    tag: "4.0.0-pg"
+
+# S3 configuration (points to shared MinIO)
+global:
+  s3:
+    enabled: true
+    endpoint: "http://minio-spark-infra:9000"
+    pathStyleAccess: true
+    sslEnabled: false
+    existingSecret: "s3-credentials"
+
+  # PostgreSQL configuration (points to shared PostgreSQL)
+  postgresql:
+    host: "postgresql-spark-infra"
+    port: 5432
+    user: "hive"
+    password: "hive123"
+    database: "metastore_spark35"
+    existingSecret: "hive-credentials"
+
+# Feature flags
+features:
+  iceberg:
+    enabled: false
+  gpu:
+    enabled: false
+
+# Optional components (disabled)
+connect:
+  enabled: false
+
+jupyter:
+  enabled: false
+
+airflow:
+  enabled: false
