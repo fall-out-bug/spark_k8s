@@ -279,6 +279,44 @@ WS-006-01 ───────────────────────�
 
 ---
 
+## Feature F07: Phase 1 — Critical Security + Chart Updates
+
+**Source:** Implementation Plan (Critical Security + Chart Updates)
+**Status:** In Progress
+**Total Workstreams:** 4
+**Estimated LOC:** ~1250
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-022-01 | Create namespace.yaml Templates | SMALL (~150 LOC) | - | in_progress |
+| WS-022-02 | Enable podSecurityStandards by Default | SMALL (~100 LOC) | - | backlog |
+| WS-022-03 | Create OpenShift Presets | MEDIUM (~400 LOC) | WS-022-01, WS-022-02 | backlog |
+| WS-022-04 | Create PSS/SCC Smoke Tests | MEDIUM (~600 LOC) | WS-022-03 | backlog |
+
+### Dependency Graph
+
+```
+WS-022-01 (namespace.yaml)
+    │
+    ├─> WS-022-02 (podSecurityStandards default) [PARALLEL]
+    │       │
+    │       └─> WS-022-03 (OpenShift presets)
+    │               │
+    │               └─> WS-022-04 (Smoke tests)
+    │
+    └─> WS-022-03 (OpenShift presets)
+            │
+            └─> WS-022-04 (Smoke tests)
+```
+
+### Execution Order
+
+1. **Parallel:** WS-022-01 + WS-022-02
+2. **Sequential:** WS-022-03 (after 1+2 complete)
+3. **Sequential:** WS-022-04 (after all complete)
+
+---
+
 ## Feature TESTING: Testing Infrastructure
 
 **Source:** `docs/issues/issue-001-minikube-pvc-provisioning.md`
@@ -317,8 +355,9 @@ WS-TESTING-001 (Diagnostics)
 | F04: Spark 4.1.0 Charts | 24 | 0 | 0 | 24 |
 | F05: Docs Refresh (Airflow vars) | 2 | 0 | 0 | 2 |
 | F06: Core Components + Presets | 10 | 10 | 0 | 0 |
+| F07: Critical Security + Chart Updates | 4 | 0 | 1 | 3 |
 | TESTING: Testing Infrastructure | 3+ | 0 | 0 | 3+ |
-| **TOTAL** | **57+** | **30** | **0** | **29+** |
+| **TOTAL** | **61+** | **30** | **1** | **32+** |
 
 ---
 

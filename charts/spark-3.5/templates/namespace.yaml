@@ -1,0 +1,16 @@
+{{- if .Values.security.createNamespace -}}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Release.Namespace }}
+  labels:
+    {{- with .Values.security.pssProfile }}
+    pod-security.kubernetes.io/enforce: {{ . }}
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit: {{ . }}
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn: {{ . }}
+    pod-security.kubernetes.io/warn-version: latest
+    {{- end }}
+    {{- include "spark-base.labels" . | nindent 4 }}
+{{- end }}

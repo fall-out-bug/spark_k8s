@@ -409,16 +409,21 @@ sparkOperator:
 
 # Security settings
 security:
-  podSecurityStandards: false
+  podSecurityStandards: true
   runAsUser: 185
   runAsGroup: 185
   fsGroup: 185
   readOnlyRootFilesystem: false
+  # PSS profile for namespace labels (restricted/baseline/privileged)
+  pssProfile: restricted
+  # Create namespace with PSS labels
+  createNamespace: false
   networkPolicies:
     enabled: false
   rbac:
     create: true
-    pspEnabled: false# Monitoring settings
+    pspEnabled: false
+# Monitoring settings
 monitoring:
   serviceMonitor:
     enabled: false

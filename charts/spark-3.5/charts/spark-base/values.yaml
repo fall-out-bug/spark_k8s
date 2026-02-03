@@ -69,7 +69,11 @@ postgresql:
       cpu: "500m"
 
 security:
-  podSecurityStandards: false
+  podSecurityStandards: true
   runAsUser: 1000
   runAsGroup: 1000
   fsGroup: 1000
+  # PSS profile for namespace labels (restricted/baseline/privileged)
+  pssProfile: restricted
+  # Create namespace with PSS labels
+  createNamespace: false
