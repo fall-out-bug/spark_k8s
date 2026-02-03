@@ -108,7 +108,7 @@ echo ""
 
 # Step 6: Wait for PostgreSQL and create databases
 echo -e "${YELLOW}Step 6: Creating databases...${NC}"
-PG_POD=$(kubectl get pods -n "$NAMESPACE" -l app.kubernetes.io/name=shared-spark-base-postgresql -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+PG_POD=$(kubectl get pods -n "$NAMESPACE" -l app.kubernetes.io/name=spark-base,app=postgresql -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
 if [ -z "$PG_POD" ]; then
     PG_POD=$(kubectl get pods -n "$NAMESPACE" -l app.kubernetes.io/name=spark-4.1-postgresql -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
 fi
@@ -124,15 +124,15 @@ kubectl wait --for=condition=ready pod "$PG_POD" -n "$NAMESPACE" --timeout=300s
 PG_CONTAINER=$(minikube ssh "docker ps | grep $PG_POD | head -1 | cut -d' ' -f1")
 
 echo "Creating databases for Spark 3.5 and 4.1..."
-minikube ssh "docker exec $PG_CONTAINER psql -U spark -c 'CREATE USER hive WITH PASSWORD \"hive123\";" 2>/dev/null || echo "User exists"
+minikube ssh "docker exec $PG_CONTAINER psql -U spark -c \"CREATE USER hive WITH PASSWORD 'hive123';\" 2>/dev/null || echo 'User exists'"
 
-minikube ssh "docker exec $PG_CONTAINER psql -U spark -c 'CREATE DATABASE metastore_spark35;'" 2>/dev/null || echo "Database exists"
-minikube ssh "docker exec $PG_CONTAINER psql -U spark -c 'GRANT ALL PRIVILEGES ON DATABASE metastore_spark35 TO hive;'" 2>/dev/null
-minikube ssh "docker exec $PG_CONTAINER psql -U spark -d metastore_spark35 -c 'GRANT ALL ON SCHEMA public TO hive;'" 2>/dev/null
+minikube ssh "docker exec $PG_CONTAINER psql -U spark -c 'CREATE DATABASE metastore_spark35;' 2>/dev/null || echo 'Database exists'"
+minikube ssh "docker exec $PG_CONTAINER psql -U spark -c 'GRANT ALL PRIVILEGES ON DATABASE metastore_spark35 TO hive;' 2>/dev/null"
+minikube ssh "docker exec $PG_CONTAINER psql -U spark -d metastore_spark35 -c 'GRANT ALL ON SCHEMA public TO hive;' 2>/dev/null"
 
-minikube ssh "docker exec $PG_CONTAINER psql -U spark -c 'CREATE DATABASE metastore_spark41;'" 2>/dev/null || echo "Database exists"
-minikube ssh "docker exec $PG_CONTAINER psql -U spark -c 'GRANT ALL PRIVILEGES ON DATABASE metastore_spark41 TO hive;'" 2>/dev/null
-minikube ssh "docker exec $PG_CONTAINER psql -U spark -d metastore_spark41 -c 'GRANT ALL ON SCHEMA public TO hive;'" 2>/dev/null
+minikube ssh "docker exec $PG_CONTAINER psql -U spark -c 'CREATE DATABASE metastore_spark41;' 2>/dev/null || echo 'Database exists'"
+minikube ssh "docker exec $PG_CONTAINER psql -U spark -c 'GRANT ALL PRIVILEGES ON DATABASE metastore_spark41 TO hive;' 2>/dev/null"
+minikube ssh "docker exec $PG_CONTAINER psql -U spark -d metastore_spark41 -c 'GRANT ALL ON SCHEMA public TO hive;' 2>/dev/null"
 
 echo -e "${GREEN}✓ Databases created${NC}"
 echo ""
