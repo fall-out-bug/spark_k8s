@@ -1,12 +1,13 @@
 global:
   imagePullSecrets: []
   s3:
+    enabled: true
     endpoint: "http://minio:9000"
     accessKey: "minioadmin"
     secretKey: "minioadmin"
     pathStyleAccess: true
     sslEnabled: false
-    existingSecret: "s3-credentials"
+    existingSecret: ""
   postgresql:
     host: "postgresql-metastore-41"
     port: 5432
@@ -159,10 +160,10 @@ core:
     enabled: true  # Spark History Server for completed applications
     fullnameOverride: ""
     image:
-      repository: spark-custom
-      tag: "3.5.7"
+      repository: apache/spark
+      tag: "3.5.3"
       pullPolicy: IfNotPresent
-    logDirectory: "s3a://spark-logs/3.5/events"
+    logDirectory: "file:///tmp/spark-events"
     service:
       type: ClusterIP
       port: 18080
@@ -311,12 +312,12 @@ connect:
     maxExecutors: 10
   eventLog:
     enabled: true
-    dir: "s3a://spark-logs/4.1/events"
+    dir: "s3a://spark-logs/3.5/events"
   sparkConf: {}
 
 # Hive Metastore 3.1.3 (separate instance for Spark 3.5.3)
 hiveMetastore:
-  enabled: true
+  enabled: false
   image:
     repository: apache/hive
     tag: "3.1.3"
@@ -350,10 +351,10 @@ hiveMetastore:
 historyServer:
   enabled: true
   image:
-    repository: spark-custom
-    tag: "3.5.7"
+    repository: apache/spark
+    tag: "3.5.3"
     pullPolicy: IfNotPresent
-  logDirectory: "s3a://spark-logs/4.1/events"
+  logDirectory: "file:///tmp/spark-events"
   service:
     type: ClusterIP
     port: 18080
@@ -376,8 +377,8 @@ ingress:
 jupyter:
   enabled: true
   image:
-    repository: jupyter-spark
-    tag: "3.5.7"
+    repository: jupyter/all-spark-notebook
+    tag: "latest"
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP

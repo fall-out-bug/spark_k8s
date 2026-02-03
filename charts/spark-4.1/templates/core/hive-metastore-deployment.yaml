@@ -47,6 +47,7 @@ spec:
           {{- if .Values.security.podSecurityStandards }}
           securityContext:
             {{- include "spark.core.podSecurityContext" . | nindent 12 }}
+            runAsUser: 1000
           {{- end }}
           command:
             - sh
@@ -82,6 +83,7 @@ spec:
           {{- if .Values.security.podSecurityStandards }}
           securityContext:
             {{- include "spark.core.podSecurityContext" . | nindent 12 }}
+            runAsUser: 1000
           {{- end }}
           command:
             - /bin/bash
@@ -188,6 +190,7 @@ spec:
           {{- if .Values.security.podSecurityStandards }}
           securityContext:
             {{- include "spark.core.podSecurityContext" . | nindent 12 }}
+            runAsUser: 1000
           {{- end }}
           command:
             - /bin/bash

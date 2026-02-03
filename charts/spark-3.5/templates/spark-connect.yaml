@@ -53,7 +53,8 @@ spec:
               envsubst < /opt/spark/conf-k8s-templates/spark-properties.conf.template > /tmp/spark-conf/spark-defaults.conf &&
               envsubst < /opt/spark/conf-k8s-templates/executor-pod-template.yaml.template > /tmp/spark-conf/executor-pod-template.yaml
           env:
-            {{- if and .Values.global.s3.enabled .Values.global.s3.existingSecret }}
+            {{- if .Values.global.s3.enabled }}
+            {{- if .Values.global.s3.existingSecret }}
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
@@ -64,17 +65,23 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.global.s3.existingSecret }}
                   key: secret-key
+            {{- else }}
+            - name: AWS_ACCESS_KEY_ID
+              value: {{ .Values.global.s3.accessKey | quote }}
+            - name: AWS_SECRET_ACCESS_KEY
+              value: {{ .Values.global.s3.secretKey | quote }}
+            {{- end }}
             {{- end }}
             - name: POD_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
             - name: IVY_DIR
-              value: "/home/spark/.ivy2"
+              value: "/tmp/spark-ivy-cache"
 
           {{- if .Values.security.podSecurityStandards }}
           securityContext:
-            {{- include "spark-base.containerSecurityContext" . | nindent 12 }}
+            {{- include "spark-base.initContainerSecurityContext" . | nindent 12 }}
           {{- end }}
           volumeMounts:
             - name: spark-connect-config
@@ -117,7 +124,7 @@ spec:
                 fieldRef:
                   fieldPath: status.podIP
             - name: IVY_DIR
-              value: "/home/spark/.ivy2"
+              value: "/tmp/spark-ivy-cache"
 
           {{- if .Values.security.podSecurityStandards }}
           securityContext:
@@ -163,7 +170,7 @@ spec:
             - name: spark-connect-writable
               mountPath: /tmp/spark-conf
             - name: ivy-cache
-              mountPath: /home/spark/.ivy2
+              mountPath: /tmp/spark-ivy-cache
           resources:
             {{- if and .Values.connect.executor.gpu .Values.connect.executor.gpu.enabled }}
             limits:

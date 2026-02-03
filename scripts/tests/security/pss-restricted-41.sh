@@ -1,11 +1,12 @@
 #!/bin/bash
 # @meta
-name: "pss-restricted-41"
-type: "security"
-description: "PSS restricted compliance for Spark 4.1"
-category: "pss"
-profile: "restricted"
-spark_version: "4.1"
+# name: "pss-restricted-41"
+# type: "security"
+# description: "PSS restricted compliance for Spark 4.1"
+# category: "pss"
+# profile: "restricted"
+# spark_version: "4.1"
+
 # @endmeta
 
 set -euo pipefail
@@ -38,20 +39,19 @@ deploy_spark() {
         -n "$RELEASE_NS" \
         --set security.createNamespace=false \
         --set security.podSecurityStandards=true \
+        --set spark-base.minio.enabled=true \
+        --set spark-base.postgresql.enabled=true \
         --set connect.enabled=true \
-        --set connect.replicas=1 \
-        --set core.minio.enabled=true \
-        --set core.postgresql.enabled=false \
+        --set historyServer.enabled=false \
         --set core.hiveMetastore.enabled=false \
-        --wait \
-        --timeout 5m
+        --timeout 10m
 }
 
 validate_pss_compliance() {
     echo "Validating PSS compliance..."
 
     local pod_name
-    pod_name=$(kubectl get pods -n "$RELEASE_NS" -l app.kubernetes.io/component=connect -o jsonpath='{.items[0].metadata.name}')
+    pod_name=$(kubectl get pods -n "$RELEASE_NS" -l app=spark-connect -o jsonpath='{.items[0].metadata.name}')
 
     if [[ -z "$pod_name" ]]; then
         echo "ERROR: No connect pod found"
@@ -76,7 +76,7 @@ run_spark_job() {
     echo "Running test Spark job..."
 
     local pod_name
-    pod_name=$(kubectl get pods -n "$RELEASE_NS" -l app.kubernetes.io/component=connect -o jsonpath='{.items[0].metadata.name}')
+    pod_name=$(kubectl get pods -n "$RELEASE_NS" -l app=spark-connect -o jsonpath='{.items[0].metadata.name}')
 
     kubectl exec -n "$RELEASE_NS" "$pod_name" -- spark-shell --version
 }

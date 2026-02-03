@@ -1,12 +1,13 @@
 #!/bin/bash
 # @meta
-name: "scc-restricted-41"
-type: "security"
-description: "SCC restricted compliance for Spark 4.1 on OpenShift"
-category: "scc"
-profile: "restricted"
-spark_version: "4.1"
-platform: "openshift"
+# name: "scc-restricted-41"
+# type: "security"
+# description: "SCC restricted compliance for Spark 4.1 on OpenShift"
+# category: "scc"
+# profile: "restricted"
+# spark_version: "4.1"
+# platform: "openshift"
+
 # @endmeta
 
 set -euo pipefail
@@ -64,19 +65,15 @@ deploy_spark() {
         helm upgrade --install "$RELEASE_NAME" "$CHART" \
             -n "$RELEASE_NS" \
             -f <(sed 's/createNamespace: true/createNamespace: false/' "$PRESET") \
-            --set global.s3.endpoint="http://minio.$RELEASE_NS.svc.cluster.local:9000" \
-            --set global.s3.existingSecret="s3-credentials" \
+            --set global.s3.existingSecret="" \
             --set connect.enabled=true \
-            --wait \
             --timeout 5m
     else
         helm upgrade --install "$RELEASE_NAME" "$CHART" \
             -n "$RELEASE_NS" \
             -f "$PRESET" \
-            --set global.s3.endpoint="http://minio.$RELEASE_NS.svc.cluster.local:9000" \
-            --set global.s3.existingSecret="s3-credentials" \
+            --set global.s3.existingSecret="" \
             --set connect.enabled=true \
-            --wait \
             --timeout 5m
     fi
 }

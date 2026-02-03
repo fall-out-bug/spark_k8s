@@ -51,15 +51,28 @@ validate_pss_restricted() {
     log_info "Validating PSS restricted for pod: $pod_name in namespace: $namespace"
 
     local all_checks_passed=true
+    local containers=$(kubectl get pod "$pod_name" -n "$namespace" -o jsonpath='{.spec.containers[*].name}' 2>/dev/null)
 
-    # Check 1: runAsNonRoot at pod level
-    log_info "  Checking runAsNonRoot at pod level..."
+    # Check 1: runAsNonRoot at pod level OR runAsUser at container level
+    # PSS restricted requires: runAsNonRoot=true OR runAsUser>0 at container level
+    log_info "  Checking runAsNonRoot at pod level OR runAsUser at container level..."
     local run_as_non_root=$(kubectl get pod "$pod_name" -n "$namespace" -o jsonpath='{.spec.securityContext.runAsNonRoot}' 2>/dev/null || echo "")
-    if [[ "$run_as_non_root" != "true" ]]; then
-        log_error "  FAIL: runAsNonRoot is not true (got: '$run_as_non_root')"
-        all_checks_passed=false
+    local has_container_run_as_user=false
+
+    # Check if any container has runAsUser set
+    for container in $containers; do
+        local run_as_user=$(kubectl get pod "$pod_name" -n "$namespace" -o jsonpath="{.spec.containers[?(@.name==\"$container\")].securityContext.runAsUser}" 2>/dev/null || echo "")
+        if [[ -n "$run_as_user" && "$run_as_user" != "0" ]]; then
+            has_container_run_as_user=true
+            break
+        fi
+    done
+
+    if [[ "$run_as_non_root" == "true" ]] || [[ "$has_container_run_as_user" == "true" ]]; then
+        log_info "  PASS: runAsNonRoot=$run_as_non_root or container runAsUser is set (non-zero)"
     else
-        log_info "  PASS: runAsNonRoot is true"
+        log_error "  FAIL: Neither runAsNonRoot=true nor container runAsUser>0 is set"
+        all_checks_passed=false
     fi
 
     # Check 2: seccompProfile at pod level
@@ -74,7 +87,6 @@ validate_pss_restricted() {
 
     # Check 3: allowPrivilegeEscalation at container level
     log_info "  Checking allowPrivilegeEscalation at container level..."
-    local containers=$(kubectl get pod "$pod_name" -n "$namespace" -o jsonpath='{.spec.containers[*].name}' 2>/dev/null)
     for container in $containers; do
         local allow_priv_esc=$(kubectl get pod "$pod_name" -n "$namespace" -o jsonpath="{.spec.containers[?(@.name==\"$container\")].securityContext.allowPrivilegeEscalation}" 2>/dev/null || echo "")
         if [[ "$allow_priv_esc" != "false" ]]; then

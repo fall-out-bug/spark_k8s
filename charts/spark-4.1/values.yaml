@@ -1,12 +1,13 @@
 global:
   imagePullSecrets: []
   s3:
-    endpoint: "http://minio-spark-41:9000"
+    enabled: true
+    endpoint: "http://minio:9000"
     accessKey: "minioadmin"
     secretKey: "minioadmin"
     pathStyleAccess: true
     sslEnabled: false
-    existingSecret: "s3-credentials"
+    existingSecret: ""
   postgresql:
     host: "postgresql-metastore-41"
     port: 5432
@@ -60,6 +61,10 @@ spark-base:
     enabled: false
   security:
     podSecurityStandards: false
+    runAsUser: 185
+    runAsGroup: 185
+    fsGroup: 185
+    readOnlyRootFilesystem: false
 
 rbac:
   create: true
@@ -127,8 +132,8 @@ core:
     enabled: true  # Hive Metastore for Spark SQL
     fullnameOverride: ""
     image:
-      repository: spark-k8s/hive
-      tag: "4.0.0-pg"
+      repository: apache/hive
+      tag: "4.0.0"
       pullPolicy: IfNotPresent
     service:
       port: 9083
@@ -159,10 +164,10 @@ core:
     enabled: true  # Spark History Server for completed applications
     fullnameOverride: ""
     image:
-      repository: spark-custom
+      repository: apache/spark
       tag: "4.1.0"
       pullPolicy: IfNotPresent
-    logDirectory: "file:///tmp/spark-events"
+    logDirectory: "s3a://spark-logs/4.1/events"
     updateInterval: "10s"
     provider: ""
     s3aImpl: ""
@@ -291,7 +296,7 @@ connect:
 
 # Hive Metastore 4.0.0 (separate instance for Spark 4.1.0)
 hiveMetastore:
-  enabled: true
+  enabled: false
   image:
     repository: spark-k8s/hive
     tag: "4.0.0-pg"
@@ -325,10 +330,10 @@ hiveMetastore:
 historyServer:
   enabled: true
   image:
-    repository: spark-custom
+    repository: apache/spark
     tag: "4.1.0"
     pullPolicy: IfNotPresent
-  logDirectory: "file:///tmp/spark-events"
+  logDirectory: "s3a://spark-logs/4.1/events"
   service:
     type: ClusterIP
     port: 18080
@@ -351,8 +356,8 @@ ingress:
 jupyter:
   enabled: true
   image:
-    repository: jupyter-spark
-    tag: "4.1.0"
+    repository: jupyter/all-spark-notebook
+    tag: "latest"
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP

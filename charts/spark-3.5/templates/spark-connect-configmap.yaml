@@ -7,28 +7,22 @@ metadata:
     {{- include "spark-3.5.labels" . | nindent 4 }}
 data:
   spark-properties.conf.template: |-
-    {{- if eq .Values.connect.backendMode "standalone" }}
-    # Spark Master - Standalone backend mode
-    spark.master=spark://{{ .Values.connect.standalone.masterService }}:{{ .Values.connect.standalone.masterPort }}
+    # Spark Connect Server runs in local mode
+    # Clients connect via Spark Connect and can launch executors on K8s
+    spark.master=local[*]
     spark.driver.bindAddress=0.0.0.0
     spark.driver.host={{ default (printf "%s-connect" (include "spark-3.5.fullname" .)) .Values.connect.driver.host }}
     spark.driver.port={{ .Values.connect.driver.port }}
     spark.driver.blockManager.port={{ .Values.connect.driver.blockManagerPort }}
-    {{- else }}
-    # Spark Master - Kubernetes executors mode
-    spark.master=k8s://https://kubernetes.default.svc.cluster.local:443
 
-    # K8s executor config
+    {{- if ne .Values.connect.backendMode "standalone" }}
+    # K8s executor config (for clients launching executors on K8s)
     spark.kubernetes.namespace={{ .Release.Namespace }}
     spark.kubernetes.executor.podTemplateFile=/tmp/spark-conf/executor-pod-template.yaml
     spark.kubernetes.executor.request.cores={{ .Values.connect.executor.cores }}
     spark.kubernetes.executor.limit.cores={{ .Values.connect.executor.coresLimit }}
     spark.kubernetes.executor.request.memory={{ .Values.connect.executor.memory }}
     spark.kubernetes.container.image={{ .Values.connect.image.repository }}:{{ .Values.connect.image.tag }}
-    spark.driver.bindAddress=0.0.0.0
-    spark.driver.host={{ default (printf "%s-connect" (include "spark-3.5.fullname" .)) .Values.connect.driver.host }}
-    spark.driver.port={{ .Values.connect.driver.port }}
-    spark.driver.blockManager.port={{ .Values.connect.driver.blockManagerPort }}
 
     # Dynamic allocation
     spark.dynamicAllocation.enabled={{ .Values.connect.dynamicAllocation.enabled }}
@@ -39,12 +33,27 @@ data:
     spark.connect.grpc.binding.address=0.0.0.0
     spark.connect.grpc.binding.port=15002
 
+    # Ivy cache (for Maven dependencies)
+    spark.jars.ivy=/tmp/spark-ivy-cache
+
+    # Disable push-based shuffle (may conflict with PSS restricted)
+    spark.shuffle.push.enabled=false
+    spark.shuffle.sort bypassMergeThreshold=0
+
     # Event log (for History Server)
     {{- if .Values.connect.eventLog.enabled }}
     spark.eventLog.enabled=true
     spark.eventLog.dir={{ .Values.connect.eventLog.dir }}
     {{- else }}
     spark.eventLog.enabled=false
+    {{- end }}
+
+    {{- if .Values.global.s3.enabled }}
+    # S3 config
+    spark.hadoop.fs.s3a.endpoint={{ .Values.global.s3.endpoint }}
+    spark.hadoop.fs.s3a.access.key=${AWS_ACCESS_KEY_ID}
+    spark.hadoop.fs.s3a.secret.key=${AWS_SECRET_ACCESS_KEY}
+    spark.hadoop.fs.s3a.path.style.access={{ .Values.global.s3.pathStyleAccess }}
     {{- end }}
 
     {{- if .Values.connect.sparkConf }}

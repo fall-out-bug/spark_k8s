@@ -94,7 +94,7 @@ spec:
                   fieldPath: status.podIP
           {{- if .Values.security.podSecurityStandards }}
           securityContext:
-            {{- include "spark-base.containerSecurityContext" . | nindent 12 }}
+            {{- include "spark-base.initContainerSecurityContext" . | nindent 12 }}
           {{- end }}
           volumeMounts:
             - name: spark-connect-config
@@ -120,7 +120,8 @@ spec:
             - name: SPARK_{{ $key | replace "." "_" | upper }}
               value: {{ $val | quote }}
             {{- end }}
-            {{- if and .Values.global.s3.enabled .Values.global.s3.existingSecret }}
+            {{- if .Values.global.s3.enabled }}
+            {{- if .Values.global.s3.existingSecret }}
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
@@ -131,6 +132,12 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.global.s3.existingSecret }}
                   key: secret-key
+            {{- else }}
+            - name: AWS_ACCESS_KEY_ID
+              value: {{ .Values.global.s3.accessKey | quote }}
+            - name: AWS_SECRET_ACCESS_KEY
+              value: {{ .Values.global.s3.secretKey | quote }}
+            {{- end }}
             {{- end }}
             - name: POD_IP
               valueFrom:
