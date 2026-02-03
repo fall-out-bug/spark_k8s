@@ -40,13 +40,30 @@ else
 fi
 echo ""
 
-# Step 2: Setup PVs
-echo -e "${YELLOW}Step 2: Setting up PersistentVolumes...${NC}"
+# Step 2: Load required Docker images into minikube
+echo -e "${YELLOW}Step 2: Loading Docker images into minikube...${NC}"
+IMAGES=(
+    "spark-custom:4.1.0"
+    "spark-k8s/hive:4.0.0-pg"
+)
+for img in "${IMAGES[@]}"; do
+    echo "Loading $img..."
+    if minikube image ls | grep -q "$img"; then
+        echo -e "${YELLOW}⚠ Image $img already loaded${NC}"
+    else
+        minikube image load "$img"
+        echo -e "${GREEN}✓ Image $img loaded${NC}"
+    fi
+done
+echo ""
+
+# Step 3: Setup PVs
+echo -e "${YELLOW}Step 3: Setting up PersistentVolumes...${NC}"
 ./scripts/testing/setup-manual-pvs.sh "$NAMESPACE" "$STORAGE_BASE" "4.1"
 echo ""
 
-# Step 3: Create secrets
-echo -e "${YELLOW}Step 3: Creating secrets...${NC}"
+# Step 6: Create secrets
+echo -e "${YELLOW}Step 6: Creating secrets...${NC}"
 if kubectl -n "$NAMESPACE" get secret s3-credentials &>/dev/null; then
     echo -e "${YELLOW}⚠ Secret s3-credentials already exists${NC}"
 else
@@ -80,8 +97,8 @@ else
 fi
 echo ""
 
-# Step 4: Deploy shared components using preset
-echo -e "${YELLOW}Step 4: Deploying shared components (MinIO, PostgreSQL, History Server)...${NC}"
+# Step 5: Deploy shared components using preset
+echo -e "${YELLOW}Step 5: Deploying shared components (MinIO, PostgreSQL, History Server)...${NC}"
 helm upgrade --install shared charts/spark-4.1 \
     -f charts/spark-4.1/presets/shared-only.yaml \
     --namespace "$NAMESPACE" \
@@ -89,9 +106,9 @@ helm upgrade --install shared charts/spark-4.1 \
 echo -e "${GREEN}✓ Shared components deployed${NC}"
 echo ""
 
-# Step 5: Wait for PostgreSQL and create databases
+# Step 6: Wait for PostgreSQL and create databases
 echo -e "${YELLOW}Step 6: Creating databases...${NC}"
-PG_POD=$(kubectl get pods -n "$NAMESPACE" -l app.kubernetes.io/name=postgresql-spark-infra -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+PG_POD=$(kubectl get pods -n "$NAMESPACE" -l app.kubernetes.io/name=shared-spark-base-postgresql -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
 if [ -z "$PG_POD" ]; then
     PG_POD=$(kubectl get pods -n "$NAMESPACE" -l app.kubernetes.io/name=spark-4.1-postgresql -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
 fi
@@ -120,14 +137,14 @@ minikube ssh "docker exec $PG_CONTAINER psql -U spark -d metastore_spark41 -c 'G
 echo -e "${GREEN}✓ Databases created${NC}"
 echo ""
 
-# Step 6: Create S3 buckets for both versions
-echo -e "${YELLOW}Step 6: Creating S3 buckets...${NC}"
+# Step 7: Create S3 buckets for both versions
+echo -e "${YELLOW}Step 7: Creating S3 buckets...${NC}"
 kubectl run "mc-buckets-shared-$$" \
     --restart=Never \
     --image=quay.io/minio/mc:latest \
     -n "$NAMESPACE" \
     --command -- /bin/sh -c "
-        mc alias set myminio http://minio-spark-infra:9000 minioadmin minioadmin
+        mc alias set myminio http://minio:9000 minioadmin minioadmin
         mc mb myminio/spark-logs
         mc cp /etc/hostname myminio/spark-logs/3.5/events/.keep
         mc cp /etc/hostname myminio/spark-logs/4.1/events/.keep
