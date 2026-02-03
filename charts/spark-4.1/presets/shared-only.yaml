@@ -9,6 +9,10 @@
 #   helm upgrade --install shared charts/spark-4.1 -f charts/spark-4.1/presets/shared-only.yaml
 
 # Disable ALL components by default
+core:
+  hiveMetastore:
+    enabled: false
+
 hiveMetastore:
   enabled: false
 
@@ -24,24 +28,23 @@ jupyter:
 airflow:
   enabled: false
 
-# Shared Infrastructure Components
-minio:
+# Shared Infrastructure Components (in spark-base subchart)
+spark-base:
   enabled: true
-  fullnameOverride: "minio-spark-infra"
-  buckets:
-    - spark-logs
-    - warehouse
-
-postgresql:
-  enabled: true
-  fullnameOverride: "postgresql-spark-infra"
-  # Using shared PostgreSQL with superuser 'spark'
-  username: "spark"
-  password: "spark123"
-  database: "postgres"
-  # StatefulSet configuration for shared PostgreSQL
-  statefulset:
+  # Tell spark-base to use existing secrets instead of creating new ones
+  s3:
+    existingSecret: "s3-credentials"
+  minio:
     enabled: true
+    buckets:
+      - spark-logs
+      - warehouse
+  postgresql:
+    enabled: true
+    # Using shared PostgreSQL with superuser 'spark'
+    auth:
+      username: "spark"
+      password: "spark123"
 
 historyServer:
   enabled: true
@@ -54,7 +57,7 @@ historyServer:
 global:
   s3:
     enabled: true
-    endpoint: "http://minio-spark-infra:9000"
+    endpoint: "http://minio:9000"
     pathStyleAccess: true
     sslEnabled: false
     accessKey: "minioadmin"
@@ -63,7 +66,7 @@ global:
 
   # PostgreSQL configuration (shared)
   postgresql:
-    host: "postgresql-spark-infra"
+    host: "shared-spark-base-postgresql"
     port: 5432
     user: "spark"
     password: "spark123"

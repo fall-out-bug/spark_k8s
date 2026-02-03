@@ -15,11 +15,16 @@
 # - History Server: shared (reads from both log directories)
 
 # Disable all infrastructure components (use shared ones)
-minio:
-  enabled: false
+core:
+  hiveMetastore:
+    enabled: false
 
-postgresql:
-  enabled: false
+spark-base:
+  enabled: true
+  minio:
+    enabled: false
+  postgresql:
+    enabled: false
 
 historyServer:
   enabled: false
@@ -38,14 +43,14 @@ hiveMetastore:
 global:
   s3:
     enabled: true
-    endpoint: "http://minio-spark-infra:9000"
+    endpoint: "http://minio:9000"
     pathStyleAccess: true
     sslEnabled: false
     existingSecret: "s3-credentials"
 
   # PostgreSQL configuration (points to shared PostgreSQL)
   postgresql:
-    host: "postgresql-spark-infra"
+    host: "shared-spark-base-postgresql"
     port: 5432
     user: "hive"
     password: "hive123"

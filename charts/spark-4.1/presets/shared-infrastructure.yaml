@@ -7,11 +7,16 @@
 #   helm upgrade --install spark-41 charts/spark-4.1 -f charts/spark-4.1/presets/shared-infrastructure.yaml
 
 # Disable top-level components (except Hive Metastore)
-minio:
-  enabled: false
+core:
+  hiveMetastore:
+    enabled: false
 
-postgresql:
-  enabled: false
+spark-base:
+  enabled: true
+  minio:
+    enabled: false
+  postgresql:
+    enabled: false
 
 historyServer:
   enabled: false
@@ -31,7 +36,7 @@ hiveMetastore:
   fullnameOverride: "hive-metastore-41"
   # PostgreSQL connection to shared PostgreSQL
   postgresql:
-    host: "postgresql-spark-infra"
+    host: "shared-spark-base-postgresql"
     port: 5432
     database: "metastore_spark41"
     username: "hive"
@@ -41,7 +46,7 @@ hiveMetastore:
 global:
   s3:
     enabled: true
-    endpoint: "http://minio-spark-infra:9000"
+    endpoint: "http://minio:9000"
     pathStyleAccess: true
     sslEnabled: false
     accessKey: "minioadmin"
