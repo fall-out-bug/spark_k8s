@@ -1,0 +1,13 @@
+{
+  "feature": "F09",
+  "feature_id": "spark_k8s-6u6",
+  "agent_id": "f09-main-$(date +%Y%m%d-%H%M%S)",
+  "status": "in_progress",
+  "completed_ws": [],
+  "execution_order": ["spark_k8s-6u6.1", "spark_k8s-6u6.2", "spark_k8s-6u6.3"],
+  "agents": {
+    "ws-009-01": "a11ace6",
+    "ws-009-02": "a3e6892"
+  },
+  "started_at": "$(date -Iseconds)"
+}

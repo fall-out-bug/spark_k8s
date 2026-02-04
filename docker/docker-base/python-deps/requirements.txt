@@ -1,0 +1,15 @@
+# PySpark and Data Science Dependencies
+# Python packages for Spark on Kubernetes platform
+# Target: Python 3.10 Alpine Linux
+
+# PySpark
+pyspark==4.1.0
+
+# Data processing
+pandas>=2.0.0
+numpy>=1.24.0
+pyarrow>=10.0.0
+
+# gRPC dependencies
+grpcio>=1.56.0
+grpcio-status>=1.56.0

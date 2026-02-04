@@ -1,179 +1,205 @@
-# Phase 4: Docker Intermediate Layers
+# Phase 4: Docker Intermediate Layers (Updated)
 
 > **Status:** Backlog
-> **Priority:** P1 - Инфраструктура
+> **Priority:** P1 - Infrastructure
 > **Feature:** F10
 > **Estimated Workstreams:** 4
-> **Estimated LOC:** ~2500
+> **Estimated LOC:** ~1550
 
 ## Goal
 
-Создать промежуточные Docker слои (Spark core, Python deps, JDBC drivers, JARs) с unit тестами для оптимизированных Spark образов.
+Create intermediate Docker layers that extend custom Spark builds (compiled from source with Hadoop 3.4.2 for AWS SDK v2 compatibility).
 
 ## Current State
 
-**Не реализовано** — Phase 4 только начинается.
+**Updated 2026-02-04** - Redesigned to use custom Spark builds instead of Apache distros.
 
-## Updated Workstreams
+- Custom Spark builds exist in `docker/spark-custom/` (3.5.7, 4.1.0 with Hadoop 3.4.2)
+- Previous design incorrectly used Apache distros (Hadoop 3.3.x)
+- Some intermediate layers partially created (JDBC, RAPIDS, Iceberg)
+- Need to update to extend custom builds
+
+## Workstreams
 
 | WS | Task | Scope | Dependencies | Status |
 |----|------|-------|-------------|--------|
-| WS-010-01 | Spark core layers (4) + tests | MEDIUM (~800 LOC) | Phase 3 (F09) | backlog |
-| WS-010-02 | Python dependencies layer + test | MEDIUM (~600 LOC) | Phase 3 (F09) | backlog |
-| WS-010-03 | JDBC drivers layer + test | SMALL (~500 LOC) | Phase 3 (F09) | backlog |
-| WS-010-04 | JARs layers (RAPIDS, Iceberg) + tests | MEDIUM (~700 LOC) | Phase 3 (F09), WS-010-01 | backlog |
+| WS-010-01 | Custom Spark wrapper layers (2) + tests | SMALL (~300 LOC) | Independent | backlog |
+| WS-010-02 | Python dependencies layer + test | MEDIUM (~400 LOC) | Independent | backlog |
+| WS-010-03 | JDBC drivers layer update + test | SMALL (~250 LOC) | WS-010-01 | backlog |
+| WS-010-04 | JARs layers (RAPIDS, Iceberg) + tests | MEDIUM (~600 LOC) | WS-010-01 | backlog |
 
 ## Design Decisions
 
-### 1. Spark Core Layers
+### 1. Custom Spark Builds as Foundation
 
-**Strategy:** One layer per Spark version
+**Strategy:** Use existing custom builds compiled from source
 
-| Image | Base | Content | Size Target |
-|-------|------|---------|-------------|
-| spark-3.5.7-core | jdk-17 | Spark 3.5.7 binary | < 1GB |
-| spark-3.5.8-core | jdk-17 | Spark 3.5.8 binary | < 1GB |
-| spark-4.1.0-core | jdk-17 | Spark 4.1.0 binary | < 1GB |
-| spark-4.1.1-core | jdk-17 | Spark 4.1.1 binary | < 1GB |
+| Image | Base | Hadoop | AWS SDK | Location |
+|-------|------|--------|---------|----------|
+| spark-3.5.7-hadoop3.4.2 | Ubuntu 22.04 | 3.4.2 | v2 | docker/spark-custom/Dockerfile.3.5.7 |
+| spark-4.1.0-hadoop3.4.2 | Ubuntu 22.04 | 3.4.2 | v2 | docker/spark-custom/Dockerfile.4.1.0 |
 
-**Download Source:** Apache mirrors
-**Caching:** Layer caching enabled for fast rebuilds
+**Custom build contents:**
+- Spark compiled from source with Hadoop 3.4.2
+- AWS SDK v2 bundle (2.29.52)
+- JDBC drivers: PostgreSQL, Oracle, Vertica
+- Python 3.11 with PySpark, pandas, numpy, pyarrow
+- Kafka support (spark-sql-kafka-0-10)
+- Kubernetes python client
 
-### 2. Python Dependencies
+### 2. Wrapper Layers (WS-010-01)
 
-**Strategy:** Single Dockerfile with build args for variants
+**Purpose:** Provide consistent naming for intermediate layers
+
+| Layer | Base Image | Purpose |
+|-------|-----------|---------|
+| spark-3.5.7-custom | spark-k8s:3.5.7-hadoop3.4.2 | Reference wrapper for 3.5.7 |
+| spark-4.1.0-custom | spark-k8s:4.1.0-hadoop3.4.2 | Reference wrapper for 4.1.0 |
+
+**Note:** These are lightweight wrappers that verify and document the custom builds.
+
+### 3. Python Dependencies (WS-010-02)
+
+**Strategy:** Extend custom builds with optional GPU and Iceberg support
 
 | Variant | Build Arg | Content |
 |---------|-----------|---------|
-| base | (default) | pandas, numpy, pyarrow, pyspark |
-| gpu | BUILD_GPU_DEPS=true | + cudf, cuml, cupy |
-| iceberg | BUILD_ICEBERG_DEPS=true | + pyiceberg, fsspec |
+| base | (default) | (Already in custom build) |
+| gpu | BUILD_GPU_DEPS=true | cudf, cuml, cupy (RAPIDS) |
+| iceberg | BUILD_ICEBERG_DEPS=true | pyiceberg, fsspec |
+| gpu-iceberg | Both=true | All optional packages |
 
-**Requirements Files:**
-- `requirements-base.txt` — core data science libraries
-- `requirements-gpu.txt` — RAPIDS GPU libraries
-- `requirements-iceberg.txt` — Iceberg support
+**Note:** Custom builds already include base Python packages (pyspark, pandas, numpy, pyarrow).
 
-### 3. JDBC Drivers
+### 4. JDBC Drivers (WS-010-03)
 
-**Strategy:** Single layer with multiple drivers
+**Strategy:** Add MySQL and MSSQL to existing drivers from custom build
 
-| Driver | Version | Source | Required |
+| Driver | Version | Source | Location |
 |--------|---------|--------|----------|
-| PostgreSQL | 42.7.1 | postgresql.org | Yes |
-| MySQL | 8.2.0 | Maven Central | Yes |
-| Oracle | 21.11.0.0 | Maven Central | Yes |
-| MSSQL | 12.4.2.jre11 | Maven Central | Yes |
-| Vertica | 12.0.4-0 | Maven Central | Yes |
+| PostgreSQL | 42.7.4 | From custom build | $SPARK_HOME/jars/ |
+| Oracle | 23.5.0.24.07 | From custom build | $SPARK_HOME/jars/ |
+| Vertica | 12.0.4-0 | From custom build | $SPARK_HOME/jars/ |
+| MySQL | 9.1.0 | Added by this layer | $SPARK_HOME/jars/ |
+| MSSQL | 12.4.2.jre11 | Added by this layer | $SPARK_HOME/jars/ |
 
-**Classpath:** All JARs added to CLASSPATH environment variable
+**Convenience symlinks:** `/opt/jdbc/{mysql,mssql,postgresql,oracle,vertica}.jar`
 
-### 4. JARs Layers
+### 5. JARs Layers (WS-010-04)
 
-**Strategy:** Separate layers for RAPIDS and Iceberg
+**Strategy:** Extend custom builds with RAPIDS and Iceberg JARs
 
-| Layer | Content | Spark Jars Location |
-|-------|---------|---------------------|
-| jars-rapids | rapids-4-spark, cudf | $SPARK_HOME/jars/ |
-| jars-iceberg | iceberg-spark-runtime, iceberg-aws | $SPARK_HOME/jars/ |
+| Layer | Content | Spark 3.5.7 | Spark 4.1.0 |
+|-------|---------|------------|------------|
+| jars-rapids | rapids-4-spark, cudf | Scala 2.12 | Scala 2.13 |
+| jars-iceberg | iceberg-spark-runtime, iceberg-aws | Scala 2.12 | Scala 2.13 |
 
-**Download Sources:**
-- RAPIDS: NVIDIA Maven repository
-- Iceberg: Apache Maven repository
+**Build scripts:** Separate for each Spark version (different Scala versions)
 
-### 5. Layer Reuse Strategy
+### 6. Version Coverage
 
-**Multi-stage builds with --from=**
-
-```dockerfile
-# Final runtime image
-FROM spark-k8s-jdk-17:latest as base
-FROM spark-k8s-python-3.10:latest as python
-FROM spark-k8s-spark-3.5.7-core:latest as spark
-FROM spark-k8s-python-deps:latest as deps
-FROM spark-k8s-jdbc-drivers:latest as jdbc
-FROM spark-k8s-jars-rapids:latest as jars-rapids
-
-# Combine layers
-FROM spark
-COPY --from=python /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
-COPY --from=deps /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
-COPY --from=jdbc /opt/jdbc /opt/jdbc
-COPY --from=jars-rapids $SPARK_HOME/jars/rapids*.jar $SPARK_HOME/jars/
-```
-
-### 6. Download Caching
-
-**Strategy:** Use BuildKit cache mounts
-
-```dockerfile
-# --mount=type=cache for pip
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --no-cache-dir -r requirements.txt
-
-# wget downloads cached by Docker layer
-RUN wget -q https://downloads.apache.org/spark/...
-```
+| Spark Version | Custom Build | Wrapper | Support |
+|--------------|--------------|---------|---------|
+| 3.5.7 | Yes | Yes | Full |
+| 4.1.0 | Yes | Yes | Full |
+| 3.5.8 | No | No | Create if needed |
+| 4.1.1 | No | No | Create if needed |
 
 ## Dependencies
 
-- **Phase 3 (F09):** All base layers (JDK 17, Python 3.10, CUDA 12.1)
-- **WS-010-01:** Requires WS-009-01 (JDK 17 base)
-- **WS-010-02:** Requires WS-009-02 (Python 3.10 base)
-- **WS-010-03:** Requires WS-009-01 (JDK 17 base)
-- **WS-010-04:** Requires WS-010-01 (Spark core layers)
+- **Independent:** WS-010-01, WS-010-02 (can start immediately)
+- **WS-010-01完成后:** WS-010-03, WS-010-04 (depend on wrapper layers)
+
+## Dependency Graph
+
+```
+WS-010-01 (Custom Wrappers)
+    │
+    ├──────────────────────────────────┐
+    │                                  │
+    ▼                                  ▼
+WS-010-03 (JDBC Drivers)          WS-010-04 (JARs Layers)
+                            ┌──────────┴─────────┐
+                            │                    │
+                            ▼                    ▼
+                      WS-010-02              (Parallel
+                      (Python Deps)           execution OK)
+```
+
+## Execution Order
+
+**Phase 1: Foundation**
+- WS-010-01: Custom Spark wrapper layers
+
+**Phase 2: Parallel execution (after WS-010-01)**
+- WS-010-02: Python dependencies layer
+- WS-010-03: JDBC drivers layer update
+- WS-010-04: JARs layers (RAPIDS, Iceberg)
 
 ## Success Criteria
 
-1. ⏳ 7 intermediate Dockerfiles созданы
-2. ⏳ 4 unit теста проходят
-3. ⏳ Слои переиспользуются правильно (multi-stage builds)
-4. ⏳ JARs скачиваются и кешируются
-5. ⏳ Размер образов оптимизирован
+1. Custom wrapper layers created for 3.5.7 and 4.1.0
+2. Python dependencies layer supports GPU and Iceberg variants
+3. JDBC drivers layer adds MySQL and MSSQL
+4. JARs layers support both Spark 3.5.7 and 4.1.0
+5. All layers verify Hadoop 3.4.2 and AWS SDK v2 presence
+6. Unit tests pass for all layers
 
 ## File Structure
 
 ```
 docker/
-├── docker-intermediate/
-│   ├── spark-3.5.7-core/
+├── spark-custom/                    # Custom builds (existing)
+│   ├── Dockerfile.3.5.7             # Spark 3.5.7 + Hadoop 3.4.2
+│   ├── Dockerfile.4.1.0             # Spark 4.1.0 + Hadoop 3.4.2
+│   ├── Makefile
+│   ├── build-and-load.sh
+│   └── README.md
+├── docker-intermediate/             # Intermediate layers (updated)
+│   ├── spark-3.5.7-custom/          # NEW: Wrapper for 3.5.7
 │   │   ├── Dockerfile
-│   │   └── test.sh
-│   ├── spark-3.5.8-core/
+│   │   ├── build.sh
+│   │   ├── test.sh
+│   │   └── README.md
+│   ├── spark-4.1.0-custom/          # NEW: Wrapper for 4.1.0
 │   │   ├── Dockerfile
-│   │   └── test.sh
-│   ├── spark-4.1.0-core/
-│   │   ├── Dockerfile
-│   │   └── test.sh
-│   ├── spark-4.1.1-core/
-│   │   ├── Dockerfile
-│   │   └── test.sh
-│   ├── python-deps/
+│   │   ├── build.sh
+│   │   ├── test.sh
+│   │   └── README.md
+│   ├── python-deps/                 # UPDATED: Extends custom builds
 │   │   ├── Dockerfile
 │   │   ├── requirements-base.txt
 │   │   ├── requirements-gpu.txt
 │   │   ├── requirements-iceberg.txt
-│   │   └── test.sh
-│   ├── jdbc-drivers/
+│   │   ├── build.sh
+│   │   ├── test.sh
+│   │   └── README.md
+│   ├── jdbc-drivers/                # UPDATED: Adds MySQL, MSSQL
 │   │   ├── Dockerfile
-│   │   └── test.sh
-│   ├── jars-rapids/
+│   │   ├── build.sh
+│   │   ├── test.sh
+│   │   └── README.md
+│   ├── jars-rapids/                 # UPDATED: Extends custom builds
 │   │   ├── Dockerfile
-│   │   └── test.sh
-│   └── jars-iceberg/
+│   │   ├── build-3.5.7.sh
+│   │   ├── build-4.1.0.sh
+│   │   ├── test.sh
+│   │   └── README.md
+│   └── jars-iceberg/                # UPDATED: Extends custom builds
 │       ├── Dockerfile
-│       └── test.sh
-└── runtime/
-    ├── spark-3.5.7-jdk17/
-    │   └── Dockerfile  # uses intermediate layers
-    └── ...
+│       ├── build-3.5.7.sh
+│       ├── build-4.1.0.sh
+│       ├── test.sh
+│       └── README.md
+└── docker-base/                     # REMOVED: spark-core directory
 ```
 
 ## Integration with Other Phases
 
-- **Phase 3 (F09):** Base images used as FROM sources
+- **Custom Spark builds:** Foundation for all intermediate layers
+- **Phase 3 (F09):** Base images (JDK 17) used by custom builds
 - **Phase 2 (F08):** Intermediate images used in smoke tests
-- **Phase 5:** Runtime images built on top of intermediate layers
+- **Phase 5 (F11):** Runtime images built on top of intermediate layers
 
 ## Beads Integration
 
@@ -182,23 +208,35 @@ docker/
 spark_k8s-dc0 - F10: Phase 4 - Docker Intermediate Layers (P1)
 
 # Workstreams
-spark_k8s-3vr - WS-010-01: Spark core layers (P1)
-spark_k8s-89o - WS-010-02: Python dependencies (P1)
-spark_k8s-ch5 - WS-010-03: JDBC drivers (P1)
-spark_k8s-7cv - WS-010-04: JARs layers (P1)
+spark_k8s-abc - WS-010-01: Custom Spark wrapper layers (P1)
+spark_k8s-def - WS-010-02: Python dependencies (P1)
+spark_k8s-ghi - WS-010-03: JDBC drivers (P1)
+spark_k8s-jkl - WS-010-04: JARs layers (P1)
 
 # Dependencies
-WS-010-01 depends on F09 (WS-009-01)
-WS-010-02 depends on F09 (WS-009-02)
-WS-010-03 depends on F09 (WS-009-01)
+WS-010-03 depends on WS-010-01
 WS-010-04 depends on WS-010-01
+WS-010-02 independent (can run parallel)
 ```
+
+## Key Changes from Original Design
+
+| Aspect | Original | Updated |
+|--------|----------|---------|
+| Base Image | Apache distro | Custom build |
+| Hadoop Version | 3.3.x | 3.4.2 |
+| AWS SDK | v1 (incompatible) | v2 (compatible) |
+| Spark Versions | 3.5.7, 3.5.8, 4.1.0, 4.1.1 | 3.5.7, 4.1.0 |
+| Source | Download binary | Compile from source |
+| JDBC | All 5 in layer | 3 in custom, 2 added |
+| Python | All in layer | Base in custom, optional added |
 
 ## References
 
-- [PRODUCT_VISION.md](../../PRODUCT_VISION.md)
+- [Redesign Summary](../workstreams/backlog/F10-REDESIGN-SUMMARY.md)
+- [Custom Builds](../../docker/spark-custom/README.md)
 - [workstreams/INDEX.md](../workstreams/INDEX.md)
-- [workstreams/backlog/00-010-01.md](../workstreams/backlog/00-010-01.md)
-- [workstreams/backlog/00-010-02.md](../workstreams/backlog/00-010-02.md)
-- [workstreams/backlog/00-010-03.md](../workstreams/backlog/00-010-03.md)
-- [workstreams/backlog/00-010-04.md](../workstreams/backlog/00-010-04.md)
+- [workstreams/backlog/WS-010-01.md](../workstreams/backlog/WS-010-01.md)
+- [workstreams/backlog/WS-010-02.md](../workstreams/backlog/WS-010-02.md)
+- [workstreams/backlog/WS-010-03.md](../workstreams/backlog/WS-010-03.md)
+- [workstreams/backlog/WS-010-04.md](../workstreams/backlog/WS-010-04.md)
