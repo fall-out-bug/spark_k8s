@@ -696,6 +696,42 @@ F06 ─────────────────────────�
 
 ---
 
+## Feature F17: Phase 11 — Spark Connect Go Client
+
+**Source:** `docs/phases/phase-11-spark-connect-go.md`
+**Status:** Backlog
+**Total Workstreams:** 4
+**Estimated LOC:** ~2800
+
+| ID | Name | Scope | Dependencies | Status |
+|----|------|-------|-------------|--------|
+| WS-017-01 | Spark Connect Go client library | MEDIUM (~800 LOC) | F06, F11 | backlog |
+| WS-017-02 | Go smoke tests | MEDIUM (~600 LOC) | WS-017-01 | backlog |
+| WS-017-03 | Go E2E tests | MEDIUM (~700 LOC) | WS-017-01 | backlog |
+| WS-017-04 | Go load tests | MEDIUM (~700 LOC) | WS-017-01 | backlog |
+
+### Dependency Graph
+
+```
+F06, F11 ──── WS-017-01 (Go client library)
+                │
+                ├── WS-017-02 (Go smoke tests)
+                ├── WS-017-03 (Go E2E tests)
+                └── WS-017-04 (Go load tests)
+```
+
+### Execution Order
+
+**Phase 1: Foundation**
+- WS-017-01: Spark Connect Go client library
+
+**Phase 2: Testing (parallel)**
+- WS-017-02: Go smoke tests
+- WS-017-03: Go E2E tests
+- WS-017-04: Go load tests
+
+---
+
 ## Summary
 
 | Feature | Total WS | Completed | In Progress | Backlog |
@@ -716,8 +752,9 @@ F06 ─────────────────────────�
 | F14: Phase 8 — Advanced Security | 7 | 0 | 0 | 7 |
 | F15: Phase 9 — Parallel Execution & CI/CD | 3 | 0 | 0 | 3 |
 | F16: Phase 10 — Observability | 6 | 0 | 0 | 6 |
+| F17: Phase 11 — Spark Connect Go Client | 4 | 0 | 0 | 4 |
 | TESTING: Testing Infrastructure | 3+ | 0 | 0 | 3+ |
-| **TOTAL** | **105+** | **30** | **1** | **76+** |
+| **TOTAL** | **109+** | **30** | **1** | **80+** |
 
 ---
 
