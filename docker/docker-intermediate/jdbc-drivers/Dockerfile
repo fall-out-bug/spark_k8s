@@ -1,81 +1,77 @@
 # JDBC Drivers Intermediate Layer for Spark K8s
-# Extends JDK 17 base image with common JDBC drivers
-# Includes: PostgreSQL, MySQL, Oracle, MSSQL, Vertica
+# Extends custom Spark builds to add MySQL and MSSQL JDBC drivers
+# Note: Custom builds already include PostgreSQL, Oracle, Vertica drivers
 
-ARG BASE_IMAGE=spark-k8s-jdk-17:latest
+ARG BASE_IMAGE=spark-k8s:3.5.7-hadoop3.4.2
 FROM ${BASE_IMAGE}
 
 # Labels for metadata
-LABEL maintainer="spark-k8s"
-LABEL description="JDBC drivers intermediate layer for Spark K8s"
-LABEL version="1.0.0"
+LABEL maintainer="spark-k8s" \
+      description="JDBC drivers layer - adds MySQL, MSSQL to custom builds" \
+      version="2.0.0"
 
-# JDBC driver versions
-ARG POSTGRES_DRIVER_VERSION=42.7.2
+# JDBC driver versions (for additional drivers)
 ARG MYSQL_DRIVER_VERSION=9.1.0
-ARG ORACLE_DRIVER_VERSION=21.11.0.0
 ARG MSSQL_DRIVER_VERSION=12.4.2.jre11
-ARG VERTICA_DRIVER_VERSION=12.0.4-0
 
 # Switch to root for installation
 USER root
 
-# Install wget if not available (for Alpine)
-RUN apk add --no-cache wget ca-certificates 2>/dev/null || true
+# Install wget and unzip if not available
+RUN apt-get update && apt-get install -y wget ca-certificates unzip && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Create JDBC directory with proper permissions
+# Create JDBC directory for convenience symlinks
 RUN mkdir -p /opt/jdbc && \
     chown -R spark:spark /opt/jdbc
 
-# Download PostgreSQL driver
-RUN wget -q --tries=3 --timeout=30 \
-    https://repo1.maven.org/maven2/org/postgresql/postgresql/${POSTGRES_DRIVER_VERSION}/postgresql-${POSTGRES_DRIVER_VERSION}.jar \
-    -O /opt/jdbc/postgresql.jar && \
-    echo "PostgreSQL JDBC driver ${POSTGRES_DRIVER_VERSION} installed"
+# Verify existing drivers from custom build
+RUN echo "=== Existing JDBC drivers in custom build ===" && \
+    ls -la ${SPARK_HOME}/jars/postgresql*.jar && \
+    ls -la ${SPARK_HOME}/jars/ojdbc*.jar && \
+    ls -la ${SPARK_HOME}/jars/vertica*.jar && \
+    echo ""
 
-# Download MySQL driver
+# Download MySQL driver (not in custom build)
 RUN wget -q --tries=3 --timeout=30 \
     https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/${MYSQL_DRIVER_VERSION}/mysql-connector-j-${MYSQL_DRIVER_VERSION}.jar \
-    -O /opt/jdbc/mysql.jar && \
+    -O ${SPARK_HOME}/jars/mysql-connector-j.jar && \
     echo "MySQL JDBC driver ${MYSQL_DRIVER_VERSION} installed"
 
-# Download Oracle driver (ojdbc11 for Java 17)
-RUN wget -q --tries=3 --timeout=30 \
-    https://repo1.maven.org/maven2/com/oracle/database/jdbc/ojdbc11/${ORACLE_DRIVER_VERSION}/ojdbc11-${ORACLE_DRIVER_VERSION}.jar \
-    -O /opt/jdbc/oracle.jar && \
-    echo "Oracle JDBC driver ${ORACLE_DRIVER_VERSION} installed"
-
-# Download MSSQL driver (mssql-jdbc)
+# Download MSSQL driver (not in custom build)
 RUN wget -q --tries=3 --timeout=30 \
     https://repo1.maven.org/maven2/com/microsoft/sqlserver/mssql-jdbc/${MSSQL_DRIVER_VERSION}/mssql-jdbc-${MSSQL_DRIVER_VERSION}.jar \
-    -O /opt/jdbc/mssql.jar && \
+    -O ${SPARK_HOME}/jars/mssql-jdbc.jar && \
     echo "MSSQL JDBC driver ${MSSQL_DRIVER_VERSION} installed"
 
-# Download Vertica driver
-RUN wget -q --tries=3 --timeout=30 \
-    https://repo1.maven.org/maven2/com/vertica/jdbc/vertica-jdbc/${VERTICA_DRIVER_VERSION}/vertica-jdbc-${VERTICA_DRIVER_VERSION}.jar \
-    -O /opt/jdbc/vertica.jar && \
-    echo "Vertica JDBC driver ${VERTICA_DRIVER_VERSION} installed"
+# Create convenience symlinks in /opt/jdbc
+RUN ln -sf ${SPARK_HOME}/jars/mysql-connector-j.jar /opt/jdbc/mysql.jar && \
+    ln -sf ${SPARK_HOME}/jars/mssql-jdbc.jar /opt/jdbc/mssql.jar && \
+    ln -sf ${SPARK_HOME}/jars/postgresql*.jar /opt/jdbc/postgresql.jar && \
+    ln -sf ${SPARK_HOME}/jars/ojdbc*.jar /opt/jdbc/oracle.jar && \
+    ln -sf ${SPARK_HOME}/jars/vertica*.jar /opt/jdbc/vertica.jar
 
-# Verify all drivers are present and set permissions
-RUN ls -la /opt/jdbc/*.jar && \
-    chmod 644 /opt/jdbc/*.jar && \
-    chown spark:spark /opt/jdbc/*.jar && \
-    echo "JDBC drivers installed successfully"
+# Verify all drivers are present
+RUN echo "=== Final JDBC driver inventory ===" && \
+    echo "PostgreSQL:" && ls -la ${SPARK_HOME}/jars/postgresql*.jar && \
+    echo "Oracle:" && ls -la ${SPARK_HOME}/jars/ojdbc*.jar && \
+    echo "Vertica:" && ls -la ${SPARK_HOME}/jars/vertica*.jar && \
+    echo "MySQL:" && ls -la ${SPARK_HOME}/jars/mysql*.jar && \
+    echo "MSSQL:" && ls -la ${SPARK_HOME}/jars/mssql*.jar && \
+    echo ""
 
 # Set environment variables
 ENV JDBC_DRIVERS=/opt/jdbc
-ENV CLASSPATH="/opt/jdbc/postgresql.jar:/opt/jdbc/mysql.jar:/opt/jdbc/oracle.jar:/opt/jdbc/mssql.jar:/opt/jdbc/vertica.jar"
 
-# Switch back to non-root user
-USER spark
+# Switch back to non-root user (matches custom Spark build)
+USER 185
 
 # Health check to verify drivers are accessible
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD ls -la /opt/jdbc/*.jar >/dev/null 2>&1 || exit 1
+    CMD ls -la ${SPARK_HOME}/jars/*jdbc*.jar ${SPARK_HOME}/jars/mysql*.jar ${SPARK_HOME}/jars/mssql*.jar >/dev/null 2>&1 || exit 1
 
 # Working directory
-WORKDIR /opt
+WORKDIR /opt/spark/work-dir
 
-# Default command
-CMD ["/bin/bash"]
+# Default command (list all JDBC drivers)
+CMD ["bash", "-c", "echo '=== JDBC Drivers ===' && ls -la ${SPARK_HOME}/jars/*jdbc*.jar ${SPARK_HOME}/jars/mysql*.jar ${SPARK_HOME}/jars/mssql*.jar 2>/dev/null || echo 'Ready'"]

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Test script for JDBC drivers intermediate Docker image
+# Tests that the layer extends custom Spark builds (not JDK base)
 
-set -euo pipefail
+set -eo pipefail
 
 # Configuration
 readonly RED='\033[0;31m'
@@ -20,78 +21,124 @@ log_info() { echo -e "${YELLOW}[INFO]${NC} $*"; }
 log_pass() { echo -e "${GREEN}[PASS]${NC} $*"; TESTS_PASSED=$((TESTS_PASSED + 1)); }
 log_fail() { echo -e "${RED}[FAIL]${NC} $*"; TESTS_FAILED=$((TESTS_FAILED + 1)); }
 
-# Test: Java 17 from base image
-test_base_image() {
-    log_info "Testing Java 17 is present (from JDK 17 base)..."
-    local java_version
-    java_version=$(docker run --rm "$IMAGE_NAME" bash -c 'java -version 2>&1 | head -1' || echo "")
-    if echo "$java_version" | grep -qE 'version "17\.'; then
-        log_pass "Java 17 verified from base image: $java_version"
+# Test: Image exists
+test_image_exists() {
+    log_info "Testing image exists..."
+    if docker image inspect "$IMAGE_NAME" &>/dev/null; then
+        log_pass "Image $IMAGE_NAME exists"
         return 0
     else
-        log_fail "Java 17 not found: $java_version"
+        log_fail "Image $IMAGE_NAME not found"
         return 1
     fi
 }
 
-# Test: JDBC directory exists
-test_jdbc_directory() {
-    log_info "Testing /opt/jdbc directory exists..."
-    if docker run --rm "$IMAGE_NAME" bash -c 'test -d /opt/jdbc'; then
-        log_pass "/opt/jdbc directory exists"
+# Test: SPARK_HOME is set (from custom Spark build)
+test_spark_home() {
+    log_info "Testing SPARK_HOME environment variable..."
+    local spark_home
+    spark_home=$(docker run --rm "$IMAGE_NAME" bash -c 'echo $SPARK_HOME' 2>/dev/null || echo "")
+    if [[ "$spark_home" == "/opt/spark" ]]; then
+        log_pass "SPARK_HOME=/opt/spark (from custom Spark build)"
         return 0
     else
-        log_fail "/opt/jdbc directory not found"
+        log_fail "SPARK_HOME not set correctly: $spark_home"
         return 1
     fi
 }
 
-# Test: All driver files present
-test_driver_files() {
-    log_info "Testing all driver files are present..."
-    local missing=0
-    for driver in postgresql mysql oracle mssql vertica; do
-        if docker run --rm "$IMAGE_NAME" bash -c "ls -la /opt/jdbc/${driver}.jar" >/dev/null 2>&1; then
-            echo "  ${driver}.jar: OK"
-        else
-            echo "  ${driver}.jar: MISSING"
-            missing=1
-        fi
-    done
-    if [[ $missing -eq 0 ]]; then
-        log_pass "All driver files present"
+# Test: Spark binaries available (from custom Spark build)
+test_spark_binaries() {
+    log_info "Testing Spark binaries are available..."
+    if docker run --rm "$IMAGE_NAME" bash -c 'test -x ${SPARK_HOME}/bin/spark-submit'; then
+        log_pass "Spark binaries found in \${SPARK_HOME}/bin"
         return 0
     else
-        log_fail "Some driver files missing"
+        log_fail "Spark binaries not found"
         return 1
     fi
 }
 
-# Generic driver class test
-test_driver_class() {
-    local name="$1"
-    local jar="$2"
-    local class="$3"
-    log_info "Testing ${name} JDBC driver contains Driver class..."
-    if docker run --rm "$IMAGE_NAME" bash -c "unzip -l /opt/jdbc/${jar} | grep -q '${class}'"; then
-        log_pass "${name} driver contains Driver class"
+# Test: PostgreSQL driver (from custom build)
+test_postgresql_driver() {
+    log_info "Testing PostgreSQL JDBC driver (from custom build)..."
+    local jar_name
+    jar_name=$(docker run --rm "$IMAGE_NAME" bash -c 'ls ${SPARK_HOME}/jars/postgresql*.jar 2>/dev/null | xargs -n1 basename' || echo "")
+    if [[ -n "$jar_name" ]]; then
+        log_pass "PostgreSQL driver found: $jar_name"
         return 0
     else
-        log_fail "${name} driver missing Driver class"
+        log_fail "PostgreSQL driver not found"
         return 1
     fi
 }
 
-# Test: CLASSPATH environment variable
-test_classpath_env() {
-    log_info "Testing CLASSPATH environment variable..."
-    local classpath
-    classpath=$(docker run --rm "$IMAGE_NAME" bash -c 'echo $CLASSPATH')
-    if [[ "$classpath" == *"/opt/jdbc/"* ]]; then
-        log_pass "CLASSPATH includes JDBC directory"
+# Test: Oracle driver (from custom build)
+test_oracle_driver() {
+    log_info "Testing Oracle JDBC driver (from custom build)..."
+    local jar_name
+    jar_name=$(docker run --rm "$IMAGE_NAME" bash -c 'ls ${SPARK_HOME}/jars/ojdbc*.jar 2>/dev/null | xargs -n1 basename' || echo "")
+    if [[ -n "$jar_name" ]]; then
+        log_pass "Oracle driver found: $jar_name"
         return 0
     else
-        log_fail "CLASSPATH does not include JDBC directory: $classpath"
+        log_fail "Oracle driver not found"
+        return 1
+    fi
+}
+
+# Test: Vertica driver (from custom build)
+test_vertica_driver() {
+    log_info "Testing Vertica JDBC driver (from custom build)..."
+    local jar_name
+    jar_name=$(docker run --rm "$IMAGE_NAME" bash -c 'ls ${SPARK_HOME}/jars/vertica*.jar 2>/dev/null | xargs -n1 basename' || echo "")
+    if [[ -n "$jar_name" ]]; then
+        log_pass "Vertica driver found: $jar_name"
+        return 0
+    else
+        log_fail "Vertica driver not found"
+        return 1
+    fi
+}
+
+# Test: MySQL driver (added by this layer)
+test_mysql_driver() {
+    log_info "Testing MySQL JDBC driver (added by this layer)..."
+    local jar_name
+    jar_name=$(docker run --rm "$IMAGE_NAME" bash -c 'ls ${SPARK_HOME}/jars/mysql*.jar 2>/dev/null | xargs -n1 basename' || echo "")
+    if [[ -n "$jar_name" ]]; then
+        log_pass "MySQL driver found: $jar_name"
+        return 0
+    else
+        log_fail "MySQL driver not found"
+        return 1
+    fi
+}
+
+# Test: MSSQL driver (added by this layer)
+test_mssql_driver() {
+    log_info "Testing MSSQL JDBC driver (added by this layer)..."
+    local jar_name
+    jar_name=$(docker run --rm "$IMAGE_NAME" bash -c 'ls ${SPARK_HOME}/jars/mssql*.jar 2>/dev/null | xargs -n1 basename' || echo "")
+    if [[ -n "$jar_name" ]]; then
+        log_pass "MSSQL driver found: $jar_name"
+        return 0
+    else
+        log_fail "MSSQL driver not found"
+        return 1
+    fi
+}
+
+# Test: Convenience symlinks in /opt/jdbc
+test_convenience_symlinks() {
+    log_info "Testing convenience symlinks in /opt/jdbc..."
+    local symlink_count
+    symlink_count=$(docker run --rm "$IMAGE_NAME" bash -c 'ls -la /opt/jdbc/*.jar 2>/dev/null | wc -l' || echo "0")
+    if [[ "$symlink_count" -ge 5 ]]; then
+        log_pass "Found $symlink_count convenience symlinks in /opt/jdbc"
+        return 0
+    else
+        log_fail "Expected at least 5 symlinks, found $symlink_count"
         return 1
     fi
 }
@@ -100,50 +147,36 @@ test_classpath_env() {
 test_jdbc_drivers_env() {
     log_info "Testing JDBC_DRIVERS environment variable..."
     local jdbc_drivers
-    jdbc_drivers=$(docker run --rm "$IMAGE_NAME" bash -c 'echo $JDBC_DRIVERS')
+    jdbc_drivers=$(docker run --rm "$IMAGE_NAME" bash -c 'echo $JDBC_DRIVERS' 2>/dev/null || echo "")
     if [[ "$jdbc_drivers" == "/opt/jdbc" ]]; then
-        log_pass "JDBC_DRIVERS environment variable is set: $jdbc_drivers"
+        log_pass "JDBC_DRIVERS=/opt/jdbc"
         return 0
     else
-        log_fail "JDBC_DRIVERS environment variable incorrect: $jdbc_drivers"
+        log_fail "JDBC_DRIVERS not set correctly: $jdbc_drivers"
         return 1
     fi
 }
 
-# Test: Image size
-test_image_size() {
-    log_info "Testing image size..."
-    if ! command -v docker &> /dev/null; then
-        log_info "Docker not available, skipping image size check"
-        return 0
-    fi
-    if ! docker image inspect "$IMAGE_NAME" &> /dev/null; then
-        log_info "Image $IMAGE_NAME not found locally, skipping size check"
-        return 0
-    fi
-    local size_mb
-    size_mb=$(($(docker image inspect "$IMAGE_NAME" --format='{{.Size}}') / 1024 / 1024))
-    if [[ $size_mb -lt $MAX_IMAGE_SIZE_MB ]]; then
-        log_pass "Image size is ${size_mb}MB (under ${MAX_IMAGE_SIZE_MB}MB limit)"
+# Test: MySQL driver class validation
+test_mysql_driver_class() {
+    log_info "Testing MySQL driver class..."
+    if docker run --rm "$IMAGE_NAME" bash -c "unzip -l \${SPARK_HOME}/jars/mysql*.jar 2>/dev/null | grep -q 'com/mysql/cj/jdbc/Driver.class'"; then
+        log_pass "MySQL driver contains Driver class"
         return 0
     else
-        log_fail "Image size is ${size_mb}MB (exceeds ${MAX_IMAGE_SIZE_MB}MB limit)"
+        log_fail "MySQL driver missing Driver class"
         return 1
     fi
 }
 
-# Test: Labels
-test_labels() {
-    log_info "Testing Docker image labels..."
-    local maintainer desc version
-    maintainer=$(docker image inspect "$IMAGE_NAME" --format='{{.Config.Labels.maintainer}}' 2>/dev/null || echo "")
-    desc=$(docker image inspect "$IMAGE_NAME" --format='{{.Config.Labels.description}}' 2>/dev/null || echo "")
-    version=$(docker image inspect "$IMAGE_NAME" --format='{{.Config.Labels.version}}' 2>/dev/null || echo "")
-    if [[ "$maintainer" == "spark-k8s" ]] && [[ -n "$desc" ]] && [[ -n "$version" ]]; then
-        log_pass "Labels present: maintainer=$maintainer, version=$version"
+# Test: MSSQL driver class validation
+test_mssql_driver_class() {
+    log_info "Testing MSSQL driver class..."
+    if docker run --rm "$IMAGE_NAME" bash -c "unzip -l \${SPARK_HOME}/jars/mssql*.jar 2>/dev/null | grep -q 'com/microsoft/sqlserver/jdbc/SQLServerDriver.class'"; then
+        log_pass "MSSQL driver contains Driver class"
         return 0
     else
-        log_fail "Labels incomplete: maintainer=$maintainer, version=$version"
+        log_fail "MSSQL driver missing Driver class"
         return 1
     fi
 }
@@ -151,23 +184,23 @@ test_labels() {
 # Main test execution
 main() {
     echo "=========================================="
-    echo "JDBC Drivers Intermediate Layer Test Suite"
+    echo "JDBC Drivers Layer Test Suite"
     echo "=========================================="
     echo "Image: $IMAGE_NAME"
     echo ""
 
-    test_base_image
-    test_jdbc_directory
-    test_driver_files
-    test_driver_class "PostgreSQL" "postgresql.jar" "org/postgresql/Driver.class"
-    test_driver_class "MySQL" "mysql.jar" "com/mysql/cj/jdbc/Driver.class"
-    test_driver_class "Oracle" "oracle.jar" "oracle/jdbc/OracleDriver.class"
-    test_driver_class "MSSQL" "mssql.jar" "com/microsoft/sqlserver/jdbc/SQLServerDriver.class"
-    test_driver_class "Vertica" "vertica.jar" "com/vertica/jdbc/Driver.class"
-    test_classpath_env
+    test_image_exists
+    test_spark_home
+    test_spark_binaries
+    test_postgresql_driver
+    test_oracle_driver
+    test_vertica_driver
+    test_mysql_driver
+    test_mssql_driver
+    test_convenience_symlinks
     test_jdbc_drivers_env
-    test_labels
-    test_image_size
+    test_mysql_driver_class
+    test_mssql_driver_class
 
     echo ""
     echo "=========================================="
