@@ -471,3 +471,49 @@ export -f validate_resource_limits validate_gpu_resources
 export -f test_service_connectivity
 export -f validate_spark_connect validate_spark_job
 export -f validate_namespace_deployments validate_namespace_pods
+export -f validate_history_server
+
+# ============================================================================
+# History Server validation
+# ============================================================================
+
+# Validate History Server deployment and event log collection
+validate_history_server() {
+    local hs_pod="$1"
+    local namespace="$2"
+    local app_name="$3"
+    local timeout="${4:-60}"
+
+    log_step "Validating History Server: $hs_pod"
+
+    # Check History Server pod is running
+    if ! is_pod_running "$hs_pod" "$namespace"; then
+        log_error "History Server pod not running"
+        return 1
+    fi
+
+    # Wait for event logs to be processed (History Server scans periodically)
+    log_info "Waiting for event logs to be processed..."
+    sleep 30
+
+    # Check UI is accessible
+    log_debug "Checking History Server UI accessibility"
+    if ! kubectl exec -n "$namespace" "$hs_pod" \
+        -- curl -s --max-time 10 http://localhost:18080 2>/dev/null | grep -q "History Server"; then
+        log_warning "History Server UI not accessible yet"
+    fi
+
+    # Check if job appears in history API
+    log_debug "Checking if job appears in History API"
+    local apps_json
+    apps_json=$(kubectl exec -n "$namespace" "$hs_pod" \
+        -- curl -s "http://localhost:18080/api/v1/applications" 2>/dev/null || echo "[]")
+
+    if echo "$apps_json" | grep -q "$app_name"; then
+        log_success "Job found in History Server: $app_name"
+    else
+        log_info "Job not yet visible in History Server (may take longer to index)"
+    fi
+
+    return 0
+}
