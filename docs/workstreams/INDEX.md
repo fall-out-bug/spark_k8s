@@ -651,6 +651,51 @@ F06, F08, F12, F13 ──── WS-015-01 (Parallel execution)
 
 ---
 
+## Feature F16: Phase 10 — Observability (Monitoring & Tracing)
+
+**Source:** `docs/phases/phase-10-observability.md`
+**Status:** Backlog
+**Total Workstreams:** 6
+**Estimated LOC:** ~3600
+
+| ID | Name | Scope | Dependencies | Status |
+|----|------|-------|-------------|--------|
+| WS-016-01 | Metrics collection (Prometheus) | MEDIUM (~700 LOC) | F06 | backlog |
+| WS-016-02 | Logging aggregation (Loki) | MEDIUM (~600 LOC) | F06 | backlog |
+| WS-016-03 | Distributed tracing (Jaeger/OTel) | MEDIUM (~600 LOC) | F06 | backlog |
+| WS-016-04 | Dashboards (Grafana) | MEDIUM (~500 LOC) | WS-016-01, WS-016-02 | backlog |
+| WS-016-05 | Alerting rules | MEDIUM (~400 LOC) | WS-016-01 | backlog |
+| WS-016-06 | Spark UI integration | MEDIUM (~800 LOC) | WS-016-01, WS-016-03 | backlog |
+
+### Dependency Graph
+
+```
+F06 ────────────────────────────────┐
+                                      ├── WS-016-01 (Metrics) ────┐
+                                      ├── WS-016-02 (Logging) ────┼── WS-016-04 (Dashboards)
+                                      ├── WS-016-03 (Tracing) ────┤
+                                      │                            │
+                                      └── WS-016-05 (Alerting)    │
+                                                                   │
+                                   WS-016-01 + WS-016-03 ───────────┴── WS-016-06 (Spark UI)
+```
+
+### Execution Order
+
+**Phase 1: Core (parallel)**
+- WS-016-01: Metrics collection
+- WS-016-02: Logging aggregation
+- WS-016-03: Distributed tracing
+
+**Phase 2: Visualization**
+- WS-016-04: Dashboards (after 01, 02)
+- WS-016-05: Alerting (after 01)
+
+**Phase 3: Integration**
+- WS-016-06: Spark UI integration (after 01, 03)
+
+---
+
 ## Summary
 
 | Feature | Total WS | Completed | In Progress | Backlog |
@@ -670,8 +715,9 @@ F06, F08, F12, F13 ──── WS-015-01 (Parallel execution)
 | F13: Phase 7 — Load Tests | 5 | 0 | 0 | 5 |
 | F14: Phase 8 — Advanced Security | 7 | 0 | 0 | 7 |
 | F15: Phase 9 — Parallel Execution & CI/CD | 3 | 0 | 0 | 3 |
+| F16: Phase 10 — Observability | 6 | 0 | 0 | 6 |
 | TESTING: Testing Infrastructure | 3+ | 0 | 0 | 3+ |
-| **TOTAL** | **99+** | **30** | **1** | **70+** |
+| **TOTAL** | **105+** | **30** | **1** | **76+** |
 
 ---
 
