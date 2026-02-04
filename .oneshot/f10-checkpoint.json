@@ -1,0 +1,37 @@
+{
+  "feature": "F10",
+  "feature_id": "spark_k8s-dc0",
+  "agent_id": "oneshot-f10-$(date +%Y%m%d-%H%M%S)",
+  "status": "completed",
+  "started_at": "2026-02-04T21:00:00Z",
+  "completed_at": "2026-02-05T00:45:00Z",
+  "workstreams": {
+    "WS-010-01": {
+      "id": "spark_k8s-3vr",
+      "status": "completed",
+      "description": "Spark core layers",
+      "commit": "fa88d6f"
+    },
+    "WS-010-02": {
+      "id": "spark_k8s-89o",
+      "status": "completed",
+      "agent": "a80363c",
+      "description": "Python dependencies layer",
+      "commit": "80d2692"
+    },
+    "WS-010-03": {
+      "id": "spark_k8s-ch5",
+      "status": "completed",
+      "agent": "ad6751c",
+      "description": "JDBC drivers layer",
+      "commit": "207feaa"
+    },
+    "WS-010-04": {
+      "id": "spark_k8s-7cv",
+      "status": "completed",
+      "agent": "a31da0c",
+      "description": "JARs layers (RAPIDS, Iceberg)",
+      "commit": "b34938b"
+    }
+  }
+}
