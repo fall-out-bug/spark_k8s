@@ -9,7 +9,7 @@
 #   ./scripts/testing/deploy-spark-35.sh spark-infra
 #
 # Architecture:
-# - MinIO: shared (s3a://spark-logs/3.5/events and s3a://spark-logs/4.1/events)
+# - MinIO: shared (s3a://spark-logs/events and s3a://spark-logs/events)
 # - PostgreSQL: shared (databases metastore_spark35 and metastore_spark41)
 # - Hive Metastore: separate for each Spark version
 # - History Server: shared (reads from both log directories)

@@ -45,7 +45,7 @@ hiveMetastore:
 historyServer:
   enabled: true
   fullnameOverride: "history-server-35"
-  logDirectory: "s3a://spark-logs/3.5/events"
+  logDirectory: "s3a://spark-logs/events"
 
 # Feature flags
 features:

@@ -148,22 +148,22 @@ core:
         enabled: true
         size: 5Gi
         storageClass: ""
-    resources:
-      requests:
-        memory: "512Mi"
-        cpu: "200m"
-      limits:
-        memory: "2Gi"
-        cpu: "1000m"
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
 
-  historyServer:
+historyServer:
     enabled: true  # Spark History Server for completed applications
     fullnameOverride: ""
     image:
-      repository: apache/spark
-      tag: "3.5.3"
+      repository: spark-custom
+      tag: "3.5.7"
       pullPolicy: IfNotPresent
-    logDirectory: "file:///tmp/spark-events"
+    logDirectory: "s3a://spark-logs/events"
     service:
       type: ClusterIP
       port: 18080
@@ -260,12 +260,12 @@ sparkStandalone:
     # spark.worker.memory: "2g"
     # spark.worker.cores: "2"
 
-# Spark Connect server (3.5.3)
+# Spark Connect server (3.5.7)
 connect:
   enabled: true
   replicas: 1
   image:
-    repository: apache/spark
+    repository: spark-custom
     tag: "3.5.7"
     pullPolicy: IfNotPresent
   service:
@@ -312,7 +312,7 @@ connect:
     maxExecutors: 10
   eventLog:
     enabled: true
-    dir: "s3a://spark-logs/3.5/events"
+    dir: "s3a://spark-logs/events"
   sparkConf: {}
 
 # Hive Metastore 3.1.3 (separate instance for Spark 3.5.3)
@@ -339,25 +339,6 @@ hiveMetastore:
       enabled: true
       size: 5Gi
       storageClass: ""
-  resources:
-    requests:
-      memory: "512Mi"
-      cpu: "200m"
-    limits:
-      memory: "2Gi"
-      cpu: "1000m"
-
-# History Server 3.5.3
-historyServer:
-  enabled: true
-  image:
-    repository: apache/spark
-    tag: "3.5.3"
-    pullPolicy: IfNotPresent
-  logDirectory: "file:///tmp/spark-events"
-  service:
-    type: ClusterIP
-    port: 18080
   resources:
     requests:
       memory: "512Mi"

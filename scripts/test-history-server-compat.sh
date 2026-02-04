@@ -47,7 +47,7 @@ kubectl run spark-35-job \
   -- /opt/spark/bin/spark-submit \
   --master local[2] \
   --conf spark.eventLog.enabled=true \
-  --conf spark.eventLog.dir=s3a://spark-logs/3.5/events \
+  --conf spark.eventLog.dir=s3a://spark-logs/events \
   --conf spark.hadoop.fs.s3a.endpoint=http://minio:9000 \
   --class org.apache.spark.examples.SparkPi \
   local:///opt/spark/examples/jars/spark-examples.jar 100
@@ -64,7 +64,7 @@ kubectl run spark-41-job \
   -- /opt/spark/bin/spark-submit \
   --master local[2] \
   --conf spark.eventLog.enabled=true \
-  --conf spark.eventLog.dir=s3a://spark-logs/4.1/events \
+  --conf spark.eventLog.dir=s3a://spark-logs/events \
   --conf spark.hadoop.fs.s3a.endpoint=http://minio:9000 \
   --class org.apache.spark.examples.SparkPi \
   local:///opt/spark/examples/jars/spark-examples.jar 100

@@ -10,7 +10,7 @@
 # - spark_image: spark-custom:4.1.0
 # - spark_namespace: <namespace>
 # - spark_k8s_serviceaccount: spark
-# - spark_eventlog_dir: s3a://spark-logs/4.1/events
+# - spark_eventlog_dir: s3a://spark-logs/events
 # - s3_endpoint: http://minio.<namespace>.svc.cluster.local:9000
 # - s3_access_key: <from secret>
 # - s3_secret_key: <from secret>

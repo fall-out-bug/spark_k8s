@@ -38,7 +38,7 @@ core:
     enabled: true
     fullnameOverride: "history-server-41"
     # History Server reads logs from S3
-    logDirectory: "s3a://spark-logs/4.1/events"
+    logDirectory: "s3a://spark-logs/events"
 
 # Feature flags
 features:

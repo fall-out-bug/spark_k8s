@@ -54,7 +54,7 @@ connect:
     masterPort: 7077
   eventLog:
     enabled: true
-    dir: "s3a://spark-logs/4.1/events"
+    dir: "s3a://spark-logs/events"
   # Fixed executor instances for standalone backend
   sparkConf:
     spark.executor.instances: "1"

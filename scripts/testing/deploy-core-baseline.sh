@@ -225,7 +225,7 @@ kubectl run "mc-buckets-$$" \
     --command -- /bin/sh -c "
         mc alias set myminio http://minio-spark-41:9000 minioadmin minioadmin
         mc mb myminio/spark-logs
-        mc cp /etc/hostname myminio/spark-logs/4.1/events/.keep
+        mc cp /etc/hostname myminio/spark-logs/events/.keep
         mc ls myminio/
     " &>/dev/null || echo "Buckets may already exist"
 
@@ -238,7 +238,7 @@ kubectl delete pod "mc-buckets-$$" -n "$NAMESPACE" --ignore-not-found=true &>/de
 echo "Updating History Server configuration..."
 kubectl patch configmap history-server-41-config -n "$NAMESPACE" \
     --type='json' -p='[
-        {"op": "replace", "path": "/data/spark-defaults.conf", "value": "# Spark History Server Configuration\nspark.history.fs.logDirectory s3a://spark-logs/4.1/events\nspark.history.fs.update.interval 10s\nspark.history.provider org.apache.spark.deploy.history.FsHistoryProvider\n\n# S3 Configuration for Event Logs\nspark.hadoop.fs.s3a.endpoint http://minio-spark-41:9000\nspark.hadoop.fs.s3a.path.style.access true\nspark.hadoop.fs.s3a.connection.ssl.enabled false\nspark.hadoop.fs.s3a.impl org.apache.hadoop.fs.s3a.S3AFileSystem\nspark.hadoop.fs.s3a.aws.credentials.provider org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider\nspark.hadoop.fs.s3a.access.key minioadmin\nspark.hadoop.fs.s3a.secret.key minioadmin\n\n# S3 connection settings\nspark.hadoop.fs.s3a.connection.maximum 200\nspark.hadoop.fs.s3a.connection.timeout 200000\n\n# History Server UI Settings\nspark.history.ui.port 18080\nspark.history.ui.maxApplications 1000\nspark.history.fs.cleaner.enabled true\nspark.history.fs.cleaner.interval 1d\nspark.history.fs.cleaner.maxAge 7d"}
+        {"op": "replace", "path": "/data/spark-defaults.conf", "value": "# Spark History Server Configuration\nspark.history.fs.logDirectory s3a://spark-logs/events\nspark.history.fs.update.interval 10s\nspark.history.provider org.apache.spark.deploy.history.FsHistoryProvider\n\n# S3 Configuration for Event Logs\nspark.hadoop.fs.s3a.endpoint http://minio-spark-41:9000\nspark.hadoop.fs.s3a.path.style.access true\nspark.hadoop.fs.s3a.connection.ssl.enabled false\nspark.hadoop.fs.s3a.impl org.apache.hadoop.fs.s3a.S3AFileSystem\nspark.hadoop.fs.s3a.aws.credentials.provider org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider\nspark.hadoop.fs.s3a.access.key minioadmin\nspark.hadoop.fs.s3a.secret.key minioadmin\n\n# S3 connection settings\nspark.hadoop.fs.s3a.connection.maximum 200\nspark.hadoop.fs.s3a.connection.timeout 200000\n\n# History Server UI Settings\nspark.history.ui.port 18080\nspark.history.ui.maxApplications 1000\nspark.history.fs.cleaner.enabled true\nspark.history.fs.cleaner.interval 1d\nspark.history.fs.cleaner.maxAge 7d"}
     ]' &>/dev/null || echo "Configmap may already be patched"
 
 # Restart History Server and Hive Metastore to apply changes

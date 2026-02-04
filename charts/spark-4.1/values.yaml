@@ -164,10 +164,10 @@ core:
     enabled: true  # Spark History Server for completed applications
     fullnameOverride: ""
     image:
-      repository: apache/spark
+      repository: spark-custom
       tag: "4.1.0"
       pullPolicy: IfNotPresent
-    logDirectory: "s3a://spark-logs/4.1/events"
+    logDirectory: "s3a://spark-logs/events"
     updateInterval: "10s"
     provider: ""
     s3aImpl: ""
@@ -288,7 +288,7 @@ connect:
     maxExecutors: 10
   eventLog:
     enabled: true
-    dir: "s3a://spark-logs/4.1/events"
+    dir: "s3a://spark-logs/events"
   sparkConf: {}
   extraJars:
     enabled: false
@@ -318,25 +318,6 @@ hiveMetastore:
       enabled: true
       size: 5Gi
       storageClass: ""
-  resources:
-    requests:
-      memory: "512Mi"
-      cpu: "200m"
-    limits:
-      memory: "2Gi"
-      cpu: "1000m"
-
-# History Server 4.1.0
-historyServer:
-  enabled: true
-  image:
-    repository: apache/spark
-    tag: "4.1.0"
-    pullPolicy: IfNotPresent
-  logDirectory: "s3a://spark-logs/4.1/events"
-  service:
-    type: ClusterIP
-    port: 18080
   resources:
     requests:
       memory: "512Mi"

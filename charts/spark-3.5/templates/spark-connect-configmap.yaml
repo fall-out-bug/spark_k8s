@@ -7,11 +7,25 @@ metadata:
     {{- include "spark-3.5.labels" . | nindent 4 }}
 data:
   spark-properties.conf.template: |-
+    {{- if eq .Values.connect.backendMode "local" }}
     # Spark Connect Server runs in local mode
-    # Clients connect via Spark Connect and can launch executors on K8s
+    # Clients connect via Spark Connect, driver and executors in same JVM
     spark.master=local[*]
     spark.driver.bindAddress=0.0.0.0
     spark.driver.host={{ default (printf "%s-connect" (include "spark-3.5.fullname" .)) .Values.connect.driver.host }}
+    {{- else if eq .Values.connect.backendMode "k8s" }}
+    # Spark Connect Server runs on K8s
+    # Driver in pod, executors on K8s cluster
+    spark.master=k8s://https://kubernetes.default.svc:443
+    spark.driver.bindAddress=0.0.0.0
+    spark.driver.host=$(POD_IP)
+    {{- else if eq .Values.connect.backendMode "standalone" }}
+    # Spark Connect Server runs in standalone mode
+    # Driver connects to standalone Spark master
+    spark.master=spark://{{ include "spark-3.5.fullname" . }}-standalone-master:7077
+    spark.driver.bindAddress=0.0.0.0
+    spark.driver.host={{ default (printf "%s-connect" (include "spark-3.5.fullname" .)) .Values.connect.driver.host }}
+    {{- end }}
     spark.driver.port={{ .Values.connect.driver.port }}
     spark.driver.blockManager.port={{ .Values.connect.driver.blockManagerPort }}
 

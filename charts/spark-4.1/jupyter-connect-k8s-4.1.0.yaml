@@ -50,7 +50,7 @@ connect:
     port: 7078
   # eventLog:
     # DISABLED FOR SMOKE TESTS
-    /spark-logs/4.1/events"
+    /spark-logs/events"
   dynamicAllocation:
     # DISABLED FOR SMOKE TESTS
     minExecutors: 0

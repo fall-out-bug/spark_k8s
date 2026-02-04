@@ -76,7 +76,7 @@ connect:
     masterPort: 7077
   eventLog:
     enabled: true
-    dir: "s3a://spark-logs/3.5/events"
+    dir: "s3a://spark-logs/events"
   dynamicAllocation:
     enabled: false
   sparkConf:

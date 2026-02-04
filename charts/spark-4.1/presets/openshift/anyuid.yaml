@@ -73,7 +73,7 @@ connect:
     maxExecutors: 10
   eventLog:
     enabled: true
-    dir: "s3a://spark-logs/4.1/events"
+    dir: "s3a://spark-logs/events"
 
 # Hive Metastore
 hiveMetastore:
@@ -112,7 +112,7 @@ historyServer:
     repository: spark-custom
     tag: "4.1.0"
     pullPolicy: IfNotPresent
-  logDirectory: "s3a://spark-logs/4.1/events"
+  logDirectory: "s3a://spark-logs/events"
   service:
     type: ClusterIP
     port: 18080

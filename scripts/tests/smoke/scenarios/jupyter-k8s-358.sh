@@ -2,18 +2,18 @@
 # Smoke test: Jupyter + K8s submit mode (Spark 3.5.8)
 
 # @meta
-name: "jupyter-k8s-358"
-type: "smoke"
-description: "Smoke test for Jupyter + K8s submit mode (Spark 3.5.8)"
-version: "3.5.8"
-component: "jupyter"
-mode: "k8s-submit"
-features: []
-chart: "charts/spark-3.5"
-preset: "charts/spark-3.5/presets/test-baseline-358-values.yaml"
-estimated_time: "5 min"
-depends_on: []
-tags: [smoke, jupyter, k8s-submit, 3.5.8]
+# name: "jupyter-k8s-358"
+# type: "smoke"
+# description: "Smoke test for Jupyter + K8s submit mode (Spark 3.5.8)"
+# version: "3.5.8"
+# component: "jupyter"
+# mode: "k8s-submit"
+# features: []
+# chart: "charts/spark-3.5"
+# preset: "charts/spark-3.5/presets/test-baseline-358-values.yaml"
+# estimated_time: "5 min"
+# depends_on: []
+# tags: [smoke, jupyter, k8s-submit, 3.5.8]
 # @endmeta
 
 set -e

@@ -67,7 +67,7 @@ connect:
     port: 7078
   eventLog:
     enabled: true
-    dir: "s3a://spark-logs/4.1/events"
+    dir: "s3a://spark-logs/events"
   dynamicAllocation:
     enabled: true
     minExecutors: 0

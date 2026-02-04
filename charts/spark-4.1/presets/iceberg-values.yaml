@@ -86,7 +86,7 @@ hiveMetastore:
 # History Server for Iceberg queries
 historyServer:
   enabled: true
-  logDirectory: "s3a://spark-logs/4.1/events"
+  logDirectory: "s3a://spark-logs/events"
 
 # Monitoring for Iceberg
 monitoring:

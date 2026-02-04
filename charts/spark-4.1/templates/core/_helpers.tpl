@@ -495,7 +495,6 @@ spec:
 
           {{- if has "spark-logs" .Values.core.minio.buckets }}
           echo "" | mc pipe myminio/spark-logs/events/.keep
-          echo "" | mc pipe myminio/spark-logs/4.1/events/.keep
           {{- end }}
           {{- if has "spark-standalone-logs" .Values.core.minio.buckets }}
           echo "" | mc pipe myminio/spark-standalone-logs/events/.keep

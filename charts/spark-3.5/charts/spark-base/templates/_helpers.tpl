@@ -61,26 +61,51 @@ Service account name
 
 {{/*
 Pod security context (PSS restricted compatible)
+
+Note: runAsUser/runAsGroup are set per-container to allow init containers
+to run as root (needed for Alpine apk). fsGroup is set here as it only
+affects volume ownership, not process execution.
 */}}
 {{- define "spark-base.podSecurityContext" -}}
-runAsNonRoot: true
-{{- with .Values.security.runAsUser }}
-runAsUser: {{ . }}
-{{- end }}
-{{- with .Values.security.runAsGroup }}
-runAsGroup: {{ . }}
-{{- end }}
+runAsNonRoot: false
 {{- with .Values.security.fsGroup }}
 fsGroup: {{ . }}
 {{- end }}
+{{- if .Values.security.podSecurityStandards }}
 seccompProfile:
   type: RuntimeDefault
+{{- end }}
 {{- end }}
 
 {{/*
 Container security context (PSS restricted compatible)
 */}}
 {{- define "spark-base.containerSecurityContext" -}}
+{{- if .Values.security.podSecurityStandards }}
+allowPrivilegeEscalation: false
+{{- with .Values.security.runAsUser }}
+runAsUser: {{ . }}
+{{- end }}
+{{- with .Values.security.runAsGroup }}
+runAsGroup: {{ . }}
+{{- end }}
+{{- if hasKey .Values.security "readOnlyRootFilesystem" }}
+readOnlyRootFilesystem: {{ .Values.security.readOnlyRootFilesystem }}
+{{- end }}
+capabilities:
+  drop:
+    - ALL
+{{- end }}
+{{- end }}
+
+{{/*
+Init container security context (relaxed for Alpine apk compatibility)
+
+Init containers using Alpine require root for apk operations.
+This is acceptable as init containers are ephemeral and run before main containers.
+*/}}
+{{- define "spark-base.initContainerSecurityContext" -}}
+{{- if .Values.security.podSecurityStandards }}
 allowPrivilegeEscalation: false
 {{- if hasKey .Values.security "readOnlyRootFilesystem" }}
 readOnlyRootFilesystem: {{ .Values.security.readOnlyRootFilesystem }}
@@ -88,4 +113,5 @@ readOnlyRootFilesystem: {{ .Values.security.readOnlyRootFilesystem }}
 capabilities:
   drop:
     - ALL
+{{- end }}
 {{- end }}

@@ -2,18 +2,18 @@
 # Smoke test: Airflow + Spark Connect + K8s backend (Spark 4.1.1)
 
 # @meta
-name: "airflow-connect-k8s-411"
-type: "smoke"
-description: "Smoke test for Airflow + Spark Connect + K8s backend (Spark 4.1.1)"
-version: "4.1.1"
-component: "airflow"
-mode: "connect-k8s"
-features: []
-chart: "charts/spark-4.1"
-preset: "charts/spark-4.1/airflow-connect-k8s-4.1.1.yaml"
-estimated_time: "5 min"
-depends_on: []
-tags: [smoke, airflow, connect-k8s, 4.1.1]
+# name: "airflow-connect-k8s-411"
+# type: "smoke"
+# description: "Smoke test for Airflow + Spark Connect + K8s backend (Spark 4.1.1)"
+# version: "4.1.1"
+# component: "airflow"
+# mode: "connect-k8s"
+# features: []
+# chart: "charts/spark-4.1"
+# preset: "charts/spark-4.1/airflow-connect-k8s-4.1.1.yaml"
+# estimated_time: "5 min"
+# depends_on: []
+# tags: [smoke, airflow, connect-k8s, 4.1.1]
 # @endmeta
 
 set -e

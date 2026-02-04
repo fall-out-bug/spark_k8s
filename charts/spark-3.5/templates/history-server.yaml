@@ -1,4 +1,17 @@
 {{- if .Values.historyServer.enabled }}
+{{- if .Values.global.s3.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-history-config
+  labels:
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+data:
+  spark-defaults.conf: |-
+    spark.hadoop.fs.s3a.path.style.access={{ .Values.global.s3.pathStyleAccess | quote }}
+    spark.hadoop.fs.s3a.endpoint={{ .Values.global.s3.endpoint | quote }}
+{{- end }}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -58,6 +71,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.global.s3.existingSecret }}
                   key: secret-key
+            {{- else }}
+            - name: AWS_ACCESS_KEY_ID
+              value: {{ .Values.global.s3.accessKey | quote }}
+            - name: AWS_SECRET_ACCESS_KEY
+              value: {{ .Values.global.s3.secretKey | quote }}
             {{- end }}
             {{- end }}
             - name: HADOOP_USER_NAME
@@ -67,9 +85,19 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+            {{- if .Values.global.s3.enabled }}
+            - name: spark-config
+              mountPath: /opt/spark/conf/spark-defaults.conf
+              subPath: spark-defaults.conf
+            {{- end }}
       volumes:
         - name: tmp
           emptyDir: {}
+        {{- if .Values.global.s3.enabled }}
+        - name: spark-config
+          configMap:
+            name: {{ include "spark-3.5.fullname" . }}-history-config
+        {{- end }}
 ---
 apiVersion: v1
 kind: Service

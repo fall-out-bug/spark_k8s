@@ -103,6 +103,12 @@ spec:
               value: "sc://0.0.0.0:15002"
             - name: SPARK_CONF_DIR
               value: "/tmp/spark-conf"
+            - name: HADOOP_USER_NAME
+              value: "spark"
+            - name: HADOOP_SECURITY_AUTHENTICATION
+              value: "simple"
+            - name: SPARK_SUBMIT_OPTS
+              value: "-Dhadoop.security.authentication=simple"
             {{- range $key, $val := .Values.connect.sparkConf }}
             - name: SPARK_{{ $key | replace "." "_" | upper }}
               value: {{ $val | quote }}
@@ -135,7 +141,13 @@ spec:
             - "-c"
           args:
             - >-
-              /opt/spark/bin/spark-submit --properties-file /tmp/spark-conf/spark-defaults.conf --master local[*] --packages org.apache.spark:spark-connect_2.12:3.5.3 --class org.apache.spark.sql.connect.service.SparkConnectServer
+              {{- if eq .Values.connect.backendMode "local" }}
+              /opt/spark/bin/spark-submit --properties-file /tmp/spark-conf/spark-defaults.conf --master local[*] --class org.apache.spark.sql.connect.service.SparkConnectServer
+              {{- else if eq .Values.connect.backendMode "k8s" }}
+              /opt/spark/bin/spark-submit --properties-file /tmp/spark-conf/spark-defaults.conf --master k8s://https://kubernetes.default.svc:443 --deploy-mode client --conf spark.driver.host=$(POD_IP) --class org.apache.spark.sql.connect.service.SparkConnectServer
+              {{- else if eq .Values.connect.backendMode "standalone" }}
+              /opt/spark/bin/spark-submit --properties-file /tmp/spark-conf/spark-defaults.conf --master spark://{{ include "spark-3.5.fullname" . }}-standalone-master:7077 --class org.apache.spark.sql.connect.service.SparkConnectServer
+              {{- end }}
           ports:
             - name: grpc
               containerPort: 15002

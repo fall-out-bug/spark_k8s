@@ -2,18 +2,18 @@
 # Smoke test: Jupyter + Spark Connect + Standalone backend (Spark 4.1.0)
 
 # @meta
-name: "jupyter-connect-standalone-410"
-type: "smoke"
-description: "Smoke test for Jupyter + Spark Connect + Standalone backend (Spark 4.1.0)"
-version: "4.1.0"
-component: "jupyter"
-mode: "connect-standalone"
-features: []
-chart: "charts/spark-4.1"
-preset: "charts/spark-4.1/jupyter-connect-standalone-4.1.0.yaml"
-estimated_time: "5 min"
-depends_on: []
-tags: [smoke, jupyter, connect-standalone, 4.1.0]
+# name: "jupyter-connect-standalone-410"
+# type: "smoke"
+# description: "Smoke test for Jupyter + Spark Connect + Standalone backend (Spark 4.1.0)"
+# version: "4.1.0"
+# component: "jupyter"
+# mode: "connect-standalone"
+# features: []
+# chart: "charts/spark-4.1"
+# preset: "charts/spark-4.1/jupyter-connect-standalone-4.1.0.yaml"
+# estimated_time: "5 min"
+# depends_on: []
+# tags: [smoke, jupyter, connect-standalone, 4.1.0]
 # @endmeta
 
 set -e

@@ -2,18 +2,18 @@
 # Smoke test: Jupyter + Spark Connect + K8s backend (Spark 4.1.1)
 
 # @meta
-name: "jupyter-connect-k8s-411"
-type: "smoke"
-description: "Smoke test for Jupyter + Spark Connect + K8s backend (Spark 4.1.1)"
-version: "4.1.1"
-component: "jupyter"
-mode: "connect-k8s"
-features: []
-chart: "charts/spark-4.1"
-preset: "charts/spark-4.1/presets/test-baseline-411-values.yaml"
-estimated_time: "5 min"
-depends_on: []
-tags: [smoke, jupyter, connect-k8s, 4.1.1]
+# name: "jupyter-connect-k8s-411"
+# type: "smoke"
+# description: "Smoke test for Jupyter + Spark Connect + K8s backend (Spark 4.1.1)"
+# version: "4.1.1"
+# component: "jupyter"
+# mode: "connect-k8s"
+# features: []
+# chart: "charts/spark-4.1"
+# preset: "charts/spark-4.1/presets/test-baseline-411-values.yaml"
+# estimated_time: "5 min"
+# depends_on: []
+# tags: [smoke, jupyter, connect-k8s, 4.1.1]
 # @endmeta
 
 set -e

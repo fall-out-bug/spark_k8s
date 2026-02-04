@@ -53,7 +53,7 @@ connect:
     masterPort: 7077
   # eventLog:
     # DISABLED FOR SMOKE TESTS
-    /spark-logs/4.1/events"
+    /spark-logs/events"
   sparkConf:
     spark.executor.instances: "1"
     spark.executor.cores: "1"

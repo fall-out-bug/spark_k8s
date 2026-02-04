@@ -22,7 +22,7 @@ SPARK_TAG="$(resolve_spark_tag "${SPARK_VERSION}")"
 EVENTLOG_PREFIX="spark-logs/events"
 SPARK_IMAGE_DEFAULT="spark-custom:${SPARK_TAG}"
 if [[ "${SPARK_VERSION}" == "4.1"* ]]; then
-  EVENTLOG_PREFIX="spark-logs/4.1/events"
+  EVENTLOG_PREFIX="spark-logs/events"
   SPARK_IMAGE_DEFAULT="spark-custom:${SPARK_TAG}"
 fi
 

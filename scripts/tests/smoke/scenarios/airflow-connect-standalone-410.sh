@@ -2,18 +2,18 @@
 # Smoke test: Airflow + Spark Connect + Standalone backend (Spark 4.1.0)
 
 # @meta
-name: "airflow-connect-standalone-410"
-type: "smoke"
-description: "Smoke test for Airflow + Spark Connect + Standalone backend (Spark 4.1.0)"
-version: "4.1.0"
-component: "airflow"
-mode: "connect-standalone"
-features: []
-chart: "charts/spark-4.1"
-preset: "charts/spark-4.1/airflow-connect-standalone-4.1.0.yaml"
-estimated_time: "5 min"
-depends_on: []
-tags: [smoke, airflow, connect-standalone, 4.1.0]
+# name: "airflow-connect-standalone-410"
+# type: "smoke"
+# description: "Smoke test for Airflow + Spark Connect + Standalone backend (Spark 4.1.0)"
+# version: "4.1.0"
+# component: "airflow"
+# mode: "connect-standalone"
+# features: []
+# chart: "charts/spark-4.1"
+# preset: "charts/spark-4.1/airflow-connect-standalone-4.1.0.yaml"
+# estimated_time: "5 min"
+# depends_on: []
+# tags: [smoke, airflow, connect-standalone, 4.1.0]
 # @endmeta
 
 set -e

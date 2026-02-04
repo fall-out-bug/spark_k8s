@@ -146,8 +146,8 @@ kubectl run "mc-buckets-shared-$$" \
     --command -- /bin/sh -c "
         mc alias set myminio http://minio:9000 minioadmin minioadmin
         mc mb myminio/spark-logs
-        mc cp /etc/hostname myminio/spark-logs/3.5/events/.keep
-        mc cp /etc/hostname myminio/spark-logs/4.1/events/.keep
+        mc cp /etc/hostname myminio/spark-logs/events/.keep
+        mc cp /etc/hostname myminio/spark-logs/events/.keep
         mc ls myminio/
     " &>/dev/null || echo "Buckets may already exist"
 
