@@ -7,7 +7,16 @@ Build images with default UID 185:
 ```bash
 cd docker/spark-custom
 docker build -f Dockerfile.3.5.7 -t spark-k8s:3.5.7-hadoop3.4.2 .
+docker build -f Dockerfile.3.5.8 -t spark-k8s:3.5.8-hadoop3.4.2 .
 docker build -f Dockerfile.4.1.0 -t spark-k8s:4.1.0-hadoop3.4.2 .
+docker build -f Dockerfile.4.1.1 -t spark-k8s:4.1.1-hadoop3.4.2 .
+```
+
+Or use the Makefile:
+
+```bash
+make all              # Build all 4 images
+make build-3.5.8      # Build specific version
 ```
 
 ## OpenShift Builds
@@ -21,11 +30,23 @@ docker build -f Dockerfile.3.5.7 \
   --build-arg SPARK_GID=1000000000 \
   -t spark-k8s:3.5.7-hadoop3.4.2-openshift .
 
+# Spark 3.5.8 for OpenShift
+docker build -f Dockerfile.3.5.8 \
+  --build-arg SPARK_UID=1000000000 \
+  --build-arg SPARK_GID=1000000000 \
+  -t spark-k8s:3.5.8-hadoop3.4.2-openshift .
+
 # Spark 4.1.0 for OpenShift
 docker build -f Dockerfile.4.1.0 \
   --build-arg SPARK_UID=1000000000 \
   --build-arg SPARK_GID=1000000000 \
   -t spark-k8s:4.1.0-hadoop3.4.2-openshift .
+
+# Spark 4.1.1 for OpenShift
+docker build -f Dockerfile.4.1.1 \
+  --build-arg SPARK_UID=1000000000 \
+  --build-arg SPARK_GID=1000000000 \
+  -t spark-k8s:4.1.1-hadoop3.4.2-openshift .
 ```
 
 Then update your Helm values:
@@ -49,4 +70,6 @@ Both images include:
 | Image | Spark | Hadoop | Scala | Size |
 |-------|-------|--------|-------|------|
 | spark-k8s:3.5.7-hadoop3.4.2 | 3.5.7 | 3.4.2 | 2.12 | ~10.5GB |
+| spark-k8s:3.5.8-hadoop3.4.2 | 3.5.8 | 3.4.2 | 2.12 | ~10.5GB |
 | spark-k8s:4.1.0-hadoop3.4.2 | 4.1.0 | 3.4.2 | 2.13 | ~11.7GB |
+| spark-k8s:4.1.1-hadoop3.4.2 | 4.1.1 | 3.4.2 | 2.13 | ~11.7GB |

@@ -1,0 +1,197 @@
+# Custom Spark 3.5.8 image built from source with Hadoop 3.4.2 for AWS SDK v2 support
+# Multi-stage build: build stage compiles Spark, runtime stage contains the result
+
+# ========== BUILD STAGE ==========
+FROM ubuntu:22.04 AS builder
+
+LABEL maintainer="spark-k8s"
+LABEL description="Spark 3.5.8 builder - compiled from source with Hadoop 3.4.2"
+
+# Environment variables for build
+ENV SPARK_VERSION=3.5.8 \
+    HADOOP_VERSION=3.4.2 \
+    SCALA_VERSION=2.12 \
+    JAVA_VERSION=17 \
+    MAVEN_VERSION=3.9.6
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    git \
+    openjdk-${JAVA_VERSION}-jdk \
+    python3 \
+    python3-pip \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Set Java home for build
+ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
+# Install Maven
+RUN wget -q https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz && \
+    tar -xzf apache-maven-${MAVEN_VERSION}-bin.tar.gz -C /opt && \
+    mv /opt/apache-maven-${MAVEN_VERSION} /opt/maven && \
+    rm apache-maven-${MAVEN_VERSION}-bin.tar.gz
+
+ENV MAVEN_HOME=/opt/maven
+ENV PATH="${MAVEN_HOME}/bin:${PATH}"
+
+# Install Scala (required for Spark build)
+RUN wget -q https://downloads.lightbend.com/scala/2.12.19/scala-2.12.19.tgz && \
+    tar -xzf scala-2.12.19.tgz -C /opt && \
+    rm scala-2.12.19.tgz
+
+ENV SCALA_HOME=/opt/scala-2.12.19
+ENV PATH="${SCALA_HOME}/bin:${PATH}"
+
+# Clone and build Spark 3.5.8 with Hadoop 3.4.2
+WORKDIR /tmp
+RUN git clone --branch v${SPARK_VERSION} --depth 1 https://github.com/apache/spark.git
+
+WORKDIR /tmp/spark
+
+# Build Spark with Hadoop 3.4.2
+# Key parameters:
+# -Dhadoop.version=3.4.2  : Use Hadoop 3.4.2 instead of bundled 3.3.x
+# -Phadoop-3             : Enable Hadoop 3 profile
+# -DskipTests             : Skip tests for faster build
+# -Pkubernetes            : Include Kubernetes support
+# -Phadoop-cloud          : Include AWS S3, Azure, GCS support
+# -Phive-thriftserver     : Include Hive support
+# Note: spark-streaming, pyspark build by default. Kafka jars downloaded manually.
+RUN ./dev/make-distribution.sh \
+    --name custom-hadoop-${HADOOP_VERSION} \
+    --tgz \
+    -Dhadoop.version=${HADOOP_VERSION} \
+    -Phadoop-3 \
+    -Pkubernetes \
+    -Phadoop-cloud \
+    -Phive-thriftserver \
+    -DskipTests
+
+# Verify build output
+RUN ls -lh /tmp/spark/*.tgz && \
+    tar -tzf /tmp/spark/spark-${SPARK_VERSION}-bin-custom-hadoop-${HADOOP_VERSION}.tgz | head -20
+
+# ========== RUNTIME STAGE ==========
+FROM ubuntu:22.04
+
+LABEL maintainer="spark-k8s"
+LABEL description="Spark 3.5.8 built from source with Hadoop 3.4.2, AWS SDK v2, JDBC drivers, PySpark"
+
+# Environment variables
+ENV SPARK_VERSION=3.5.8 \
+    HADOOP_VERSION=3.4.2 \
+    SCALA_VERSION=2.12 \
+    JAVA_VERSION=17 \
+    SPARK_HOME=/opt/spark \
+    PYTHON_VERSION=3.11
+
+# Build arguments for user UID/GID (override for OpenShift)
+ARG SPARK_UID=185
+ARG SPARK_GID=185
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    openjdk-${JAVA_VERSION}-jre-headless \
+    python${PYTHON_VERSION} \
+    python3-pip \
+    python${PYTHON_VERSION}-venv \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Set Java home
+ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
+# Create user for non-root execution (matches K8s security context)
+# UID/GID can be overridden via --build-arg for OpenShift (use 1000000000)
+RUN groupadd -g ${SPARK_GID} spark && \
+    useradd -u ${SPARK_UID} -g spark -m -s /bin/bash spark
+
+# Extract Spark build from builder stage
+COPY --from=builder /tmp/spark/spark-${SPARK_VERSION}-bin-custom-hadoop-${HADOOP_VERSION}.tgz /tmp/
+RUN tar -xzf /tmp/spark-${SPARK_VERSION}-bin-custom-hadoop-${HADOOP_VERSION}.tgz -C /opt && \
+    mv /opt/spark-${SPARK_VERSION}-bin-custom-hadoop-${HADOOP_VERSION} /opt/spark && \
+    rm /tmp/spark-${SPARK_VERSION}-bin-custom-hadoop-${HADOOP_VERSION}.tgz
+
+# Verify Hadoop version in jars
+RUN ls /opt/spark/jars/hadoop-*.jar | head -10 && \
+    echo "Verifying Hadoop version..." && \
+    unzip -p /opt/spark/jars/hadoop-common-${HADOOP_VERSION}.jar org/apache/hadoop/util/VersionInfo.java 2>/dev/null | grep -o "VERSION=\"[^\"]*\"" || echo "Version check skipped"
+
+# Download AWS SDK v2 bundle for S3 support (compatible with Hadoop 3.4.2)
+RUN wget -q https://repo1.maven.org/maven2/software/amazon/awssdk/bundle/2.29.52/bundle-2.29.52.jar -O /opt/spark/jars/aws-sdk-java-v2-bundle.jar
+
+# Download JDBC drivers
+# PostgreSQL
+RUN wget -q https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.4/postgresql-42.7.4.jar -O /opt/spark/jars/postgresql-42.7.4.jar
+
+# Oracle
+RUN wget -q https://repo1.maven.org/maven2/com/oracle/database/jdbc/ojdbc11/23.5.0.24.07/ojdbc11-23.5.0.24.07.jar -O /opt/spark/jars/ojdbc11.jar
+
+# Vertica
+RUN wget -q https://repo1.maven.org/maven2/com/vertica/jdbc/vertica-jdbc/12.0.4-0/vertica-jdbc-12.0.4-0.jar -O /opt/spark/jars/vertica-jdbc-12.0.4-0.jar
+
+# Kafka support: download Kafka connector and dependencies manually
+RUN cd /opt/spark/jars && \
+    wget -q https://repo1.maven.org/maven2/org/apache/spark/spark-sql-kafka-0-10_2.12/${SPARK_VERSION}/spark-sql-kafka-0-10_2.12-${SPARK_VERSION}.jar && \
+    wget -q https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/3.7.1/kafka-clients-3.7.1.jar
+
+# Install Python dependencies for PySpark
+RUN pip3 install --no-cache-dir \
+    pyspark==${SPARK_VERSION} \
+    pandas \
+    numpy \
+    pyarrow \
+    findspark \
+    seaborn \
+    matplotlib
+
+# Install kubernetes python client
+RUN pip3 install --no-cache-dir kubernetes
+
+# Create working directories
+RUN mkdir -p /opt/spark/work \
+    /opt/spark/events \
+    /opt/spark/logs \
+    /tmp/spark-ivy-cache \
+    /tmp/spark
+
+# Set permissions
+RUN chmod -R 755 /opt/spark
+
+# Create Hadoop configuration for simple authentication
+RUN mkdir -p /opt/hadoop/conf && \
+    echo '<?xml version="1.0" encoding="UTF-8"?>' > /opt/hadoop/conf/core-site.xml && \
+    echo '<configuration>' >> /opt/hadoop/conf/core-site.xml && \
+    echo '  <property>' >> /opt/hadoop/conf/core-site.xml && \
+    echo '    <name>hadoop.security.authentication</name>' >> /opt/hadoop/conf/core-site.xml && \
+    echo '    <value>simple</value>' >> /opt/hadoop/conf/core-site.xml && \
+    echo '  </property>' >> /opt/hadoop/conf/core-site.xml && \
+    echo '</configuration>' >> /opt/hadoop/conf/core-site.xml
+
+# Environment variables for Spark
+ENV SPARK_HOME=/opt/spark \
+    HADOOP_CONF_DIR=/opt/hadoop/conf \
+    PATH="${SPARK_HOME}/bin:${SPARK_HOME}/sbin:${PATH}" \
+    PYTHONPATH="${SPARK_HOME}/python:${PYTHONPATH}" \
+    SPARK_NO_DAEMONIZE=true
+
+# Working directory
+WORKDIR /opt/spark
+
+# Switch to spark user (non-root)
+USER spark
+
+# Expose ports
+EXPOSE 4040 6066 7077 7078 7079 8080 8081 15002 18080
+
+# Default command
+CMD ["/bin/bash"]
