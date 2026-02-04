@@ -37,12 +37,18 @@ source "${PROJECT_ROOT}/scripts/tests/lib/cleanup.sh"
 source "${PROJECT_ROOT}/scripts/tests/lib/helm.sh"
 # shellcheck source=scripts/tests/lib/validation.sh
 source "${PROJECT_ROOT}/scripts/tests/lib/validation.sh"
+# shellcheck source=scripts/tests/lib/parallel.sh
+source "${PROJECT_ROOT}/scripts/tests/lib/parallel.sh"
 
 # Default configuration
 SCENARIOS_DIR="${SCRIPT_DIR}/scenarios"
 PARALLEL="${PARALLEL:-false}"
 CLEANUP_ON_SUCCESS="${CLEANUP_ON_SUCCESS:-false}"
 DATASET_SIZE="${DATASET_SIZE:-small}"  # small, medium, large
+MAX_PARALLEL="${MAX_PARALLEL:-5}"  # Max concurrent parallel jobs
+RETRY_FAILED="${RETRY_FAILED:-false}"  # Retry failed scenarios
+MAX_RETRIES="${MAX_RETRIES:-3}"  # Max retry attempts
+AGGREGATE_LOGS="${AGGREGATE_LOGS:-true}"  # Aggregate parallel logs
 
 # Test matrix (14 scenarios as in current smoke tests)
 SPARK_VERSIONS=("3.5.7" "3.5.8" "4.1.0" "4.1.1")
@@ -66,7 +72,11 @@ OPTIONS:
     --component <comp>       Filter by component (jupyter)
     --mode <mode>            Filter by mode (connect-k8s, connect-standalone, k8s-submit)
     --all                    Run all smoke tests (default)
-    --parallel               Run tests in parallel (experimental)
+    --parallel               Run tests in parallel with resource-aware scheduling
+    --max-parallel <n>       Maximum parallel jobs (default: 5)
+    --retry                  Retry failed scenarios (up to 3 attempts)
+    --max-retries <n>        Maximum retry attempts (default: 3)
+    --no-aggregate-logs      Don't aggregate parallel logs (default: aggregate)
     --cleanup-on-success     Cleanup resources even on success
     --dataset <size>         Dataset size: small, medium, large (default: small)
     --list                   List all available scenarios
@@ -134,6 +144,22 @@ parse_arguments() {
                 PARALLEL=true
                 shift
                 ;;
+            --max-parallel)
+                MAX_PARALLEL="$2"
+                shift 2
+                ;;
+            --retry)
+                RETRY_FAILED=true
+                shift
+                ;;
+            --max-retries)
+                MAX_RETRIES="$2"
+                shift 2
+                ;;
+            --no-aggregate-logs)
+                AGGREGATE_LOGS=false
+                shift
+                ;;
             --cleanup-on-success)
                 CLEANUP_ON_SUCCESS=true
                 export CLEANUP_ON_SUCCESS
@@ -165,6 +191,10 @@ parse_arguments() {
     export FILTER_COMPONENT="$filter_component"
     export FILTER_MODE="$filter_mode"
     export RUN_ALL="$run_all"
+    export MAX_PARALLEL="$MAX_PARALLEL"
+    export RETRY_FAILED="$RETRY_FAILED"
+    export MAX_RETRIES="$MAX_RETRIES"
+    export AGGREGATE_LOGS="$AGGREGATE_LOGS"
 }
 
 # ============================================================================
@@ -271,38 +301,79 @@ run_scenarios_parallel() {
     local pids=()
     local results=()
 
-    log_section "Running scenarios in parallel (${#scenario_files[@]} scenarios)"
+    log_section "Running scenarios in parallel (${#scenario_files[@]} scenarios, max $MAX_PARALLEL concurrent)"
+
+    # Detect available resources for intelligent skipping
+    local resources
+    mapfile -t resources < <(detect_cluster_resources)
+    log_info "Available resources: GPU=$(get_resource_value resources "gpu"), Iceberg=$(get_resource_value resources "iceberg"), Standalone=$(get_resource_value resources "standalone")"
+
+    # Filter and run scenarios
+    local running=0
+    declare -a skip_list=()
+    declare -a scenario_list=()
 
     for scenario_file in "${scenario_files[@]}"; do
-        # Run in background
+        local skip_reason
+        skip_reason=$(should_skip_scenario "$scenario_file")
+
+        if [[ -n "$skip_reason" ]]; then
+            local name
+            name=$(basename "$scenario_file")
+            log_warning "Skipping $name (no $skip_reason available)"
+            skip_list+=("$scenario_file")
+            continue
+        fi
+
+        scenario_list+=("$scenario_file")
+
+        # Wait if max parallel reached
+        while [[ $running -ge $MAX_PARALLEL ]]; do
+            sleep 1
+            running=0
+            for pid in "${pids[@]}"; do
+                if kill -0 "$pid" 2>/dev/null; then
+                    ((running++))
+                fi
+            done
+        done
+
+        # Run scenario in background
         (
             local scenario_name
             scenario_name=$(parse_yaml_frontmatter "$scenario_file" "name")
+            local log_file="/tmp/smoke-test-${scenario_name}-$$.log"
 
-            # Create unique log file
-            local log_file="/tmp/smoke-test-${scenario_name}.log"
-
-            if run_scenario "$scenario_file" 2>&1 | tee "$log_file"; then
-                echo "0" > "/tmp/smoke-test-${scenario_name}.result"
+            if bash "$scenario_file" 2>&1 | tee "$log_file"; then
+                echo "0" > "/tmp/smoke-test-${scenario_name}-$$.result"
             else
-                echo "$?" > "/tmp/smoke-test-${scenario_name}.result"
+                echo "$?" > "/tmp/smoke-test-${scenario_name}-$$.result"
             fi
         ) &
 
         pids+=($!)
+        ((running++))
+
+        local name
+        name=$(basename "$scenario_file")
+        log_debug "Started: $name (PID: ${pids[-1]}, running: $running/$MAX_PARALLEL)"
     done
 
     # Wait for all background processes
     local failed=0
+    declare -a failed_list=()
+
     for i in "${!pids[@]}"; do
-        wait "${pids[$i]}" || ((failed++))
+        if ! wait "${pids[$i]}" 2>/dev/null; then
+            ((failed++))
+        fi
     done
 
-    # Check results
-    for scenario_file in "${scenario_files[@]}"; do
+    # Check results and collect failed scenarios
+    for scenario_file in "${scenario_list[@]}"; do
         local scenario_name
         scenario_name=$(parse_yaml_frontmatter "$scenario_file" "name")
-        local result_file="/tmp/smoke-test-${scenario_name}.result"
+        local result_file="/tmp/smoke-test-${scenario_name}-$$.result"
 
         if [[ -f "$result_file" ]]; then
             local result
@@ -310,16 +381,52 @@ run_scenarios_parallel() {
 
             if [[ "$result" != "0" ]]; then
                 log_error "Scenario failed: $scenario_name"
-                ((failed++))
+                failed_list+=("$scenario_file")
             fi
 
             # Cleanup result files
             rm -f "$result_file"
-            rm -f "/tmp/smoke-test-${scenario_name}.log"
+            rm -f "/tmp/smoke-test-${scenario_name}-$$.log"
         fi
     done
 
-    return $failed
+    # Aggregate logs if requested
+    if [[ "$AGGREGATE_LOGS" == "true" ]]; then
+        aggregate_parallel_logs "/tmp" "/tmp/parallel-aggregated-$$.log"
+    fi
+
+    # Retry failed scenarios if enabled
+    if [[ "$RETRY_FAILED" == "true" && ${#failed_list[@]} -gt 0 ]]; then
+        log_section "Retrying ${#failed_list[@]} failed scenarios"
+
+        if retry_failed_scenarios "${failed_list[@]}"; then
+            log_success "All scenarios passed after retry"
+            return 0
+        else
+            log_error "Some scenarios failed after retry"
+            return 1
+        fi
+    elif [[ ${#failed_list[@]} -gt 0 ]]; then
+        log_error "Failed scenarios: ${#failed_list[@]}"
+        for scenario in "${failed_list[@]}"; do
+            log_error "  - $(basename "$scenario")"
+        done
+        return 1
+    fi
+
+    log_success "All ${#scenario_list[@]} scenarios passed"
+    return 0
+}
+
+# Helper function to get resource value from array
+get_resource_value() {
+    local resources=("$@")
+    for resource in "${resources[@]}"; do
+        local key="${resource%%:*}"
+        local value="${resource##*:}"
+        [[ "$key" == "$2" ]] && echo "$value"
+    done
+    echo "false"
 }
 
 # ============================================================================
@@ -384,6 +491,159 @@ main() {
     fi
 
     return $exit_code
+}
+
+# ============================================================================
+# Parallel execution with retry
+# ============================================================================
+
+# Run scenarios in parallel with resource awareness and retry
+run_parallel_with_retry() {
+    local scenario_files=("$@")
+
+    log_section "Parallel execution with retry (max $MAX_PARALLEL concurrent)"
+
+    if [[ "$AGGREGATE_LOGS" == "true" ]]; then
+        local log_dir="/tmp/parallel-logs-$$"
+        mkdir -p "$log_dir"
+    fi
+
+    declare -a failed_scenarios=()
+
+    # First pass: run scenarios in parallel
+    for scenario_file in "${scenario_files[@]}"; do
+        if [[ "$PARALLEL" == "true" ]]; then
+            # Run in background
+            (
+                bash "$scenario_file" 2>&1 | tee -a "${log_dir:-/tmp}/parallel-$$-$$.log"
+            ) &
+            local pid=$!
+
+            # Track PID and scenario file
+            echo "$pid:$scenario_file" >> "/tmp/parallel-pids-$$"
+
+            # Wait if max parallel reached
+            local running
+            running=$(jobs | wc -l)
+            while [[ $running -ge $MAX_PARALLEL ]]; do
+                sleep 1
+                running=$(jobs | wc -l)
+            done
+        else
+            # Run sequentially
+            if ! bash "$scenario_file"; then
+                failed_scenarios+=("$scenario_file")
+            fi
+        fi
+    done
+
+    # Wait for all background jobs
+    if [[ "$PARALLEL" == "true" ]]; then
+        wait
+
+        # Check exit codes from background jobs
+        while IFS=: read -r pid_entry; do
+            local pid="${pid_entry%%:*}"
+            local scenario_file="${pid_entry##*:}"
+
+            # Check if scenario failed
+            if ! grep -q "Smoke test passed" "${log_dir:-/tmp}/parallel-$$-$pid.log" 2>/dev/null; then
+                failed_scenarios+=("$scenario_file")
+            fi
+        done < "/tmp/parallel-pids-$$"
+
+        rm -f "/tmp/parallel-pids-$$"
+    fi
+
+    # Aggregate logs if requested
+    if [[ "$AGGREGATE_LOGS" == "true" && -d "${log_dir:-/tmp/parallel-logs-$$}" ]]; then
+        aggregate_parallel_logs "${log_dir:-/tmp/parallel-logs-$$}" "/tmp/parallel-aggregated-$$.log"
+        log_info "Aggregated logs: /tmp/parallel-aggregated-$$.log"
+    fi
+
+    # Retry failed scenarios if enabled
+    if [[ "$RETRY_FAILED" == "true" && ${#failed_scenarios[@]} -gt 0 ]]; then
+        log_section "Retrying ${#failed_scenarios[@]} failed scenarios"
+
+        local attempt=1
+        declare -a still_failing=()
+
+        while [[ $attempt -le $MAX_RETRIES && ${#still_failing[@]} -ge 0 ]]; do
+            log_info "Retry attempt $attempt/$MAX_RETRIES"
+
+            still_failing=()
+
+            for scenario_file in "${failed_scenarios[@]}"; do
+                if bash "$scenario_file"; then
+                    log_success "Retry succeeded: $(basename "$scenario_file")"
+                else
+                    log_error "Retry failed: $(basename "$scenario_file")"
+                    still_failing+=("$scenario_file")
+                fi
+            done
+
+            failed_scenarios=("${still_failing[@]}")
+            ((attempt++))
+        done
+    fi
+
+    # Report results
+    local total=${#scenario_files[@]}
+    local passed=$((total - ${#failed_scenarios[@]}))
+
+    echo ""
+    log_section "Parallel Execution Summary"
+    echo "Total: $total, Passed: $passed, Failed: ${#failed_scenarios[@]}"
+
+    if [[ ${#failed_scenarios[@]} -gt 0 ]]; then
+        log_error "Failed scenarios:"
+        for scenario in "${failed_scenarios[@]}"; do
+            echo "  - $(basename "$scenario")"
+        done
+        return 1
+    fi
+
+    return 0
+}
+
+# ============================================================================
+# Retry helper function
+# ============================================================================
+
+retry_failed_scenarios() {
+    local scenario_files=("$@")
+    local max_attempts="${MAX_RETRIES:-3}"
+    declare -a failed_list=("${scenario_files[@]}")
+
+    log_section "Retrying ${#failed_list[@]} scenarios (max $max_attempts attempts)"
+
+    local attempt=1
+    while [[ $attempt -le $max_attempts && ${#failed_list[@]} -gt 0 ]]; do
+        log_info "Retry attempt $attempt/$max_attempts"
+
+        declare -a still_failing=()
+
+        for scenario_file in "${failed_list[@]}"; do
+            if bash "$scenario_file"; then
+                log_success "Retry succeeded: $(basename "$scenario_file")"
+            else
+                log_error "Retry failed: $(basename "$scenario_file")"
+                still_failing+=("$scenario_file")
+            fi
+        done
+
+        failed_list=("${still_failing[@]}")
+        ((attempt++))
+        sleep 5  # Brief pause between retries
+    done
+
+    if [[ ${#failed_list[@]} -gt 0 ]]; then
+        log_error "Failed after $max_attempts retries: ${#failed_list[@]} scenarios"
+        return 1
+    fi
+
+    log_success "All scenarios passed after retry"
+    return 0
 }
 
 # Run main if script is executed directly
