@@ -1,0 +1,165 @@
+# Escalation Policy Configuration
+# Part of WS-018-01: Incident Response Framework
+
+# On-Call Rotation
+on_call:
+  primary:
+    name: "Primary On-Call"
+    rotation: "weekly"
+    response_time_p0: "15 minutes"
+    response_time_p1: "1 hour"
+
+  secondary:
+    name: "Secondary On-Call"
+    rotation: "weekly"
+    backup_for: "primary"
+    response_time_p0: "30 minutes"
+
+# Escalation Paths
+escalation:
+  P0:
+    level_1:
+      role: "primary_on_call"
+      timeout: "15 minutes"
+
+    level_2:
+      role: "secondary_on_call"
+      timeout: "30 minutes"
+
+    level_3:
+      role: "team_lead"
+      timeout: "1 hour"
+
+    level_4:
+      role: "engineering_manager"
+      timeout: "2 hours"
+
+    level_5:
+      role: "cto"
+      timeout: "immediate"
+
+  P1:
+    level_1:
+      role: "primary_on_call"
+      timeout: "1 hour"
+
+    level_2:
+      role: "team_lead"
+      timeout: "2 hours"
+
+    level_3:
+      role: "engineering_manager"
+      timeout: "4 hours"
+
+    level_4:
+      role: "cto"
+      timeout: "next business day"
+
+  P2:
+    level_1:
+      role: "primary_on_call"
+      timeout: "4 hours"
+
+    level_2:
+      role: "team_lead"
+      timeout: "1 day"
+
+    level_3:
+      role: "engineering_manager"
+      timeout: "2 days"
+
+  P3:
+    level_1:
+      role: "team_lead"
+      timeout: "1 week"
+
+# Communication Channels
+communication:
+  internal:
+    - "#incidents"
+    - "#platform-alerts"
+    - "#announcements"
+
+  external:
+    support_portal: "https://support.example.com"
+    status_page: "https://status.example.com"
+    customer_email: "support@example.com"
+
+# Contact List (example - replace with actual contacts)
+contacts:
+  primary_on_call:
+    - name: "On-Call Engineer"
+      phone: "+1-555-0100"
+      email: "on-call@example.com"
+      slack: "@on-call"
+
+  secondary_on_call:
+    - name: "Backup Engineer"
+      phone: "+1-555-0101"
+      email: "backup@example.com"
+      slack: "@backup"
+
+  team_lead:
+    - name: "Platform Team Lead"
+      phone: "+1-555-0200"
+      email: "team-lead@example.com"
+      slack: "@team-lead"
+
+  engineering_manager:
+    - name: "Engineering Manager"
+      phone: "+1-555-0300"
+      email: "eng-manager@example.com"
+      slack: "@eng-manager"
+
+  cto:
+    - name: "CTO"
+      phone: "+1-555-0400"
+      email: "cto@example.com"
+      slack: "@cto"
+
+# Monitoring Integration
+monitoring:
+  prometheus:
+    url: "http://prometheus:9090"
+    alert_rules:
+      - "CriticalFailureRate"
+      - "DriverOOM"
+      - "ExecutorLoss"
+      - "HighErrorRate"
+
+  pagerduty:
+    # Enable if using PagerDuty
+    enabled: false
+    service_key: "YOUR_PAGERDUTY_KEY"
+
+  slack:
+    # Enable if using Slack
+    enabled: false
+    webhook_url: "YOUR_SLACK_WEBHOOK"
+    channel: "#incidents"
+
+# Incident Response Requirements
+requirements:
+  P0:
+    initial_response: "15 minutes"
+    update_frequency: "30 minutes"
+    postmortem_required: true
+    stakeholders_to_notify: ["cto", "engineering_manager", "customers"]
+
+  P1:
+    initial_response: "1 hour"
+    update_frequency: "1 hour"
+    postmortem_required: true
+    stakeholders_to_notify: ["engineering_manager"]
+
+  P2:
+    initial_response: "4 hours"
+    update_frequency: "4 hours"
+    postmortem_required: false
+    stakeholders_to_notify: ["team_lead"]
+
+  P3:
+    initial_response: "1 business day"
+    update_frequency: "1 day"
+    postmortem_required: false
+    stakeholders_to_notify: []
