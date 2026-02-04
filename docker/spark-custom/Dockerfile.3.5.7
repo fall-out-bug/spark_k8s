@@ -56,18 +56,20 @@ WORKDIR /tmp/spark
 # Build Spark with Hadoop 3.4.2
 # Key parameters:
 # -Dhadoop.version=3.4.2  : Use Hadoop 3.4.2 instead of bundled 3.3.x
-# -Phadoop-3.4            : Enable Hadoop 3.4 profile
+# -Phadoop-3             : Enable Hadoop 3 profile
 # -DskipTests             : Skip tests for faster build
 # -Pkubernetes            : Include Kubernetes support
-# -Pkafka                 : Include Kafka support (spark-sql-kafka-0-10)
-# Note: -Psparkr requires R (not installed), -Ppyarrow skipped for faster build
+# -Phadoop-cloud          : Include AWS S3, Azure, GCS support
+# -Phive-thriftserver     : Include Hive support
+# Note: spark-streaming, pyspark build by default. Kafka jars downloaded manually.
 RUN ./dev/make-distribution.sh \
     --name custom-hadoop-${HADOOP_VERSION} \
     --tgz \
     -Dhadoop.version=${HADOOP_VERSION} \
-    -Phadoop-3.4 \
+    -Phadoop-3 \
     -Pkubernetes \
-    -Pkafka \
+    -Phadoop-cloud \
+    -Phive-thriftserver \
     -DskipTests
 
 # Verify build output
@@ -132,8 +134,10 @@ RUN wget -q https://repo1.maven.org/maven2/com/oracle/database/jdbc/ojdbc11/23.5
 # Vertica
 RUN wget -q https://repo1.maven.org/maven2/com/vertica/jdbc/vertica-jdbc/12.0.4-0/vertica-jdbc-12.0.4-0.jar -O /opt/spark/jars/vertica-jdbc-12.0.4-0.jar
 
-# Kafka support is included via -Pkafka build flag (spark-sql-kafka-0-10)
-# No separate kafka-clients jar needed
+# Kafka support: download Kafka connector and dependencies manually
+RUN cd /opt/spark/jars && \
+    wget -q https://repo1.maven.org/maven2/org/apache/spark/spark-sql-kafka-0-10_2.12/${SPARK_VERSION}/spark-sql-kafka-0-10_2.12-${SPARK_VERSION}.jar && \
+    wget -q https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/3.7.1/kafka-clients-3.7.1.jar
 
 # Install Python dependencies for PySpark
 RUN pip3 install --no-cache-dir \
