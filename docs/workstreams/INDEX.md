@@ -622,6 +622,35 @@ F06 (Phase 0), F07 (Phase 1) ────┐
 
 ---
 
+## Feature F15: Phase 9 — Parallel Execution & CI/CD
+
+**Source:** `docs/phases/phase-09-parallel.md`
+**Status:** Backlog
+**Total Workstreams:** 3
+**Estimated LOC:** ~2100
+
+| ID | Name | Scope | Dependencies | Status |
+|----|------|-------|-------------|--------|
+| WS-015-01 | Parallel execution framework | MEDIUM (~800 LOC) | F06, F08, F12, F13 | backlog |
+| WS-015-02 | Result aggregation | MEDIUM (~600 LOC) | WS-015-01 | backlog |
+| WS-015-03 | CI/CD integration | MEDIUM (~700 LOC) | WS-015-02 | backlog |
+
+### Dependency Graph
+
+```
+F06, F08, F12, F13 ──── WS-015-01 (Parallel execution)
+                          │
+                          └── WS-015-02 (Result aggregation)
+                                │
+                                └── WS-015-03 (CI/CD integration)
+```
+
+### Execution Order
+
+**Sequential:** WS-015-01 → WS-015-02 → WS-015-03
+
+---
+
 ## Summary
 
 | Feature | Total WS | Completed | In Progress | Backlog |
@@ -640,8 +669,9 @@ F06 (Phase 0), F07 (Phase 1) ────┐
 | F12: Phase 6 — E2E Tests | 6 | 0 | 0 | 6 |
 | F13: Phase 7 — Load Tests | 5 | 0 | 0 | 5 |
 | F14: Phase 8 — Advanced Security | 7 | 0 | 0 | 7 |
+| F15: Phase 9 — Parallel Execution & CI/CD | 3 | 0 | 0 | 3 |
 | TESTING: Testing Infrastructure | 3+ | 0 | 0 | 3+ |
-| **TOTAL** | **96+** | **30** | **1** | **67+** |
+| **TOTAL** | **99+** | **30** | **1** | **70+** |
 
 ---
 
