@@ -1,0 +1,4 @@
+# Apache Iceberg Python support for PySpark
+
+pyiceberg>=0.6.0
+fsspec>=2024.0.0
