@@ -29,9 +29,9 @@ security:
   podSecurityStandards: true
   createNamespace: true
   pssProfile: restricted
-  runAsUser: 1000000000  # OpenShift UID range
-  runAsGroup: 1000000000
-  fsGroup: 1000000000
+  runAsUser: 185  # Matches spark-k8s image default
+  runAsGroup: 185
+  fsGroup: 185
   readOnlyRootFilesystem: false
 
 # RBAC

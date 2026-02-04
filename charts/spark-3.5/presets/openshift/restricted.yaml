@@ -3,7 +3,7 @@
 # This preset configures Spark 3.5 for OpenShift with:
 # - Pod Security Standards (PSS) restricted profile
 # - Security Context Constraints (SCC) restricted
-# - OpenShift-specific UID ranges
+# - UID 185 (matches default spark-k8s image)
 # - External S3/PostgreSQL (no embedded MinIO/PostgreSQL)
 #
 # Usage:
@@ -11,6 +11,7 @@
 #
 # Requirements:
 # - OpenShift cluster with SCC restricted available
+# - SCC must allow UID 185 (or build image with --build-arg SPARK_UID=1000000000)
 # - External S3-compatible storage
 # - External PostgreSQL for Hive Metastore
 
@@ -29,9 +30,9 @@ security:
   podSecurityStandards: true
   createNamespace: true
   pssProfile: restricted
-  runAsUser: 1000000000  # OpenShift UID range
-  runAsGroup: 1000000000
-  fsGroup: 1000000000
+  runAsUser: 185  # Matches spark-k8s image default (or build with SPARK_UID=1000000000 for OpenShift range)
+  runAsGroup: 185
+  fsGroup: 185
   readOnlyRootFilesystem: false
 
 # RBAC

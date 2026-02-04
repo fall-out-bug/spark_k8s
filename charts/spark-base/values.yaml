@@ -69,6 +69,8 @@ postgresql:
       cpu: "500m"
 
 security:
+  # Pod Security Standards enforcement (changed to true in v1.0 for OpenShift compatibility)
+  # Set to false in scenario presets for backward compatibility with dev environments
   podSecurityStandards: true
   runAsUser: 185
   runAsGroup: 185

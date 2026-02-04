@@ -90,6 +90,10 @@ ENV SPARK_VERSION=3.5.7 \
     SPARK_HOME=/opt/spark \
     PYTHON_VERSION=3.11
 
+# Build arguments for user UID/GID (override for OpenShift)
+ARG SPARK_UID=185
+ARG SPARK_GID=185
+
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
     curl \
@@ -107,8 +111,9 @@ ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # Create user for non-root execution (matches K8s security context)
-RUN groupadd -g 185 spark && \
-    useradd -u 185 -g spark -m -s /bin/bash spark
+# UID/GID can be overridden via --build-arg for OpenShift (use 1000000000)
+RUN groupadd -g ${SPARK_GID} spark && \
+    useradd -u ${SPARK_UID} -g spark -m -s /bin/bash spark
 
 # Extract Spark build from builder stage
 COPY --from=builder /tmp/spark/spark-${SPARK_VERSION}-bin-custom-hadoop-${HADOOP_VERSION}.tgz /tmp/
