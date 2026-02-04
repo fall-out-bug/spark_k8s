@@ -1,8 +1,84 @@
-# Custom Spark 3.5.7 image with Hadoop 3.4.2 and JDBC drivers
+# Custom Spark 3.5.7 image built from source with Hadoop 3.4.2 for AWS SDK v2 support
+# Multi-stage build: build stage compiles Spark, runtime stage contains the result
+
+# ========== BUILD STAGE ==========
+FROM ubuntu:22.04 AS builder
+
+LABEL maintainer="spark-k8s"
+LABEL description="Spark 3.5.7 builder - compiled from source with Hadoop 3.4.2"
+
+# Environment variables for build
+ENV SPARK_VERSION=3.5.7 \
+    HADOOP_VERSION=3.4.2 \
+    SCALA_VERSION=2.12 \
+    JAVA_VERSION=17 \
+    MAVEN_VERSION=3.9.6
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    git \
+    openjdk-${JAVA_VERSION}-jdk \
+    python3 \
+    python3-pip \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Set Java home for build
+ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
+# Install Maven
+RUN wget -q https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz && \
+    tar -xzf apache-maven-${MAVEN_VERSION}-bin.tar.gz -C /opt/ && \
+    mv /opt/apache-maven-${MAVEN_VERSION} /opt/maven && \
+    rm apache-maven-${MAVEN_VERSION}-bin.tar.gz
+
+ENV MAVEN_HOME=/opt/maven
+ENV PATH="${MAVEN_HOME}/bin:${PATH}"
+
+# Install Scala (required for Spark build)
+RUN wget -q https://downloads.lightbend.com/scala/2.12.19/scala-2.12.19.tgz && \
+    tar -xzf scala-2.12.19.tgz -C /opt/ && \
+    rm scala-2.12.19.tgz
+
+ENV SCALA_HOME=/opt/scala-2.12.19
+ENV PATH="${SCALA_HOME}/bin:${PATH}"
+
+# Clone and build Spark 3.5.7 with Hadoop 3.4.2
+WORKDIR /tmp
+RUN git clone --branch v${SPARK_VERSION} --depth 1 https://github.com/apache/spark.git
+
+WORKDIR /tmp/spark
+
+# Build Spark with Hadoop 3.4.2
+# Key parameters:
+# -Dhadoop.version=3.4.2  : Use Hadoop 3.4.2 instead of bundled 3.3.x
+# -Phadoop-3.4            : Enable Hadoop 3.4 profile
+# -DskipTests             : Skip tests for faster build
+# -Pkubernetes            : Include Kubernetes support
+# -Pkafka                 : Include Kafka support (spark-sql-kafka-0-10)
+# Note: -Psparkr requires R (not installed), -Ppyarrow skipped for faster build
+RUN ./dev/make-distribution.sh \
+    --name custom-hadoop-${HADOOP_VERSION} \
+    --tgz \
+    -Dhadoop.version=${HADOOP_VERSION} \
+    -Phadoop-3.4 \
+    -Pkubernetes \
+    -Pkafka \
+    -DskipTests
+
+# Verify build output
+RUN ls -lh /tmp/spark/*.tgz && \
+    tar -tzf /tmp/spark/spark-${SPARK_VERSION}-bin-custom-hadoop-${HADOOP_VERSION}.tgz | head -20
+
+# ========== RUNTIME STAGE ==========
 FROM ubuntu:22.04
 
 LABEL maintainer="spark-k8s"
-LABEL description="Spark 3.5.7 with Hadoop 3.4.2, JDBC drivers, PySpark"
+LABEL description="Spark 3.5.7 built from source with Hadoop 3.4.2, AWS SDK v2, JDBC drivers, PySpark"
 
 # Environment variables
 ENV SPARK_VERSION=3.5.7 \
@@ -12,7 +88,7 @@ ENV SPARK_VERSION=3.5.7 \
     SPARK_HOME=/opt/spark \
     PYTHON_VERSION=3.11
 
-# Install dependencies
+# Install runtime dependencies
 RUN apt-get update && apt-get install -y \
     curl \
     wget \
@@ -32,37 +108,32 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 RUN groupadd -g 185 spark && \
     useradd -u 185 -g spark -m -s /bin/bash spark
 
-# Download and install Spark with Hadoop 3.4.2
-WORKDIR /tmp
-RUN wget -q https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz && \
-    tar -xzf spark-${SPARK_VERSION}-bin-hadoop3.tgz && \
-    mv spark-${SPARK_VERSION}-bin-hadoop3 /opt/spark && \
-    rm spark-${SPARK_VERSION}-bin-hadoop3.tgz
+# Extract Spark build from builder stage
+COPY --from=builder /tmp/spark/spark-${SPARK_VERSION}-bin-custom-hadoop-${HADOOP_VERSION}.tgz /tmp/
+RUN tar -xzf /tmp/spark-${SPARK_VERSION}-bin-custom-hadoop-${HADOOP_VERSION}.tgz -C /opt/ && \
+    mv /opt/spark-${SPARK_VERSION}-bin-custom-hadoop-${HADOOP_VERSION} /opt/spark && \
+    rm /tmp/spark-${SPARK_VERSION}-bin-custom-hadoop-${HADOOP_VERSION}.tgz
 
-# Note: Keep bundled Hadoop 3.3.x jars for Spark 3.5.7 compatibility
-# Add compatible hadoop-aws 3.3.4 for S3A support (same version as bundled Hadoop in Spark 3.5.7)
-# Do NOT use hadoop-common 3.4.x or AWS SDK v2 bundle - they require BulkDelete which only exists in Hadoop 3.4.x
+# Verify Hadoop version in jars
+RUN ls /opt/spark/jars/hadoop-*.jar | head -10 && \
+    echo "Verifying Hadoop version..." && \
+    unzip -p /opt/spark/jars/hadoop-common-${HADOOP_VERSION}.jar org/apache/hadoop/util/VersionInfo.java 2>/dev/null | grep -o "VERSION=\"[^\"]*\"" || echo "Version check skipped"
 
-# Download and install AWS SDK v1 bundle + hadoop-aws 3.3.4 for S3 support
-RUN wget -q https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.795/aws-java-sdk-bundle-1.12.795.jar -O /opt/spark/jars/aws-java-sdk-bundle-1.12.795.jar && \
-    wget -q https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar -O /opt/spark/jars/hadoop-aws-3.3.4.jar
-
-# Download Spark Connect server jar (required for Connect mode)
-RUN wget -q https://repo1.maven.org/maven2/org/apache/spark/spark-connect_2.12/${SPARK_VERSION}/spark-connect_2.12-${SPARK_VERSION}.jar -O /opt/spark/jars/spark-connect_2.12-${SPARK_VERSION}.jar
+# Download AWS SDK v2 bundle for S3 support (compatible with Hadoop 3.4.2)
+RUN wget -q https://repo1.maven.org/maven2/software/amazon/awssdk/bundle/2.29.52/bundle-2.29.52.jar -O /opt/spark/jars/aws-sdk-java-v2-bundle.jar
 
 # Download JDBC drivers
 # PostgreSQL
 RUN wget -q https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.4/postgresql-42.7.4.jar -O /opt/spark/jars/postgresql-42.7.4.jar
 
-# Oracle (requires accepting license, using direct link)
-RUN wget -q https://download.oracle.com/otn-pub/otn_software/jdbc/233/ojdbc11.jar -O /opt/spark/jars/ojdbc11.jar || \
-    wget -q https://repo1.maven.org/maven2/com/oracle/database/jdbc/ojdbc11/23.5.0.24.07/ojdbc11-23.5.0.24.07.jar -O /opt/spark/jars/ojdbc11.jar
+# Oracle
+RUN wget -q https://repo1.maven.org/maven2/com/oracle/database/jdbc/ojdbc11/23.5.0.24.07/ojdbc11-23.5.0.24.07.jar -O /opt/spark/jars/ojdbc11.jar
 
 # Vertica
 RUN wget -q https://repo1.maven.org/maven2/com/vertica/jdbc/vertica-jdbc/12.0.4-0/vertica-jdbc-12.0.4-0.jar -O /opt/spark/jars/vertica-jdbc-12.0.4-0.jar
 
-# Kafka (already included in Spark, but adding latest client)
-RUN wget -q https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/3.7.1/kafka-clients-3.7.1.jar -O /opt/spark/jars/kafka-clients-3.7.1.jar
+# Kafka support is included via -Pkafka build flag (spark-sql-kafka-0-10)
+# No separate kafka-clients jar needed
 
 # Install Python dependencies for PySpark
 RUN pip3 install --no-cache-dir \
