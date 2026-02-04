@@ -3,7 +3,7 @@
 **Feature:** F10 - Phase 4: Docker Intermediate Layers
 **Review Date:** 2026-02-05
 **Reviewer:** Claude Code (Review Skill)
-**Verdict:** ✅ **APPROVED**
+**Verdict:** ✅ **APPROVED** (with fixes applied)
 
 ---
 
@@ -53,7 +53,7 @@ F10 successfully redesigns the Docker intermediate layers architecture to use cu
 |------|-----|---------|
 | Dockerfile | 77 | Base image with GPU/Iceberg variant support |
 | build.sh | 79 | Build script with BUILD_GPU_DEPS/BUILD_ICEBERG_DEPS |
-| test.sh | 197 | Comprehensive test suite (9 tests) |
+| test.sh | 197 | Comprehensive test suite (7 tests) |
 | README.md | 89 | Usage documentation |
 | requirements-base.txt | 9 | Core PySpark packages |
 | requirements-gpu.txt | 6 | NVIDIA RAPIDS (cudf, cuml, cupy) |
@@ -156,7 +156,7 @@ F10 successfully redesigns the Docker intermediate layers architecture to use cu
 | No bare except | Error handling | ✅ PASS | All scripts use `set -eo pipefail` |
 | Type hints | N/A (Bash) | N/A | Bash scripts |
 | Tests exist | All WS | ✅ PASS | test.sh in each layer |
-| Tests pass | 100% | ✅ PASS | 19/19 tests passed |
+| Tests pass | 100% | ✅ PASS | 23/23 tests passed |
 
 ### Build Verification
 
@@ -239,11 +239,26 @@ fa88d6f feat(f10): redesign Docker intermediate layers for custom Spark builds
 **Strengths:**
 - ✅ Modular architecture with variant support
 - ✅ Proper separation of concerns (base/GPU/Iceberg)
-- ✅ Comprehensive test coverage (19/19 tests passing)
+- ✅ Comprehensive test coverage (23/23 tests passing)
 - ✅ Scala version handling for cross-version compatibility
 - ✅ AWS SDK v2 compatibility achieved via Hadoop 3.4.2
 
-**No Changes Requested**
+### Issues Found and Fixed
+
+During review execution, the following issues were identified and fixed:
+
+| Issue | Impact | Fix | Commit |
+|-------|--------|-----|--------|
+| Missing USER root in jars-rapids/Dockerfile | Permission denied during wget | Added USER root/USER 185 | c1ee0c1 |
+| Missing USER root in jars-iceberg/Dockerfile | Permission denied during wget | Added USER root/USER 185 | c1ee0c1 |
+| Iceberg 4.1.0 wrong version (1.6.1) | 404 Not Found on Maven Central | Changed to 1.10.1 for Spark 4.0 | c1ee0c1 |
+| Iceberg Spark version mismatch | Used full version (3.5.7) instead of major (3.5) | Added ICEBERG_SPARK_VERSION build arg | c1ee0c1 |
+
+**Root Cause:** JARs layer Dockerfiles did not switch to root user before RUN commands, causing permission errors. Also, Iceberg artifact naming uses major Spark versions (3.5, 4.0) not patch versions (3.5.7, 4.1.0).
+
+**Resolution:** All issues fixed and verified. All images build successfully and all tests pass.
+
+**No Changes Requested** (all issues fixed during review)
 
 ---
 
@@ -251,11 +266,19 @@ fa88d6f feat(f10): redesign Docker intermediate layers for custom Spark builds
 
 ### Docker Images Built
 ```
+# Python Dependencies (WS-010-02)
 spark-k8s-python-deps:latest              3.22GB
 spark-k8s-python-deps:latest-gpu          12.5GB
 spark-k8s-python-deps:latest-iceberg      3.29GB
+
+# JDBC Drivers (WS-010-03)
 spark-k8s-jdbc-drivers:latest             11.7GB
-spark-k8s-jars-rapids:latest              2.5GB
+
+# JARs Layers (WS-010-04)
+spark-k8s-jars-rapids:3.5.7               ~2.5GB
+spark-k8s-jars-rapids:4.1.0               ~2.5GB
+spark-k8s-jars-iceberg:3.5.7              (Iceberg 1.6.1)
+spark-k8s-jars-iceberg:4.1.0              (Iceberg 1.10.1)
 ```
 
 ### Directories Created
