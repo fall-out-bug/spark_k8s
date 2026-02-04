@@ -19,6 +19,9 @@ ARG SCALA_VERSION=2.12
 # Set SPARK_HOME (same as base image)
 ENV SPARK_HOME=/opt/spark
 
+# Switch to root for installation
+USER root
+
 # Download RAPIDS plugin JAR from Maven Central
 # The rapids-4-spark JAR includes cudf as a shaded dependency
 RUN mkdir -p ${SPARK_HOME}/jars && \
@@ -34,6 +37,9 @@ RUN ls -la ${SPARK_HOME}/jars/rapids*.jar && \
 ENV SPARK_RAPIDS_VERSION=${RAPIDS_VERSION} \
     SPARK_RAPIDS_CUDA_VERSION=${CUDA_VERSION} \
     SPARK_RAPIDS_JAR=${SPARK_HOME}/jars/rapids-4-spark_${SCALA_VERSION}-${RAPIDS_VERSION}-cuda${CUDA_VERSION}.jar
+
+# Switch back to non-root user
+USER 185
 
 # Working directory
 WORKDIR /opt/spark/work-dir

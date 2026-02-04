@@ -5,7 +5,8 @@ set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly BASE_IMAGE="${BASE_IMAGE:-localhost/spark-k8s:4.1.0-hadoop3.4.2}"
-readonly ICEBERG_VERSION="${ICEBERG_VERSION:-1.6.1}"
+# Iceberg 1.10.1+ required for Spark 4.0 support (1.6.1 only supports up to Spark 3.5)
+readonly ICEBERG_VERSION="${ICEBERG_VERSION:-1.10.1}"
 readonly IMAGE_NAME="spark-k8s-jars-iceberg:4.1.0"
 
 echo "Building Iceberg JARs layer for Spark 4.1.0..."
@@ -24,6 +25,7 @@ fi
 docker build \
     --build-arg "BASE_IMAGE=${BASE_IMAGE}" \
     --build-arg "SPARK_VERSION=4.1.0" \
+    --build-arg "ICEBERG_SPARK_VERSION=4.0" \
     --build-arg "SCALA_VERSION=2.13" \
     --build-arg "ICEBERG_VERSION=${ICEBERG_VERSION}" \
     -t "$IMAGE_NAME" \

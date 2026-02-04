@@ -13,17 +13,23 @@ LABEL maintainer="spark-k8s" \
 # Build arguments for versioning
 ARG ICEBERG_VERSION=1.6.1
 ARG SPARK_VERSION=3.5.7
+# Iceberg uses major Spark version (3.5 for Spark 3.5.x, 4.0 for Spark 4.1.x)
+ARG ICEBERG_SPARK_VERSION=3.5
 ARG SCALA_VERSION=2.12
 
 # Set SPARK_HOME (same as base image)
 ENV SPARK_HOME=/opt/spark
 
+# Switch to root for installation
+USER root
+
 # Download Apache Iceberg JARs from Maven Central
-# Iceberg requires the runtime JAR for Spark integration
+# Iceberg uses major Spark version (3.5 for Spark 3.5.x, 4.0 for Spark 4.1.x)
+# Note: Iceberg doesn't have specific builds for patch versions like 3.5.7 or 4.1.0
 RUN mkdir -p ${SPARK_HOME}/jars && \
-    wget -q https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-${SPARK_VERSION}_${SCALA_VERSION}/${ICEBERG_VERSION}/iceberg-spark-runtime-${SPARK_VERSION}_${SCALA_VERSION}-${ICEBERG_VERSION}.jar \
-        -O ${SPARK_HOME}/jars/iceberg-spark-runtime-${SPARK_VERSION}_${SCALA_VERSION}-${ICEBERG_VERSION}.jar && \
-    echo "Iceberg runtime JAR installed: ${ICEBERG_VERSION}"
+    wget -q https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-${ICEBERG_SPARK_VERSION}_${SCALA_VERSION}/${ICEBERG_VERSION}/iceberg-spark-runtime-${ICEBERG_SPARK_VERSION}_${SCALA_VERSION}-${ICEBERG_VERSION}.jar \
+        -O ${SPARK_HOME}/jars/iceberg-spark-runtime.jar && \
+    echo "Iceberg runtime JAR installed: ${ICEBERG_VERSION} (Spark ${ICEBERG_SPARK_VERSION})"
 
 # Download Iceberg AWS bundle (for S3 catalog support)
 RUN wget -q https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-aws-bundle/${ICEBERG_VERSION}/iceberg-aws-bundle-${ICEBERG_VERSION}.jar \
@@ -39,6 +45,9 @@ RUN ls -la ${SPARK_HOME}/jars/iceberg*.jar && \
 ENV SPARK_SQL_CATALOG_IMPLEMENTATION=org.apache.iceberg.spark.SparkCatalog \
     SPARK_SQL_EXTENSIONS=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions \
     SPARK_ICEBERG_VERSION=${ICEBERG_VERSION}
+
+# Switch back to non-root user
+USER 185
 
 # Working directory
 WORKDIR /opt/spark/work-dir

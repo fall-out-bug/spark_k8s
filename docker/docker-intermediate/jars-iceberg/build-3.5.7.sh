@@ -24,6 +24,7 @@ fi
 docker build \
     --build-arg "BASE_IMAGE=${BASE_IMAGE}" \
     --build-arg "SPARK_VERSION=3.5.7" \
+    --build-arg "ICEBERG_SPARK_VERSION=3.5" \
     --build-arg "SCALA_VERSION=2.12" \
     --build-arg "ICEBERG_VERSION=${ICEBERG_VERSION}" \
     -t "$IMAGE_NAME" \
