@@ -651,9 +651,9 @@ F06, F08, F12, F13 ──── WS-015-01 (Parallel execution)
 
 ---
 
-## Feature F16: Phase 10 — Observability (Monitoring & Tracing)
+## Feature F16: Observability Stack (Monitoring & Tracing)
 
-**Source:** `docs/phases/phase-10-observability.md`
+**Source:** `docs/drafts/feature-observability.md`
 **Status:** Backlog
 **Total Workstreams:** 6
 **Estimated LOC:** ~3600
@@ -680,25 +680,11 @@ F06 ─────────────────────────�
                                    WS-016-01 + WS-016-03 ───────────┴── WS-016-06 (Spark UI)
 ```
 
-### Execution Order
-
-**Phase 1: Core (parallel)**
-- WS-016-01: Metrics collection
-- WS-016-02: Logging aggregation
-- WS-016-03: Distributed tracing
-
-**Phase 2: Visualization**
-- WS-016-04: Dashboards (after 01, 02)
-- WS-016-05: Alerting (after 01)
-
-**Phase 3: Integration**
-- WS-016-06: Spark UI integration (after 01, 03)
-
 ---
 
-## Feature F17: Phase 11 — Spark Connect Go Client
+## Feature F17: Spark Connect Go Client
 
-**Source:** `docs/phases/phase-11-spark-connect-go.md`
+**Source:** `docs/drafts/feature-spark-connect-go.md`
 **Status:** Backlog
 **Total Workstreams:** 4
 **Estimated LOC:** ~2800
@@ -719,16 +705,6 @@ F06, F11 ──── WS-017-01 (Go client library)
                 ├── WS-017-03 (Go E2E tests)
                 └── WS-017-04 (Go load tests)
 ```
-
-### Execution Order
-
-**Phase 1: Foundation**
-- WS-017-01: Spark Connect Go client library
-
-**Phase 2: Testing (parallel)**
-- WS-017-02: Go smoke tests
-- WS-017-03: Go E2E tests
-- WS-017-04: Go load tests
 
 ---
 
@@ -751,8 +727,8 @@ F06, F11 ──── WS-017-01 (Go client library)
 | F13: Phase 7 — Load Tests | 5 | 0 | 0 | 5 |
 | F14: Phase 8 — Advanced Security | 7 | 0 | 0 | 7 |
 | F15: Phase 9 — Parallel Execution & CI/CD | 3 | 0 | 0 | 3 |
-| F16: Phase 10 — Observability | 6 | 0 | 0 | 6 |
-| F17: Phase 11 — Spark Connect Go Client | 4 | 0 | 0 | 4 |
+| F16: Observability Stack | 6 | 0 | 0 | 6 |
+| F17: Spark Connect Go Client | 4 | 0 | 0 | 4 |
 | TESTING: Testing Infrastructure | 3+ | 0 | 0 | 3+ |
 | **TOTAL** | **109+** | **30** | **1** | **80+** |
 

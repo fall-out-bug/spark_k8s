@@ -1,4 +1,4 @@
-# Phase 10: Observability (Monitoring & Tracing)
+# Observability Stack (Monitoring & Tracing)
 
 > **Status:** Backlog
 > **Priority:** P1 - Production readiness
@@ -12,15 +12,15 @@
 
 ## Current State
 
-**Не реализовано** — Phase 10 только начинается. Design Decisions требуют approval.
+**Не реализовано** — Feature только начинается. Design Decisions требуют approval.
 
 ## Proposed Workstreams
 
 | WS | Task | Scope | Dependencies | Status |
 |----|------|-------|-------------|--------|
-| WS-016-01 | Metrics collection (Prometheus) | MEDIUM (~700 LOC) | Phase 0 | backlog |
-| WS-016-02 | Logging aggregation (Loki/ELK) | MEDIUM (~600 LOC) | Phase 0 | backlog |
-| WS-016-03 | Distributed tracing (Jaeger/OTel) | MEDIUM (~600 LOC) | Phase 0 | backlog |
+| WS-016-01 | Metrics collection (Prometheus) | MEDIUM (~700 LOC) | F06 | backlog |
+| WS-016-02 | Logging aggregation (Loki/ELK) | MEDIUM (~600 LOC) | F06 | backlog |
+| WS-016-03 | Distributed tracing (Jaeger/OTel) | MEDIUM (~600 LOC) | F06 | backlog |
 | WS-016-04 | Dashboards (Grafana) | MEDIUM (~500 LOC) | WS-016-01, WS-016-02 | backlog |
 | WS-016-05 | Alerting rules | MEDIUM (~400 LOC) | WS-016-01 | backlog |
 | WS-016-06 | Spark UI integration | MEDIUM (~800 LOC) | WS-016-01, WS-016-03 | backlog |
@@ -101,8 +101,8 @@
 
 ## Dependencies
 
-- **Phase 0 (F06):** Helm charts deployed
-- **Phase 9 (F15):** Parallel execution (for testing)
+- **F06 (Core Components + Presets):** Helm charts deployed
+- **F15 (Parallel Execution & CI/CD):** Для тестирования
 
 ## Success Criteria
 
@@ -157,18 +157,18 @@ tests/
     └── test_dashboards.py
 ```
 
-## Integration with Other Phases
+## Integration with Other Features
 
-- **Phase 0 (F06):** Charts provide deployment base
-- **Phase 5 (F11):** Final images include exporters
-- **Phase 9 (F15):** Parallel execution for load testing
-- **Phase 8 (F14):** Security for observability endpoints
+- **F06 (Core Components + Presets):** Charts provide deployment base
+- **F11 (Docker Final Images):** Final images include exporters
+- **F15 (Parallel Execution & CI/CD):** Для тестирования
+- **F14 (Advanced Security):** Security for observability endpoints
 
 ## Beads Integration
 
 ```bash
 # Feature
-spark_k8s-xxx - F16: Phase 10 - Observability (P1)
+spark_k8s-xxx - F16: Observability Stack (P1)
 
 # Workstreams
 spark_k8s-xxx - WS-016-01: Metrics collection (P1)
@@ -189,6 +189,5 @@ All WS depend on F06
 
 - [PRODUCT_VISION.md](../../PRODUCT_VISION.md)
 - [workstreams/INDEX.md](../workstreams/INDEX.md)
-- [phase-05-docker-final.md](./phase-05-docker-final.md)
 - [Prometheus JMX Exporter](https://github.com/prometheus/jmx_exporter)
 - [OpenTelemetry Spark](https://spark.apache.org/docs/latest/telemetry.html)

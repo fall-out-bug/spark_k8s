@@ -1,4 +1,4 @@
-# Phase 11: Spark Connect Go Client (Testing & Load)
+# Spark Connect Go Client (Testing & Load)
 
 > **Status:** Backlog
 > **Priority:** P1 - Go client support
@@ -12,13 +12,13 @@
 
 ## Current State
 
-**Не реализовано** — Phase 11 только начинается. Design Decisions требуют approval.
+**Не реализовано** — Feature только начинается. Design Decisions требуют approval.
 
 ## Proposed Workstreams
 
 | WS | Task | Scope | Dependencies | Status |
 |----|------|-------|-------------|--------|
-| WS-017-01 | Spark Connect Go client library | MEDIUM (~800 LOC) | Phase 0, Phase 5 | backlog |
+| WS-017-01 | Spark Connect Go client library | MEDIUM (~800 LOC) | F06, F11 | backlog |
 | WS-017-02 | Go smoke tests | MEDIUM (~600 LOC) | WS-017-01 | backlog |
 | WS-017-03 | Go E2E tests | MEDIUM (~700 LOC) | WS-017-01 | backlog |
 | WS-017-04 | Go load tests | MEDIUM (~700 LOC) | WS-017-01 | backlog |
@@ -64,7 +64,7 @@
 
 **Format:**
 - Go test framework
-- Integration with Phase 6 test framework
+- Integration with existing test framework
 - Reuse existing queries
 
 ### 4. Load Tests for Go
@@ -82,11 +82,11 @@
 
 ## Dependencies
 
-- **Phase 0 (F06):** Helm charts deployed
-- **Phase 5 (F11):** Spark Connect images available
-- **Phase 2 (F08):** Smoke test patterns
-- **Phase 6 (F12):** E2E test patterns
-- **Phase 7 (F13):** Load test patterns
+- **F06 (Core Components + Presets):** Helm charts deployed
+- **F11 (Docker Final Images):** Spark Connect images available
+- **F08 (Smoke Tests):** Smoke test patterns
+- **F12 (E2E Tests):** E2E test patterns
+- **F13 (Load Tests):** Load test patterns
 
 ## Success Criteria
 
@@ -133,13 +133,13 @@ docs/
     └── api.md                  # API reference
 ```
 
-## Integration with Other Phases
+## Integration with Other Features
 
-- **Phase 0 (F06):** Charts provide Spark Connect deployment
-- **Phase 5 (F11):** Spark Connect server images
-- **Phase 2 (F08):** Smoke test patterns
-- **Phase 6 (F12):** E2E test framework
-- **Phase 7 (F13):** Load test framework
+- **F06 (Core Components + Presets):** Charts provide Spark Connect deployment
+- **F11 (Docker Final Images):** Spark Connect server images
+- **F08 (Smoke Tests):** Smoke test patterns
+- **F12 (E2E Tests):** E2E test framework
+- **F13 (Load Tests):** Load test framework
 
 ## Spark Connect Go API
 
@@ -253,7 +253,7 @@ func (r *Row) Get(i int) interface{} {
 
 ```bash
 # Feature
-spark_k8s-xxx - F17: Phase 11 - Spark Connect Go Client (P1)
+spark_k8s-xxx - F17: Spark Connect Go Client (P1)
 
 # Workstreams
 spark_k8s-xxx - WS-017-01: Spark Connect Go client library (P1)
@@ -272,6 +272,5 @@ All WS depend on F06, F11
 
 - [PRODUCT_VISION.md](../../PRODUCT_VISION.md)
 - [workstreams/INDEX.md](../workstreams/INDEX.md)
-- [phase-05-docker-final.md](./phase-05-docker-final.md)
 - [Spark Connect Go](https://github.com/apache/spark/blob/master/connect/client/go/README.md)
 - [Spark Connect Protocol](https://spark.apache.org/docs/latest/api/python/user_guide/python_client/spark_connect.html)
