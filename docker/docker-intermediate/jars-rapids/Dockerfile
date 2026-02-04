@@ -1,17 +1,14 @@
 # RAPIDS Plugin JARs Intermediate Layer for Spark K8s
 # Provides NVIDIA RAPIDS GPU acceleration JARs for Spark
-# This layer builds on Spark core images to add RAPIDS support
+# Extends custom Spark builds (not Apache distros)
 
-ARG BASE_IMAGE=apache/spark:3.5.7-scala2.12-java17-ubuntu
+ARG BASE_IMAGE=localhost/spark-k8s:3.5.7-hadoop3.4.2
 FROM ${BASE_IMAGE}
-
-# Switch to root for installation (base image runs as non-root)
-USER root
 
 # Labels for metadata
 LABEL maintainer="spark-k8s" \
-      description="Spark K8s - RAPIDS Plugin JARs Intermediate Layer" \
-      version="1.0.0"
+      description="RAPIDS Plugin JARs for GPU acceleration" \
+      version="2.0.0"
 
 # Build arguments for versioning
 ARG RAPIDS_VERSION=24.10.0
@@ -24,7 +21,6 @@ ENV SPARK_HOME=/opt/spark
 
 # Download RAPIDS plugin JAR from Maven Central
 # The rapids-4-spark JAR includes cudf as a shaded dependency
-# Choose CUDA 12 version for modern GPU support
 RUN mkdir -p ${SPARK_HOME}/jars && \
     wget -q https://repo1.maven.org/maven2/com/nvidia/rapids-4-spark_${SCALA_VERSION}/${RAPIDS_VERSION}/rapids-4-spark_${SCALA_VERSION}-${RAPIDS_VERSION}-cuda${CUDA_VERSION}.jar \
         -O ${SPARK_HOME}/jars/rapids-4-spark_${SCALA_VERSION}-${RAPIDS_VERSION}-cuda${CUDA_VERSION}.jar && \
@@ -38,9 +34,6 @@ RUN ls -la ${SPARK_HOME}/jars/rapids*.jar && \
 ENV SPARK_RAPIDS_VERSION=${RAPIDS_VERSION} \
     SPARK_RAPIDS_CUDA_VERSION=${CUDA_VERSION} \
     SPARK_RAPIDS_JAR=${SPARK_HOME}/jars/rapids-4-spark_${SCALA_VERSION}-${RAPIDS_VERSION}-cuda${CUDA_VERSION}.jar
-
-# Switch back to non-root user (matching base image)
-USER 185
 
 # Working directory
 WORKDIR /opt/spark/work-dir

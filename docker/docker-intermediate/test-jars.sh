@@ -214,7 +214,21 @@ test_environment_variables() {
     return 0
 }
 
-# Test 8: Image size check
+# Test 8: Custom build verification (Hadoop 3.4.2)
+test_custom_build() {
+    log_info "Testing custom build contents (Hadoop 3.4.2)..."
+    local result
+    result=$(docker_run ls -1 /opt/spark/jars/hadoop-common-3.4.2.jar 2>/dev/null || echo "")
+    if [[ -n "$result" ]]; then
+        log_pass "Hadoop 3.4.2 jars present (custom build verified)"
+        return 0
+    else
+        log_fail "Hadoop 3.4.2 jars not found (not using custom build)"
+        return 1
+    fi
+}
+
+# Test 9: Image size check
 test_image_size() {
     log_info "Testing image size..."
     local max_size_mb
@@ -264,6 +278,7 @@ main() {
 
     test_jar_validity
     test_environment_variables
+    test_custom_build
     test_image_size
 
     echo ""
