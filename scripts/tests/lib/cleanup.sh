@@ -15,10 +15,18 @@ source "${SCRIPT_DIR}/namespace.sh"
 # Global state for cleanup
 # ============================================================================
 
-# Associative array to track cleanup targets
+# Mark initialization complete (will be set by init_cleanup_arrays)
+export CLEANUP_RELEASES_INIT=no
+
+# Associative arrays to track cleanup targets
+# Using -g to make global even in subshells (bash 4.2+)
+# For bash 4.x, -g may not be available, fall back to regular declare
 declare -A CLEANUP_NAMESPACES=()
 declare -A CLEANUP_RELEASES=()
 declare -A CLEANUP_PIDS=()
+
+# Initialize on first load
+CLEANUP_RELEASES_INIT=yes
 
 # ============================================================================
 # Cleanup registration
@@ -27,7 +35,11 @@ declare -A CLEANUP_PIDS=()
 # Register a namespace for cleanup
 register_namespace_cleanup() {
     local ns_name="${1}"
-    CLEANUP_NAMESPACES["$ns_name"]=1
+
+    # Initialize array if not exists (for subshell calls)
+    [[ "${CLEANUP_RELEASES_INIT:-}" != "yes" ]] && init_cleanup_arrays 2>/dev/null
+
+    CLEANUP_NAMESPACES["$ns_name"]=1 2>/dev/null || true
     log_debug "Registered namespace for cleanup: $ns_name"
 }
 
@@ -36,8 +48,23 @@ register_release_cleanup() {
     local release_name="${1}"
     local namespace="${2}"
 
-    CLEANUP_RELEASES["$release_name"]="$namespace"
+    # Initialize array if not exists (for subshell calls)
+    # In subshells, declare -p might show the variable but not as associative array
+    [[ "${CLEANUP_RELEASES_INIT:-}" != "yes" ]] && init_cleanup_arrays 2>/dev/null
+
+    CLEANUP_RELEASES["$release_name"]="$namespace" 2>/dev/null || true
     log_debug "Registered release for cleanup: $release_name (namespace: $namespace)"
+}
+
+# Initialize cleanup arrays (idempotent)
+init_cleanup_arrays() {
+    [[ "${CLEANUP_RELEASES_INIT:-}" == "yes" ]] && return 0
+
+    declare -gA CLEANUP_NAMESPACES=() 2>/dev/null || declare -A CLEANUP_NAMESPACES=()
+    declare -gA CLEANUP_RELEASES=() 2>/dev/null || declare -A CLEANUP_RELEASES=()
+    declare -gA CLEANUP_PIDS=() 2>/dev/null || declare -A CLEANUP_PIDS=()
+
+    export CLEANUP_RELEASES_INIT=yes
 }
 
 # Register a PID for cleanup (will be killed on exit)
@@ -45,20 +72,23 @@ register_pid_cleanup() {
     local pid="${1}"
     local description="${2:-process}"
 
-    CLEANUP_PIDS["$pid"]="$description"
+    # Initialize array if not exists (for subshell calls)
+    [[ "${CLEANUP_RELEASES_INIT:-}" != "yes" ]] && init_cleanup_arrays 2>/dev/null
+
+    CLEANUP_PIDS["$pid"]="$description" 2>/dev/null || true
     log_debug "Registered PID for cleanup: $pid ($description)"
 }
 
 # Unregister from cleanup (for successful manual cleanup)
 unregister_namespace_cleanup() {
     local ns_name="${1}"
-    unset CLEANUP_NAMESPACES["$ns_name"]
+    unset CLEANUP_NAMESPACES["$ns_name"] 2>/dev/null || true
     log_debug "Unregistered namespace from cleanup: $ns_name"
 }
 
 unregister_release_cleanup() {
     local release_name="${1}"
-    unset CLEANUP_RELEASES["$release_name"]
+    unset CLEANUP_RELEASES["$release_name"] 2>/dev/null || true
     log_debug "Unregistered release from cleanup: $release_name"
 }
 

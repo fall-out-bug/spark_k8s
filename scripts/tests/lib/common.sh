@@ -2,6 +2,9 @@
 # Common library for test scripts
 # Provides logging, colors, error handling, and utility functions
 
+# Mark as loaded (idempotent)
+export _TEST_LIB_COMMON_LOADED=yes
+
 # Exit on error by default (can be disabled in specific scripts)
 set -e
 

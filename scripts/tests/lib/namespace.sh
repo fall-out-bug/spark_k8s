@@ -7,6 +7,9 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/common.sh"
 
+# Mark as loaded (idempotent)
+export _TEST_LIB_NAMESPACE_LOADED=yes
+
 # ============================================================================
 # Constants
 # ============================================================================

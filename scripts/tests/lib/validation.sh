@@ -7,6 +7,9 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/common.sh"
 
+# Mark as loaded (idempotent)
+export _TEST_LIB_VALIDATION_LOADED=yes
+
 # ============================================================================
 # Constants
 # ============================================================================
@@ -471,7 +474,6 @@ export -f validate_resource_limits validate_gpu_resources
 export -f test_service_connectivity
 export -f validate_spark_connect validate_spark_job
 export -f validate_namespace_deployments validate_namespace_pods
-export -f validate_history_server
 
 # ============================================================================
 # History Server validation
@@ -517,3 +519,6 @@ validate_history_server() {
 
     return 0
 }
+
+# Export validate_history_server after definition
+export -f validate_history_server
