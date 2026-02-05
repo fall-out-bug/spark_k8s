@@ -8,6 +8,10 @@ readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PASS_COUNT=0
 FAIL_COUNT=0
 
+# Helper to safely increment counters
+increment_pass() { ((PASS_COUNT++)) || true; }
+increment_fail() { ((FAIL_COUNT++)) || true; }
+
 echo "=========================================="
 echo "Spark Runtime Images Test Suite"
 echo "=========================================="
@@ -22,11 +26,11 @@ test_spark_version() {
 
     if [[ -n "$version" ]]; then
         echo "  ✅ PASS: Spark ${expected_version} detected"
-        ((PASS_COUNT++))
+        increment_pass
         return 0
     else
         echo "  ❌ FAIL: Spark ${expected_version} not found"
-        ((FAIL_COUNT++))
+        increment_fail
         return 1
     fi
 }
@@ -35,15 +39,15 @@ test_rapids_jar() {
     local image="$1"
 
     echo "Testing RAPIDS JAR for ${image}..."
-    local jar_count=$(docker run --rm --entrypoint ls "${image}" -la /opt/spark/jars/rapids*.jar 2>/dev/null | wc -l)
+    local jar_count=$(docker run --rm --entrypoint sh "${image}" -c "ls -la /opt/spark/jars/rapids*.jar 2>/dev/null" | wc -l)
 
     if [[ "$jar_count" -gt 0 ]]; then
         echo "  ✅ PASS: RAPIDS JAR found (${jar_count} file(s))"
-        ((PASS_COUNT++))
+        increment_pass
         return 0
     else
         echo "  ❌ FAIL: RAPIDS JAR not found"
-        ((FAIL_COUNT++))
+        increment_fail
         return 1
     fi
 }
@@ -52,15 +56,15 @@ test_iceberg_jars() {
     local image="$1"
 
     echo "Testing Iceberg JARs for ${image}..."
-    local jar_count=$(docker run --rm --entrypoint ls "${image}" /opt/spark/jars/iceberg*.jar 2>/dev/null | wc -l)
+    local jar_count=$(docker run --rm --entrypoint sh "${image}" -c "ls /opt/spark/jars/iceberg*.jar 2>/dev/null" | wc -l)
 
     if [[ "$jar_count" -ge 2 ]]; then
         echo "  ✅ PASS: Iceberg JARs found (${jar_count} file(s))"
-        ((PASS_COUNT++))
+        increment_pass
         return 0
     else
         echo "  ❌ FAIL: Iceberg JARs not found (expected 2+, got ${jar_count})"
-        ((FAIL_COUNT++))
+        increment_fail
         return 1
     fi
 }
@@ -69,15 +73,15 @@ test_spark_home() {
     local image="$1"
 
     echo "Testing SPARK_HOME for ${image}..."
-    local spark_home=$(docker run --rm "${image}" printenv SPARK_HOME 2>/dev/null || echo "")
+    local spark_home=$(docker run --rm --entrypoint env "${image}" 2>/dev/null | grep "^SPARK_HOME=" | cut -d'=' -f2 || echo "")
 
     if [[ "$spark_home" == "/opt/spark" ]]; then
         echo "  ✅ PASS: SPARK_HOME=/opt/spark"
-        ((PASS_COUNT++))
+        increment_pass
         return 0
     else
         echo "  ❌ FAIL: SPARK_HOME not set correctly (got: ${spark_home})"
-        ((FAIL_COUNT++))
+        increment_fail
         return 1
     fi
 }

@@ -5,6 +5,12 @@
 set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PASS_COUNT=0
+FAIL_COUNT=0
+
+# Helper to safely increment counters
+increment_pass() { ((PASS_COUNT++)) || true; }
+increment_fail() { ((FAIL_COUNT++)) || true; }
 
 echo "=========================================="
 echo "Jupyter Runtime Images Test Suite"
@@ -20,11 +26,11 @@ test_pyspark_version() {
 
     if [[ "$version" == "$expected_version" ]]; then
         echo "  ✅ PASS: PySpark ${expected_version}"
-        ((PASS_COUNT++))
+        increment_pass
         return 0
     else
         echo "  ❌ FAIL: Expected ${expected_version}, got ${version}"
-        ((FAIL_COUNT++))
+        increment_fail
         return 1
     fi
 }
@@ -37,11 +43,11 @@ test_jupyter_version() {
 
     if [[ -n "$version" ]]; then
         echo "  ✅ PASS: Jupyter installed (${version})"
-        ((PASS_COUNT++))
+        increment_pass
         return 0
     else
         echo "  ❌ FAIL: Jupyter not found"
-        ((FAIL_COUNT++))
+        increment_fail
         return 1
     fi
 }
@@ -54,11 +60,11 @@ test_rapids_cudf() {
 
     if [[ -n "$version" ]]; then
         echo "  ✅ PASS: cudf ${version}"
-        ((PASS_COUNT++))
+        increment_pass
         return 0
     else
         echo "  ❌ FAIL: cudf not found"
-        ((FAIL_COUNT++))
+        increment_fail
         return 1
     fi
 }
@@ -71,11 +77,11 @@ test_rapids_cuml() {
 
     if [[ -n "$version" ]]; then
         echo "  ✅ PASS: cuml ${version}"
-        ((PASS_COUNT++))
+        increment_pass
         return 0
     else
         echo "  ❌ FAIL: cuml not found"
-        ((FAIL_COUNT++))
+        increment_fail
         return 1
     fi
 }
@@ -88,11 +94,11 @@ test_spark_home() {
 
     if [[ "$spark_home" == "/opt/spark" ]]; then
         echo "  ✅ PASS: SPARK_HOME=/opt/spark"
-        ((PASS_COUNT++))
+        increment_pass
         return 0
     else
         echo "  ❌ FAIL: SPARK_HOME not set correctly (got: ${spark_home})"
-        ((FAIL_COUNT++))
+        increment_fail
         return 1
     fi
 }
@@ -106,11 +112,11 @@ test_jupyter_port() {
 
     if [[ -n "$exposed" ]]; then
         echo "  ✅ PASS: Port ${expected_port} exposed"
-        ((PASS_COUNT++))
+        increment_pass
         return 0
     else
         echo "  ❌ FAIL: Port ${expected_port} not exposed"
-        ((FAIL_COUNT++))
+        increment_fail
         return 1
     fi
 }
