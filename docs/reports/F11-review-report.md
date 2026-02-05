@@ -133,35 +133,49 @@ F11 successfully creates Docker runtime images for Spark and Jupyter with GPU an
 
 ### Build Verification
 
+**Test Scripts Created:**
+- `docker/runtime/tests/test-spark-runtime.sh` (180 lines)
+- `docker/runtime/tests/test-jupyter-runtime.sh` (200 lines)
+
+**Test Results (7/7 PASS):**
 ```bash
-# Spark 3.5 runtime
+Test 1: Spark 3.5.7 baseline... ✅ PASS
+Test 2: Spark 4.1.0 baseline... ✅ PASS
+Test 3: GPU RAPIDS JAR... ✅ PASS (rapids-4-spark_2.12-24.10.0-cuda12.jar)
+Test 4: Iceberg JARs... ✅ PASS (iceberg-spark-runtime.jar, iceberg-aws-bundle.jar)
+Test 5: SPARK_HOME... ✅ PASS (/opt/spark)
+Test 6: PySpark in Jupyter... ✅ PASS (3.5.7)
+Test 7: RAPIDS cudf in Jupyter GPU... ✅ PASS (25.12.00)
+```
+
+**Verification Commands:**
+```bash
+# Run all tests
+bash docker/runtime/tests/test-spark-runtime.sh
+bash docker/runtime/tests/test-jupyter-runtime.sh
+
+# Individual tests
 docker run --rm spark-k8s-runtime:3.5-3.5.7-baseline spark-submit --version
 # Result: Spark 3.5.7 ✅
 
-# Spark 4.1 runtime
 docker run --rm spark-k8s-runtime:4.1-4.1.0-baseline spark-submit --version
 # Result: Spark 4.1.0 ✅
 
-# GPU variant - RAPIDS JAR
-docker run --rm spark-k8s-runtime:3.5-3.5.7-gpu ls /opt/spark/jars/rapids*.jar
+docker run --rm --entrypoint bash spark-k8s-runtime:3.5-3.5.7-gpu -c "ls /opt/spark/jars/rapids*.jar"
 # Result: rapids-4-spark_2.12-24.10.0-cuda12.jar ✅
 
-# PySpark in Jupyter
-docker run --rm spark-k8s-jupyter:3.5-3.5.7-baseline python3 -c "import pyspark; print(pyspark.__version__)"
+docker run --rm --entrypoint bash spark-k8s-jupyter:3.5-3.5.7-baseline -c "python3 -c 'import pyspark; print(pyspark.__version__)'"
 # Result: 3.5.7 ✅
 
-# RAPIDS in Jupyter GPU
-docker run --rm spark-k8s-jupyter:3.5-3.5.7-gpu python3 -c "import cudf; print(cudf.__version__)"
+docker run --rm --entrypoint bash spark-k8s-jupyter:3.5-3.5.7-gpu -c "python3 -c 'import cudf; print(cudf.__version__)'"
 # Result: 25.12.00 ✅
-
-# Jupyter version
-docker run --rm spark-k8s-jupyter:3.5-3.5.7-baseline jupyter --version
-# Result: IPython 8.38.0, ipykernel 7.1.0 ✅
 ```
 
 ### Git History
 
 ```
+b14785b test(f11): add comprehensive test scripts for runtime images
+323476d docs(f11): add review report - APPROVED
 498d80d fix(f11): update workstreams to use custom Spark builds directly
 ```
 
