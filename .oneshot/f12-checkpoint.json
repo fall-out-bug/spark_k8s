@@ -3,6 +3,7 @@
   "name": "Phase 6: E2E Tests",
   "status": "in_progress",
   "started_at": "2025-02-05T00:00:00Z",
+  "updated_at": "2025-02-05T23:30:00Z",
   "completed_ws": ["00-012-01"],
   "current_ws": "00-012-02",
   "total_ws": 6,
@@ -17,42 +18,48 @@
     {
       "id": "00-012-02",
       "name": "GPU E2E",
-      "status": "pending",
+      "status": "completed",
       "scenarios": 16,
-      "file": "docs/workstreams/backlog/00-012-02.md"
+      "file": "docs/workstreams/completed/00-012-02.md"
     },
     {
       "id": "00-012-03",
       "name": "Iceberg E2E",
-      "status": "pending",
+      "status": "completed",
       "scenarios": 16,
-      "file": "docs/workstreams/backlog/00-012-03.md"
+      "file": "docs/workstreams/completed/00-012-03.md"
     },
     {
       "id": "00-012-04",
       "name": "GPU+Iceberg E2E",
-      "status": "pending",
+      "status": "completed",
       "scenarios": 8,
-      "file": "docs/workstreams/backlog/00-012-04.md"
+      "file": "docs/workstreams/completed/00-012-04.md"
     },
     {
       "id": "00-012-05",
       "name": "Standalone E2E",
-      "status": "pending",
+      "status": "completed",
       "scenarios": 8,
-      "file": "docs/workstreams/backlog/00-012-05.md"
+      "file": "docs/workstreams/completed/00-012-05.md"
     },
     {
       "id": "00-012-06",
       "name": "Library compatibility",
-      "status": "pending",
+      "status": "completed",
       "scenarios": 8,
-      "file": "docs/workstreams/backlog/00-012-06.md"
+      "file": "docs/workstreams/completed/00-012-06.md"
     }
   ],
   "dependencies": {
     "F06": true,
     "F07": true,
     "F11": true
+  },
+  "execution_summary": {
+    "total_scenarios": 80,
+    "completed_scenarios": 80,
+    "test_files_created": 30,
+    "fixture_files_created": 4
   }
 }

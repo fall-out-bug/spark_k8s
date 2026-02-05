@@ -13,6 +13,10 @@ from typing import Dict, Any, Generator
 
 import pytest
 
+# Import additional fixture modules for specialized tests
+# Note: GPU, Iceberg, Standalone, and Compatibility fixtures are imported
+# via their respective test modules to avoid circular dependencies
+
 
 @pytest.fixture(scope="session")
 def dataset_path() -> str:
