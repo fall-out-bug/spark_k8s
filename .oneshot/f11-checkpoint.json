@@ -1,0 +1,9 @@
+{
+  "feature": "F11",
+  "agent_id": "f11-orchestrator-20260205-v2",
+  "status": "in_progress",
+  "completed_ws": [],
+  "execution_order": ["00-011-01", "00-011-02", "00-011-03"],
+  "started_at": "2026-02-05T01:30:00Z",
+  "notes": "F11 workstreams updated to use custom Spark builds directly after F10 redesign. Images updated: spark-k8s:3.5.7-hadoop3.4.2, spark-k8s:4.1.0-hadoop3.4.2"
+}
