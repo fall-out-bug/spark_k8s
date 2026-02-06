@@ -1,0 +1,227 @@
+# Helm Values Template for Load Testing
+# Part of WS-013-07: Test Matrix Definition & Template System
+#
+# Jinja2 template for generating Spark Connect Helm values files
+# for all combinations in the test matrix.
+#
+# Usage:
+#   jinja2 test-values.jinja2.yaml -D spark_ver="3.5.0" \
+#     -D mode="kubernetes" -D extensions="iceberg" -D data_size="1gb"
+
+{# Input variables: #}
+{# - spark_ver: Spark version (e.g., "3.5.0", "4.1.0") #}
+{# - orchestrator: Orchestrator type ("connect", "operator") #}
+{# - mode: Deployment mode ("kubernetes", "standalone") #}
+{# - extensions: Comma-separated extensions ("none", "iceberg", "rapids", "iceberg+rapids") #}
+{# - operation: Operation type ("read", "aggregate", "join", "window", "write") #}
+{# - data_size: Data size ("1gb", "11gb") #}
+
+# Auto-generated Helm values for load test combination
+# {{ spark_ver }} | {{ orchestrator }} | {{ mode }} | {{ extensions }} | {{ operation }} | {{ data_size }}
+
+spark:
+  image:
+    repository: ghcr.io/fall-out-bug/spark-k8s/spark-custom
+    tag: "{{ spark_ver }}"
+    pullPolicy: IfNotPresent
+
+{% if mode == "kubernetes" %}
+  # Kubernetes cluster mode
+  mode: cluster
+  dynamicAllocation:
+    enabled: true
+    initialExecutors: 2
+    minExecutors: 1
+    maxExecutors: 4
+    shuffleTracking:
+      enabled: true
+{% else %}
+  # Standalone mode
+  mode: standalone
+  worker:
+    replicas: 2
+    cores: 4
+    memory: "8g"
+{% endif %}
+
+  # Event logging for History Server
+  eventLog:
+    enabled: true
+    dir: "s3a://spark-logs/events/"
+
+  # S3 configuration for Minio
+  hadoop:
+    fs.s3a.endpoint: "http://minio.load-testing.svc.cluster.local:9000"
+    fs.s3a.access.key: "minioadmin"
+    fs.s3a.secret.key: "minioadmin"
+    fs.s3a.path.style.access: "true"
+    fs.s3a.connection.maximum: 100
+
+{% if data_size == "11gb" %}
+  # Resource scaling for 11GB dataset
+  driver:
+    memory: "4g"
+    memoryOverhead: "1g"
+    cores: 2
+    javaOptions: "-XX:+UseG1GC -XX:InitiatingHeapOccupancyPercent=35"
+
+  executor:
+    memory: "8g"
+    memoryOverhead: "2g"
+    cores: 4
+    instances: 4
+    javaOptions: "-XX:+UseG1GC -XX:InitiatingHeapOccupancyPercent=35"
+{% else %}
+  # Resource scaling for 1GB dataset
+  driver:
+    memory: "2g"
+    memoryOverhead: "512m"
+    cores: 1
+    javaOptions: "-XX:+UseG1GC"
+
+  executor:
+    memory: "4g"
+    memoryOverhead: "1g"
+    cores: 2
+    instances: 2
+    javaOptions: "-XX:+UseG1GC"
+{% endif %}
+
+{% if 'rapids' in extensions %}
+  # RAPIDS GPU configuration
+  rapids:
+    enabled: true
+    sql:
+      enabled: true
+    executor:
+      resource:
+        gpu:
+          amount: "1"
+    task:
+      resource:
+        gpu:
+          amount: "0.25"
+    python:
+      enabled: true
+{% endif %}
+
+{% if orchestrator == "connect" %}
+  # Spark Connect configuration
+  connect:
+    enabled: true
+    service:
+      type: ClusterIP
+      port: 15002
+    cancellation:
+      enabled: true
+{% endif %}
+
+{% if orchestrator == "operator" %}
+  # Spark Operator configuration
+  operator:
+    enabled: true
+    batchScheduler: "true"
+{% endif %}
+
+# Additional Spark configuration
+sparkConf:
+  # General configuration
+  "spark.sql.adaptive.enabled": "true"
+  "spark.sql.adaptive.coalescePartitions.enabled": "true"
+  "spark.serializer": "org.apache.spark.serializer.KryoSerializer"
+  "spark.kryoserializer.buffer.max": "256m"
+
+  # Shuffle configuration
+  "spark.shuffle.file.buffer": "64k"
+  "spark.shuffle.unsafe.file.output.buffer": "64k"
+  "spark.sql.shuffle.partitions": "200"
+
+  # Compression
+  "spark.sql.parquet.compression.codec": "snappy"
+  "spark.sql.parquet.filterPushdown": "true"
+  "spark.sql.parquet.enableVectorizedReader": "true"
+
+{% if 'iceberg' in extensions %}
+  # Iceberg configuration
+  "spark.sql.catalog.spark_catalog": "org.apache.iceberg.spark.SparkSessionCatalog"
+  "spark.sql.catalog.iceberg": "org.apache.iceberg.spark.SparkCatalog"
+  "spark.sql.catalog.iceberg.type": "hadoop"
+  "spark.sql.catalog.iceberg.warehouse": "s3a://iceberg-warehouse/"
+  "spark.sql.extensions": "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions"
+{% endif %}
+
+{% if operation == "write" %}
+  # Postgres write configuration
+  "spark.sql.execution.arrow.pyspark.enabled": "true"
+  "spark.datasource.jdbc.connectionFactory": "org.apache.spark.sql.execution.jdbc.DefaultJDBCConnectionFactory"
+{% endif %}
+
+{% if operation == "join" or operation == "aggregate" %}
+  # Join/Aggregate optimization
+  "spark.sql.autoBroadcastJoinThreshold": "10m"
+  "spark.sql.join.preferSortMergeJoin": "false"
+  "spark.sql.join.forceApplyShuffledHashJoin": "false"
+{% endif %}
+
+{% if operation == "window" %}
+  # Window function optimization
+  "spark.sql.windowExec.buffer.spill.threshold": "100000"
+{% endif %}
+
+{% if mode == "standalone" %}
+  # Standalone-specific configuration
+  "spark.dynamicAllocation.enabled": "false"
+{% endif %}
+
+# Resource limits
+resources:
+  driver:
+    limits:
+      cpu: "2"
+      memory: "{% if data_size == '11gb' %}5Gi{% else %}3Gi{% endif %}"
+    requests:
+      cpu: "1"
+      memory: "{% if data_size == '11gb' %}5Gi{% else %}3Gi{% endif %}"
+
+  executor:
+    limits:
+      cpu: "{% if data_size == '11gb' %}4{% else %}2{% endif %}"
+      memory: "{% if data_size == '11gb' %}10Gi{% else %}5Gi{% endif %}"
+    requests:
+      cpu: "{% if data_size == '11gb' %}4{% else %}2{% endif %}"
+      memory: "{% if data_size == '11gb' %}10Gi{% else %}5Gi{% endif %}"
+
+{% if 'rapids' in extensions %}
+  # GPU resources
+  gpu:
+    enabled: true
+    vendor: "nvidia.com"
+    resource: "gpu"
+    limits:
+      gpu: "1"
+{% endif %}
+
+# Monitoring and metrics
+monitoring:
+  prometheus:
+    enabled: true
+    port: 9090
+  podMonitoring:
+    enabled: true
+
+# Service configuration
+service:
+  type: ClusterIP
+
+# Ingress configuration (optional)
+ingress:
+  enabled: false
+
+# Pod configuration
+pod:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+  labels:
+    app: "spark-load-test"
+    test-combination: "{{ spark_ver }}-{{ orchestrator }}-{{ mode }}-{{ extensions }}-{{ operation }}-{{ data_size }}"

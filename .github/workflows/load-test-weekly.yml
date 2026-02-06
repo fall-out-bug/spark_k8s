@@ -1,0 +1,195 @@
+# Load Test Weekly Full Matrix
+# Part of WS-013-11: CI/CD Integration & Documentation
+#
+# Runs P2 full matrix (1280 combinations) on weekly schedule.
+# Generates comprehensive weekly report with regression alerts.
+
+name: Load Test - Weekly Full Matrix
+
+on:
+  schedule:
+    - cron: '0 2 * * 0'  # 2 AM UTC on Sunday
+  workflow_dispatch:
+    inputs:
+      tier:
+        description: 'Test tier'
+        required: false
+        default: 'p2_full'
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+env:
+  TIER: ${{ github.event.inputs.tier || 'p2_full' }}
+  TIMEOUT_MINUTES: 2880  # 48 hours
+
+jobs:
+  weekly-full-matrix:
+    name: P2 Full Matrix (1280 combinations)
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ env.TIMEOUT_MINUTES }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pyyaml jinja2 scipy numpy requests
+
+      - name: Generate test matrix
+        run: |
+          python scripts/tests/load/matrix/generators/generate-matrix.py \
+            --tier ${{ env.TIER }} \
+            --output-dir scripts/tests/output
+
+      - name: Start Minikube
+        run: |
+          minikube start \
+            --cpus=8 \
+            --memory=16384 \
+            --disk-size=524288 \
+            --driver=docker
+
+      - name: Setup load test environment
+        run: |
+          ./scripts/local-dev/setup-minikube-load-tests.sh --recreate
+
+      - name: Verify environment
+        run: |
+          ./scripts/local-dev/verify-load-test-env.sh
+
+      - name: Run full matrix tests
+        run: |
+          ./scripts/tests/load/orchestrator/submit-workflow.sh ${{ env.TIER }} --watch
+
+      - name: Collect results
+        if: always()
+        run: |
+          python scripts/tests/load/metrics/collector.py aggregate \
+            --input-dir scripts/tests/output/results \
+            --output scripts/tests/output/aggregated-results.jsonl
+
+      - name: Check for regressions
+        if: always()
+        id: regression-check
+        run: |
+          python scripts/tests/load/metrics/regression_detector.py analyze \
+            --results-dir scripts/tests/output/results \
+            > regression-report.json
+
+      - name: Generate comprehensive report
+        if: always()
+        run: |
+          python scripts/tests/load/metrics/report_generator.py \
+            --results-dir scripts/tests/output/results \
+            --output-dir scripts/tests/output/reports \
+            --layers all
+
+      - name: Update baselines
+        if: success()
+        run: |
+          # Update baselines for all tests that passed
+          python scripts/tests/load/metrics/baseline_manager.py update \
+            --test-name "*" \
+            --results-dir scripts/tests/output/results
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: weekly-test-results-${{ github.run_number }}
+          path: |
+            scripts/tests/output/aggregated-results.jsonl
+            scripts/tests/output/reports/
+            regression-report.json
+
+      - name: Attach report to workflow
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: weekly-report
+          path: scripts/tests/output/reports/executive-summary.md
+
+      - name: Create GitHub issue for regressions
+        if: failure() && steps.regression-check.outcome == 'failure'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            let report = '';
+            try {
+              report = fs.readFileSync('scripts/tests/output/reports/executive-summary.md', 'utf8');
+            } catch (e) {}
+
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Weekly Load Test Regression - Week ${{ github.run_number }}`,
+              body: `## Weekly Load Test Regression Detected
+
+              **Workflow:** ${{ github.workflow }} #${{ github.run_number }}
+              **Date:** ${{ github.event.head_commit.timestamp }}
+              **Commit:** ${{ github.sha }}
+
+              ### Executive Summary
+              ${report}
+
+              ### Regression Details
+              \`\`\`json
+              ${fs.readFileSync('regression-report.json', 'utf8')}
+              \`\`\`
+
+              [View full report](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+              `,
+              labels: ['bug', 'load-test', 'regression', 'weekly']
+            });
+            console.log(`Created issue #${issue.data.number}`);
+
+      - name: Notify Slack with regression details
+        if: always()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "Weekly Load Test Complete - ${{ job.status }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Weekly Load Test ${{ job.status }}*\n\n*Workflow:* ${{ github.workflow }} #${{ github.run_number }}\n*Branch:* ${{ github.ref_name }}\n*Tests:* 1,280 combinations\n*Duration:* ~48 hours"
+                  }
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Report"
+                      },
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    },
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Issues"
+                      },
+                      "url": "${{ github.server_url }}/${{ github.repository }}/issues?q=is%3Aissue+label%3Aregression"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

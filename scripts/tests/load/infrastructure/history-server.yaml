@@ -1,0 +1,94 @@
+# Spark History Server deployment for load testing
+# Part of WS-013-06: Minikube Auto-Setup Infrastructure
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spark-history-server-config
+  namespace: load-testing
+data:
+  spark-defaults.conf: |
+    spark.eventLog.enabled           true
+    spark.eventLog.dir               s3a://spark-logs/events/
+    spark.history.fs.logDirectory    s3a://spark-logs/events/
+    spark.hadoop.fs.s3a.endpoint     http://minio.load-testing.svc.cluster.local:9000
+    spark.hadoop.fs.s3a.access.key   minioadmin
+    spark.hadoop.fs.s3a.secret.key   minioadmin
+    spark.hadoop.fs.s3a.path.style.access true
+    spark.history.ui.port            18080
+    spark.history.retentionDays      30
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-history-server
+  namespace: load-testing
+  labels:
+    app: spark-history-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-history-server
+  template:
+    metadata:
+      labels:
+        app: spark-history-server
+    spec:
+      containers:
+      - name: history-server
+        image: apache/spark:3.5.0
+        command:
+        - /bin/bash
+        - -c
+        - |
+          /opt/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer
+        env:
+        - name: SPARK_NO_DAEMONIZE
+          value: "true"
+        ports:
+        - containerPort: 18080
+          name: ui
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        volumeMounts:
+        - name: config
+          mountPath: /opt/spark/conf/spark-defaults.conf
+          subPath: spark-defaults.conf
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 18080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 18080
+          initialDelaySeconds: 20
+          periodSeconds: 10
+      volumes:
+      - name: config
+        configMap:
+          name: spark-history-server-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-history-server
+  namespace: load-testing
+spec:
+  selector:
+    app: spark-history-server
+  ports:
+  - port: 18080
+    targetPort: 18080
+    name: ui
+  type: ClusterIP

@@ -1,0 +1,235 @@
+# Argo Workflow Template for Load Testing
+# Part of WS-013-07: Test Matrix Definition & Template System
+#
+# Jinja2 template for generating Argo Workflow definitions
+# that orchestrate parallel load test execution.
+#
+# Input variables:
+# - tier: Priority tier ("p0_smoke", "p1_core", "p2_full")
+
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: load-test-{{ tier }}-
+  namespace: argo
+  labels:
+    app: spark-load-test
+    tier: {{ tier }}
+    workflow-type: load-test-matrix
+spec:
+  # Workflow-wide configuration
+  entrypoint: load-test-matrix
+  serviceAccountName: workflow-runner
+  timeouts:
+    workflow: {{ timeout_minutes }}m
+
+  # Resource synchronization mutex for Minikube protection
+  synchronization:
+    mutex:
+      name: minikube-load-test-mutex
+
+  # Artifact repository for results
+  artifactRepositoryRef:
+    configMap:
+      name: artifact-repositories
+      key: minio
+
+  # Retry strategy with exponential backoff
+  retryStrategy:
+    limit: 2
+    retryPolicy: "OnError"
+    backoff:
+      duration: "1m"
+      factor: 2.0
+      maxDuration: "5m"
+
+  # Workflow parameters
+  arguments:
+    parameters:
+      - name: tier
+        value: {{ tier }}
+      - name: parallelism
+        value: "{{ parallelism }}"
+      - name: spark_version_filter
+        value: "{{ spark_versions | join(',') }}"
+      - name: orchestrator_filter
+        value: "{{ orchestrators | join(',') }}"
+
+  # Templates
+  templates:
+    # Main template that iterates over test combinations
+    - name: load-test-matrix
+      steps:
+        - - name: generate-test-list
+            template: generate-test-list
+            arguments:
+              parameters:
+                - name: tier
+                  value: "{{ workflow.parameters.tier }}"
+
+        # Run tests in parallel with configurable limit
+        - - name: run-test-combinations
+            template: run-single-test
+            arguments:
+              parameters:
+                - name: test-name
+                  value: "{{item}}"
+            withParam: "{{steps.generate-test-list.outputs.result}}"
+            withSequence:
+              count: "{{ workflow.parameters.parallelism }}"
+
+        - - name: aggregate-results
+            template: aggregate-results
+            arguments:
+              artifacts:
+                - name: test-results
+                  from: "{{steps.run-test-combinations.outputs.artifacts.results}}"
+
+    # Generate list of test combinations for the tier
+    - name: generate-test-list
+      inputs:
+        parameters:
+          - name: tier
+      outputs:
+        parameters:
+          - name: result
+            valueFrom:
+              jsonPath: '$.combinations'
+      container:
+        name: generate-tests
+        image: python:3.11-slim
+        command:
+          - python3
+          - -c
+          - |
+            import json
+            import sys
+
+            # Load matrix configuration
+            with open('/config/priority-matrix.yaml') as f:
+                config = yaml.safe_load(f)
+
+            tier_config = config['matrix']['priority_tiers']['{{ inputs.parameters.tier }}']
+
+            # Generate all combinations
+            combinations = []
+            for spark_ver in tier_config['spark_versions']:
+                for orchestrator in tier_config['orchestrators']:
+                    for mode in tier_config['modes']:
+                        for exts in tier_config['extensions']:
+                            for op in tier_config['operations']:
+                                for data_size in tier_config['data_sizes']:
+                                    name = f"{{ inputs.parameters.tier }}_{spark_ver}_{orchestrator}_{mode}_{exts}_{op}_{data_size}"
+                                    combinations.append({
+                                        'name': name,
+                                        'spark_version': spark_ver,
+                                        'orchestrator': orchestrator,
+                                        'mode': mode,
+                                        'extensions': exts,
+                                        'operation': op,
+                                        'data_size': data_size
+                                    })
+
+            print(json.dumps({'combinations': combinations}))
+        volumeMounts:
+          - name: config
+            mountPath: /config
+      volumes:
+        - name: config
+          configMap:
+            name: priority-matrix
+
+    # Run a single test combination
+    - name: run-single-test
+      inputs:
+        parameters:
+          - name: test-name
+      outputs:
+        artifacts:
+          - name: results
+            path: /results
+      container:
+        name: test-runner
+        image: ghcr.io/fall-out-bug/spark-k8s/test-runner:latest
+        command:
+          - /scripts/tests/load/scenarios/{{ inputs.parameters.test-name }}.sh
+        env:
+          - name: TEST_NAME
+            value: "{{ inputs.parameters.test-name }}"
+          - name: KUBECONFIG
+            value: /kubeconfig/config
+        volumeMounts:
+          - name: kubeconfig
+            mountPath: /kubeconfig
+            readOnly: true
+          - name: results
+            mountPath: /results
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+      volumes:
+        - name: kubeconfig
+          secret:
+            secretName: kubeconfig
+            defaultMode: 0400
+
+    # Aggregate results from all test runs
+    - name: aggregate-results
+      inputs:
+        artifacts:
+          - name: test-results
+            path: /input-results
+      outputs:
+        artifacts:
+          - name: aggregated-results
+            path: /output-results
+      container:
+        name: aggregate
+        image: python:3.11-slim
+        command:
+          - python3
+          - /scripts/tests/load/lib/aggregate-results.py
+        args:
+          - --input
+          - /input-results
+          - --output
+          - /output-results
+          - --format
+          - jsonl
+        volumeMounts:
+          - name: scripts
+            mountPath: /scripts
+      volumes:
+        - name: scripts
+          configMap:
+            name: load-test-scripts
+
+    # Cleanup handler that runs on success or failure
+    - name: cleanup
+      container:
+        name: cleanup
+        image: bitnami/kubectl:latest
+        command:
+          - kubectl
+          - delete
+          - namespace
+          - -l
+          - spark-load-test={{ workflow.uid }}
+        volumeMounts:
+          - name: kubeconfig
+            mountPath: /kubeconfig
+            readOnly: true
+      volumes:
+        - name: kubeconfig
+          secret:
+            secretName: kubeconfig
+            defaultMode: 0400
+
+  # Finalizer for cleanup
+  finally:
+    - name: final-cleanup
+      template: cleanup

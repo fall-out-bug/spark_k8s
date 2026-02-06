@@ -1,0 +1,129 @@
+# Load Test Smoke Tests (PR Gate)
+# Part of WS-013-11: CI/CD Integration & Documentation
+#
+# Runs P0 smoke tests (64 combinations) on pull requests.
+# Blocks merge if tests fail.
+
+name: Load Test - Smoke
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'charts/**'
+      - 'scripts/tests/load/**'
+      - '.github/workflows/load-test-smoke.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TIER: p0_smoke
+  TIMEOUT_MINUTES: 30
+
+jobs:
+  smoke-tests:
+    name: P0 Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ env.TIMEOUT_MINUTES }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pyyaml jinja2 argparse
+
+      - name: Generate test matrix
+        run: |
+          python scripts/tests/load/matrix/generators/generate-matrix.py \
+            --tier ${{ env.TIER }} \
+            --output-dir scripts/tests/output
+
+      - name: Start Minikube
+        run: |
+          minikube start \
+            --cpus=4 \
+            --memory=8192 \
+            --driver=docker
+
+      - name: Setup load test environment
+        run: |
+          ./scripts/local-dev/setup-minikube-load-tests.sh --recreate
+
+      - name: Verify environment
+        run: |
+          ./scripts/local-dev/verify-load-test-env.sh
+
+      - name: Run smoke tests
+        run: |
+          ./scripts/tests/load/orchestrator/submit-workflow.sh ${{ env.TIER }}
+
+      - name: Collect results
+        if: always()
+        run: |
+          python scripts/tests/load/metrics/collector.py aggregate \
+            --input-dir scripts/tests/output/results \
+            --output scripts/tests/output/aggregated-results.jsonl
+
+      - name: Generate report
+        if: always()
+        run: |
+          python scripts/tests/load/metrics/report_generator.py \
+            --results-dir scripts/tests/output/results \
+            --output-dir scripts/tests/output/reports \
+            --layers all
+
+      - name: Check for regressions
+        run: |
+          python scripts/tests/load/metrics/regression_detector.py analyze \
+            --results-dir scripts/tests/output/results
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: smoke-test-results
+          path: |
+            scripts/tests/output/aggregated-results.jsonl
+            scripts/tests/output/reports/
+
+      - name: Comment PR with results
+        if: always()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'scripts/tests/output/reports/executive-summary.md';
+            let body = '## Smoke Test Results\n\n';
+
+            try {
+              const report = fs.readFileSync(reportPath, 'utf8');
+              body += report;
+            } catch (e) {
+              body += 'Report generation failed.\n';
+            }
+
+            body += '\n---\n';
+            body += `**Workflow:** ${{ github.run_number }}\n`;
+            body += `**Commit:** ${{ github.sha }}\n`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: Fail on test failure
+        if: steps.run-smoke-tests.outcome == 'failure'
+        run: exit 1

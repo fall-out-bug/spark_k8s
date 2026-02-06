@@ -1,0 +1,57 @@
+# Minio configuration for load testing
+# Part of WS-013-06: Minikube Auto-Setup Infrastructure
+#
+# Buckets:
+# - spark-logs: Spark event logs for History Server
+# - test-data: Test datasets for load testing
+# - iceberg-warehouse: Iceberg table warehouse
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: minio-init
+  namespace: load-testing
+data:
+  init-buckets.sh: |
+    #!/bin/sh
+    set -e
+
+    mc alias set local http://minio:9000 minioadmin minioadmin
+
+    # Create buckets
+    mc mb local/spark-logs --ignore-existing
+    mc mb local/test-data --ignore-existing
+    mc mb local/iceberg-warehouse --ignore-existing
+
+    # Set bucket policies
+    mc anonymous set download local/spark-logs
+    mc anonymous set download local/test-data
+    mc anonymous set download local/iceberg-warehouse
+
+    echo "Buckets initialized successfully"
+    mc ls local/
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-init
+  namespace: load-testing
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: minio-init
+        image: minio/mc:latest
+        command:
+        - /bin/sh
+        - /scripts/init-buckets.sh
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+      volumes:
+      - name: scripts
+        configMap:
+          name: minio-init
+          defaultMode: 0755

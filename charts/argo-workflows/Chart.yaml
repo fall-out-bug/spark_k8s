@@ -1,0 +1,15 @@
+# Argo Workflows Helm Chart
+# Part of WS-013-09: Argo Workflows Integration
+
+apiVersion: v2
+name: argo-workflows
+description: A Helm chart for Argo Workflows - Spark K8s load testing
+type: application
+version: 0.1.0
+appVersion: "3.4.16"
+keywords:
+  - argo
+  - workflows
+  - load-testing
+maintainers:
+  - name: fall-out-bug

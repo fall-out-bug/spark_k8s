@@ -1,0 +1,109 @@
+# Load Test Baselines
+# Part of WS-013-10: Metrics Collection & Regression Detection
+#
+# This file contains baseline metrics for all test combinations.
+# Baselines are created from multiple runs (typically 5) to establish
+# statistically significant benchmarks.
+#
+# Baseline format:
+#   <test_name>:
+#     metadata:
+#       spark_version: "X.Y.Z"
+#       orchestrator: "connect|operator"
+#       mode: "kubernetes|standalone"
+#       extensions: "none|iceberg|rapids|iceberg+rapids"
+#       operation: "read|aggregate|join|window|write"
+#       data_size: "1gb|11gb"
+#     sample_size: N  # Number of runs in baseline
+#     created_at: "ISO-8601 timestamp"
+#     metrics:
+#       duration_sec:
+#         mean: X
+#         median: X
+#         min: X
+#         max: X
+#         stddev: X
+#       throughput:
+#         mean: X
+#         median: X
+#         min: X
+#         max: X
+#         stddev: X
+
+baselines:
+  # P0 Smoke baselines
+  p0_350_connect_kubernetes_none_read_1gb:
+    metadata:
+      spark_version: "3.5.0"
+      orchestrator: "connect"
+      mode: "kubernetes"
+      extensions: "none"
+      operation: "read"
+      data_size: "1gb"
+    sample_size: 5
+    created_at: "2025-01-01T00:00:00Z"
+    metrics:
+      duration_sec:
+        mean: 45.0
+        median: 44.5
+        min: 42.0
+        max: 48.0
+        stddev: 2.1
+      throughput:
+        mean: 46666.7
+        median: 47191.0
+        min: 43750.0
+        max: 50000.0
+        stddev: 2172.5
+
+  p0_410_connect_kubernetes_none_read_1gb:
+    metadata:
+      spark_version: "4.1.0"
+      orchestrator: "connect"
+      mode: "kubernetes"
+      extensions: "none"
+      operation: "read"
+      data_size: "1gb"
+    sample_size: 5
+    created_at: "2025-01-01T00:00:00Z"
+    metrics:
+      duration_sec:
+        mean: 42.0
+        median: 41.5
+        min: 40.0
+        max: 45.0
+        stddev: 1.9
+      throughput:
+        mean: 50000.0
+        median: 50602.8
+        min: 46666.7
+        max: 52500.0
+        stddev: 2083.3
+
+  # P1 Core baselines (examples)
+  p1_350_connect_kubernetes_iceberg_read_1gb:
+    metadata:
+      spark_version: "3.5.0"
+      orchestrator: "connect"
+      mode: "kubernetes"
+      extensions: "iceberg"
+      operation: "read"
+      data_size: "1gb"
+    sample_size: 5
+    created_at: "2025-01-01T00:00:00Z"
+    metrics:
+      duration_sec:
+        mean: 50.0
+        median: 49.0
+        min: 47.0
+        max: 54.0
+        stddev: 2.5
+      throughput:
+        mean: 42000.0
+        median: 42857.1
+        min: 38888.9
+        max: 44680.9
+        stddev: 1975.3
+
+# Additional baselines will be added as tests are run
+# and baselines are created using the baseline_manager.py script.

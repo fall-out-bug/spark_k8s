@@ -1,0 +1,111 @@
+# Hive Metastore deployment for load testing
+# Part of WS-013-06: Minikube Auto-Setup Infrastructure
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hive-metastore-config
+  namespace: load-testing
+data:
+  metastore-site.xml: |
+    <?xml version="1.0"?>
+    <configuration>
+      <property>
+        <name>javax.jdo.option.ConnectionURL</name>
+        <value>jdbc:postgresql://postgres-load-testing.load-testing.svc.cluster.local:5432/spark_db</value>
+      </property>
+      <property>
+        <name>javax.jdo.option.ConnectionDriverName</name>
+        <value>org.postgresql.Driver</value>
+      </property>
+      <property>
+        <name>javax.jdo.option.ConnectionUserName</name>
+        <value>postgres</value>
+      </property>
+      <property>
+        <name>javax.jdo.option.ConnectionPassword</name>
+        <value>sparktest</value>
+      </property>
+      <property>
+        <name>metastore.warehouse.dir</name>
+        <value>s3a://iceberg-warehouse/</value>
+      </property>
+    </configuration>
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hive-metastore
+  namespace: load-testing
+  labels:
+    app: hive-metastore
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hive-metastore
+  template:
+    metadata:
+      labels:
+        app: hive-metastore
+    spec:
+      containers:
+      - name: hive-metastore
+        image: apache/hive:3.1.3
+        command:
+        - /bin/bash
+        - -c
+        - |
+          /opt/hive/bin/schematool -dbType postgres -initSchema || true
+          /opt/hive/bin/start-metastore
+        env:
+        - name: HIVE_AUX_JARS_PATH
+          value: /opt/hive/lib/
+        - name: SERVICE_URI
+          value: thrift://0.0.0.0:9083
+        ports:
+        - containerPort: 9083
+          name: metastore
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        volumeMounts:
+        - name: config
+          mountPath: /opt/hive/conf/metastore-site.xml
+          subPath: metastore-site.xml
+        livenessProbe:
+          tcpSocket:
+            port: 9083
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - netstat -tuln | grep 9083
+          initialDelaySeconds: 20
+          periodSeconds: 10
+      volumes:
+      - name: config
+        configMap:
+          name: hive-metastore-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hive-metastore
+  namespace: load-testing
+spec:
+  selector:
+    app: hive-metastore
+  ports:
+  - port: 9083
+    targetPort: 9083
+    name: metastore
