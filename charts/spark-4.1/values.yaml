@@ -132,8 +132,8 @@ core:
     enabled: true  # Hive Metastore for Spark SQL
     fullnameOverride: ""
     image:
-      repository: apache/hive
-      tag: "4.0.0"
+      repository: spark-k8s/hive
+      tag: "4.0.0-pg"
       pullPolicy: IfNotPresent
     service:
       port: 9083
@@ -160,36 +160,36 @@ core:
         memory: "2Gi"
         cpu: "1000m"
 
-  historyServer:
-    enabled: true  # Spark History Server for completed applications
-    fullnameOverride: ""
-    image:
-      repository: spark-custom
-      tag: "4.1.0"
-      pullPolicy: IfNotPresent
-    logDirectory: "s3a://spark-logs/events"
-    updateInterval: "10s"
-    provider: ""
-    s3aImpl: ""
-    credentialsProvider: ""
-    s3ConnectionMax: ""
-    s3ConnectionTimeout: ""
-    maxApplications: "1000"
-    service:
-      type: ClusterIP
-      port: 18080
-    podAnnotations: {}
-    resources:
-      requests:
-        memory: "512Mi"
-        cpu: "200m"
-      limits:
-        memory: "2Gi"
-        cpu: "1000m"
-    sparkConf:
-      spark.history.fs.cleaner.enabled: true
-      spark.history.fs.cleaner.interval: "1d"
-      spark.history.fs.cleaner.maxAge: "7d"
+historyServer:
+  enabled: true  # Spark History Server for completed applications
+  fullnameOverride: ""
+  image:
+    repository: spark-custom
+    tag: "4.1.0"
+    pullPolicy: IfNotPresent
+  logDirectory: "s3a://spark-logs/events"
+  updateInterval: "10s"
+  provider: ""
+  s3aImpl: ""
+  credentialsProvider: ""
+  s3ConnectionMax: ""
+  s3ConnectionTimeout: ""
+  maxApplications: "1000"
+  service:
+    type: ClusterIP
+    port: 18080
+  podAnnotations: {}
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+  sparkConf:
+    spark.history.fs.cleaner.enabled: true
+    spark.history.fs.cleaner.interval: "1d"
+    spark.history.fs.cleaner.maxAge: "7d"
 
 # Feature flags and configuration
 features:

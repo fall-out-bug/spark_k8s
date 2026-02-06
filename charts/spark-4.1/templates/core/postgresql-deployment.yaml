@@ -28,6 +28,19 @@ data:
   init-dbs.sh: |
     #!/bin/sh
     set -e
+
+    # Create Hive Metastore database if core.hiveMetastore is enabled
+    {{- if .Values.core.hiveMetastore.enabled }}
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '{{ .Values.core.hiveMetastore.database.name | default "metastore_spark41" }}') THEN
+        CREATE DATABASE "{{ .Values.core.hiveMetastore.database.name | default "metastore_spark41" }}";
+      END IF;
+    END $$;
+    EOSQL
+    {{- end }}
+
     # Create Hive user for Hive Metastore
     psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-'EOSQL'
     DO $$
@@ -36,7 +49,9 @@ data:
         CREATE USER hive WITH PASSWORD 'hive123';
       END IF;
     END $$;
-    GRANT ALL PRIVILEGES ON DATABASE metastore_spark41 TO hive;
+    {{- if .Values.core.hiveMetastore.enabled }}
+    GRANT ALL PRIVILEGES ON DATABASE {{ .Values.core.hiveMetastore.database.name | default "metastore_spark41" }} TO hive;
+    {{- end }}
     EOSQL
     {{- range .Values.core.postgresql.databases }}
     psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-'EOSQL'
@@ -75,6 +90,28 @@ spec:
       {{- if .Values.security.podSecurityStandards }}
       securityContext:
         {{- include "spark-base.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      # Init container to set up data directory permissions
+      {{- if .Values.security.podSecurityStandards }}
+      initContainers:
+      - name: setup-data-dir
+        image: "{{ .Values.core.postgresql.image.repository }}:{{ .Values.core.postgresql.image.tag }}"
+        command:
+        - sh
+        - -c
+        - |
+          # Create data directory with proper permissions
+          mkdir -p /var/lib/postgresql/data
+          # Set ownership (Postgres runs as uid 999)
+          chown -R 999:999 /var/lib/postgresql/data || true
+          # Set permissions
+          chmod 700 /var/lib/postgresql/data || true
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+        securityContext:
+          runAsUser: 0  # Run as root to change permissions
+          runAsGroup: 0
       {{- end }}
       containers:
       - name: postgresql
@@ -126,4 +163,101 @@ spec:
         requests:
           storage: {{ .Values.core.postgresql.persistence.size }}
   {{- end }}
+---
+{{- if .Values.core.hiveMetastore.enabled }}
+{{/* Job to create hive user and database in existing Postgres */}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "spark.core.postgresql.fullname" . }}-hive-init
+  labels:
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app.kubernetes.io/component: "postgresql"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "1"
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Chart.Name }}-postgresql-hive-init
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      restartPolicy: OnFailure
+      {{- if .Values.security.podSecurityStandards }}
+      securityContext:
+        {{- include "spark-base.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      initContainers:
+      - name: wait-for-postgresql
+        image: busybox:1.36
+        {{- if .Values.security.podSecurityStandards }}
+        securityContext:
+          {{- include "spark-base.initContainerSecurityContext" . | nindent 10 }}
+          runAsUser: 1000
+          runAsGroup: 1000
+        {{- end }}
+        command:
+        - sh
+        - -c
+        - |
+          until nc -z {{ include "spark.core.postgresql.fullname" . }} {{ .Values.core.postgresql.service.port }};
+          do echo "Waiting for PostgreSQL..."; sleep 2; done; echo "PostgreSQL is ready!"
+      containers:
+      - name: hive-init
+        image: "{{ .Values.core.postgresql.image.repository }}:{{ .Values.core.postgresql.image.tag }}"
+        {{- if .Values.security.podSecurityStandards }}
+        securityContext:
+          {{- include "spark-base.containerSecurityContext" . | nindent 10 }}
+          runAsUser: 999
+          runAsGroup: 999
+        {{- end }}
+        env:
+        - name: PGHOST
+          value: {{ include "spark.core.postgresql.fullname" . | quote }}
+        - name: PGPORT
+          value: {{ .Values.core.postgresql.service.port | quote }}
+        - name: PGUSER
+          value: {{ .Values.core.postgresql.auth.username | quote }}
+        envFrom:
+        - secretRef:
+            name: {{ include "spark.core.postgresql.fullname" . }}-credentials
+        command:
+        - sh
+        - -c
+        - |
+          set -e
+          # Set PGPASSWORD from Secret (psql uses PGPASSWORD, not POSTGRES_PASSWORD)
+          export PGPASSWORD=$POSTGRES_PASSWORD
+          echo "Creating Hive metastore database and user..."
+
+          # Create Hive Metastore database (if not exists)
+          psql -v ON_ERROR_STOP=1 -tc "SELECT 1 FROM pg_database WHERE datname = '{{ .Values.core.hiveMetastore.database.name | default "metastore_spark41" }}'" | grep -q 1 || \
+            psql -v ON_ERROR_STOP=1 -c "CREATE DATABASE \"{{ .Values.core.hiveMetastore.database.name | default "metastore_spark41" }}\""
+
+          # Create Hive user and grant privileges
+          psql -v ON_ERROR_STOP=1 <<-EOSQL
+          DO \$\$
+          BEGIN
+            IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'hive') THEN
+              CREATE USER hive WITH PASSWORD 'hive123';
+            END IF;
+          END \$\$;
+          -- Grant ALL on database
+          GRANT ALL PRIVILEGES ON DATABASE {{ .Values.core.hiveMetastore.database.name | default "metastore_spark41" }} TO hive;
+          -- Connect to the database and grant schema privileges
+          \c {{ .Values.core.hiveMetastore.database.name | default "metastore_spark41" }}
+          -- Grant ALL on schema public (needed for Hive schema initialization)
+          GRANT ALL PRIVILEGES ON SCHEMA public TO hive;
+          -- Grant ALL on existing and future objects in public schema
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO hive;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO hive;
+          EOSQL
+
+          echo "Hive user and database created successfully!"
+{{- end }}
 {{- end }}

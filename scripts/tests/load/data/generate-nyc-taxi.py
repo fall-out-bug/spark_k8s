@@ -26,6 +26,7 @@ from pyspark.sql.functions import (
     col, rand, when, lit, floor, date_format, substring, concat,
     year, month, dayofmonth, hour, monotonically_increasing_id
 )
+from pyspark.sql.functions import column
 from pyspark.sql.types import (
     StructType, StructField, IntegerType, LongType, FloatType,
     DoubleType, TimestampType, StringType
@@ -305,6 +306,10 @@ def main():
             print(f"\nGenerating data for {year}-{month:02d}...")
 
             df = generate_trip_data(spark, num_rows, year, month)
+
+            # Add year and month columns for partitioning
+            df = df.withColumn("year", lit(year))
+            df = df.withColumn("month", lit(month))
 
             # Partition by year/month and write
             output_path = f"{args.output}/year={year}/month={month:02d}"

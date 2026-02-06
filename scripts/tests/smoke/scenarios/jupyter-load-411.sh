@@ -28,18 +28,19 @@ source "${PROJECT_ROOT}/scripts/tests/lib/helm.sh"
 source "${PROJECT_ROOT}/scripts/tests/lib/validation.sh"
 
 CHART_PATH="${PROJECT_ROOT}/charts/spark-4.1"
-PRESET_PATH="${PROJECT_ROOT}/charts/spark-4.1/presets/test-baseline-values.yaml"
+PRESET_PATH="${PROJECT_ROOT}/charts/spark-4.1/presets/core-baseline.yaml"
 SPARK_VERSION="4.1.0"
 IMAGE_TAG="4.1.0"
 IMAGE_REPOSITORY="spark-custom"
 APP_NAME="jupyter-load-test-410"
 
-setup_test_environment() {
+setup_local_environment() {
     log_section "Setting up test environment"
     check_required_commands kubectl helm
 
+    # Call the function from namespace.sh (capture only the last line which contains results)
     local env_setup
-    env_setup=$(setup_test_environment "jupyter-load" "410")
+    env_setup=$(setup_test_environment "jupyter-load" "410" 2>/dev/null | tail -1)
     read -r TEST_NAMESPACE RELEASE_NAME <<< "$env_setup"
 
     log_info "Namespace: $TEST_NAMESPACE"
@@ -52,9 +53,21 @@ setup_test_environment() {
 deploy_spark() {
     log_section "Deploying Jupyter for load testing"
 
-    helm_install "$RELEASE_NAME" "$CHART_PATH" "$TEST_NAMESPACE" "$PRESET_PATH" \
-        --set jupyter.image.tag="${IMAGE_TAG}" \
-        --set airflow.enabled=false
+    # Create temporary values file for overrides
+    local temp_values
+    temp_values=$(mktemp)
+    cat > "$temp_values" <<EOF
+jupyter:
+  image:
+    tag: "${IMAGE_TAG}"
+airflow:
+  enabled: false
+EOF
+
+    helm_install "$RELEASE_NAME" "$CHART_PATH" "$TEST_NAMESPACE" "$PRESET_PATH" "$temp_values"
+
+    # Clean up temp file
+    rm -f "$temp_values"
 }
 
 validate_deployment() {
@@ -98,7 +111,7 @@ print_results() {
 
 main() {
     log_section "Load Smoke Test: Jupyter (4.1.0)"
-    setup_test_environment
+    setup_local_environment
     deploy_spark
     validate_deployment
     run_smoke_test

@@ -108,8 +108,13 @@ spec:
             - name: HIVE_CONF_DIR
               value: "/tmp/hive-conf"
           envFrom:
+            {{- if .Values.core.hiveMetastore.enabled }}
+            - secretRef:
+                name: {{ include "spark.core.hiveMetastore.fullname" . }}-db
+            {{- else if .Values.hiveMetastore.enabled }}
             - secretRef:
                 name: {{ include "spark-4.1.fullname" . }}-metastore-db
+            {{- end }}
           {{- if .Values.security.podSecurityStandards }}
           securityContext:
             {{- include "spark-base.containerSecurityContext" . | nindent 12 }}
@@ -202,8 +207,13 @@ spec:
             - name: HIVE_CONF_DIR
               value: "/tmp/hive-conf"
           envFrom:
+            {{- if .Values.core.hiveMetastore.enabled }}
+            - secretRef:
+                name: {{ include "spark.core.hiveMetastore.fullname" . }}-db
+            {{- else if .Values.hiveMetastore.enabled }}
             - secretRef:
                 name: {{ include "spark-4.1.fullname" . }}-metastore-db
+            {{- end }}
           {{- if .Values.security.podSecurityStandards }}
           securityContext:
             {{- include "spark-base.containerSecurityContext" . | nindent 12 }}
