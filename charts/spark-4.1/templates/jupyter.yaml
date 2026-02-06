@@ -5,16 +5,19 @@ metadata:
   name: {{ include "spark-4.1.fullname" . }}-jupyter
   labels:
     app: jupyter
+    app.kubernetes.io/component: jupyter
     {{- include "spark-4.1.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: jupyter
+      app.kubernetes.io/component: jupyter
   template:
     metadata:
       labels:
         app: jupyter
+        app.kubernetes.io/component: jupyter
         {{- include "spark-4.1.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "spark-4.1.serviceAccountName" . }}

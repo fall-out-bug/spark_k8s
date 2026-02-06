@@ -46,12 +46,12 @@ wait_for_pods_by_label() {
 
     local elapsed=0
     while [[ $elapsed -lt $timeout ]]; do
-        # Count ready pods
+        # Count ready pods - use field selector for Ready status
         local ready_count
         ready_count=$(kubectl get pods \
             -n "$namespace" \
             -l "$label_selector" \
-            -o jsonpath='{range .items[?(@.status.conditions[0].type=="Ready" && @.status.conditions[0].status=="True")]}{.metadata.name}{"\n"}{end}' 2>/dev/null | wc -l)
+            -o json | jq -r '[.items[] | select(.status.conditions[]? | .type == "Ready" and .status == "True")] | length' 2>/dev/null || echo "0")
 
         if [[ $ready_count -ge $expected_count ]]; then
             log_success "Pods ready: $ready_count/$expected_count"
@@ -349,10 +349,10 @@ validate_spark_connect() {
 
     log_step "Validating Spark Connect server"
 
-    # Check if port is listening
+    # Check if port is listening using bash /dev/tcp
     local output
     output=$(kubectl exec -n "$namespace" "$pod_name" \
-        -- sh -c "nc -z localhost $port && echo 'OK'" 2>/dev/null || echo "")
+        -- bash -c "timeout 5 bash -c 'cat < /dev/null > /dev/tcp/localhost/$port' && echo 'OK'" 2>/dev/null || echo "")
 
     if [[ "$output" == *"OK"* ]]; then
         log_success "Spark Connect server is listening on port $port"

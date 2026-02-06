@@ -5,16 +5,19 @@ metadata:
   name: {{ include "spark-4.1.fullname" . }}-connect
   labels:
     app: spark-connect
+    app.kubernetes.io/component: connect
     {{- include "spark-4.1.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.connect.replicas }}
   selector:
     matchLabels:
       app: spark-connect
+      app.kubernetes.io/component: connect
   template:
     metadata:
       labels:
         app: spark-connect
+        app.kubernetes.io/component: connect
         {{- include "spark-4.1.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "spark-4.1.serviceAccountName" . }}

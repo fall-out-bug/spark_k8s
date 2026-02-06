@@ -18,12 +18,14 @@ metadata:
   name: {{ include "spark-4.1.fullname" . }}-history
   labels:
     app: spark-history-server
+    app.kubernetes.io/component: history-server
     {{- include "spark-4.1.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: spark-history-server
+      app.kubernetes.io/component: history-server
       {{- include "spark-4.1.selectorLabels" . | nindent 6 }}
   template:
     metadata:

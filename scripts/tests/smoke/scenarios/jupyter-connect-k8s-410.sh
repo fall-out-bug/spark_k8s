@@ -39,7 +39,7 @@ source "${PROJECT_ROOT}/scripts/tests/lib/validation.sh"
 
 # Test configuration
 CHART_PATH="${PROJECT_ROOT}/charts/spark-4.1"
-PRESET_PATH="${PROJECT_ROOT}/charts/spark-4.1/presets/test-baseline-values.yaml"
+PRESET_PATH="${PROJECT_ROOT}/charts/spark-4.1/jupyter-connect-k8s-4.1.0.yaml"
 SPARK_VERSION="4.1.0"
 IMAGE_TAG="4.1.0"
 IMAGE_REPOSITORY="spark-custom"
@@ -127,10 +127,15 @@ deploy_spark() {
 
     # Deploy with preset file
     if [[ -f "$PRESET_PATH" ]]; then
-        helm_install "$RELEASE_NAME" "$CHART_PATH" "$TEST_NAMESPACE" "$PRESET_PATH" \
+        log_step "Installing Helm release: $RELEASE_NAME"
+        helm install "$RELEASE_NAME" "$CHART_PATH" \
+            --namespace "$TEST_NAMESPACE" \
+            --values "$PRESET_PATH" \
             --set connect.image.repository="${IMAGE_REPOSITORY}" \
             --set connect.image.tag="${IMAGE_TAG}" \
-            --set jupyter.image.tag="${IMAGE_TAG}"
+            --set jupyter.image.tag="${IMAGE_TAG}" \
+            --timeout 15m \
+            --wait
     else
         # Fallback to inline values
         helm_install_with_values "$RELEASE_NAME" "$CHART_PATH" "$TEST_NAMESPACE" \

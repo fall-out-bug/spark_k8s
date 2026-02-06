@@ -156,6 +156,7 @@ metadata:
   name: {{ include "spark-4.1.fullname" . }}-metastore
   labels:
     app: hive-metastore
+    app.kubernetes.io/component: hive-metastore
     {{- include "spark-4.1.labels" . | nindent 4 }}
 spec:
   replicas: 1
@@ -163,11 +164,13 @@ spec:
     matchLabels:
       app.kubernetes.io/name: {{ .Chart.Name }}-hive-metastore
       app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: hive-metastore
   template:
     metadata:
       labels:
         app.kubernetes.io/name: {{ .Chart.Name }}-hive-metastore
         app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: hive-metastore
     spec:
       serviceAccountName: {{ include "spark-4.1.serviceAccountName" . }}
       {{- if .Values.security.podSecurityStandards }}
