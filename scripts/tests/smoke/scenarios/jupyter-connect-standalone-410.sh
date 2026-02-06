@@ -71,10 +71,15 @@ setup_test_environment() {
 deploy_spark() {
     log_section "Deploying Spark Connect + Jupyter (Standalone mode)"
 
-    helm_install "$RELEASE_NAME" "$CHART_PATH" "$TEST_NAMESPACE" "$PRESET_PATH" \
+    log_step "Installing Helm release: $RELEASE_NAME"
+    helm install "$RELEASE_NAME" "$CHART_PATH" \
+        --namespace "$TEST_NAMESPACE" \
+        --values "$PRESET_PATH" \
         --set connect.image.repository="${IMAGE_REPOSITORY}" \
         --set connect.image.tag="${IMAGE_TAG}" \
-        --set jupyter.image.tag="${IMAGE_TAG}"
+        --set jupyter.image.tag="${IMAGE_TAG}" \
+        --timeout 15m \
+        --wait
 
     helm_wait_for_deployed "$RELEASE_NAME" "$TEST_NAMESPACE" 300
 }
