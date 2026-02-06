@@ -37,9 +37,18 @@ register_namespace_cleanup() {
     local ns_name="${1}"
 
     # Initialize array if not exists (for subshell calls)
-    [[ "${CLEANUP_RELEASES_INIT:-}" != "yes" ]] && init_cleanup_arrays 2>/dev/null
+    if [[ "${CLEANUP_RELEASES_INIT:-}" != "yes" ]]; then
+        init_cleanup_arrays 2>/dev/null || true
+    fi
 
-    CLEANUP_NAMESPACES["$ns_name"]=1 2>/dev/null || true
+    # Ensure array is associative before assignment
+    # Use eval to avoid immediate error with set -e
+    if declare -p CLEANUP_NAMESPACES 2>/dev/null | grep -q "declare -A"; then
+        eval 'CLEANUP_NAMESPACES["$ns_name"]=1' 2>/dev/null || true
+    else
+        declare -gA CLEANUP_NAMESPACES 2>/dev/null || true
+        eval 'CLEANUP_NAMESPACES["$ns_name"]=1' 2>/dev/null || true
+    fi
     log_debug "Registered namespace for cleanup: $ns_name"
 }
 
@@ -50,9 +59,19 @@ register_release_cleanup() {
 
     # Initialize array if not exists (for subshell calls)
     # In subshells, declare -p might show the variable but not as associative array
-    [[ "${CLEANUP_RELEASES_INIT:-}" != "yes" ]] && init_cleanup_arrays 2>/dev/null
+    if [[ "${CLEANUP_RELEASES_INIT:-}" != "yes" ]]; then
+        init_cleanup_arrays 2>/dev/null || true
+    fi
 
-    CLEANUP_RELEASES["$release_name"]="$namespace" 2>/dev/null || true
+    # Ensure array is associative before assignment
+    # Use eval to avoid immediate error with set -e
+    if declare -p CLEANUP_RELEASES 2>/dev/null | grep -q "declare -A"; then
+        eval "CLEANUP_RELEASES[\"$release_name\"]=\"\$namespace\"" 2>/dev/null || true
+    else
+        # Re-initialize if lost associative property
+        declare -gA CLEANUP_RELEASES 2>/dev/null || true
+        eval "CLEANUP_RELEASES[\"$release_name\"]=\"\$namespace\"" 2>/dev/null || true
+    fi
     log_debug "Registered release for cleanup: $release_name (namespace: $namespace)"
 }
 
@@ -60,9 +79,16 @@ register_release_cleanup() {
 init_cleanup_arrays() {
     [[ "${CLEANUP_RELEASES_INIT:-}" == "yes" ]] && return 0
 
-    declare -gA CLEANUP_NAMESPACES=() 2>/dev/null || declare -A CLEANUP_NAMESPACES=()
-    declare -gA CLEANUP_RELEASES=() 2>/dev/null || declare -A CLEANUP_RELEASES=()
-    declare -gA CLEANUP_PIDS=() 2>/dev/null || declare -A CLEANUP_PIDS=()
+    # Check if arrays are already associative, if not redeclare
+    if ! declare -p CLEANUP_NAMESPACES 2>/dev/null | grep -q "declare -A"; then
+        declare -gA CLEANUP_NAMESPACES
+    fi
+    if ! declare -p CLEANUP_RELEASES 2>/dev/null | grep -q "declare -A"; then
+        declare -gA CLEANUP_RELEASES
+    fi
+    if ! declare -p CLEANUP_PIDS 2>/dev/null | grep -q "declare -A"; then
+        declare -gA CLEANUP_PIDS
+    fi
 
     export CLEANUP_RELEASES_INIT=yes
 }
@@ -73,22 +99,31 @@ register_pid_cleanup() {
     local description="${2:-process}"
 
     # Initialize array if not exists (for subshell calls)
-    [[ "${CLEANUP_RELEASES_INIT:-}" != "yes" ]] && init_cleanup_arrays 2>/dev/null
+    if [[ "${CLEANUP_RELEASES_INIT:-}" != "yes" ]]; then
+        init_cleanup_arrays 2>/dev/null || true
+    fi
 
-    CLEANUP_PIDS["$pid"]="$description" 2>/dev/null || true
+    # Ensure array is associative before assignment
+    # Use eval to avoid immediate error with set -e
+    if declare -p CLEANUP_PIDS 2>/dev/null | grep -q "declare -A"; then
+        eval "CLEANUP_PIDS[\"$pid\"]=\"\$description\"" 2>/dev/null || true
+    else
+        declare -gA CLEANUP_PIDS 2>/dev/null || true
+        eval "CLEANUP_PIDS[\"$pid\"]=\"\$description\"" 2>/dev/null || true
+    fi
     log_debug "Registered PID for cleanup: $pid ($description)"
 }
 
 # Unregister from cleanup (for successful manual cleanup)
 unregister_namespace_cleanup() {
     local ns_name="${1}"
-    unset CLEANUP_NAMESPACES["$ns_name"] 2>/dev/null || true
+    eval 'unset CLEANUP_NAMESPACES["$ns_name"]' 2>/dev/null || true
     log_debug "Unregistered namespace from cleanup: $ns_name"
 }
 
 unregister_release_cleanup() {
     local release_name="${1}"
-    unset CLEANUP_RELEASES["$release_name"] 2>/dev/null || true
+    eval 'unset CLEANUP_RELEASES["$release_name"]' 2>/dev/null || true
     log_debug "Unregistered release from cleanup: $release_name"
 }
 
@@ -182,29 +217,33 @@ cleanup_all_registered() {
     log_info "Running cleanup for all registered resources..."
 
     # Cleanup Helm releases first
-    for release_name in "${!CLEANUP_RELEASES[@]}"; do
-        local namespace="${CLEANUP_RELEASES[$release_name]}"
-        cleanup_release "$release_name" "$namespace" "$force"
-    done
+    # Use eval to safely iterate if array is associative
+    if declare -p CLEANUP_RELEASES 2>/dev/null | grep -q "declare -A"; then
+        eval 'for release_name in "${!CLEANUP_RELEASES[@]}"; do
+            namespace="${CLEANUP_RELEASES[$release_name]}"
+            cleanup_release "$release_name" "$namespace" "$force"
+        done' 2>/dev/null || true
+    fi
 
     # Cleanup namespaces
-    for ns_name in "${!CLEANUP_NAMESPACES[@]}"; do
-        cleanup_namespace "$ns_name" "$force"
-    done
+    if declare -p CLEANUP_NAMESPACES 2>/dev/null | grep -q "declare -A"; then
+        eval 'for ns_name in "${!CLEANUP_NAMESPACES[@]}"; do
+            cleanup_namespace "$ns_name" "$force"
+        done' 2>/dev/null || true
+    fi
 
     # Kill registered PIDs
-    for pid in "${!CLEANUP_PIDS[@]}"; do
-        local description="${CLEANUP_PIDS[$pid]}"
-        log_step "Killing PID $pid ($description)"
-
-        if kill -0 "$pid" 2>/dev/null; then
-            kill "$pid" 2>/dev/null || true
-            # Wait a bit for graceful shutdown
-            sleep 2
-            # Force kill if still running
-            kill -9 "$pid" 2>/dev/null || true
-        fi
-    done
+    if declare -p CLEANUP_PIDS 2>/dev/null | grep -q "declare -A"; then
+        eval 'for pid in "${!CLEANUP_PIDS[@]}"; do
+            description="${CLEANUP_PIDS[$pid]}"
+            log_step "Killing PID $pid ($description)"
+            if kill -0 "$pid" 2>/dev/null; then
+                kill "$pid" 2>/dev/null || true
+                sleep 2
+                kill -9 "$pid" 2>/dev/null || true
+            fi
+        done' 2>/dev/null || true
+    fi
 
     # Clear registries
     CLEANUP_NAMESPACES=()
