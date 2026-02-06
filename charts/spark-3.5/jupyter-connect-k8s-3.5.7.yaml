@@ -41,8 +41,8 @@ jupyter:
   enabled: true
   image:
     repository: jupyter-spark
-    tag: "latest"
-    pullPolicy: IfNotPresent
+    tag: "3.5.7"
+    pullPolicy: Never
   service:
     type: ClusterIP
     port: 8888

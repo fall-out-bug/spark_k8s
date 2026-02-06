@@ -51,9 +51,9 @@ connect:
   standalone:
     masterService: "${release_name}-spark-41-connect"
     masterPort: 7077
-  # eventLog:
-    # DISABLED FOR SMOKE TESTS
-    /spark-logs/events"
+  eventLog:
+    enabled: false
+    logDir: "/spark-logs/events"
   sparkConf:
     spark.executor.instances: "1"
     spark.executor.cores: "1"
@@ -64,8 +64,8 @@ jupyter:
   # DISABLED FOR SMOKE TESTS
   image:
     repository: jupyter-spark
-    tag: "latest"
-    pullPolicy: IfNotPresent
+    tag: "4.1.0"
+    pullPolicy: Never
   service:
     type: ClusterIP
     port: 8888
