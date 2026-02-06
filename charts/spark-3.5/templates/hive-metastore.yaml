@@ -147,17 +147,20 @@ metadata:
   name: {{ include "spark-3.5.fullname" . }}-metastore
   labels:
     app: hive-metastore
+    app.kubernetes.io/component: hive-metastore
     {{- include "spark-3.5.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: hive-metastore
+      app.kubernetes.io/component: hive-metastore
       {{- include "spark-3.5.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
         app: hive-metastore
+        app.kubernetes.io/component: hive-metastore
         {{- include "spark-3.5.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "spark-3.5.serviceAccountName" . }}
