@@ -41,7 +41,7 @@ jupyter:
   enabled: true
   image:
     repository: jupyter-spark
-    tag: "3.5.7"
+    tag: "4.1.0"
     pullPolicy: Never
   service:
     type: ClusterIP

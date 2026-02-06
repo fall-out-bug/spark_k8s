@@ -71,7 +71,6 @@ deploy_spark() {
     helm install "$RELEASE_NAME" "$CHART_PATH" \
         --namespace "$TEST_NAMESPACE" \
         --values "$PRESET_PATH" \
-        --set jupyter.image.tag="${IMAGE_TAG}" \
         --set sparkOperator.enabled=false \
         --timeout 15m \
         --wait
