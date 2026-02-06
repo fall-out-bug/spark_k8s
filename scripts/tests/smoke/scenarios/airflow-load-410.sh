@@ -36,16 +36,36 @@ APP_NAME="airflow-load-test-410"
 
 setup_test_environment() {
     log_section "Setting up test environment"
+
+    # Check prerequisites
     check_required_commands kubectl helm
 
-    local env_setup
-    env_setup=$(setup_test_environment "airflow-load" "410")
-    read -r TEST_NAMESPACE RELEASE_NAME <<< "$env_setup"
+    # Generate test ID and create namespace
+    local ns_name="${NAMESPACE_PREFIX}-410"
+
+    log_step "Creating namespace: $ns_name"
+    if kubectl create namespace "$ns_name" 2>/dev/null; then
+        log_success "Namespace created: $ns_name"
+    elif kubectl get namespace "$ns_name" &>/dev/null; then
+        log_info "Namespace already exists: $ns_name"
+    else
+        log_error "Failed to create namespace: $ns_name"
+        return 1
+    fi
+
+    # Create release name
+    local release_name
+    release_name="$(create_release_name "airflow-load-" "$(generate_short_test_id)")"
+
+    TEST_NAMESPACE="$ns_name"
+    RELEASE_NAME="$release_name"
 
     log_info "Namespace: $TEST_NAMESPACE"
     log_info "Release: $RELEASE_NAME"
 
+    # Setup cleanup trap
     setup_cleanup_trap "$RELEASE_NAME" "$TEST_NAMESPACE"
+
     export TEST_NAMESPACE RELEASE_NAME
 }
 

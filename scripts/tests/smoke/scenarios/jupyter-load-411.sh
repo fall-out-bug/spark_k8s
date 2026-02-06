@@ -39,9 +39,6 @@ setup_local_environment() {
     check_required_commands kubectl helm
 
     # Call the function from namespace.sh (capture only the last line which contains results)
-    local env_setup
-    env_setup=$(setup_test_environment "jupyter-load" "410" 2>/dev/null | tail -1)
-    read -r TEST_NAMESPACE RELEASE_NAME <<< "$env_setup"
 
     log_info "Namespace: $TEST_NAMESPACE"
     log_info "Release: $RELEASE_NAME"

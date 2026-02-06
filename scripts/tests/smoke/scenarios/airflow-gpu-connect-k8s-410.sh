@@ -58,9 +58,6 @@ setup_test_environment() {
         exit 0  # Skip gracefully
     fi
 
-    local env_setup
-    env_setup=$(setup_test_environment "airflow-gpu-connect" "410")
-    read -r TEST_NAMESPACE RELEASE_NAME <<< "$env_setup"
 
     setup_cleanup_trap "$RELEASE_NAME" "$TEST_NAMESPACE"
     export TEST_NAMESPACE RELEASE_NAME

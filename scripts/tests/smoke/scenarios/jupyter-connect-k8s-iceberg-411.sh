@@ -53,9 +53,6 @@ setup_test_environment() {
     log_section "Setting up test environment"
     check_required_commands kubectl helm
 
-    local env_setup
-    env_setup=$(setup_test_environment "jupyter-connect-k8s-iceberg" "411")
-    read -r TEST_NAMESPACE RELEASE_NAME <<< "$env_setup"
 
     setup_cleanup_trap "$RELEASE_NAME" "$TEST_NAMESPACE"
     export TEST_NAMESPACE RELEASE_NAME
