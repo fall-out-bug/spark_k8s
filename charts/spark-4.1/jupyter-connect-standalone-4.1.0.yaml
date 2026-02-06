@@ -11,20 +11,26 @@ global:
     sslEnabled: false
 
 spark-base:
-  # DISABLED FOR SMOKE TESTS
+  enabled: false
   minio:
-    # DISABLED FOR SMOKE TESTS
-    resources:
-      requests:
-        cpu: "0"
-        memory: "128Mi"
-      limits:
-        cpu: "200m"
-        memory: "512Mi"
-    persistence:
-      enabled: false
+    enabled: false
   postgresql:
     enabled: false
+
+core:
+  enabled: false
+  minio:
+    enabled: false
+  postgresql:
+    enabled: false
+  hiveMetastore:
+    enabled: false
+
+minio:
+  enabled: false
+
+postgresql:
+  enabled: false
 
 rbac:
   create: true
