@@ -140,6 +140,30 @@ sparkStandalone:
 jupyter:
   enabled: false
 
+# OpenShift Routes (for external access)
+routes:
+  enabled: true
+  tlsTerminationType: "edge"
+  wildcardPolicy: "None"
+  hosts:
+    historyServer: ""
+    jupyter: ""
+    sparkConnect: ""
+
+# Monitoring (Prometheus Operator + Grafana)
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: "30s"
+    scrapeTimeout: "10s"
+  podMonitor:
+    enabled: true
+    interval: "30s"
+    scrapeTimeout: "10s"
+  grafanaDashboards:
+    enabled: true
+    namespace: ""
+
 ingress:
   enabled: false
 
