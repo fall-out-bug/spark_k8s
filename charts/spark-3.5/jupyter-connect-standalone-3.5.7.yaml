@@ -27,7 +27,7 @@ connect:
   backendMode: standalone
   image:
     repository: spark-custom
-    tag: "3.5.7"
+    tag: "3.5.7-new"
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -52,7 +52,7 @@ sparkStandalone:
   enabled: true
   image:
     repository: spark-custom
-    tag: "3.5.7"
+    tag: "3.5.7-new"
     pullPolicy: IfNotPresent
   master:
     enabled: true
@@ -85,8 +85,8 @@ sparkStandalone:
 jupyter:
   enabled: true
   image:
-    repository: spark-custom
-    tag: "3.5.7"
+    repository: spark-k8s-jupyter
+    tag: "3.5-3.5.7"
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP

@@ -42,6 +42,8 @@ spec:
         - name: spark-master
           image: "{{ .Values.sparkStandalone.image.repository }}:{{ .Values.sparkStandalone.image.tag }}"
           imagePullPolicy: {{ .Values.sparkStandalone.image.pullPolicy }}
+          command: ["/opt/spark/sbin/start-master.sh"]
+          args: ["--host", "0.0.0.0", "--port", "{{ .Values.sparkStandalone.master.service.rpcPort }}", "--webui-port", "{{ .Values.sparkStandalone.master.service.uiPort }}"]
           env:
             - name: SPARK_MODE
               value: "master"
@@ -165,6 +167,8 @@ spec:
         - name: spark-worker
           image: "{{ .Values.sparkStandalone.image.repository }}:{{ .Values.sparkStandalone.image.tag }}"
           imagePullPolicy: {{ .Values.sparkStandalone.image.pullPolicy }}
+          command: ["/opt/spark/sbin/start-worker.sh"]
+          args: ["spark://{{ include "spark-3.5.fullname" . }}-standalone-master:{{ .Values.sparkStandalone.master.service.rpcPort }}"]
           env:
             - name: SPARK_MODE
               value: "worker"
