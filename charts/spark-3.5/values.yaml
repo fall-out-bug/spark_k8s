@@ -355,8 +355,33 @@ hiveMetastore:
 ingress:
   enabled: false
   hosts:
-    historyServer: "history-41.local"
-    jupyter: "jupyter-41.local"
+    historyServer: "history-35.local"
+    jupyter: "jupyter-35.local"
+
+# OpenShift Routes (alternative to Ingress for OpenShift clusters)
+routes:
+  enabled: false
+  # TLS termination mode: edge, passthrough, or reencrypt
+  tlsTerminationType: "edge"
+  # Common TLS configuration for all routes
+  tls:
+    # For edge and reencrypt termination
+    key: ""
+    certificate: ""
+    caCertificate: ""
+    # For reencrypt termination (certificate of the target service)
+    destinationCACertificate: ""
+  # Wildcard policy for routes: IngressValue, WildcardCaptive, WildcardInfra
+  wildcardPolicy: "None"
+  # Route hosts (leave empty for auto-generation based on release name)
+  hosts:
+    historyServer: ""
+    jupyter: ""
+    sparkConnect: ""
+  # Route annotations
+  annotations: {}
+  # Route labels
+  labels: {}
 
 # Jupyter (Spark Connect client)
 jupyter:
