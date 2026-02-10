@@ -76,12 +76,26 @@ data:
     spark.eventLog.enabled=false
     {{- end }}
 
+    {{- if or .Values.hiveMetastore.enabled .Values.core.hiveMetastore.enabled }}
+    # Hive Metastore configuration
+    spark.hadoop.hive.metastore.uris=thrift://{{ include "spark-3.5.fullname" . }}-metastore:9083
+    {{- if and .Values.hiveMetastore.enabled .Values.hiveMetastore.database.postgresql }}
+    spark.hadoop.javax.jdo.option.ConnectionURL=jdbc:postgresql://{{ .Values.global.postgresql.host }}:{{ .Values.global.postgresql.port }}/{{ .Values.hiveMetastore.database.name }}
+    spark.hadoop.javax.jdo.option.ConnectionUserName={{ .Values.hiveMetastore.database.postgresql.username | default "hive" }}
+    spark.hadoop.javax.jdo.option.ConnectionPassword={{ .Values.hiveMetastore.database.postgresql.password | default "hive" }}
+    {{- end }}
+    spark.sql.catalogImplementation=hive
+    spark.sql.warehouse.dir={{ .Values.hiveMetastore.warehouseDir | default "s3a://warehouse/spark-35" }}
+    {{- end }}
+
     {{- if .Values.global.s3.enabled }}
     # S3 config
     spark.hadoop.fs.s3a.endpoint={{ .Values.global.s3.endpoint }}
     spark.hadoop.fs.s3a.access.key=${AWS_ACCESS_KEY_ID}
     spark.hadoop.fs.s3a.secret.key=${AWS_SECRET_ACCESS_KEY}
     spark.hadoop.fs.s3a.path.style.access={{ .Values.global.s3.pathStyleAccess }}
+    spark.hadoop.fs.s3a.connection.ssl.enabled={{ .Values.global.s3.sslEnabled | toString }}
+    spark.hadoop.fs.s3a.connection.SSL.enabled={{ .Values.global.s3.sslEnabled | toString }}
     {{- end }}
 
     {{- if .Values.connect.sparkConf }}
