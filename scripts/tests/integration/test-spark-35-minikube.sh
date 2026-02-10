@@ -23,10 +23,28 @@ set -e
 # Configuration
 # ============================================================================
 
+# Get absolute path to script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# Get absolute path to project root (3 levels up from script: integration/ -> tests/ -> scripts/ -> root/)
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../../" && pwd)"
 
-source "${PROJECT_ROOT}/scripts/tests/lib/common.sh"
+# Save original directory
+ORIGINAL_DIR="$(pwd)"
+
+# Change to project root for consistent paths
+cd "$PROJECT_ROOT" || exit 1
+
+# Source libraries - handle both direct script execution and sourcing
+if [[ -f "${PROJECT_ROOT}/scripts/tests/lib/common.sh" ]]; then
+    source "${PROJECT_ROOT}/scripts/tests/lib/common.sh"
+elif [[ -f "scripts/tests/lib/common.sh" ]]; then
+    source "scripts/tests/lib/common.sh"
+else
+    echo "ERROR: Cannot find scripts/tests/lib/common.sh"
+    echo "PROJECT_ROOT: $PROJECT_ROOT"
+    echo "SCRIPT_DIR: $SCRIPT_DIR"
+    exit 1
+fi
 
 # Test configuration
 SPARK_VERSION="${SPARK_VERSION:-3.5.7}"
@@ -316,7 +334,7 @@ test_jupyter_connect_k8s() {
 
     local namespace="${NAMESPACE_PREFIX}-${scenario//\//-}"
     local release_name="test-${scenario//\//-}"
-    local preset_path="${PROJECT_ROOT}/charts/spark-3.5/${scenario}-${SPARK_VERSION}.yaml"
+    local preset_path="charts/spark-3.5/${scenario}-${SPARK_VERSION}.yaml"
 
     # Install
     log_step "Installing Helm release: $release_name"
@@ -362,7 +380,7 @@ test_jupyter_connect_standalone() {
 
     local namespace="${NAMESPACE_PREFIX}-${scenario//\//-}"
     local release_name="test-${scenario//\//-}"
-    local preset_path="${PROJECT_ROOT}/charts/spark-3.5/${scenario}-${SPARK_VERSION}.yaml"
+    local preset_path="charts/spark-3.5/${scenario}-${SPARK_VERSION}.yaml"
 
     # Install
     log_step "Installing Helm release: $release_name"
@@ -412,7 +430,7 @@ test_airflow_connect_k8s() {
 
     local namespace="${NAMESPACE_PREFIX}-${scenario//\//-}"
     local release_name="test-${scenario//\//-}"
-    local preset_path="${PROJECT_ROOT}/charts/spark-3.5/${scenario}-${SPARK_VERSION}.yaml"
+    local preset_path="charts/spark-3.5/${scenario}-${SPARK_VERSION}.yaml"
 
     # Install
     log_step "Installing Helm release: $release_name"
@@ -454,7 +472,7 @@ test_airflow_connect_standalone() {
 
     local namespace="${NAMESPACE_PREFIX}-${scenario//\//-}"
     local release_name="test-${scenario//\//-}"
-    local preset_path="${PROJECT_ROOT}/charts/spark-3.5/${scenario}-${SPARK_VERSION}.yaml"
+    local preset_path="charts/spark-3.5/${scenario}-${SPARK_VERSION}.yaml"
 
     # Install
     log_step "Installing Helm release: $release_name"

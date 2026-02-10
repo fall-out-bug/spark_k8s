@@ -1,1 +1,1 @@
-.sdp/RULES_COMMON.md
+.sdp/docs/reference/RULES_COMMON.md

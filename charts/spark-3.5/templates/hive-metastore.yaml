@@ -53,7 +53,9 @@ stringData:
   POSTGRES_USER: {{ .Values.global.postgresql.user | quote }}
   POSTGRES_PASSWORD: {{ .Values.global.postgresql.password | quote }}
   POSTGRES_PORT: {{ .Values.global.postgresql.port | quote }}
+{{- end }}
 ---
+{{- if and .Values.hiveMetastore.enabled .Values.hiveMetastore.initSchema }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -140,7 +142,9 @@ spec:
           emptyDir: {}
         - name: hive-conf
           emptyDir: {}
+{{- end }}
 ---
+{{- if .Values.hiveMetastore.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:

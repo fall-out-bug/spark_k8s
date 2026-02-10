@@ -1,19 +1,19 @@
 #!/bin/bash
-# Smoke test: Airflow + Spark Connect + K8s backend (Spark 4.1.0)
+# Smoke test: Jupyter + Spark Connect + Standalone backend (Spark 3.5.8)
 
 # @meta
-# name: "airflow-connect-k8s-410"
+# name: "jupyter-connect-standalone-358"
 # type: "smoke"
-# description: "Smoke test for Airflow + Spark Connect + K8s backend (Spark 4.1.0)"
-# version: "4.1.0"
-# component: "airflow"
-# mode: "connect-k8s"
+# description: "Smoke test for Jupyter + Spark Connect + Standalone backend (Spark 3.5.8)"
+# version: "3.5.8"
+# component: "jupyter"
+# mode: "connect-standalone"
 # features: []
-# chart: "charts/spark-4.1"
-# preset: "charts/spark-4.1/airflow-connect-k8s-4.1.0.yaml"
+# chart: "charts/spark-3.5"
+# preset: "charts/spark-3.5/jupyter-connect-standalone-3.5.8.yaml"
 # estimated_time: "5 min"
 # depends_on: []
-# tags: [smoke, airflow, connect-k8s, 4.1.0]
+# tags: [smoke, jupyter, connect-standalone, 3.5.8]
 # @endmeta
 
 set -e
@@ -27,10 +27,10 @@ source "${PROJECT_ROOT}/scripts/tests/lib/cleanup.sh"
 source "${PROJECT_ROOT}/scripts/tests/lib/helm.sh"
 source "${PROJECT_ROOT}/scripts/tests/lib/validation.sh"
 
-CHART_PATH="${PROJECT_ROOT}/charts/spark-4.1"
-PRESET_PATH="${PROJECT_ROOT}/charts/spark-4.1/airflow-connect-k8s-4.1.0.yaml"
-SPARK_VERSION="4.1.0"
-IMAGE_TAG="4.1.0"
+CHART_PATH="${PROJECT_ROOT}/charts/spark-3.5"
+PRESET_PATH="${PROJECT_ROOT}/charts/spark-3.5/jupyter-connect-standalone-3.5.8.yaml"
+SPARK_VERSION="3.5.8"
+IMAGE_TAG="3.5.7"
 IMAGE_REPOSITORY="spark-custom"
 
 setup_test_environment() {
@@ -38,7 +38,7 @@ setup_test_environment() {
     check_required_commands kubectl helm
 
     # Generate test ID and create namespace
-    local ns_name="${NAMESPACE_PREFIX}-410"
+    local ns_name="${NAMESPACE_PREFIX}-358"
 
     log_step "Creating namespace: $ns_name"
     if kubectl create namespace "$ns_name" 2>/dev/null; then
@@ -52,7 +52,7 @@ setup_test_environment() {
 
     # Create release name
     local release_name
-    release_name="$(create_release_name "airflow-connect-k8s-" "$(generate_short_test_id)")"
+    release_name="$(create_release_name "jupyter-connect-standalone-" "$(generate_short_test_id)")"
 
     TEST_NAMESPACE="$ns_name"
     RELEASE_NAME="$release_name"
@@ -65,7 +65,7 @@ setup_test_environment() {
 }
 
 deploy_spark() {
-    log_section "Deploying Spark Connect"
+    log_section "Deploying Spark Connect + Jupyter (Standalone mode)"
 
     log_step "Installing Helm release: $RELEASE_NAME"
     helm install "$RELEASE_NAME" "$CHART_PATH" \
@@ -83,6 +83,7 @@ validate_deployment() {
     log_section "Validating deployment"
 
     wait_for_pods_by_label "app.kubernetes.io/component=connect" "$TEST_NAMESPACE" 1 300
+    wait_for_pods_by_label "app.kubernetes.io/component=jupyter" "$TEST_NAMESPACE" 1 300
 
     local connect_pod
     connect_pod=$(kubectl get pods -n "$TEST_NAMESPACE" -l app.kubernetes.io/component=connect -o jsonpath='{.items[0].metadata.name}')
@@ -108,7 +109,7 @@ run_smoke_test() {
 }
 
 main() {
-    log_section "Smoke Test: Airflow + Spark Connect + K8s (4.1.0)"
+    log_section "Smoke Test: Jupyter + Spark Connect + Standalone (3.5.8)"
     setup_test_environment
     deploy_spark
     validate_deployment

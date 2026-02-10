@@ -28,17 +28,17 @@ source "${PROJECT_ROOT}/scripts/tests/lib/helm.sh"
 source "${PROJECT_ROOT}/scripts/tests/lib/validation.sh"
 
 CHART_PATH="${PROJECT_ROOT}/charts/spark-4.1"
-PRESET_PATH="${PROJECT_ROOT}/charts/spark-4.1/presets/test-baseline-values.yaml"
+PRESET_PATH="${PROJECT_ROOT}/charts/spark-4.1/jupyter-connect-k8s-gpu-4.1.0.yaml"
 SPARK_VERSION="4.1.0"
-IMAGE_TAG="4.1.0-gpu"
-IMAGE_REPOSITORY="spark-custom-gpu"
+IMAGE_TAG="4.1.0"
+IMAGE_REPOSITORY="spark-custom"
 
 # Check for GPU availability
 check_gpu_available() {
     log_step "Checking GPU availability"
 
     local gpu_nodes
-    gpu_nodes=$(kubectl get nodes -o jsonpath='{.items[*].status.allocatable.nvidia\.com/gpu}' 2>/dev/null | tr ' ' '\n' | grep -v "^$" | wc -l)
+    gpu_nodes=$(kubectl get nodes -o jsonpath='{.items[*].status.capacity.nvidia\.com/gpu}' 2>/dev/null | tr ' ' '\n' | grep -v "^$" | wc -l)
 
     if [[ "$gpu_nodes" -eq 0 ]]; then
         log_warning "No GPU nodes found in cluster"
@@ -58,6 +58,28 @@ setup_test_environment() {
         exit 0  # Skip gracefully
     fi
 
+    # Generate test ID and create namespace
+    local ns_name="${NAMESPACE_PREFIX}-gpu-410"
+
+    log_step "Creating namespace: $ns_name"
+    if kubectl create namespace "$ns_name" 2>/dev/null; then
+        log_success "Namespace created: $ns_name"
+    elif kubectl get namespace "$ns_name" &>/dev/null; then
+        log_info "Namespace already exists: $ns_name"
+    else
+        log_error "Failed to create namespace: $ns_name"
+        return 1
+    fi
+
+    # Create release name
+    local release_name
+    release_name="$(create_release_name "jupyter-connect-k8s-gpu-" "$(generate_short_test_id)")"
+
+    TEST_NAMESPACE="$ns_name"
+    RELEASE_NAME="$release_name"
+
+    log_info "Namespace: $TEST_NAMESPACE"
+    log_info "Release: $RELEASE_NAME"
 
     setup_cleanup_trap "$RELEASE_NAME" "$TEST_NAMESPACE"
     export TEST_NAMESPACE RELEASE_NAME
@@ -66,11 +88,12 @@ setup_test_environment() {
 deploy_spark() {
     log_section "Deploying Jupyter with Spark Connect + GPU support"
 
-    helm_install "$RELEASE_NAME" "$CHART_PATH" "$TEST_NAMESPACE" "$PRESET_PATH" \
-        --set jupyter.image.repository="${IMAGE_REPOSITORY}" \
-        --set jupyter.image.tag="${IMAGE_TAG}" \
-        --set connect.enabled=true \
-        --set connect.backendMode=k8s
+    log_step "Installing Helm release: $RELEASE_NAME"
+    helm install "$RELEASE_NAME" "$CHART_PATH" \
+        --namespace "$TEST_NAMESPACE" \
+        --values "$PRESET_PATH" \
+        --timeout 15m \
+        --wait
 
     helm_wait_for_deployed "$RELEASE_NAME" "$TEST_NAMESPACE" 300
 }

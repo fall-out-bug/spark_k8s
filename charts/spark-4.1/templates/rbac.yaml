@@ -9,13 +9,13 @@ metadata:
 rules:
 - apiGroups: [""]
   resources: ["pods"]
-  verbs: ["create", "get", "list", "watch", "delete"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection"]
 - apiGroups: [""]
   resources: ["services"]
   verbs: ["create", "get", "list", "delete"]
 - apiGroups: [""]
   resources: ["configmaps"]
-  verbs: ["create", "get", "list", "watch"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -44,7 +44,7 @@ metadata:
 rules:
 - apiGroups: [""]
   resources: ["pods"]
-  verbs: ["create", "get", "list", "watch", "delete", "update"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection", "update"]
 - apiGroups: [""]
   resources: ["pods/log"]
   verbs: ["get"]
@@ -53,10 +53,13 @@ rules:
   verbs: ["get"]
 - apiGroups: [""]
   resources: ["services"]
-  verbs: ["create", "get", "list", "delete"]
+  verbs: ["create", "get", "list", "delete", "deletecollection"]
 - apiGroups: [""]
   resources: ["configmaps"]
-  verbs: ["create", "get", "list", "watch", "delete", "update"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection", "update"]
+- apiGroups: [""]
+  resources: ["persistentvolumeclaims"]
+  verbs: ["create", "get", "list", "delete", "deletecollection"]
 - apiGroups: ["coordination.k8s.io"]
   resources: ["leases"]
   verbs: ["create", "get", "list", "watch", "delete", "update"]

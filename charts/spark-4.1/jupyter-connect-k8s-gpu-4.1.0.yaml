@@ -1,9 +1,10 @@
-# Preset: Jupyter + Spark Connect + Standalone backend
-# Source: Spark 4.1.1 standalone mode
-# Components: Connect + Jupyter + MinIO + Standalone
+# Preset: Jupyter + Spark Connect + GPU (smoke test)
+# Source: Spark 4.1.0 local mode with GPU support
+# Components: Connect + Jupyter
 
 global:
   s3:
+    enabled: false
     endpoint: "http://minio:9000"
     accessKey: "minioadmin"
     secretKey: "minioadmin"
@@ -11,33 +12,21 @@ global:
     sslEnabled: false
 
 spark-base:
-  enabled: false
   minio:
     enabled: false
   postgresql:
     enabled: false
-
-core:
-  enabled: false
-  minio:
-    enabled: false
-  postgresql:
-    enabled: false
-  hiveMetastore:
-    enabled: false
-
-minio:
-  enabled: false
-
-postgresql:
-  enabled: false
 
 rbac:
   create: true
   serviceAccountName: "spark-41"
 
+core:
+  enabled: false
+  hiveMetastore:
+    enabled: false
+
 connect:
-  # DISABLED FOR SMOKE TESTS
   replicas: 1
   backendMode: local
   image:
@@ -48,44 +37,51 @@ connect:
     requests:
       cpu: "0"
       memory: "512Mi"
+      nvidia.com/gpu: "1"
     limits:
-      cpu: "500m"
-      memory: "2Gi"
+      cpu: "2000m"
+      memory: "4Gi"
+      nvidia.com/gpu: "1"
+  sparkConf:
+    # GPU configuration
+    "spark.driver.resource.gpu.amount": "1"
+    "spark.executor.resource.gpu.amount": "1"
+    "spark.task.resource.gpu.amount": "1"
+    "spark.plugins": "com.nvidia.spark.SQLPlugin"
+    "spark.rapids.sql.enabled": "true"
+    "spark.rapids.sql.explain": "ALL"
   driver:
     host: ""
     port: 7078
-  standalone:
-    enabled: false
-    masterService: ""
-    masterPort: 7077
   eventLog:
     enabled: false
-    logDir: "/spark-logs/events"
-  sparkConf: {}
 
 jupyter:
-  # DISABLED FOR SMOKE TESTS
+  enabled: true
   image:
     repository: jupyter-spark
     tag: "4.1.0"
-    pullPolicy: Never
+    pullPolicy: IfNotPresent
   service:
     type: ClusterIP
     port: 8888
-  env:
-    SPARK_CONNECT_URL: "sc://spark-connect:15002"
   resources:
     requests:
       cpu: "0"
       memory: "256Mi"
+      nvidia.com/gpu: "1"
     limits:
-      cpu: "500m"
-      memory: "1Gi"
+      cpu: "1000m"
+      memory: "2Gi"
+      nvidia.com/gpu: "1"
+  env:
+    SPARK_CONNECT_URL: "sc://spark-connect:15002"
   persistence:
     enabled: false
 
 hiveMetastore:
   enabled: false
+  initSchema: false
 
 historyServer:
   enabled: false

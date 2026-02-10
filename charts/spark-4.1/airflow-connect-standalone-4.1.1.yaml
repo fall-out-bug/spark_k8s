@@ -1,6 +1,6 @@
-# Preset: Jupyter + Spark Connect + Standalone backend
+# Preset: Airflow + Spark Connect + Standalone backend
 # Source: Spark 4.1.1 standalone mode
-# Components: Connect + Jupyter + MinIO + Standalone
+# Components: Connect only
 
 global:
   s3:
@@ -30,13 +30,18 @@ rbac:
   create: true
   serviceAccountName: "spark-41"
 
+core:
+  enabled: false
+  hiveMetastore:
+    enabled: false
+
 connect:
   # DISABLED FOR SMOKE TESTS
   replicas: 1
-  backendMode: standalone
+  backendMode: local
   image:
     repository: spark-custom
-    tag: "4.1.1"
+    tag: "4.1.0"
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -49,22 +54,19 @@ connect:
     host: ""
     port: 7078
   standalone:
-    masterService: "${release_name}-spark-41-connect"
+    enabled: false
+    masterService: ""
     masterPort: 7077
-  # eventLog:
-    # DISABLED FOR SMOKE TESTS
-    /spark-logs/events"
-  sparkConf:
-    spark.executor.instances: "1"
-    spark.executor.cores: "1"
-    spark.executor.memory: "512m"
-    spark.dynamicAllocation.enabled: "false"
+  eventLog:
+    enabled: false
+    logDir: "/spark-logs/events"
+  sparkConf: {}
 
 jupyter:
-  # DISABLED FOR SMOKE TESTS
+  enabled: false
   image:
     repository: jupyter-spark
-    tag: "latest"
+    tag: "4.1.0"
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -83,6 +85,7 @@ jupyter:
 
 hiveMetastore:
   enabled: false
+  initSchema: false
 
 historyServer:
   enabled: false

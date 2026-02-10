@@ -61,6 +61,7 @@ WORKDIR /tmp/spark
 # -Pkubernetes            : Include Kubernetes support
 # -Phadoop-cloud          : Include AWS S3, Azure, GCS support
 # -Phive-thriftserver     : Include Hive support
+# -Pconnect               : Include Spark Connect server (required for gRPC API)
 # Note: spark-streaming, pyspark build by default. Kafka jars downloaded manually.
 RUN ./dev/make-distribution.sh \
     --name custom-hadoop-${HADOOP_VERSION} \
@@ -70,6 +71,7 @@ RUN ./dev/make-distribution.sh \
     -Pkubernetes \
     -Phadoop-cloud \
     -Phive-thriftserver \
+    -Pconnect \
     -DskipTests
 
 # Verify build output

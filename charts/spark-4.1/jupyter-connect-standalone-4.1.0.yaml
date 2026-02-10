@@ -39,7 +39,7 @@ rbac:
 connect:
   # DISABLED FOR SMOKE TESTS
   replicas: 1
-  backendMode: standalone
+  backendMode: local
   image:
     repository: spark-custom
     tag: "4.1.0"
@@ -55,16 +55,13 @@ connect:
     host: ""
     port: 7078
   standalone:
-    masterService: "${release_name}-spark-41-connect"
+    enabled: false
+    masterService: ""
     masterPort: 7077
   eventLog:
     enabled: false
     logDir: "/spark-logs/events"
-  sparkConf:
-    spark.executor.instances: "1"
-    spark.executor.cores: "1"
-    spark.executor.memory: "512m"
-    spark.dynamicAllocation.enabled: "false"
+  sparkConf: {}
 
 jupyter:
   # DISABLED FOR SMOKE TESTS

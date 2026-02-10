@@ -17,7 +17,7 @@ __pycache__/
 *.local.bak
 
 # SDP artifacts (local-only, from submodule)
-.claude/
+/.claude/
 .env.template
 docs/workstreams/TEMPLATE.md
 quality-gate.toml

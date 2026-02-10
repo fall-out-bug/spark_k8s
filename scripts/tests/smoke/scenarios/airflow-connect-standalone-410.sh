@@ -37,6 +37,28 @@ setup_test_environment() {
     log_section "Setting up test environment"
     check_required_commands kubectl helm
 
+    # Generate test ID and create namespace
+    local ns_name="${NAMESPACE_PREFIX}-410"
+
+    log_step "Creating namespace: $ns_name"
+    if kubectl create namespace "$ns_name" 2>/dev/null; then
+        log_success "Namespace created: $ns_name"
+    elif kubectl get namespace "$ns_name" &>/dev/null; then
+        log_info "Namespace already exists: $ns_name"
+    else
+        log_error "Failed to create namespace: $ns_name"
+        return 1
+    fi
+
+    # Create release name
+    local release_name
+    release_name="$(create_release_name "airflow-connect-standalone-" "$(generate_short_test_id)")"
+
+    TEST_NAMESPACE="$ns_name"
+    RELEASE_NAME="$release_name"
+
+    log_info "Namespace: $TEST_NAMESPACE"
+    log_info "Release: $RELEASE_NAME"
 
     setup_cleanup_trap "$RELEASE_NAME" "$TEST_NAMESPACE"
     export TEST_NAMESPACE RELEASE_NAME
@@ -45,9 +67,14 @@ setup_test_environment() {
 deploy_spark() {
     log_section "Deploying Spark Connect (Standalone mode)"
 
-    helm_install "$RELEASE_NAME" "$CHART_PATH" "$TEST_NAMESPACE" "$PRESET_PATH" \
+    log_step "Installing Helm release: $RELEASE_NAME"
+    helm install "$RELEASE_NAME" "$CHART_PATH" \
+        --namespace "$TEST_NAMESPACE" \
+        --values "$PRESET_PATH" \
         --set connect.image.repository="${IMAGE_REPOSITORY}" \
-        --set connect.image.tag="${IMAGE_TAG}"
+        --set connect.image.tag="${IMAGE_TAG}" \
+        --timeout 15m \
+        --wait
 
     helm_wait_for_deployed "$RELEASE_NAME" "$TEST_NAMESPACE" 300
 }

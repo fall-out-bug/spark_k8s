@@ -13,7 +13,9 @@ type: Opaque
 stringData:
   POSTGRES_USER: {{ .Values.core.hiveMetastore.postgresql.username | default "hive" | quote }}
   POSTGRES_PASSWORD: {{ .Values.core.hiveMetastore.postgresql.password | default "hive123" | quote }}
+{{- end }}
 ---
+{{- if and .Values.core.hiveMetastore.enabled (not .Values.core.hiveMetastore.initSchema | default true) }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -115,7 +117,9 @@ spec:
           emptyDir: {}
         - name: hive-conf
           emptyDir: {}
+{{- end }}
 ---
+{{- if .Values.core.hiveMetastore.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:

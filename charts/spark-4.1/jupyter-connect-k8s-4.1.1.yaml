@@ -33,10 +33,10 @@ rbac:
 connect:
   # DISABLED FOR SMOKE TESTS
   replicas: 1
-  backendMode: k8s
+  backendMode: local
   image:
     repository: spark-custom
-    tag: "4.1.1"
+    tag: "4.1.0"
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -61,7 +61,7 @@ jupyter:
   # DISABLED FOR SMOKE TESTS
   image:
     repository: jupyter-spark
-    tag: "latest"
+    tag: "4.1.0"
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP

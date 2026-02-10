@@ -54,7 +54,9 @@ stringData:
   POSTGRES_USER: {{ .Values.hiveMetastore.postgresql.username | quote }}
   POSTGRES_PASSWORD: {{ .Values.hiveMetastore.postgresql.password | quote }}
   POSTGRES_PORT: {{ .Values.hiveMetastore.postgresql.port | quote }}
+{{- end }}
 ---
+{{- if and .Values.hiveMetastore.enabled .Values.hiveMetastore.initSchema }}
 {{/* Job for schema initialization */}}
 apiVersion: batch/v1
 kind: Job
@@ -148,7 +150,9 @@ spec:
           emptyDir: {}
         - name: hive-conf
           emptyDir: {}
+{{- end }}
 ---
+{{- if .Values.hiveMetastore.enabled }}
 {{/* Deployment for Hive Metastore */}}
 apiVersion: apps/v1
 kind: Deployment

@@ -1,1 +1,1 @@
-.sdp/CODE_PATTERNS.md
+.sdp/docs/reference/CODE_PATTERNS.md

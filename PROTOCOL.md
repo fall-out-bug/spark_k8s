@@ -1,1 +1,1 @@
-.sdp/PROTOCOL.md
+.sdp/docs/PROTOCOL.md

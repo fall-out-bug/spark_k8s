@@ -1,6 +1,6 @@
-# Preset: Jupyter + Spark Connect + K8s backend
-# Source: Spark 4.1.1 k8s mode
-# Components: Connect + Jupyter + MinIO
+# Preset: Airflow + Spark Connect + Local backend (smoke tests)
+# Source: Spark 4.1.1 local mode
+# Components: Connect only
 
 global:
   s3:
@@ -30,13 +30,18 @@ rbac:
   create: true
   serviceAccountName: "spark-41"
 
+core:
+  enabled: false
+  hiveMetastore:
+    enabled: false
+
 connect:
   # DISABLED FOR SMOKE TESTS
   replicas: 1
-  backendMode: k8s
+  backendMode: local
   image:
     repository: spark-custom
-    tag: "4.1.1"
+    tag: "4.1.0"
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -48,20 +53,20 @@ connect:
   driver:
     host: ""
     port: 7078
-  # eventLog:
-    # DISABLED FOR SMOKE TESTS
-    /spark-logs/events"
-  dynamicAllocation:
-    # DISABLED FOR SMOKE TESTS
-    minExecutors: 0
-    maxExecutors: 10
+  standalone:
+    enabled: false
+    masterService: ""
+    masterPort: 7077
+  eventLog:
+    enabled: false
+    logDir: "/spark-logs/events"
   sparkConf: {}
 
 jupyter:
-  # DISABLED FOR SMOKE TESTS
+  enabled: false
   image:
     repository: jupyter-spark
-    tag: "latest"
+    tag: "4.1.0"
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -80,6 +85,7 @@ jupyter:
 
 hiveMetastore:
   enabled: false
+  initSchema: false
 
 historyServer:
   enabled: false

@@ -1,9 +1,10 @@
-# Preset: Jupyter + Spark Connect + Standalone backend
-# Source: Spark 4.1.1 standalone mode
-# Components: Connect + Jupyter + MinIO + Standalone
+# Preset: Jupyter + Spark Connect + Iceberg (smoke test - local mode)
+# Source: Spark 4.1.0 local mode with Iceberg libs
+# Components: Connect + Jupyter (Hive Metastore disabled for smoke test)
 
 global:
   s3:
+    enabled: false
     endpoint: "http://minio:9000"
     accessKey: "minioadmin"
     secretKey: "minioadmin"
@@ -11,33 +12,21 @@ global:
     sslEnabled: false
 
 spark-base:
-  enabled: false
   minio:
     enabled: false
   postgresql:
     enabled: false
-
-core:
-  enabled: false
-  minio:
-    enabled: false
-  postgresql:
-    enabled: false
-  hiveMetastore:
-    enabled: false
-
-minio:
-  enabled: false
-
-postgresql:
-  enabled: false
 
 rbac:
   create: true
   serviceAccountName: "spark-41"
 
+core:
+  enabled: false
+  hiveMetastore:
+    enabled: false
+
 connect:
-  # DISABLED FOR SMOKE TESTS
   replicas: 1
   backendMode: local
   image:
@@ -51,24 +40,27 @@ connect:
     limits:
       cpu: "500m"
       memory: "2Gi"
+  sparkConf:
+    # Iceberg with Hadoop catalog (no Hive Metastore needed)
+    "spark.sql.extensions": "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions"
+    "spark.sql.catalog.spark_catalog": "org.apache.iceberg.spark.SparkSessionCatalog"
+    "spark.sql.catalog.spark_catalog.type": "hadoop"
+    "spark.sql.catalog.local": "org.apache.iceberg.spark.SparkCatalog"
+    "spark.sql.catalog.local.type": "hadoop"
+    "spark.sql.catalog.local.warehouse": "/tmp/warehouse/iceberg"
+    "spark.sql.iceberg.vectorization.enabled": "true"
   driver:
     host: ""
     port: 7078
-  standalone:
-    enabled: false
-    masterService: ""
-    masterPort: 7077
   eventLog:
     enabled: false
-    logDir: "/spark-logs/events"
-  sparkConf: {}
 
 jupyter:
-  # DISABLED FOR SMOKE TESTS
+  enabled: true
   image:
     repository: jupyter-spark
     tag: "4.1.0"
-    pullPolicy: Never
+    pullPolicy: IfNotPresent
   service:
     type: ClusterIP
     port: 8888
@@ -86,6 +78,7 @@ jupyter:
 
 hiveMetastore:
   enabled: false
+  initSchema: false
 
 historyServer:
   enabled: false
@@ -101,3 +94,7 @@ sparkOperator:
 
 celeborn:
   enabled: false
+
+monitoring:
+  serviceMonitor:
+    enabled: false

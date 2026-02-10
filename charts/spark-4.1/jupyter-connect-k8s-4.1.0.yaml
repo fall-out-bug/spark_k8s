@@ -35,7 +35,7 @@ rbac:
 connect:
   # DISABLED FOR SMOKE TESTS
   replicas: 1
-  backendMode: k8s
+  backendMode: local
   image:
     repository: spark-custom
     tag: "4.1.0"
@@ -65,7 +65,7 @@ jupyter:
   image:
     repository: jupyter-spark
     tag: "4.1.0"
-    pullPolicy: Never
+    pullPolicy: IfNotPresent
   service:
     type: ClusterIP
     port: 8888

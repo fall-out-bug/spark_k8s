@@ -30,7 +30,7 @@ source "${PROJECT_ROOT}/scripts/tests/lib/validation.sh"
 CHART_PATH="${PROJECT_ROOT}/charts/spark-4.1"
 PRESET_PATH="${PROJECT_ROOT}/charts/spark-4.1/jupyter-connect-standalone-4.1.1.yaml"
 SPARK_VERSION="4.1.1"
-IMAGE_TAG="4.1.1"
+IMAGE_TAG="4.1.0"
 IMAGE_REPOSITORY="spark-custom"
 
 setup_test_environment() {

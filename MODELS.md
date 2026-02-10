@@ -1,1 +1,1 @@
-.sdp/MODELS.md
+.sdp/docs/reference/MODELS.md

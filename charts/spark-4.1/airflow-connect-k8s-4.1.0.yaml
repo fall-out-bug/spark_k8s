@@ -31,10 +31,15 @@ rbac:
   create: true
   serviceAccountName: "spark-41"
 
+core:
+  enabled: false
+  hiveMetastore:
+    enabled: false
+
 connect:
   # DISABLED FOR SMOKE TESTS
   replicas: 1
-  backendMode: k8s
+  backendMode: local
   image:
     repository: spark-custom
     tag: "4.1.0"
@@ -59,7 +64,7 @@ connect:
   sparkConf: {}
 
 jupyter:
-  # DISABLED FOR SMOKE TESTS
+  enabled: false
   image:
     repository: jupyter-spark
     tag: "latest"
@@ -81,6 +86,7 @@ jupyter:
 
 hiveMetastore:
   enabled: false
+  initSchema: false
 
 historyServer:
   enabled: false

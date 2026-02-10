@@ -14,6 +14,9 @@ data:
     spark.driver.host={{ default (printf "%s-connect" (include "spark-4.1.fullname" .)) .Values.connect.driver.host }}
     spark.driver.port={{ .Values.connect.driver.port }}
     spark.driver.blockManager.port={{ .Values.connect.driver.blockManagerPort }}
+    {{- else if eq .Values.connect.backendMode "local" }}
+    # Spark Master - Local mode (for smoke tests)
+    spark.master=local[*]
     {{- else }}
     # Spark Master - Kubernetes executors mode
     spark.master=k8s://https://kubernetes.default.svc.cluster.local:443

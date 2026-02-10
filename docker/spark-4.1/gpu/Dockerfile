@@ -40,7 +40,7 @@ ARG RAPIDS_VERSION
 
 # Install cuDF (CUDA DataFrame library)
 RUN pip install --no-cache-dir \
-    cudf=${RAPIDS_VERSION} \
+    cudf==${RAPIDS_VERSION} \
     cupy-cuda12x \
     pyspark==${SPARK_VERSION} \
     numpy \
