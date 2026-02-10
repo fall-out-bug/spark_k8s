@@ -1,7 +1,6 @@
-# Preset: Jupyter + Pure K8s backend
-# Source: Spark 3.5 k8s submit mode
-# Components: Jupyter + MinIO
-# Note: Spark Connect not available in base Spark 3.5 image, using direct k8s submit
+# Preset: Jupyter + Spark Connect + K8s backend
+# Source: Spark 3.5.8 k8s mode
+# Components: Jupyter + Connect + MinIO (executors on K8s)
 
 global:
   s3:
@@ -32,7 +31,31 @@ rbac:
   serviceAccountName: "spark-35"
 
 connect:
-  enabled: false
+  enabled: true
+  replicas: 1
+  backendMode: k8s
+  image:
+    repository: spark-custom
+    tag: "3.5.8"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "0"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "2Gi"
+  driver:
+    host: ""
+    port: 7078
+  standalone:
+    enabled: false
+    masterService: ""
+    masterPort: 7077
+  eventLog:
+    enabled: false
+    dir: "/spark-logs/events"
+  sparkConf: {}
 
 sparkStandalone:
   enabled: false
@@ -40,14 +63,14 @@ sparkStandalone:
 jupyter:
   enabled: true
   image:
-    repository: jupyter-spark
-    tag: "4.1.0"
-    pullPolicy: Never
+    repository: spark-custom
+    tag: "3.5.8"
+    pullPolicy: IfNotPresent
   service:
     type: ClusterIP
     port: 8888
   env:
-    SPARK_HOME: "/opt/spark"
+    SPARK_CONNECT_URL: "sc://spark-3.5-spark-35-connect:15002"
   resources:
     requests:
       cpu: "0"

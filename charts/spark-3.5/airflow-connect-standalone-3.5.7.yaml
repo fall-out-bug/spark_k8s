@@ -1,6 +1,6 @@
-# Preset: Airflow + Spark Connect + K8s backend
-# Source: Spark 3.5.7 k8s mode
-# Components: Connect only (executors on K8s)
+# Preset: Airflow + Spark Connect + Standalone backend
+# Source: Spark 3.5.7 standalone mode
+# Components: Connect + Spark Standalone (master + workers)
 
 global:
   s3:
@@ -24,7 +24,7 @@ rbac:
 connect:
   enabled: true
   replicas: 1
-  backendMode: k8s
+  backendMode: standalone
   image:
     repository: spark-custom
     tag: "3.5.7"
@@ -40,8 +40,8 @@ connect:
     host: ""
     port: 7078
   standalone:
-    enabled: false
-    masterService: ""
+    enabled: true
+    masterService: "spark-3.5-spark-35-standalone-master"
     masterPort: 7077
   eventLog:
     enabled: false
@@ -52,7 +52,38 @@ jupyter:
   enabled: false
 
 sparkStandalone:
-  enabled: false
+  enabled: true
+  image:
+    repository: spark-custom
+    tag: "3.5.7"
+    pullPolicy: IfNotPresent
+  master:
+    enabled: true
+    service:
+      type: ClusterIP
+      rpcPort: 7077
+      uiPort: 8080
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "1"
+    nodeSelector: {}
+    tolerations: []
+  worker:
+    enabled: true
+    replicas: 1
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "500m"
+      limits:
+        memory: "4Gi"
+        cpu: "2"
+    nodeSelector: {}
+    tolerations: []
 
 hiveMetastore:
   enabled: false

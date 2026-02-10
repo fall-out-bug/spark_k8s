@@ -1,7 +1,6 @@
 # Preset: Airflow + Spark Connect + K8s backend
-# Source: scripts/test-e2e-airflow-connect.sh (Spark 4.1, BACKEND_MODE=k8s)
-# Components: Airflow + Connect + MinIO
-# Note: Airflow deployed separately, this preset only for Connect
+# Source: Spark 3.5.8 k8s mode
+# Components: Connect only (executors on K8s)
 
 global:
   s3:
@@ -12,15 +11,15 @@ global:
     sslEnabled: false
 
 spark-base:
-  enabled: true
+  enabled: false
   minio:
     enabled: false
   postgresql:
     enabled: false
 
 rbac:
-  create: false  # Shared with Airflow
-  serviceAccountName: "spark"
+  create: true
+  serviceAccountName: "spark-35"
 
 connect:
   enabled: true
@@ -28,47 +27,36 @@ connect:
   backendMode: k8s
   image:
     repository: spark-custom
-    tag: "4.1.0"
+    tag: "3.5.8"
     pullPolicy: IfNotPresent
   resources:
     requests:
-      cpu: "200m"
+      cpu: "0"
       memory: "512Mi"
     limits:
-      cpu: "1"
+      cpu: "500m"
       memory: "2Gi"
   driver:
-    host: ""  # Set to "<release>-spark-41-connect.<namespace>.svc.cluster.local"
+    host: ""
     port: 7078
-    memory: "512m"
-  executor:
-    cores: "0.1"
-    coresLimit: "0.5"
-    memory: "512Mi"
-    memoryLimit: "1Gi"
   standalone:
+    enabled: false
     masterService: ""
     masterPort: 7077
   eventLog:
-    enabled: true
-    dir: "s3a://spark-logs/events"
-  dynamicAllocation:
     enabled: false
-    minExecutors: 1
-    maxExecutors: 1
-  sparkConf:
-    spark.driver.memory: "512m"
-    spark.executor.memory: "512m"
-    spark.executor.instances: "1"
-    spark.sql.shuffle.partitions: "2"
-    spark.kubernetes.executor.request.cores: "0.1"
-    spark.kubernetes.executor.limit.cores: "0.5"
+    dir: "/spark-logs/events"
+  sparkConf: {}
 
 jupyter:
   enabled: false
 
+sparkStandalone:
+  enabled: false
+
 hiveMetastore:
   enabled: false
+  initSchema: false
 
 historyServer:
   enabled: false
@@ -79,7 +67,6 @@ ingress:
 security:
   podSecurityStandards: false
 
-# Disable optional components
 sparkOperator:
   enabled: false
 

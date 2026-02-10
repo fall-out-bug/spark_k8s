@@ -1,7 +1,6 @@
 # Preset: Jupyter + Spark Connect + Standalone backend
-# Source: scripts/test-e2e-jupyter-connect.sh (Spark 3.5, BACKEND_MODE=standalone)
-# Components: Connect + Jupyter + MinIO + Standalone
-# Note: Requires standalone master to be deployed separately
+# Source: Spark 3.5.8 standalone mode
+# Components: Jupyter + Connect + Spark Standalone (master + workers)
 
 global:
   s3:
@@ -12,35 +11,15 @@ global:
     sslEnabled: false
 
 spark-base:
-  enabled: true
+  enabled: false
   minio:
-    enabled: true
-    resources:
-      requests:
-        cpu: "0"
-        memory: "128Mi"
-      limits:
-        cpu: "200m"
-        memory: "512Mi"
-    persistence:
-      enabled: false
+    enabled: false
   postgresql:
     enabled: false
 
 rbac:
   create: true
   serviceAccountName: "spark-35"
-
-sparkStandalone:
-  enabled: true
-  image:
-    repository: spark-custom
-    tag: "3.5.8"
-  master:
-    enabled: true
-  worker:
-    enabled: true
-    replicas: 1
 
 connect:
   enabled: true
@@ -61,28 +40,59 @@ connect:
     host: ""
     port: 7078
   standalone:
-    masterService: "${release_name}-spark-35-master"
+    enabled: true
+    masterService: "spark-3.5-spark-35-standalone-master"
     masterPort: 7077
   eventLog:
+    enabled: false
+    dir: "/spark-logs/events"
+  sparkConf: {}
+
+sparkStandalone:
+  enabled: true
+  image:
+    repository: spark-custom
+    tag: "3.5.8"
+    pullPolicy: IfNotPresent
+  master:
     enabled: true
-    dir: "s3a://spark-logs/events"
-  sparkConf:
-    spark.executor.instances: "1"
-    spark.executor.cores: "1"
-    spark.executor.memory: "512m"
-    spark.dynamicAllocation.enabled: "false"
+    service:
+      type: ClusterIP
+      rpcPort: 7077
+      uiPort: 8080
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "1"
+    nodeSelector: {}
+    tolerations: []
+  worker:
+    enabled: true
+    replicas: 1
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "500m"
+      limits:
+        memory: "4Gi"
+        cpu: "2"
+    nodeSelector: {}
+    tolerations: []
 
 jupyter:
   enabled: true
   image:
-    repository: jupyter-spark
-    tag: "latest"
+    repository: spark-custom
+    tag: "3.5.8"
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
     port: 8888
   env:
-    SPARK_HOME: "/opt/spark"
+    SPARK_CONNECT_URL: "sc://spark-3.5-spark-35-connect:15002"
   resources:
     requests:
       cpu: "0"
