@@ -12,7 +12,7 @@ data:
     metadata:
       labels:
         app: spark-executor
-        spark-version: "4.1.0"
+        spark-version: "3.5.7"
     spec:
       {{- if .Values.security.podSecurityStandards }}
       securityContext:

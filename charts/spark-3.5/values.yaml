@@ -9,7 +9,7 @@ global:
     sslEnabled: false
     existingSecret: ""
   postgresql:
-    host: "postgresql-metastore-41"
+    host: "postgresql-metastore-35"
     port: 5432
     user: "hive"
     password: "hive123"
@@ -315,24 +315,24 @@ connect:
     dir: "s3a://spark-logs/events"
   sparkConf: {}
 
-# Hive Metastore 3.1.3 (separate instance for Spark 3.5.3)
+# Hive Metastore 3.1.3 (separate instance for Spark 3.5.7)
 hiveMetastore:
   enabled: false
   image:
     repository: spark-k8s/hive
-    tag: "4.0.0-pg"
+    tag: "3.1.3-pg"
     pullPolicy: IfNotPresent
   service:
     port: 9083
   warehouseDir: "s3a://warehouse/spark-35"
   metastoreWarehouseDir: "file:/tmp/hive-warehouse"
   database:
-    name: "metastore_spark41"
+    name: "metastore_spark35"
   postgresql:
     enabled: true
-    host: "postgresql-metastore-41"
+    host: "postgresql-metastore-35"
     port: 5432
-    database: "metastore_spark41"
+    database: "metastore_spark35"
     username: "hive"
     password: "hive123"
     persistence:

@@ -1,8 +1,8 @@
 apiVersion: v2
 name: spark-3.5
-version: 0.1.0
-appVersion: "3.5.3"
-description: Apache Spark 3.5.3 (Spark Connect + K8s Native)
+version: 0.2.0
+appVersion: "3.5.7"
+description: Apache Spark 3.5.7 (Spark Connect + K8s Native)
 
 dependencies:
   - name: spark-base

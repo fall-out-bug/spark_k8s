@@ -52,7 +52,7 @@ data:
 
     # Disable push-based shuffle (may conflict with PSS restricted)
     spark.shuffle.push.enabled=false
-    spark.shuffle.sort bypassMergeThreshold=0
+    spark.shuffle.sort.bypassMergeThreshold=0
 
     # Event log (for History Server)
     {{- if .Values.connect.eventLog.enabled }}
