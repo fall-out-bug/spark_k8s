@@ -708,6 +708,59 @@ F06, F11 ──── WS-017-01 (Go client library)
 
 ---
 
+## Feature F25: Spark 3.5 Charts Production-Ready
+
+**Source:** `docs/drafts/idea-spark-35-production-ready.md`
+**Status:** Backlog
+**Total Workstreams:** 9
+**Estimated LOC:** ~2000
+**Bead:** spark_k8s-ju2
+
+| ID | Name | Scope | Dependency | Status | Bead |
+|----|------|-------|------------|--------|------|
+| WS-025-01 | Fix chart metadata + values.yaml | SMALL (~150 LOC) | - | backlog | spark_k8s-r6h |
+| WS-025-02 | Spark Standalone deployment template | MEDIUM (~300 LOC) | - | backlog | spark_k8s-3ip |
+| WS-025-03 | Prometheus metrics exporter config | SMALL (~100 LOC) | WS-025-01 | backlog | spark_k8s-ngl |
+| WS-025-04 | Monitoring templates (SM+PM+Grafana) | MEDIUM (~500 LOC) | WS-025-03 | backlog | spark_k8s-pqx |
+| WS-025-05 | OpenShift Route template | SMALL (~150 LOC) | - | backlog | spark_k8s-2zy |
+| WS-025-06 | Fix 8 scenario values files | MEDIUM (~400 LOC) | WS-025-01, WS-025-02 | backlog | spark_k8s-ni8 |
+| WS-025-07 | Update OpenShift presets | SMALL (~100 LOC) | WS-025-04, WS-025-05 | backlog | spark_k8s-r51 |
+| WS-025-08 | Fix spark-connect-configmap | SMALL (~50 LOC) | WS-025-01 | backlog | spark_k8s-og4 |
+| WS-025-09 | Helm validation + smoke tests | MEDIUM (~300 LOC) | WS-025-06..08 | backlog | spark_k8s-2if |
+
+### Dependency Graph
+
+```
+WS-025-01 (Fix metadata)     WS-025-02 (Standalone)     WS-025-05 (Routes)
+    │                              │                          │
+    ├── WS-025-03 (Metrics) ───┐   │                          │
+    │       │                  │   │                          │
+    │       └── WS-025-04 ─────┼───┼──────────────────────────┤
+    │           (Monitoring)   │   │                          │
+    │                          │   │                          │
+    ├── WS-025-08 (Configmap)  │   │      WS-025-07 ◄────────┘
+    │                          │   │      (OpenShift presets)
+    │                          │   │          │
+    └──────────────────────────┴───┘          │
+                │                             │
+          WS-025-06 (Scenarios)               │
+                │                             │
+                └─────────────────────────────┘
+                              │
+                        WS-025-09 (Validation)
+```
+
+### Parallel Execution Paths
+
+**Phase 1 (parallel):** WS-025-01 + WS-025-02 + WS-025-05
+**Phase 2 (after 01):** WS-025-03, WS-025-08
+**Phase 3 (after 03):** WS-025-04
+**Phase 4 (after 01+02):** WS-025-06
+**Phase 5 (after 04+05):** WS-025-07
+**Phase 6 (after 06+07+08):** WS-025-09
+
+---
+
 ## Summary
 
 | Feature | Total WS | Completed | In Progress | Backlog |
@@ -729,9 +782,10 @@ F06, F11 ──── WS-017-01 (Go client library)
 | F15: Phase 9 — Parallel Execution & CI/CD | 3 | 0 | 0 | 3 |
 | F16: Observability Stack | 6 | 0 | 0 | 6 |
 | F17: Spark Connect Go Client | 4 | 0 | 0 | 4 |
+| **F25: Spark 3.5 Production-Ready** | **9** | **0** | **0** | **9** |
 | TESTING: Testing Infrastructure | 3+ | 0 | 0 | 3+ |
-| **TOTAL** | **109+** | **30** | **1** | **80+** |
+| **TOTAL** | **118+** | **30** | **1** | **89+** |
 
 ---
 
-*Last updated: 2026-02-04*
+*Last updated: 2026-02-10*
