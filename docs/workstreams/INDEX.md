@@ -727,6 +727,7 @@ F06, F11 ──── WS-017-01 (Go client library)
 | WS-025-07 | Update OpenShift presets | SMALL (~100 LOC) | WS-025-04, WS-025-05 | backlog | spark_k8s-r51 |
 | WS-025-08 | Fix spark-connect-configmap | SMALL (~50 LOC) | WS-025-01 | backlog | spark_k8s-og4 |
 | WS-025-09 | Helm validation + smoke tests | MEDIUM (~300 LOC) | WS-025-06..08 | backlog | spark_k8s-2if |
+| WS-025-10 | Minikube integration tests | MEDIUM (~400 LOC) | WS-025-09 | backlog | spark_k8s-6q1 |
 
 ### Dependency Graph
 
@@ -748,6 +749,8 @@ WS-025-01 (Fix metadata)     WS-025-02 (Standalone)     WS-025-05 (Routes)
                 └─────────────────────────────┘
                               │
                         WS-025-09 (Validation)
+                              │
+                        WS-025-10 (Minikube tests)
 ```
 
 ### Parallel Execution Paths
@@ -758,6 +761,7 @@ WS-025-01 (Fix metadata)     WS-025-02 (Standalone)     WS-025-05 (Routes)
 **Phase 4 (after 01+02):** WS-025-06
 **Phase 5 (after 04+05):** WS-025-07
 **Phase 6 (after 06+07+08):** WS-025-09
+**Phase 7 (after 09):** WS-025-10 (minikube integration tests)
 
 ---
 
@@ -782,9 +786,9 @@ WS-025-01 (Fix metadata)     WS-025-02 (Standalone)     WS-025-05 (Routes)
 | F15: Phase 9 — Parallel Execution & CI/CD | 3 | 0 | 0 | 3 |
 | F16: Observability Stack | 6 | 0 | 0 | 6 |
 | F17: Spark Connect Go Client | 4 | 0 | 0 | 4 |
-| **F25: Spark 3.5 Production-Ready** | **9** | **0** | **0** | **9** |
+| **F25: Spark 3.5 Production-Ready** | **10** | **0** | **0** | **10** |
 | TESTING: Testing Infrastructure | 3+ | 0 | 0 | 3+ |
-| **TOTAL** | **118+** | **30** | **1** | **89+** |
+| **TOTAL** | **119+** | **30** | **1** | **90+** |
 
 ---
 
