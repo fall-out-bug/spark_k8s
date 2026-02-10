@@ -19,6 +19,12 @@ spec:
         app: spark-connect
         app.kubernetes.io/component: connect
         {{- include "spark-3.5.selectorLabels" . | nindent 8 }}
+      {{- if .Values.connect.metrics.enabled }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: {{ .Values.connect.metrics.port | quote }}
+        prometheus.io/path: "/metrics/prometheus"
+      {{- end }}
     spec:
       serviceAccountName: {{ include "spark-3.5.serviceAccountName" . }}
       {{- if .Values.security.podSecurityStandards }}
@@ -163,6 +169,11 @@ spec:
               containerPort: 7079
               protocol: TCP
             {{- end }}
+            {{- if .Values.connect.metrics.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.connect.metrics.port }}
+              protocol: TCP
+            {{- end }}
           readinessProbe:
             tcpSocket:
               port: 15002
@@ -219,6 +230,11 @@ spec:
     - name: blockmanager
       port: 7079
       targetPort: 7079
+    {{- end }}
+    {{- if .Values.connect.metrics.enabled }}
+    - name: metrics
+      port: {{ .Values.connect.service.metricsPort }}
+      targetPort: {{ .Values.connect.metrics.port }}
     {{- end }}
   selector:
     app: spark-connect

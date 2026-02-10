@@ -47,6 +47,20 @@ data:
     spark.connect.grpc.binding.address=0.0.0.0
     spark.connect.grpc.binding.port=15002
 
+    # Prometheus metrics
+    {{- if .Values.connect.metrics.enabled }}
+    spark.ui.prometheus.enabled=true
+    spark.metrics.conf=*
+    {
+      "sink": {
+        "prometheus": {
+          "class": "org.apache.spark.metrics.sink.PrometheusServlet",
+          "path": "metrics/prometheus"
+        }
+      }
+    }
+    {{- end }}
+
     # Ivy cache (for Maven dependencies)
     spark.jars.ivy=/tmp/spark-ivy-cache
 
