@@ -27,7 +27,7 @@ connect:
   backendMode: k8s
   image:
     repository: spark-custom
-    tag: "4.1.0-gpu"
+    tag: "3.5.8-gpu"
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -85,8 +85,8 @@ connect:
     spark.rapids.aws.s3.enabled: "true"
     spark.rapids.cpp.enabled: "true"
     spark.rapids.jni.asHeapBuf: "true"
-    spark.executor.extraLibraryPath: "/usr/lib/llvm-17/lib:/opt/spark/jars/spark-4.1.0-bin-hadoop3/sql/catalyst/target/jars"
-    spark.driver.extraLibraryPath: "/usr/lib/llvm-17/lib:/opt/spark/jars/spark-4.1.0-bin-hadoop3/sql/catalyst/target/jars"
+    spark.executor.extraJavaOptions: "-XX:+UseG1GC"
+    spark.driver.extraJavaOptions: "-XX:+UseG1GC"
     # Airflow trace parent propagation
     "spark.extraListeners": "org.apache.spark.openTelemetry.OpenTelemetryListener"
     "spark.openTelemetry.exporter.protocol": "grpc"

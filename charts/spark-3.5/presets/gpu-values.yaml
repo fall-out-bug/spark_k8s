@@ -12,7 +12,7 @@ connect:
   replicas: 1
   image:
     repository: spark-custom
-    tag: "4.1.0-gpu"
+    tag: "3.5.7-gpu"
     pullPolicy: IfNotPresent
 
   # GPU resources configuration
@@ -107,7 +107,7 @@ jupyter:
   enabled: true
   image:
     repository: jupyter-spark-gpu
-    tag: "4.1.0"
+    tag: "3.5.7"
   resources:
     requests:
       memory: "2Gi"
