@@ -35,6 +35,12 @@
 - Reference: https://github.com/apache/spark/blob/master/connect/client/go
 - Reuse existing connection patterns from Python client
 
+**Spark Connect Server for Testing (F11 dependency):**
+- For development: Use docker/runtime Spark images (spark:3.5.x, spark:4.1.x)
+- For integration testing: Use deployed Helm charts with Spark Connect
+- Local Spark Connect server can be started via `spark-class` for unit tests
+- **Note:** F11 (Docker Final Images) is in backlog - Go client tests can use existing images or local Spark
+
 **Client features:**
 - Connect to Spark Connect server (port 15002)
 - Execute SQL queries
@@ -85,6 +91,10 @@
 
 - **F06 (Core Components + Presets):** Helm charts deployed
 - **F11 (Docker Final Images):** Spark Connect images available
+  - **Note:** For Go client development and testing, Spark Connect server images can be:
+    - From `docker/` Spark runtime images (spark:3.5.x, spark:4.1.x)
+    - Local Spark Connect server for development
+    - Deployed Helm charts for integration testing
 - **F08 (Smoke Tests):** Smoke test patterns
 - **F12 (E2E Tests):** E2E test patterns
 - **F13 (Load Tests):** Load test patterns
