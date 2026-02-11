@@ -1,0 +1,108 @@
+# AlertManager values for Spark alerting on Kubernetes
+
+# Spark-specific alerting rules
+# Receives alerts from Prometheus and routes them
+
+alertmanager:
+  enabled: true
+
+  # AlertManager configuration
+  config:
+    global:
+      # Global SMTP settings
+      smtp_smarthost: smtp.s7.local
+      smtp_from: alertmanager@s7.ru
+      smtp_require_tls: true
+
+    # Route settings
+    route:
+      # Default receiver for all alerts
+      receiver: email-default
+      group_wait: 10s
+      repeat_interval: 12h
+
+    # Inhibition rules
+    inhibit_rules:
+      # Don't alert if driver is starting (expected)
+      - source_match: driver_status
+        target_match: executor_status
+        equal: ['starting']
+      # Don't alert if driver is stopping (expected)
+      - source_match: driver_status
+        target_match: executor_status
+        equal: ['stopping']
+
+    # Template files
+    template_files:
+      - spark-defaults.yaml
+      - spark-executor-failure.yaml
+      - spark-driver-oom.yaml
+      - spark-long-running.yaml
+
+  # Receiver configuration
+  receivers:
+    # Email receiver
+    - name: email-default
+      email_configs:
+        - to: ops-team@s7.ru
+          from: alertmanager@s7.ru
+          smarthost: smtp.s7.local
+          auth_username: alertmanager
+          auth_password: password
+
+    # OpsGenie receiver (optional)
+    - name: opsgenie
+      opsgenie_config:
+        api_key: your-opsgenie-api-key
+
+  # Spark-specific alert rules
+  sparkAlerts:
+    # Driver OOM alerts
+    driver_oom:
+      enabled: true
+      threshold: 90%
+      for: 5m
+
+    # Executor failure alerts
+    executor_failure:
+      enabled: true
+      threshold_percent: 50
+      for: 5m
+
+    # Long-running job alerts
+    long_running:
+      enabled: true
+      duration: 4h
+
+    # Application errors
+    app_errors:
+      enabled: true
+      threshold: 10
+      for: 5m
+
+# Resource configuration
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Persistence
+persistence:
+  enabled: false
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 9093
+  targetPort: http
+
+# Ingress configuration
+ingress:
+  enabled: false

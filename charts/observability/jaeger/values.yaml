@@ -1,0 +1,106 @@
+# Jaeger values for Spark tracing on Kubernetes
+
+# Jaeger agent configuration for Spark pods
+agent:
+  enabled: true
+
+  # Jaeger agent as sidecar
+  sidecar: true
+
+  # OpenTelemetry configuration for Spark
+  config: |
+    observers:
+      - kubelet-podurl
+
+    sampler:
+      type: const
+      param: 1
+
+    reporter:
+      logSpans: true
+      localAgentHostPort: 6831
+
+    # Service discovery for Spark pods
+    k8s:
+      resolver:
+        interval: 10s
+      namespace: spark-operations
+      selector:
+        app: spark
+
+    # OTLP receiver for Spark traces
+    otlp:
+      # Spark sends OTLP to this endpoint
+      endpoint: jaeger-collector:4317
+
+    # Trace headers to capture
+    headers:
+      trace-id-header: uber-trace-id
+      trace-id-header-name: uber-trace-id
+
+    # Baggage headers
+    baggage:
+      # Add cluster and namespace as baggage
+      - cluster
+      - namespace
+
+# Collector configuration
+collector:
+  enabled: true
+
+  # Jaeger collector service
+  service:
+    type: ClusterIP
+    port: 4317
+
+  # Collector configuration
+  config: |
+    # Sampling
+    sampler:
+      type: const
+      param: 1
+
+    # Storage
+    storage:
+      type: elasticsearch
+      elasticsearch:
+        server-urls: http://elasticsearch:9200
+        index: jaeger-spans
+        index-date-separator: -
+
+    # Span processing
+    spanProcessor:
+      numWorkers: 10
+      queueSize: 2000
+
+# Query service
+query:
+  enabled: false
+
+# UI service
+ui:
+  enabled: true
+
+  # Ingress configuration
+  ingress:
+    enabled: true
+    hosts:
+      - jaeger.s7.local
+
+# Resource configuration
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+collector:
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi

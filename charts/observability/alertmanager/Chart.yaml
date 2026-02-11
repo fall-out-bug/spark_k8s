@@ -1,0 +1,32 @@
+apiVersion: v2
+name: alertmanager-spark
+description: AlertManager for Apache Spark on Kubernetes
+type: application
+version: 1.0.0
+
+keywords:
+  - spark
+  - alerting
+  - prometheus
+  - observability
+  - alerts
+
+maintainers:
+  - name: S7 Spark K8s Team
+    email: spark@s7.ru
+
+sources:
+  - https://prometheus.io/docs/alerting/latest/configuration/
+  - https://spark.apache.org/docs/latest/monitoring.html
+
+# Deploys AlertManager to receive alerts from Prometheus
+# Configured to send Spark-specific alerts
+
+dependencies:
+  - name: prometheus-operator
+    version: ">=0.50.0"
+    repository: https://prometheus-community.github.io/helm-charts
+
+annotations:
+  artifacthub.io/category: monitoring
+  artifacthub.io/license: Apache-2.0

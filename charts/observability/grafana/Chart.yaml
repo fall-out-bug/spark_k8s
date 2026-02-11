@@ -1,0 +1,32 @@
+apiVersion: v2
+name: grafana-spark
+description: Grafana dashboards for Apache Spark on Kubernetes
+type: application
+version: 1.0.0
+
+keywords:
+  - spark
+  - grafana
+  - dashboards
+  - observability
+  - visualization
+
+maintainers:
+  - name: S7 Spark K8s Team
+    email: spark@s7.ru
+
+sources:
+  - https://grafana.com/docs/
+  - https://github.com/grafana/helm-charts
+
+# Consolidates Spark dashboards from observability/grafana/dashboards
+# Deploys Grafana with pre-configured Spark dashboards
+
+dependencies:
+  - name: grafana
+    version: ">=6.0.0"
+    repository: https://grafana.github.io/helm-charts
+
+annotations:
+  artifacthub.io/category: visualization
+  artifacthub.io/license: Apache-2.0
