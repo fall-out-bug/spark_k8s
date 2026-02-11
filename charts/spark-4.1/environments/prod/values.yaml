@@ -92,6 +92,18 @@ secrets:
   vault:
     enabled: false
 
+# VPA (disabled in production - use manual scaling)
+vpa:
+  enabled: false
+
+# KEDA (disabled in production - use static scaling)
+keda:
+  enabled: false
+
+# HPA (disabled in production - use static scaling)
+hpa:
+  enabled: false
+
 # Production-specific settings
 tolerations:
   - key: "workload"

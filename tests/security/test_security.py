@@ -144,6 +144,9 @@ class TestSecretsHardcoded:
             # Skip empty placeholder values ("", '', | quote)
             if ': ""' in l or ": ''" in l or '| quote' in l:
                 continue
+            # Skip empty password values (password='', password="")
+            if "password=''" in l or 'password=""' in l.lower():
+                continue
             # Skip ConfigMap references (POSTGRES_PASSWORD, etc.)
             if 'POSTGRES_PASSWORD' in l or 'MINIO_ROOT_PASSWORD' in l:
                 continue

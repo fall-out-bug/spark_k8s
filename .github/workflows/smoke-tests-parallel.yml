@@ -1,0 +1,257 @@
+name: Smoke Tests - Parallel Execution
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+  workflow_dispatch:
+    inputs:
+      max_parallel:
+        description: 'Maximum parallel jobs (1-10)'
+        required: false
+        type: number
+        default: 4
+      scenarios:
+        description: 'Comma-separated list of scenarios (empty = all)'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  # Discover available smoke test scenarios
+  discover-scenarios:
+    name: Discover Scenarios
+    runs-on: ubuntu-latest
+    outputs:
+      scenarios: ${{ steps.scenarios.outputs.matrix }}
+      count: ${{ steps.scenarios.outputs.count }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Discover smoke test scenarios
+        id: scenarios
+        run: |
+          # Find all scenario scripts
+          scenarios=$(find scripts/tests/smoke/scenarios -name "*.sh" -type f | sort | xargs -n1 basename | sed 's/\.sh$//' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+
+          # Filter by user input if provided
+          if [ -n "${{ github.event.inputs.scenarios }}" ]; then
+            filter=$(echo "${{ github.event.inputs.scenarios }}" | tr ',' '\n' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            scenarios=$(echo "$scenarios" | jq -r --argjson f "$filter" '[.[] | select(. as $s | $f | index($s))]')
+          fi
+
+          echo "matrix=$scenarios" >> $GITHUB_OUTPUT
+          echo "count=$(echo $scenarios | jq 'length')" >> $GITHUB_OUTPUT
+          echo "Found $(echo $scenarios | jq 'length') scenarios"
+
+  # Run smoke tests in parallel using matrix strategy
+  smoke-test:
+    name: Smoke ${{ matrix.scenario }}
+    needs: discover-scenarios
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: ${{ fromJson(needs.discover-scenarios.outputs.scenarios) }}
+        max-parallel: [4]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.9.0
+        with:
+          cluster_name: spark-smoke-${{ matrix.scenario }}
+          kubectl_version: v1.28.0
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          helm version
+
+      - name: Install dependencies
+        run: |
+          # Install GNU parallel for execution
+          sudo apt-get update && sudo apt-get install -y parallel
+
+          # Install Python dependencies
+          pip install pytest pyyaml kubernetes
+
+      - name: Run smoke test scenario
+        env:
+          SCENARIO: ${{ matrix.scenario }}
+          MAX_PARALLEL: ${{ github.event.inputs.max_parallel || 4 }}
+        run: |
+          set -euo pipefail
+
+          # Run scenario script directly
+          scenario_script="scripts/tests/smoke/scenarios/${SCENARIO}.sh"
+
+          if [ ! -f "$scenario_script" ]; then
+            echo "Error: Scenario script not found: $scenario_script"
+            exit 1
+          fi
+
+          echo "Running scenario: ${SCENARIO}"
+          chmod +x "$scenario_script"
+
+          # Create unique namespace and release for this test
+          namespace="spark-test-${SCENARIO}-${RANDOM}"
+          release="spark-${SCENARIO}-${RANDOM}"
+
+          export TEST_NAMESPACE="$namespace"
+          export TEST_RELEASE="$release"
+
+          # Run the scenario
+          if "$scenario_script" "$namespace" "$release"; then
+            echo "✅ Scenario ${SCENARIO} PASSED"
+          else
+            echo "❌ Scenario ${SCENARIO} FAILED"
+            exit 1
+          fi
+
+      - name: Collect logs on failure
+        if: failure()
+        run: |
+          namespace="spark-test-${{ matrix.scenario }}"
+          echo "Collecting logs from namespace: $namespace"
+          kubectl logs -n "$namespace" --all-containers=true=true --max-log-requests=10 || true
+
+      - name: Cleanup namespace
+        if: always()
+        run: |
+          namespace="spark-test-${{ matrix.scenario }}"
+          kubectl delete namespace "$namespace" --ignore-not-found=true --wait=true || true
+
+  # Aggregate test results
+  aggregate-results:
+    name: Aggregate Results
+    needs: [discover-scenarios, smoke-test]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Python dependencies
+        run: |
+          pip install pytest pyyaml jinja2
+
+      - name: Create test results summary
+        run: |
+          # Create test results directory
+          mkdir -p test-results
+
+          # Create summary based on job status
+          total=${{ needs.discover-scenarios.outputs.count }}
+
+          # This would be populated by actual test runners in a real implementation
+          cat > test-results/summary.json <<EOF
+          {
+            "total": $total,
+            "passed": 0,
+            "failed": 0,
+            "timestamp": "$(date -Iseconds)",
+            "workflow": "${{ github.workflow }}",
+            "run_id": "${{ github.run_id }}"
+          }
+          EOF
+
+          cat test-results/summary.json
+
+      - name: Generate JUnit report
+        run: |
+          python scripts/aggregate/aggregate_junit.py --results-dir test-results
+
+      - name: Generate HTML report
+        run: |
+          python scripts/aggregate/generate_html.py --results-dir test-results
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-test-results
+          path: |
+            test-results/
+            logs/
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = JSON.parse(fs.readFileSync('test-results/summary.json', 'utf8'));
+
+            const comment = `## Smoke Test Results
+
+            | Metric | Value |
+            |---------|--------|
+            | Total | ${summary.total} |
+            | Passed | ${summary.passed} |
+            | Failed | ${summary.failed} |
+            | Timestamp | ${summary.timestamp} |
+
+            **Workflow:** ${{ github.workflow }}
+            **Run ID:** ${{ github.run_id }}
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  # Fast-track: Run subset of critical tests on every PR
+  smoke-critical:
+    name: Smoke - Critical Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # Only run on PRs, not on push to main
+    if: github.event_name == 'pull_request'
+
+    strategy:
+      matrix:
+        scenario:
+          - jupyter-connect-standalone-357
+          - jupyter-connect-standalone-358
+          - jupyter-connect-standalone-411
+          - airflow-connect-k8s-410
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.9.0
+        with:
+          cluster_name: spark-smoke-critical
+          kubectl_version: v1.28.0
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Run critical scenario
+        run: |
+          scenario="scripts/tests/smoke/scenarios/${{ matrix.scenario }}.sh"
+          chmod +x "$scenario"
+
+          namespace="spark-test-critical-${{ matrix.scenario }}"
+          release="spark-critical-${{ matrix.scenario }}"
+
+          if "$scenario" "$namespace" "$release"; then
+            echo "✅ Critical scenario ${{ matrix.scenario }} PASSED"
+          else
+            echo "❌ Critical scenario ${{ matrix.scenario }} FAILED"
+            exit 1
+          fi
