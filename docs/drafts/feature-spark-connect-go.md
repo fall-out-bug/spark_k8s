@@ -29,10 +29,11 @@
 
 ### 1. Go Client Architecture
 
-**Based on official spark-connect-go:**
-- Use Apache Spark Connect gRPC client for Go
+**Based on official spark-connect/client (Go):**
+- Use Apache Spark Connect Go client from official repository
 - Supports Spark 3.5+ with Connect protocol
-- Reuse existing connection patterns
+- Reference: https://github.com/apache/spark/blob/master/connect/client/go
+- Reuse existing connection patterns from Python client
 
 **Client features:**
 - Connect to Spark Connect server (port 15002)
@@ -88,15 +89,14 @@
 - **F12 (E2E Tests):** E2E test patterns
 - **F13 (Load Tests):** Load test patterns
 
-## Success Criteria
-
-1. ⏳ Spark Connect Go client работает
-2. ⏳ 12 smoke test сценариев для Go
-3. ⏳ 16 E2E test сценариев для Go
-4. ⏳ 8 load test сценариев для Go
-5. ⏳ Integration с существующими test frameworks
-6. ⏳ Performance сравним с Python client
-7. ⏳ Documentation для Go client
+## Acceptance Criteria
+1. ☐ Spark Connect Go клиент работает
+2. ☐ 12 smoke test сценариев для Go
+3. ☐ 16 E2E test сценариев для Go
+4. ☐ 8 load test сценариев для Go
+5. ☐ Integration с существующими test frameworks
+6. ☐ Performance сравним с Python client
+7. ☐ Documentation для Go client
 
 ## File Structure
 
