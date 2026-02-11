@@ -1,6 +1,6 @@
 # Phase 8: Advanced Security
 
-> **Status:** Backlog
+> **Status:** Completed
 > **Priority:** P1 - Security hardening
 > **Feature:** F14
 > **Estimated Workstreams:** 7
@@ -18,13 +18,13 @@
 
 | WS | Task | Scenarios | Scope | Dependencies | Status |
 |----|------|-----------|-------|-------------|--------|
-| WS-014-01 | PSS tests | 8 | MEDIUM (~600 LOC) | Phase 0, Phase 1 | backlog |
-| WS-014-02 | SCC tests | 12 | MEDIUM (~900 LOC) | Phase 0, Phase 1 | backlog |
-| WS-014-03 | Network policies | 6 | MEDIUM (~500 LOC) | Phase 0, Phase 1 | backlog |
-| WS-014-04 | RBAC tests | 6 | MEDIUM (~500 LOC) | Phase 0, Phase 1 | backlog |
-| WS-014-05 | Secret management | 6 | MEDIUM (~500 LOC) | Phase 0, Phase 1 | backlog |
-| WS-014-06 | Container security | 8 | MEDIUM (~700 LOC) | Phase 0, Phase 1 | backlog |
-| WS-014-07 | S3 security | 6 | MEDIUM (~500 LOC) | Phase 0, Phase 1 | backlog |
+| WS-014-01 | PSS tests | 8 | MEDIUM (~600 LOC) | Phase 0, Phase 1 | completed |
+| WS-014-02 | SCC tests | 12 | MEDIUM (~900 LOC) | Phase 0, Phase 1 | completed |
+| WS-014-03 | Network policies | 6 | MEDIUM (~500 LOC) | Phase 0, Phase 1 | completed |
+| WS-014-04 | RBAC tests | 6 | MEDIUM (~500 LOC) | Phase 0, Phase 1 | completed |
+| WS-014-05 | Secret management | 6 | MEDIUM (~500 LOC) | Phase 0, Phase 1 | completed |
+| WS-014-06 | Container security | 8 | MEDIUM (~700 LOC) | Phase 0, Phase 1 | completed |
+| WS-014-07 | S3 security | 6 | MEDIUM (~500 LOC) | Phase 0, Phase 1 | completed |
 
 **Total Scenarios:** 48
 
@@ -97,14 +97,14 @@
 
 ## Success Criteria
 
-1. ⏳ 48 security сценариев созданы
-2. ⏳ PSS restricted profile подтверждён (kubeconform validation)
-3. ⏳ OpenShift SCC совместимость подтверждена (mocked `oc` commands)
-4. ⏳ Network политики работают (default-deny + explicit allow)
-5. ⏳ RBAC настроен корректно (least privilege, no wildcards)
-6. ⏳ Secret management проверен (K8s native only)
-7. ⏳ Container security проверен (non-root, no privilege escalation)
-8. ⏳ S3 security проверен (TLS in-flight, encryption at rest)
+1. ✅ 48 security сценариев созданы
+2. ✅ PSS restricted profile подтверждён (kubeconform validation)
+3. ✅ OpenShift SCC совместимость подтверждена (mocked `oc` commands)
+4. ✅ Network политики работают (default-deny + explicit allow)
+5. ✅ RBAC настроен корректно (least privilege, no wildcards)
+6. ✅ Secret management проверен (K8s native only)
+7. ✅ Container security проверен (non-root, no privilege escalation)
+8. ✅ S3 security проверен (TLS in-flight, encryption at rest)
 
 ## File Structure
 

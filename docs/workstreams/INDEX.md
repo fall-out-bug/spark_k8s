@@ -589,19 +589,20 @@ F06 (Phase 0), F07 (Phase 1), F12 (Phase 6) ────┐
 ## Feature F14: Phase 8 — Advanced Security
 
 **Source:** `docs/phases/phase-08-security.md`
-**Status:** Backlog
+**Status:** Completed
 **Total Workstreams:** 7
-**Estimated LOC:** ~4200
+**Actual LOC:** ~3200
+**Total Scenarios:** 48
 
 | ID | Name | Scenarios | Dependency | Status |
 |----|------|-----------|------------|--------|
-| WS-014-01 | PSS tests | 8 | F06, F07 | backlog |
-| WS-014-02 | SCC tests | 12 | F06, F07 | backlog |
-| WS-014-03 | Network policies | 6 | F06, F07 | backlog |
-| WS-014-04 | RBAC tests | 6 | F06, F07 | backlog |
-| WS-014-05 | Secret management | 6 | F06, F07 | backlog |
-| WS-014-06 | Container security | 8 | F06, F07 | backlog |
-| WS-014-07 | S3 security | 6 | F06, F07 | backlog |
+| WS-014-01 | PSS tests | 8 | F06, F07 | completed |
+| WS-014-02 | SCC tests | 12 | F06, F07 | completed |
+| WS-014-03 | Network policies | 6 | F06, F07 | completed |
+| WS-014-04 | RBAC tests | 6 | F06, F07 | completed |
+| WS-014-05 | Secret management | 6 | F06, F07 | completed |
+| WS-014-06 | Container security | 8 | F06, F07 | completed |
+| WS-014-07 | S3 security | 6 | F06, F07 | completed |
 
 ### Dependency Graph
 
@@ -794,14 +795,14 @@ WS-025-01 (Fix metadata)     WS-025-02 (Standalone)     WS-025-05 (Routes)
 | F11: Phase 5 — Docker Final Images | 3 | 0 | 0 | 3 |
 | F12: Phase 6 — E2E Tests | 6 | 0 | 0 | 6 |
 | F13: Phase 7 — Load Tests | 5 | 0 | 0 | 5 |
-| F14: Phase 8 — Advanced Security | 7 | 0 | 0 | 7 |
+| F14: Phase 8 — Advanced Security | 7 | 7 | 0 | 0 |
 | F15: Phase 9 — Parallel Execution & CI/CD | 3 | 0 | 0 | 3 |
 | F16: Observability Stack | 6 | 0 | 0 | 6 |
 | F17: Spark Connect Go Client | 4 | 0 | 0 | 4 |
 | **F25: Spark 3.5 Production-Ready** | **12** | **0** | **0** | **12** |
 | TESTING: Testing Infrastructure | 3+ | 0 | 0 | 3+ |
-| **TOTAL** | **121+** | **30** | **1** | **92+** |
+| **TOTAL** | **121+** | **37** | **1** | **85+** |
 
 ---
 
-*Last updated: 2026-02-10*
+*Last updated: 2026-02-12*
