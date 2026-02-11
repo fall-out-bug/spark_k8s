@@ -1,4 +1,4 @@
-Apache Spark 4.1.0 deployed successfully!
+Apache Spark 3.5.7 deployed successfully!
 
 Components:
 {{- if .Values.connect.enabled }}
