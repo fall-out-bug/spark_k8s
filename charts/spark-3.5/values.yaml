@@ -13,6 +13,22 @@ global:
     port: 5432
     user: "hive"
     password: "hive123"
+  monitoring:
+    openTelemetry:
+      enabled: false
+      # endpoint: "http://otel-collector:4317"
+      # protocol: "grpc"
+      # samplingRatio: "1.0"
+      # serviceName: "spark-connect-35"
+    s3aMetrics:
+      enabled: true
+    jobPhaseTimeline:
+      enabled: true
+    sparkProfiling:
+      enabled: true
+    grafana:
+      dashboards:
+        ConfigMap: "spark-3.5-grafana-dashboards"
 
 # Secret Management
 # Choose one: externalSecrets, sealedSecrets, or vault
