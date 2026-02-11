@@ -1,0 +1,144 @@
+{{- if .Values.monitoring.jobPhaseTimeline.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-grafana-dashboards
+  labels:
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+    grafana.dashboard: "1"
+data:
+  job-phase-timeline.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Spark Job Phase Timeline",
+        "tags": ["spark", "connect", "tracing"],
+        "timezone": "UTC",
+        "schemaVersion": 38,
+        "version": 1,
+        "refresh": "5s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Job Phase Gantt",
+            "type": "timeseries",
+            "gridPos": { "h": 10, "v": 3 },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "{{ .Values.monitoring.prometheus.datasourceUid }}"
+            },
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(spark_resource_wait_seconds{service_name=\"{{ .Values.monitoring.openTelemetry.serviceName }}\"}[5m:30s])) by (app_id, executor_id))",
+                "legendFormat": "Resource Wait (p95)",
+                "refId": "resource-wait"
+              },
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(spark_phase_compute_seconds{service_name=\"{{ .Values.monitoring.openTelemetry.serviceName }}\"}[5m:30s])) by (app_id, executor_id))",
+                "legendFormat": "Compute Time (p95)",
+                "refId": "compute-phase"
+              },
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(spark_phase_io_write_seconds{service_name=\"{{ .Values.monitoring.openTelemetry.serviceName }}\"}[5m:30s])) by (app_id, executor_id))",
+                "legendFormat": "S3 Write (p95)",
+                "refId": "io-write-phase"
+              },
+              {
+                "expr": "sum(rate(spark_driver_executor_added_total{service_name=\"{{ .Values.monitoring.openTelemetry.serviceName }}\"}[5m:30s])) by (app_id) > 0",
+                "legendFormat": "Active Executors",
+                "refId": "active-executors"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "s"
+              }
+            },
+            "options": {
+              "legend": {
+                "displayMode": "table",
+                "placement": "bottom",
+                "values": false
+              }
+            }
+          },
+          {
+            "id": 2,
+            "title": "Phase Breakdown (Time %)",
+            "type": "gauge",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "{{ .Values.monitoring.prometheus.datasourceUid }}"
+            },
+            "targets": [
+              {
+                "expr": "100 * (sum(rate(spark_resource_wait_seconds{service_name=\"{{ .Values.monitoring.openTelemetry.serviceName }}\"}[5m:30s])) by (app_id) / sum(rate(spark_phase_compute_seconds{service_name=\"{{ .Values.monitoring.openTelemetry.serviceName }}\"}[5m:30s])) by (app_id))) or vector(0)",
+                "legendFormat": "Resource Wait",
+                "refId": "phase-breakdown-wait"
+              },
+              {
+                "expr": "100 * (sum(rate(spark_phase_compute_seconds{service_name=\"{{ .Values.monitoring.openTelemetry.serviceName }}\"}[5m:30s])) by (app_id) / sum(rate(spark_phase_io_write_seconds{service_name=\"{{ .Values.monitoring.openTelemetry.serviceName }}\"}[5m:30s])) by (app_id))) or vector(0)",
+                "legendFormat": "Compute",
+                "refId": "phase-breakdown-compute"
+              },
+              {
+                "expr": "100 * (sum(rate(spark_phase_io_write_seconds{service_name=\"{{ .Values.monitoring.openTelemetry.serviceName }}\"}[5m:30s])) by (app_id) / sum(rate(spark_phase_compute_seconds{service_name=\"{{ .Values.monitoring.openTelemetry.serviceName }}\"}[5m:30s])) by (app_id))) or vector(0)",
+                "legendFormat": "S3 I/O",
+                "refId": "phase-breakdown-io"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent",
+                "min": 0,
+                "max": 100
+              },
+              "overrides": {
+                "compute": {
+                  "unit": "percent",
+                  "max": 100
+                },
+                "io": {
+                  "unit": "percent",
+                  "max": 100
+                },
+                "wait": {
+                  "unit": "percent",
+                  "max": 100
+                }
+              }
+            }
+          },
+          {
+            "id": 3,
+            "title": "Task Duration Heatmap",
+            "type": "heatmap",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "{{ .Values.monitoring.prometheus.datasourceUid }}"
+            },
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.50, sum(rate(spark_duration_milliseconds{service_name=\"{{ .Values.monitoring.openTelemetry.serviceName }}\"}[5m:30s])) by (app_id)) / 1000",
+                "legendFormat": "Task p50"
+              }
+            ],
+            "gridPos": { "h": 10, "v": 1 },
+            "options": {
+              "calculate": false,
+              "cells": {
+                "rings": {
+                  "0": 0,
+                  "20": "#e31d21",
+                  "40": "#f39614",
+                  "60": "#ffdd72",
+                  "80": "#ffa500",
+                  "100": "#ff0000"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+{{- end }}

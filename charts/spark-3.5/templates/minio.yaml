@@ -1,0 +1,64 @@
+{{- if .Values.core.minio.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-minio
+  labels:
+    app: minio
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+      {{- include "spark-3.5.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: minio
+        {{- include "spark-3.5.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: minio
+        image: "{{ .Values.core.minio.image.repository }}:{{ .Values.core.minio.image.tag }}"
+        command:
+        - /bin/bash
+        - -c
+        - |
+          mkdir -p /data/{raw-data,processed-data,checkpoint,warehouse,spark-logs}
+          minio server /data --console-address ":9001"
+        env:
+        - name: MINIO_ROOT_USER
+          value: minioadmin
+        - name: MINIO_ROOT_PASSWORD
+          value: minioadmin
+        ports:
+        - containerPort: 9000
+        - containerPort: 9001
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-minio
+  labels:
+    app: minio
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: minio
+    {{- include "spark-3.5.selectorLabels" . | nindent 4 }}
+  ports:
+  - name: api
+    port: 9000
+    targetPort: 9000
+  - name: console
+    port: 9001
+    targetPort: 9001
+{{- end }}

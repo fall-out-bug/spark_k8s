@@ -1,0 +1,78 @@
+# spark-infra: MinIO + Hive Metastore + History Server
+
+global:
+  postgresql:
+    host: postgresql
+    port: 5432
+    user: postgres
+    password: spark123
+  s3:
+    enabled: true
+    endpoint: http://minio:9000
+    accessKey: minioadmin
+    secretKey: minioadmin
+    pathStyleAccess: true
+
+connect:
+  enabled: false
+jupyter:
+  enabled: false
+airflow:
+  enabled: false
+sparkStandalone:
+  enabled: false
+jupyterGateway:
+  enabled: false
+sparkOperator:
+  enabled: false
+
+# Hive Metastore with S3 warehouse
+hiveMetastore:
+  enabled: true
+  image:
+    repository: spark-k8s/hive
+    tag: 4.0.0-pg
+    pullPolicy: Never
+  service:
+    port: 9083
+  warehouseDir: s3a://warehouse/
+  database:
+    name: spark_db
+  postgresql:
+    enabled: false
+    host: postgresql
+    port: 5432
+    database: spark_db
+    username: postgres
+    password: spark123
+  initSchema: true
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 500m
+    limits:
+      memory: 2Gi
+      cpu: 1000m
+
+# History Server
+historyServer:
+  enabled: true
+  sparkVersion: "3.5.7"
+  image:
+    repository: spark-custom
+    tag: 3.5.7-new
+    pullPolicy: Never
+  service:
+    type: ClusterIP
+    port: 18080
+  logDirectory: s3a://spark-logs/
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 500m
+    limits:
+      memory: 2Gi
+      cpu: 1000m
+
+minio:
+  enabled: false

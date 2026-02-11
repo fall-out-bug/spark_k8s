@@ -1,0 +1,134 @@
+{{- if .Values.monitoring.sparkProfiling.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-grafana-dashboards
+  labels:
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+    grafana.dashboard: "2"
+data:
+  spark-profiling.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Spark Profiling",
+        "tags": ["spark", "profiling", "monitoring"],
+        "timezone": "UTC",
+        "schemaVersion": 38,
+        "version": 1,
+        "refresh": "30s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Executor Utilization",
+            "type": "gauge",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "{{ .Values.monitoring.prometheus.datasourceUid }}"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent",
+                "min": 0,
+                "max": 100
+              }
+            },
+            "gridPos": { "h": 8, "v": 1 },
+            "targets": [
+              {
+                "expr": "sum(rate(spark_executor_memory_task_bytes{service_name=\"{{ .Values.monitoring.openTelemetry.serviceName }}\"}[5m:30s])) by (executor_id)) / sum(rate(spark_executor_memory_task_bytes{service_name=\"{{ .Values.monitoring.openTelemetry.serviceName }}\"}[5m:30s]))",
+                "legendFormat": "Memory Used"
+              }
+            ],
+            "options": {
+              "orientation": "horizontal",
+              "showValue": "always",
+              "legend": {
+                "displayMode": "table",
+                "placement": "bottom",
+                "values": false
+              }
+            }
+          },
+          {
+            "id": 2,
+            "title": "GC Time %",
+            "type": "gauge",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "{{ .Values.monitoring.prometheus.datasourceUid }}"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent",
+                "min": 0,
+                "max": 100
+              }
+            },
+            "gridPos": { "h": 8, "v": 2 },
+            "targets": [
+              {
+                "expr": "sum(rate(spark_executor_run_time_ms{service_name=\"{{ .Values.monitoring.openTelemetry.serviceName }}\", type=\"gc time\"}[5m:30s])) by (executor_id)) / sum(rate(spark_executor_run_time_ms{service_name=\"{{ .Values.monitoring.openTelemetry.serviceName }}\"}[5m:30s]))",
+                "legendFormat": "GC Time"
+              }
+            ],
+            "options": {
+              "orientation": "horizontal",
+              "showValue": "always"
+            }
+          },
+          {
+            "id": 3,
+            "title": "Shuffle Skew",
+            "type": "gauge",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "{{ .Values.monitoring.prometheus.datasourceUid }}"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "bytes",
+                "min": 0
+              }
+            },
+            "gridPos": { "h": 8, "v": 3 },
+            "targets": [
+              {
+                "expr": "sum(rate(spark_executor_shuffle_read_bytes{service_name=\"{{ .Values.monitoring.openTelemetry.serviceName }}\"}[5m:30s])) by (executor_id)) / sum(rate(spark_executor_shuffle_write_bytes{service_name=\"{{ .Values.monitoring.openTelemetry.serviceName }}\"}[5m:30s]))",
+                "legendFormat": "Read/Write Ratio"
+              }
+            ],
+            "options": {
+              "orientation": "horizontal",
+              "showValue": "always"
+            }
+          },
+          {
+            "id": 4,
+            "title": "Task Duration Heatmap",
+            "type": "heatmap",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "{{ .Values.monitoring.prometheus.datasourceUid }}"
+            },
+            "gridPos": { "h": 6, "v": 6 },
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.50, sum(rate(spark_stage_duration_milliseconds{service_name=\"{{ .Values.monitoring.openTelemetry.serviceName }}\"}[5m:30s])) by (app_id, executor_id))",
+                "legendFormat": "p50"
+              }
+            ],
+            "options": {
+              "calculate": false,
+              "legend": {
+                "displayMode": "table",
+                "placement": "right",
+                "show": true,
+                "values": false
+              }
+            }
+          }
+        ]
+      }
+    }
+{{- end }}

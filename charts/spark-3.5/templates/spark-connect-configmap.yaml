@@ -127,4 +127,10 @@ data:
     spark.otel.resource.attributes={{ printf "service.name=%s" .Values.monitoring.openTelemetry.serviceName }}
     spark.otel.sampling.ratio={{ .Values.monitoring.openTelemetry.samplingRatio | default "1.0" }}
     {{- end }}
+
+    {{- if and .Values.connect.extraLibraries (index .Values.connect.extraLibraries "resource-wait-tracker") (index (index .Values.connect.extraLibraries "resource-wait-tracker") "enabled") }}
+    # Resource Wait Tracker Listener
+    spark.extraListeners={{ index (index .Values.connect.extraLibraries "resource-wait-tracker") "className" }}
+    "spark.resource.wait.tracker.jar"={{ index (index .Values.connect.extraLibraries "resource-wait-tracker") "jar" }}
+    {{- end }}
 {{- end }}

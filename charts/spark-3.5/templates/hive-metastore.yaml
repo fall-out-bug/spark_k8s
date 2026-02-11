@@ -39,6 +39,28 @@ data:
         <name>hive.metastore.schema.verification</name>
         <value>false</value>
       </property>
+      <property>
+        <name>hive.metastore.warehouse.dir</name>
+        <value>{{ .Values.hiveMetastore.warehouseDir }}</value>
+      </property>
+      {{- if .Values.global.s3.enabled }}
+      <property>
+        <name>fs.s3a.endpoint</name>
+        <value>{{ .Values.global.s3.endpoint }}</value>
+      </property>
+      <property>
+        <name>fs.s3a.access.key</name>
+        <value>{{ .Values.global.s3.accessKey }}</value>
+      </property>
+      <property>
+        <name>fs.s3a.secret.key</name>
+        <value>{{ .Values.global.s3.secretKey }}</value>
+      </property>
+      <property>
+        <name>fs.s3a.path.style.access</name>
+        <value>{{ .Values.global.s3.pathStyleAccess | quote }}</value>
+      </property>
+      {{- end }}
     </configuration>
 ---
 apiVersion: v1

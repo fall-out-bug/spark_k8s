@@ -87,6 +87,12 @@ connect:
     spark.rapids.jni.asHeapBuf: "true"
     spark.executor.extraLibraryPath: "/usr/lib/llvm-17/lib:/opt/spark/jars/spark-4.1.0-bin-hadoop3/sql/catalyst/target/jars"
     spark.driver.extraLibraryPath: "/usr/lib/llvm-17/lib:/opt/spark/jars/spark-4.1.0-bin-hadoop3/sql/catalyst/target/jars"
+    # Airflow trace parent propagation
+    "spark.extraListeners": "org.apache.spark.openTelemetry.OpenTelemetryListener"
+    "spark.openTelemetry.exporter.protocol": "grpc"
+    "spark.openTelemetry.exporter.endpoint": "http://otel-collector:4317"
+    "spark.openTelemetry.resource.attributes": "service.name=spark-connect-gpu"
+    "spark.openTelemetry.sampling.ratio": "1.0"
 
 jupyter:
   enabled: false

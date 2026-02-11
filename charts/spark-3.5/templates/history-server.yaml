@@ -8,8 +8,8 @@ metadata:
     {{- include "spark-3.5.labels" . | nindent 4 }}
 data:
   spark-defaults.conf: |-
-    spark.hadoop.fs.s3a.path.style.access={{ .Values.global.s3.pathStyleAccess | quote }}
-    spark.hadoop.fs.s3a.endpoint={{ .Values.global.s3.endpoint | quote }}
+    spark.hadoop.fs.s3a.path.style.access={{ .Values.global.s3.pathStyleAccess }}
+    spark.hadoop.fs.s3a.endpoint={{ .Values.global.s3.endpoint }}
 {{- end }}
 ---
 apiVersion: apps/v1
@@ -31,6 +31,7 @@ spec:
     metadata:
       labels:
         app: spark-history-server
+        app.kubernetes.io/component: history-server
         {{- include "spark-3.5.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "spark-3.5.serviceAccountName" . }}
@@ -59,6 +60,8 @@ spec:
               value: "history"
             - name: SPARK_HISTORY_LOG_DIR
               value: {{ .Values.historyServer.logDirectory | quote }}
+            - name: SPARK_HISTORY_OPTS
+              value: "-Dspark.history.fs.logDirectory={{ .Values.historyServer.logDirectory }}"
             {{- if .Values.global.s3.enabled }}
             - name: S3_ENDPOINT
               value: {{ .Values.global.s3.endpoint | quote }}
@@ -82,6 +85,12 @@ spec:
             {{- end }}
             - name: HADOOP_USER_NAME
               value: "spark"
+          command:
+            - /bin/bash
+            - -c
+            - |
+              # Start History Server
+              $SPARK_HOME/bin/spark-class org.apache.spark.deploy.history.HistoryServer
           resources:
             {{- toYaml .Values.historyServer.resources | nindent 12 }}
           volumeMounts:

@@ -1,10 +1,11 @@
 # Preset: Jupyter + Spark Connect + K8s backend
-# Source: Spark 3.5.7 k8s mode
-# Components: Jupyter + Connect + MinIO (executors on K8s)
+minio:
+  enabled: false
 
 global:
   s3:
-    endpoint: "http://minio:9000"
+    enabled: true
+    endpoint: "http://minio.spark-infra.svc.cluster.local:9000"
     accessKey: "minioadmin"
     secretKey: "minioadmin"
     pathStyleAccess: true
@@ -13,16 +14,16 @@ global:
 spark-base:
   enabled: true
   minio:
-    enabled: true
-    resources:
-      requests:
-        cpu: "0"
-        memory: "128Mi"
-      limits:
-        cpu: "200m"
-        memory: "512Mi"
-    persistence:
-      enabled: false
+    enabled: false
+  resources:
+    requests:
+      cpu: "0"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+  persistence:
+    enabled: false
   postgresql:
     enabled: false
 
@@ -45,20 +46,6 @@ connect:
     limits:
       cpu: "500m"
       memory: "2Gi"
-  driver:
-    host: ""
-    port: 7078
-  standalone:
-    enabled: false
-    masterService: ""
-    masterPort: 7077
-  eventLog:
-    enabled: false
-    dir: "/spark-logs/events"
-  sparkConf: {}
-
-sparkStandalone:
-  enabled: false
 
 jupyter:
   enabled: true
@@ -80,21 +67,3 @@ jupyter:
       memory: "1Gi"
   persistence:
     enabled: false
-
-hiveMetastore:
-  enabled: false
-
-historyServer:
-  enabled: false
-
-ingress:
-  enabled: false
-
-security:
-  podSecurityStandards: false
-
-sparkOperator:
-  enabled: false
-
-celeborn:
-  enabled: false

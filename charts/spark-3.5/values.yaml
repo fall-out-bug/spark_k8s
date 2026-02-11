@@ -334,6 +334,11 @@ connect:
     enabled: true
     dir: "s3a://spark-logs/events"
   sparkConf: {}
+  extraLibraries:
+    resource-wait-tracker:
+      enabled: false
+      jar: "local:///opt/spark/jars/resource-wait-tracker.jar"
+      className: "ResourceWaitTracker"
 
 # Hive Metastore 3.1.3 (separate instance for Spark 3.5.7)
 hiveMetastore:
@@ -493,6 +498,10 @@ monitoring:
   grafanaDashboards:
     enabled: false
     namespace: ""  # Defaults to release namespace
+  grafana:
+    dashboards:
+      ConfigMap: ""  # Name of ConfigMap with dashboard JSONs
+      enabled: false
   podAnnotations: {}
   prometheusAnnotations:
     prometheus.io/scrape: "false"
@@ -503,6 +512,14 @@ monitoring:
     enabled: false
     endpoint: "http://opentelemetry-collector:4317"
     protocol: "grpc"  # grpc or http
+  s3aMetrics:
+    enabled: false
+  jobPhaseTimeline:
+    enabled: false
+  sparkProfiling:
+    enabled: false
+  prometheus:
+    datasourceUid: "prometheus"
 
 # Auto-scaling configuration
 autoscaling:

@@ -69,6 +69,12 @@ connect:
     spark.sql.iceberg.handle-resolve-without-partition-filter: "true"
     spark.sql.iceberg.scenario-based-parsing: "true"
     spark.sql.iceberg.use-provided-schema: "true"
+    # Airflow trace parent propagation
+    "spark.extraListeners": "org.apache.spark.openTelemetry.OpenTelemetryListener"
+    "spark.openTelemetry.exporter.protocol": "grpc"
+    "spark.openTelemetry.exporter.endpoint": "http://otel-collector:4317"
+    "spark.openTelemetry.resource.attributes": "service.name=spark-connect-iceberg"
+    "spark.openTelemetry.sampling.ratio": "1.0"
 
 jupyter:
   enabled: true

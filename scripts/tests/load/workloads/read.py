@@ -20,10 +20,10 @@ from typing import Any, Dict
 from pyspark.sql import SparkSession
 
 
-# Data paths for different sizes
+# Data paths for different sizes (using spark-infra MinIO)
 DATA_PATHS = {
-    "1gb": "s3a://test-data/nyc-taxi/year=*/month=*/*.parquet",
-    "11gb": "s3a://test-data/nyc-taxi/year=*/month=*/*.parquet",
+    "1gb": "s3a://raw-data/yellow_tripdata_2024-01.parquet",
+    "11gb": "s3a://raw-data/*.parquet",
 }
 
 
@@ -31,10 +31,13 @@ def create_spark_session() -> SparkSession:
     """Create Spark session with S3 configuration."""
     return SparkSession.builder \
         .appName("load-test-read") \
-        .config("spark.hadoop.fs.s3a.endpoint", "http://minio.load-testing.svc.cluster.local:9000") \
+        .config("spark.hadoop.fs.s3a.endpoint", "http://minio.spark-infra.svc.cluster.local:9000") \
         .config("spark.hadoop.fs.s3a.access.key", "minioadmin") \
         .config("spark.hadoop.fs.s3a.secret.key", "minioadmin") \
         .config("spark.hadoop.fs.s3a.path.style.access", "true") \
+        .config("spark.eventLog.enabled", "true") \
+        .config("spark.eventLog.dir", "s3a://spark-logs/") \
+        .config("spark.history.fs.logDirectory", "s3a://spark-logs/") \
         .config("spark.sql.shuffle.partitions", "200") \
         .getOrCreate()
 

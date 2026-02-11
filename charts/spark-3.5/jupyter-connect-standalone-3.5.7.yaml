@@ -1,18 +1,28 @@
 # Preset: Jupyter + Spark Connect + Standalone backend
-# Source: Spark 3.5.7 standalone mode
-# Components: Jupyter + Connect + Spark Standalone (master + workers)
+minio:
+  enabled: false
 
 global:
   s3:
-    endpoint: "http://minio:9000"
+    enabled: true
+    endpoint: "http://minio.spark-infra.svc.cluster.local:9000"
     accessKey: "minioadmin"
     secretKey: "minioadmin"
     pathStyleAccess: true
     sslEnabled: false
 
 spark-base:
-  enabled: false
+  enabled: true
   minio:
+    enabled: false
+  resources:
+    requests:
+      cpu: "0"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+  persistence:
     enabled: false
   postgresql:
     enabled: false
@@ -36,17 +46,10 @@ connect:
     limits:
       cpu: "500m"
       memory: "2Gi"
-  driver:
-    host: ""
-    port: 7078
   standalone:
     enabled: true
     masterService: "spark-3.5-spark-35-standalone-master"
     masterPort: 7077
-  eventLog:
-    enabled: false
-    dir: "/spark-logs/events"
-  sparkConf: {}
 
 sparkStandalone:
   enabled: true
@@ -67,8 +70,6 @@ sparkStandalone:
       limits:
         memory: "2Gi"
         cpu: "1"
-    nodeSelector: {}
-    tolerations: []
   worker:
     enabled: true
     replicas: 1
@@ -79,8 +80,6 @@ sparkStandalone:
       limits:
         memory: "4Gi"
         cpu: "2"
-    nodeSelector: {}
-    tolerations: []
 
 jupyter:
   enabled: true
@@ -102,21 +101,3 @@ jupyter:
       memory: "1Gi"
   persistence:
     enabled: false
-
-hiveMetastore:
-  enabled: false
-
-historyServer:
-  enabled: false
-
-ingress:
-  enabled: false
-
-security:
-  podSecurityStandards: false
-
-sparkOperator:
-  enabled: false
-
-celeborn:
-  enabled: false

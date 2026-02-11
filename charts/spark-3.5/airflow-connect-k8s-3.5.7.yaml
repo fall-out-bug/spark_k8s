@@ -1,18 +1,28 @@
 # Preset: Airflow + Spark Connect + K8s backend
-# Source: Spark 3.5.7 k8s mode
-# Components: Connect only (executors on K8s)
+minio:
+  enabled: false
 
 global:
   s3:
-    endpoint: "http://minio:9000"
+    enabled: true
+    endpoint: "http://minio.spark-infra.svc.cluster.local:9000"
     accessKey: "minioadmin"
     secretKey: "minioadmin"
     pathStyleAccess: true
     sslEnabled: false
 
 spark-base:
-  enabled: false
+  enabled: true
   minio:
+    enabled: false
+  resources:
+    requests:
+      cpu: "0"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+  persistence:
     enabled: false
   postgresql:
     enabled: false
@@ -27,7 +37,7 @@ connect:
   backendMode: k8s
   image:
     repository: spark-custom
-    tag: "3.5.7"
+    tag: "3.5.7-new"
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -36,39 +46,31 @@ connect:
     limits:
       cpu: "500m"
       memory: "2Gi"
-  driver:
-    host: ""
-    port: 7078
-  standalone:
+  sparkConf:
+    # Airflow trace parent propagation
+    "spark.extraListeners": "org.apache.spark.openTelemetry.OpenTelemetryListener"
+    "spark.openTelemetry.exporter.protocol": "grpc"
+    "spark.openTelemetry.exporter.endpoint": "http://otel-collector:4317"
+    "spark.openTelemetry.resource.attributes": "service.name=spark-connect-35"
+    "spark.openTelemetry.sampling.ratio": "1.0"
+
+airflow:
+  enabled: true
+  image:
+    repository: spark-k8s-airflow
+    tag: "3.5-3.5.7"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+  env:
+    SPARK_CONNECT_URL: "sc://spark-3.5-spark-35-connect:15002"
+  resources:
+    requests:
+      cpu: "0"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+  persistence:
     enabled: false
-    masterService: ""
-    masterPort: 7077
-  eventLog:
-    enabled: false
-    dir: "/spark-logs/events"
-  sparkConf: {}
-
-jupyter:
-  enabled: false
-
-sparkStandalone:
-  enabled: false
-
-hiveMetastore:
-  enabled: false
-  initSchema: false
-
-historyServer:
-  enabled: false
-
-ingress:
-  enabled: false
-
-security:
-  podSecurityStandards: false
-
-sparkOperator:
-  enabled: false
-
-celeborn:
-  enabled: false
