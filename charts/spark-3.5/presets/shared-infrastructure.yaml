@@ -37,7 +37,7 @@ hiveMetastore:
     name: "metastore_spark35"
   image:
     repository: "spark-k8s/hive"
-    tag: "4.0.0-pg"
+    tag: "3.1.3-pg"
 
 # S3 configuration (points to shared MinIO)
 global:
