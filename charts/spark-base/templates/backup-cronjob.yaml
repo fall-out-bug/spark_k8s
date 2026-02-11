@@ -1,0 +1,289 @@
+{{- if .Values.backup.enabled }}
+{{- range $component, $config := .Values.backup.components }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "spark-base.fullname" $ }}-{{ $component }}-backup
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "spark-base.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: backup
+spec:
+  schedule: {{ $config.schedule | default "0 1 * * *" }}
+  successfulJobsHistoryLimit: {{ $config.historyLimit | default 3 }}
+  failedJobsHistoryLimit: {{ $config.failedJobsHistoryLimit | default 1 }}
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      labels:
+        {{- include "spark-base.labels" $ | nindent 8 }}
+        app.kubernetes.io/component: backup
+    spec:
+      backoffLimit: {{ $config.backoffLimit | default 3 }}
+      activeDeadlineSeconds: {{ $config.deadlineSeconds | default 3600 }}
+      template:
+        spec:
+          serviceAccountName: {{ include "spark-base.fullname" $ }}-backup
+          restartPolicy: OnFailure
+          {{- with $.Values.backup.podSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          containers:
+          - name: backup
+            image: {{ $config.image.repository | default "bitnami/kubectl" }}:{{ $config.image.tag | default "latest" }}
+            imagePullPolicy: {{ $config.image.pullPolicy | default "IfNotPresent" }}
+            command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              echo "Starting backup for {{ $component }} at $(date)"
+
+              # Run backup script
+              /scripts/backup/{{ $component }}-backup.sh \
+                --namespace {{ $.Release.Namespace }} \
+                --output {{ $config.output }} \
+                --retention {{ $config.retention | default "7d" }}
+
+              # Calculate checksum
+              checksum=$(md5sum /tmp/backup/* | awk '{print $1}')
+              echo "Backup checksum: $checksum"
+
+              # Push metrics
+              cat <<EOF | curl --data-binary @- http://prometheus-push-gateway.{{ $.Release.Namespace }}.svc.cluster.local:9091/metrics/job/backup/component/{{ $component }}
+              backup_success_total{component="{{ $component }}",status="success"} 1
+              backup_size_bytes{component="{{ $component }}"} $(stat -c%s /tmp/backup/*)
+              backup_age_seconds{component="{{ $component }}"} $(date +%s)
+              EOF
+
+              echo "Backup completed successfully at $(date)"
+            env:
+            {{- range $key, $value := $config.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- with $config.envFrom }}
+            envFrom:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+            volumeMounts:
+            - name: scripts
+              mountPath: /scripts/backup
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp/backup
+            {{- with $.Values.backup.resources }}
+            resources:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+            {{- with $.Values.backup.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          volumes:
+          - name: scripts
+            configMap:
+              name: {{ include "spark-base.fullname" $ }}-backup-scripts
+              defaultMode: 0755
+          - name: tmp
+            emptyDir: {}
+          {{- with $.Values.backup.volumes }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+          {{- with $.Values.backup.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $.Values.backup.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $.Values.backup.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+---
+{{- end }}
+{{- end }}
+
+---
+{{- if .Values.backup.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spark-base.fullname" . }}-backup-scripts
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "spark-base.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup
+data:
+  {{- if .Values.backup.components.hiveMetastore }}
+  hive-metastore-backup.sh: |
+    #!/bin/bash
+    set -e
+    NAMESPACE="${1:-spark-operations}"
+    OUTPUT="${2:-s3://spark-backups/hive-metastore/}"
+    BACKUP_NAME="hive-metastore-backup-$(date +%Y%m%d-%H%M%S).sql"
+
+    echo "Creating Hive Metastore backup..."
+
+    # Get Hive Metastore pod
+    HIVE_POD=$(kubectl get pods -n "$NAMESPACE" -l app=hive-metastore -o jsonpath='{.items[0].metadata.name}')
+
+    # Get database credentials from secret
+    DB_HOST=$(kubectl get secret -n "$NAMESPACE" hive-metastore-db -o jsonpath='{.data.DB_HOST}' | base64 -d)
+    DB_PORT=$(kubectl get secret -n "$NAMESPACE" hive-metastore-db -o jsonpath='{.data.DB_PORT}' | base64 -d)
+    DB_NAME=$(kubectl get secret -n "$NAMESPACE" hive-metastore-db -o jsonpath='{.data.DB_NAME}' | base64 -d)
+    DB_USER=$(kubectl get secret -n "$NAMESPACE" hive-metastore-db -o jsonpath='{.data.DB_USER}' | base64 -d)
+    DB_PASS=$(kubectl get secret -n "$NAMESPACE" hive-metastore-db -o jsonpath='{.data.DB_PASS}' | base64 -d)
+
+    # Create backup
+    kubectl exec -n "$NAMESPACE" "$HIVE_POD" -- \
+      mysqldump -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASS" \
+      --single-transaction --routines --triggers "$DB_NAME" > /tmp/backup/backup.sql
+
+    # Upload to S3/MinIO
+    aws s3 cp /tmp/backup/backup.sql "${OUTPUT}${BACKUP_NAME}"
+
+    echo "Backup completed: ${OUTPUT}${BACKUP_NAME}"
+  {{- end }}
+
+  {{- if .Values.backup.components.minio }}
+  minio-backup.sh: |
+    #!/bin/bash
+    set -e
+    NAMESPACE="${1:-spark-operations}"
+    OUTPUT="${2:-s3://spark-backups/minio/}"
+    BACKUP_NAME="minio-backup-$(date +%Y%m%d-%H%M%S).tar.gz"
+
+    echo "Creating MinIO backup..."
+
+    # Get MinIO pod
+    MINIO_POD=$(kubectl get pods -n "$NAMESPACE" -l app=minio -o jsonpath='{.items[0].metadata.name}')
+
+    # Create backup using MinIO client
+    kubectl exec -n "$NAMESPACE" "$MINIO_POD" -- \
+      mc mirror /data /tmp/backup/
+
+    # Compress backup
+    tar -czf /tmp/backup/backup.tar.gz -C /tmp/backup/ .
+
+    # Upload to S3/MinIO
+    aws s3 cp /tmp/backup/backup.tar.gz "${OUTPUT}${BACKUP_NAME}"
+
+    echo "Backup completed: ${OUTPUT}${BACKUP_NAME}"
+  {{- end }}
+
+  {{- if .Values.backup.components.airflow }}
+  airflow-backup.sh: |
+    #!/bin/bash
+    set -e
+    NAMESPACE="${1:-spark-operations}"
+    OUTPUT="${2:-s3://spark-backups/airflow/}"
+    BACKUP_NAME="airflow-backup-$(date +%Y%m%d-%H%M%S).sql"
+
+    echo "Creating Airflow backup..."
+
+    # Get PostgreSQL pod
+    POSTGRES_POD=$(kubectl get pods -n "$NAMESPACE" -l app=airflow-postgres -o jsonpath='{.items[0].metadata.name}')
+
+    # Get database credentials
+    DB_NAME=$(kubectl get secret -n "$NAMESPACE" airflow-postgres -o jsonpath='{.data.POSTGRES_DB}' | base64 -d)
+    DB_USER=$(kubectl get secret -n "$NAMESPACE" airflow-postgres -o jsonpath='{.data.POSTGRES_USER}' | base64 -d)
+    DB_PASS=$(kubectl get secret -n "$NAMESPACE" airflow-postgres -o jsonpath='{.data.POSTGRES_PASSWORD}' | base64 -d)
+
+    # Create backup
+    kubectl exec -n "$NAMESPACE" "$POSTGRES_POD" -- \
+      pg_dump -U "$DB_USER" -d "$DB_NAME" > /tmp/backup/backup.sql
+
+    # Upload to S3/MinIO
+    aws s3 cp /tmp/backup/backup.sql "${OUTPUT}${BACKUP_NAME}"
+
+    echo "Backup completed: ${OUTPUT}${BACKUP_NAME}"
+  {{- end }}
+
+  {{- if .Values.backup.components.mlflow }}
+  mlflow-backup.sh: |
+    #!/bin/bash
+    set -e
+    NAMESPACE="${1:-spark-operations}"
+    OUTPUT="${2:-s3://spark-backups/mlflow/}"
+    BACKUP_NAME="mlflow-backup-$(date +%Y%m%d-%H%M%S).sql"
+
+    echo "Creating MLflow backup..."
+
+    # Get MLflow database pod
+    DB_POD=$(kubectl get pods -n "$NAMESPACE" -l app=mlflow-db -o jsonpath='{.items[0].metadata.name}')
+
+    # Get database credentials
+    DB_NAME=$(kubectl get secret -n "$NAMESPACE" mlflow-db -o jsonpath='{.data.DB_NAME}' | base64 -d)
+    DB_USER=$(kubectl get secret -n "$NAMESPACE" mlflow-db -o jsonpath='{.data.DB_USER}' | base64 -d)
+    DB_PASS=$(kubectl get secret -n "$NAMESPACE" mlflow-db -o jsonpath='{.data.DB_PASS}' | base64 -d)
+
+    # Create backup
+    kubectl exec -n "$NAMESPACE" "$DB_POD" -- \
+      pg_dump -U "$DB_USER" -d "$DB_NAME" > /tmp/backup/backup.sql
+
+    # Upload to S3/MinIO
+    aws s3 cp /tmp/backup/backup.sql "${OUTPUT}${BACKUP_NAME}"
+
+    echo "Backup completed: ${OUTPUT}${BACKUP_NAME}"
+  {{- end }}
+---
+{{- end }}
+
+---
+{{- if .Values.backup.enabled }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "spark-base.fullname" . }}-backup
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "spark-base.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup
+{{- with .Values.backup.serviceAccount.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+{{- with .Values.backup.serviceAccount.imagePullSecrets }}
+imagePullSecrets:
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+{{- end }}
+
+---
+{{- if and .Values.backup.enabled .Values.backup.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "spark-base.fullname" . }}-backup
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "spark-base.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup
+rules:
+- apiGroups: [""]
+  resources: ["pods", "secrets", "configmaps"]
+  verbs: ["get", "list"]
+- apiGroups: ["batch"]
+  resources: ["jobs", "cronjobs"]
+  verbs: ["get", "list", "create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "spark-base.fullname" . }}-backup
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "spark-base.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "spark-base.fullname" . }}-backup
+subjects:
+- kind: ServiceAccount
+  name: {{ include "spark-base.fullname" . }}-backup
+  namespace: {{ .Release.Namespace }}
+{{- end }}

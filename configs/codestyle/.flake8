@@ -1,0 +1,53 @@
+[flake8]
+# Maximum line length
+max-line-length = 127
+
+# Exclude directories
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    build,
+    dist,
+    *.egg-info,
+
+# Error codes to ignore
+ignore =
+    # E203: Whitespace before ':' (conflicts with black)
+    E203,
+    # W503: Line break before binary operator (conflicts with black)
+    W503,
+    # E501: Line too long (handled by black)
+    E501,
+
+# Enable specific warnings
+enable-extensions =
+    # G: Gitlab security (bandit integration)
+    G,
+
+# Per-file ignores
+per-file-ignores =
+    # Test files can have longer lines
+    tests/*:E501
+    # __init__.py can have unused imports
+    __init__.py:F401
+
+# McCabe complexity
+max-complexity = 10
+
+# Docstring conventions
+docstring-convention = google
+
+# Import order
+import-order-style = google
+application-import-names = spark_k8s
+
+# Show source code for each error
+show-source = true
+
+# Count the number of occurrences of each error/warning code
+count = true
+
+# Print total number of errors to standard error
+statistics = true

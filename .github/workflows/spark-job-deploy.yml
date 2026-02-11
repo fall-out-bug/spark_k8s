@@ -1,0 +1,76 @@
+name: Spark Job Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: 'Image version (git SHA)'
+        required: true
+      approval:
+        description: 'Manager approval required for production'
+        required: false
+        type: boolean
+        default: true
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  promote-staging:
+    name: Promote to Staging
+    if: inputs.environment == 'staging'
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Deploy to staging
+        run: |
+          scripts/cicd/promote-job.sh \
+            --environment staging \
+            --image ${{ env.REGISTRY }}/spark-job:${{ inputs.version }} \
+            --version ${{ inputs.version }}
+
+      - name: Run integration tests
+        run: |
+          scripts/tests/integration/run-integration-tests.sh --environment staging
+
+  promote-production:
+    name: Promote to Production
+    if: inputs.environment == 'production'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Deploy to production
+        run: |
+          scripts/cicd/promote-job.sh \
+            --environment production \
+            --image ${{ env.REGISTRY }}/spark-job:${{ inputs.version }} \
+            --version ${{ inputs.version }}
+
+      - name: Wait for deployment
+        run: |
+          kubectl wait --for=condition=ready pod -l app=spark-job,version=${{ inputs.version }} -n spark-production --timeout=10m
+
+      - name: Run production smoke tests
+        run: |
+          scripts/cicd/smoke-test-job.sh --environment production
+
+      - name: Monitor for 30 minutes
+        run: |
+          scripts/cicd/monitor-deployment.sh --duration 30m

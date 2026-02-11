@@ -1,0 +1,29 @@
+{{- if .Values.keda.enabled }}
+{{- if .Capabilities.APIVersions.Has "keda.sh/v1alpha1" }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "spark-operator.fullname" . }}-executor-scaler
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "spark-operator.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: sparkoperator.k8s.io/v1beta2
+    kind: SparkApplication
+    name: {{ .Values.keda.targetSparkApplication | default "spark-app" }}
+  pollingInterval: {{ .Values.keda.pollingInterval | default 30 }}
+  cooldownPeriod: {{ .Values.keda.cooldownPeriod | default 300 }}
+  minReplicaCount: {{ .Values.keda.minReplicaCount | default 1 }}
+  maxReplicaCount: {{ .Values.keda.maxReplicaCount | default 20 }}
+  {{- with .Values.keda.triggers }}
+  triggers:
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+  {{- with .Values.keda.fallback }}
+  fallback:
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
+---
+{{- end }}
+{{- end }}

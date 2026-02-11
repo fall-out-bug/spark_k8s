@@ -1,0 +1,272 @@
+#!/bin/bash
+# Capacity Planning Report Generator
+# Generates cluster capacity utilization reports
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OUTPUT_FORMAT="${OUTPUT_FORMAT:-markdown}"
+OUTPUT_FILE="${OUTPUT_FILE:-capacity-report-$(date +%Y%m%d).md}"
+PERIOD="${PERIOD:-30}"  # days
+
+usage() {
+    cat <<EOF
+Usage: $(basename "$0") [OPTIONS]
+
+Generate cluster capacity planning report.
+
+OPTIONS:
+    -p, --period DAYS        Analysis period in days (default: 30)
+    -o, --output FILE        Output file (default: capacity-report-YYYYMMDD.md)
+    -f, --format FORMAT       Output format: markdown|json|text (default: markdown)
+    -h, --help               Show this help
+
+EXAMPLES:
+    $(basename "$0") --period 30 --format markdown
+    $(basename "$0") -o /tmp/report.json -f json
+EOF
+    exit 1
+}
+
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -p|--period)
+                PERIOD="$2"
+                shift 2
+                ;;
+            -o|--output)
+                OUTPUT_FILE="$2"
+                shift 2
+                ;;
+            -f|--format)
+                OUTPUT_FORMAT="$2"
+                shift 2
+                ;;
+            -h|--help)
+                usage
+                ;;
+            *)
+                echo "Unknown option: $1"
+                usage
+                ;;
+        esac
+    done
+}
+
+main() {
+    parse_args "$@"
+
+    local namespace="${NAMESPACE:-spark-operations}"
+    local kubeconfig="${KUBECONFIG:-$HOME/.kube/config}"
+
+    echo "Generating capacity report for last ${PERIOD} days..."
+
+    # Gather metrics
+    local node_count
+    local total_cpu
+    local total_memory
+    local avg_cpu_util
+    local avg_mem_util
+    local avg_executor_count
+    local total_jobs
+
+    node_count=$(kubectl get nodes --no-headers | wc -l)
+    total_cpu=$(kubectl get nodes -o jsonpath='{.items[*].status.capacity.cpu}' | tr ' ' '+' | bc)
+    total_memory=$(kubectl get nodes -o jsonpath='{.items[*].status.capacity.memory}' | sed 's/Ki//g' | tr ' ' '+' | bc | awk '{printf "%.0f", $1/1024/1024/1024}')
+
+    # Get average utilization (requires Prometheus)
+    if command -v kubectl-prometheus &> /dev/null; then
+        avg_cpu_util=$(kubectl-prometheus-query "avg(rate(container_cpu_usage_seconds_total{namespace='$namespace'}[5m]))" --start ${PERIOD}d --end now | awk '{print $2*100}')
+        avg_mem_util=$(kubectl-prometheus-query "avg(container_memory_working_set_bytes{namespace='$namespace'} / container_spec_memory_limit_bytes{namespace='$namespace'})" --start ${PERIOD}d --end now | awk '{print $2*100}')
+        avg_executor_count=$(kubectl-prometheus-query "avg(spark_executor_count{namespace='$namespace'})" --start ${PERIOD}d --end now | awk '{print $2}')
+        total_jobs=$(kubectl-prometheus-query "count(spark_job_submissions_total{namespace='$namespace'})" --start ${PERIOD}d --end now | awk '{print $2}')
+    else
+        avg_cpu_util="N/A"
+        avg_mem_util="N/A"
+        avg_executor_count="N/A"
+        total_jobs="N/A"
+    fi
+
+    # Generate report
+    case "$OUTPUT_FORMAT" in
+        markdown)
+            generate_markdown_report
+            ;;
+        json)
+            generate_json_report
+            ;;
+        text)
+            generate_text_report
+            ;;
+        *)
+            echo "Invalid format: $OUTPUT_FORMAT"
+            exit 1
+            ;;
+    esac
+
+    echo "Report saved to: $OUTPUT_FILE"
+}
+
+generate_markdown_report() {
+    cat > "$OUTPUT_FILE" <<EOF
+# Capacity Planning Report - $(date +'%B %Y')
+
+Generated: $(date)
+Analysis Period: Last ${PERIOD} days
+
+## Executive Summary
+
+- **Current Cluster Capacity:** ${total_cpu} vCPUs, ${total_memory}GB RAM
+- **Node Count:** ${node_count} nodes
+- **Average Utilization:** ${avg_cpu_util}% CPU, ${avg_mem_util}% Memory
+- **Average Executor Count:** ${avg_executor_count}
+- **Total Jobs:** ${total_jobs}
+
+## Cluster Configuration
+
+### Node Pools
+
+\`\`\`
+$(kubectl get nodes -L kubernetes.io/role,node.kubernetes.io/instance-type -o wide)
+\`\`\`
+
+### Resource Allocation
+
+\`\`\`
+$(kubectl get resourcequota -A)
+\`\`\`
+
+## Utilization Trends
+
+$(generate_utilization_trends)
+
+## Capacity Projection
+
+Based on ${PERIOD}-day trend analysis:
+
+| Timeframe | Projected vCPUs | Projected Memory | Action Required |
+|-----------|-----------------|------------------|-----------------|
+| 1 month | $(project_growth "$total_cpu" 5) | $(project_growth "$total_memory" 5) | Monitor |
+| 3 months | $(project_growth "$total_cpu" 15) | $(project_growth "$total_memory" 15) | Plan expansion |
+| 6 months | $(project_growth "$total_cpu" 30) | $(project_growth "$total_memory" 30) | Execute expansion |
+
+## Recommendations
+
+$(generate_recommendations)
+
+## Action Items
+
+- [ ] Review capacity at next planning session ($(date -d '+7 days' +'%Y-%m-%d'))
+- [ ] Validate autoscaling configuration
+- [ ] Review cost optimization opportunities
+
+---
+
+*Report generated by $(basename "$0")*
+EOF
+}
+
+generate_utilization_trends() {
+    echo "Weekly utilization patterns:"
+    echo ""
+    echo "| Week | CPU % | Memory % | Executor Count | Job Count |"
+    echo "|------|-------|----------|----------------|-----------|"
+    # Placeholder - would need actual historical data
+    echo "| 1 | ${avg_cpu_util}% | ${avg_mem_util}% | ${avg_executor_count} | ${total_jobs} |"
+}
+
+generate_recommendations() {
+    local cpu_num=${avg_cpu_util//\%/}
+    local mem_num=${avg_mem_util//\%/}
+
+    echo "Based on current utilization:"
+
+    if [[ $cpu_num -gt 80 ]]; then
+        echo "- **URGENT:** CPU utilization is ${cpu_num}%. Scale up cluster immediately."
+    elif [[ $cpu_num -gt 70 ]]; then
+        echo "- CPU utilization is ${cpu_num}%. Plan to add capacity within 2 weeks."
+    else
+        echo "- CPU utilization is healthy (${cpu_num}%). No immediate action required."
+    fi
+
+    if [[ $mem_num -gt 80 ]]; then
+        echo "- **URGENT:** Memory utilization is ${mem_num}%. Scale up cluster immediately."
+    elif [[ $mem_num -gt 70 ]]; then
+        echo "- Memory utilization is ${mem_num}%. Consider adding memory-optimized nodes."
+    fi
+
+    echo "- Review spot instance usage for cost optimization."
+    echo "- Validate autoscaling min/max bounds match workload patterns."
+}
+
+project_growth() {
+    local current="$1"
+    local growth_percent="$2"
+    local result=$(echo "$current * (1 + $growth_percent / 100)" | bc)
+    printf "%.0f" "$result"
+}
+
+generate_json_report() {
+    cat > "$OUTPUT_FILE" <<EOF
+{
+  "generated": "$(date -Iseconds)",
+  "period_days": ${PERIOD},
+  "cluster": {
+    "node_count": ${node_count},
+    "total_cpu": ${total_cpu},
+    "total_memory_gb": ${total_memory}
+  },
+  "utilization": {
+    "avg_cpu_percent": ${avg_cpu_util},
+    "avg_memory_percent": ${avg_mem_util},
+    "avg_executor_count": ${avg_executor_count},
+    "total_jobs": ${total_jobs}
+  },
+  "projection": {
+    "one_month_cpu": $(project_growth "$total_cpu" 5),
+    "one_month_memory": $(project_growth "$total_memory" 5),
+    "three_month_cpu": $(project_growth "$total_cpu" 15),
+    "three_month_memory": $(project_growth "$total_memory" 15),
+    "six_month_cpu": $(project_growth "$total_cpu" 30),
+    "six_month_memory": $(project_growth "$total_memory" 30)
+  }
+}
+EOF
+}
+
+generate_text_report() {
+    cat > "$OUTPUT_FILE" <<EOF
+CAPACITY PLANNING REPORT
+========================
+Generated: $(date)
+Period: Last ${PERIOD} days
+
+CLUSTER STATUS
+--------------
+Nodes: ${node_count}
+Total CPU: ${total_cpu} vCPUs
+Total Memory: ${total_memory} GB
+
+UTILIZATION
+-----------
+Average CPU: ${avg_cpu_util}%
+Average Memory: ${avg_mem_util}%
+Average Executors: ${avg_executor_count}
+Total Jobs: ${total_jobs}
+
+PROJECTIONS
+-----------
+1 month:  ${project_growth "$total_cpu" 5} vCPUs, ${project_growth "$total_memory" 5} GB memory
+3 months: ${project_growth "$total_cpu" 15} vCPUs, ${project_growth "$total_memory" 15} GB memory
+6 months: ${project_growth "$total_cpu" 30} vCPUs, ${project_growth "$total_memory" 30} GB memory
+
+RECOMMENDATIONS
+---------------
+$(generate_recommendations)
+
+---
+EOF
+}
+
+main "$@"

@@ -1,0 +1,34 @@
+{{- if .Values.vpa.enabled }}
+{{- range $component, $config := .Values.vpa.components }}
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: {{ include "spark-operator.fullname" $ }}-{{ $component }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "spark-operator.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $component }}
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: {{ $config.kind | default "StatefulSet" }}
+    name: {{ include "spark-operator.fullname" $ }}-{{ $component }}
+  updatePolicy:
+    updateMode: {{ $config.updateMode | default "Off" }}
+  resourcePolicy:
+    containerPolicies:
+    - containerName: "*"
+      minAllowed:
+        cpu: {{ $config.minAllowed.cpu | default "250m" }}
+        memory: {{ $config.minAllowed.memory | default "512Mi" }}
+      maxAllowed:
+        cpu: {{ $config.maxAllowed.cpu | default "4000m" }}
+        memory: {{ $config.maxAllowed.memory | default "8Gi" }}
+      controlledResources:
+      {{- $config.controlledResources | default (list "cpu" "memory") | toYaml }}
+    {{- if $config.containerPolicies }}
+    {{- $config.containerPolicies | toYaml | nindent 4 }}
+    {{- end }}
+---
+{{- end }}
+{{- end }}
