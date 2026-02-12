@@ -1,4 +1,4 @@
-{{- if .Values.keda.enabled }}
+{{- if and .Values.keda .Values.keda.enabled }}
 {{- if .Capabilities.APIVersions.Has "keda.sh/v1alpha1" }}
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject

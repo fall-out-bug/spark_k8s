@@ -1,4 +1,4 @@
-{{- if .Values.hpa.enabled }}
+{{- if and .Values.hpa .Values.hpa.enabled }}
 {{- range $component, $config := .Values.hpa.components }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
