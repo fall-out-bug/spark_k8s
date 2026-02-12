@@ -311,17 +311,97 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-      - name: Run critical scenario
+      - name: Install dependencies
         run: |
-          scenario="scripts/tests/smoke/scenarios/${{ matrix.scenario }}.sh"
-          chmod +x "$scenario"
+          # Install Python dependencies
+          pip install pytest pyyaml kubernetes
 
-          namespace="spark-test-critical-${{ matrix.scenario }}"
-          release="spark-critical-${{ matrix.scenario }}"
+      - name: Run critical scenario
+        env:
+          SCENARIO: ${{ matrix.scenario }}
+        run: |
+          set -euo pipefail
 
-          if "$scenario" "$namespace" "$release"; then
-            echo "✅ Critical scenario ${{ matrix.scenario }} PASSED"
-          else
-            echo "❌ Critical scenario ${{ matrix.scenario }} FAILED"
+          # Run scenario script directly
+          scenario_script="scripts/tests/smoke/scenarios/${SCENARIO}.sh"
+
+          if [ ! -f "$scenario_script" ]; then
+            echo "Error: Scenario script not found: $scenario_script"
             exit 1
           fi
+
+          echo "Running scenario: ${SCENARIO}"
+          chmod +x "$scenario_script"
+
+          # Create unique namespace and release for this test
+          namespace="spark-test-critical-${SCENARIO}-${RANDOM}"
+          release="spark-critical-${SCENARIO}-${RANDOM}"
+
+          export TEST_NAMESPACE="$namespace"
+          export TEST_RELEASE="$release"
+
+          # Create test results directory
+          mkdir -p test-results
+
+          # Track test start time
+          start_time=$(date +%s)
+
+          # Run scenario
+          if "$scenario_script" "$namespace" "$release"; then
+            end_time=$(date +%s)
+            duration=$((end_time - start_time))
+            echo "✅ Critical scenario ${SCENARIO} PASSED (duration: ${duration}s)"
+
+            # Create result JSON for aggregation
+            cat > "test-results/${SCENARIO}.json" <<EOF
+          {
+            "scenario": "${SCENARIO}",
+            "status": "passed",
+            "duration": ${duration},
+            "namespace": "${namespace}",
+            "release": "${release}",
+            "timestamp": "$(date -Iseconds)"
+          }
+          EOF
+          else
+            exit_code=${?}
+            end_time=$(date +%s)
+            duration=$((end_time - start_time))
+            echo "❌ Critical scenario ${SCENARIO} FAILED (duration: ${duration}s, exit code: ${exit_code})"
+
+            # Create result JSON for aggregation
+            cat > "test-results/${SCENARIO}.json" <<EOF
+          {
+            "scenario": "${SCENARIO}",
+            "status": "failed",
+            "exit_code": ${exit_code},
+            "duration": ${duration},
+            "namespace": "${namespace}",
+            "release": "${release}",
+            "timestamp": "$(date -Iseconds)",
+            "error": "Test failed with exit code ${exit_code}"
+          }
+          EOF
+            exit 1
+          fi
+
+      - name: Collect logs on failure
+        if: failure()
+        run: |
+          namespace="spark-test-critical-${{ matrix.scenario }}"
+          echo "Collecting logs from namespace: $namespace"
+          kubectl logs -n "$namespace" --all-containers=true=true --max-log-requests=10 || true
+
+      - name: Cleanup namespace
+        if: always()
+        run: |
+          namespace="spark-test-critical-${{ matrix.scenario }}"
+          kubectl delete namespace "$namespace" --ignore-not-found=true --wait=true || true
+
+      - name: Upload test result artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: critical-result-${{ matrix.scenario }}
+          path: test-results/${{ matrix.scenario }}.json
+          retention-days: 1
