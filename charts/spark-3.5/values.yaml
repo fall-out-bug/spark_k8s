@@ -334,6 +334,12 @@ connect:
     enabled: true
     dir: "s3a://spark-logs/events"
   sparkConf: {}
+  openTelemetry:
+    enabled: false
+    protocol: "grpc"
+    endpoint: "http://otel-collector:4317"
+    serviceName: "spark-connect-35"
+    samplingRatio: "1.0"
   extraLibraries:
     resource-wait-tracker:
       enabled: false

@@ -14,25 +14,26 @@ prometheus:
   serviceMonitors:
     namespace: spark-operations
     interval: 30s
-    - name: spark-driver
-      namespace: spark-operations
-      selector:
-        app: spark
-        spark-role: driver
-      endpoints:
-        - port: metrics
-          path: /metrics/prometheus
-      interval: 30s
-
-    - name: spark-executor
-      namespace: spark-operations
-      selector:
-        app: spark
-        spark-role: executor
-      endpoints:
-        - port: metrics
-          path: /metrics/prometheus
-      interval: 30s
+    # List of ServiceMonitor definitions (used by templates if iterating)
+    items:
+      - name: spark-driver
+        namespace: spark-operations
+        selector:
+          app: spark
+          spark-role: driver
+        endpoints:
+          - port: metrics
+            path: /metrics/prometheus
+        interval: 30s
+      - name: spark-executor
+        namespace: spark-operations
+        selector:
+          app: spark
+          spark-role: executor
+        endpoints:
+          - port: metrics
+            path: /metrics/prometheus
+        interval: 30s
 
   # PodMonitor for Spark driver pods
   podMonitors:

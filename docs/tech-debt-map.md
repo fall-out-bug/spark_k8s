@@ -41,13 +41,13 @@
 
 ### F25 — Spark 3.5 Charts Production-Ready
 
-| ID | Задача | Приоритет | Блокер |
-|----|--------|-----------|--------|
-| spark_k8s-pb8 | WS-025-11: Add prepare-nyc-taxi-data.sh | P2 | spark_k8s-ju2 |
-| spark_k8s-2f9 | WS-025-11: Add F25-load-test-report.md + report-template.md | P2 | spark_k8s-ju2 |
-| spark_k8s-7nn | WS-025-12: Verify/publish resource-wait-tracker JAR | P2 | spark_k8s-ju2 |
-| spark_k8s-bbk | WS-025-12: Add Job Phase Timeline + Spark Profiling links to observability-stack.md | P3 | spark_k8s-ju2 |
-| spark_k8s-y0m | Document LOC exemption for test-spark-35-minikube.sh (599 LOC) | P3 | spark_k8s-ju2 |
+| ID | Задача | Приоритет | Блокер | Статус |
+|----|--------|-----------|--------|--------|
+| spark_k8s-pb8 | WS-025-11: Add prepare-nyc-taxi-data.sh | P2 | spark_k8s-ju2 | ✅ CLOSED |
+| spark_k8s-2f9 | WS-025-11: Add F25-load-test-report.md + report-template.md | P2 | spark_k8s-ju2 | ✅ CLOSED |
+| spark_k8s-7nn | WS-025-12: Verify/publish resource-wait-tracker JAR | P2 | spark_k8s-ju2 | open |
+| spark_k8s-bbk | WS-025-12: Add Job Phase Timeline + Spark Profiling links to observability-stack.md | P3 | spark_k8s-ju2 | ✅ CLOSED |
+| spark_k8s-y0m | Document LOC exemption for test-spark-35-minikube.sh (599 LOC) | P3 | spark_k8s-ju2 | ✅ CLOSED |
 
 ---
 

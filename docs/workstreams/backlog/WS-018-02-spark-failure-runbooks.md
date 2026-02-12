@@ -56,7 +56,7 @@ depends_on: []
 ### 📊 Dependencies
 
 - F16: Observability (in progress)
-- WS-018-01: Incident Response Framework (in progress)
+- WS-018-01: Incident Response Framework (closed)
 
 ### 📈 Progress
 
