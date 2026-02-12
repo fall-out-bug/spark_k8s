@@ -11,9 +11,9 @@
 
 ## Current State
 
-**Реализовано (139 сценариев):**
+**Реализовано (144 сценария):**
 
-F08 completed. 139/139 smoke test scenarios created (jupyter 49, airflow 42, mlflow 48 + standalone, operator, history server, GPU, Iceberg, security, performance, load). See docs/reviews/F08-review.md.
+F08 completed. 144/144 smoke test scenarios created (jupyter 49, airflow 42, mlflow 48 + standalone, operator, history server, GPU, Iceberg, security, performance, load). See docs/reviews/F08-review.md.
 
 ## Workstreams
 
@@ -134,7 +134,7 @@ export DATASET_PATH="${PROJECT_ROOT}/scripts/tests/data/nyc-taxi-sample.parquet"
 ## Success Criteria
 
 1. ✅ **Baseline scenarios (15)** — созданы и проходят
-2. ⏳ **All scenarios (139)** — созданы
+2. ⏳ **All scenarios (144)** — созданы
 3. ⏳ **Sequential execution** — все проходят последовательно
 4. ⏳ **Parallel execution** — все проходят параллельно
 5. ✅ **YAML frontmatter** — в каждом сценарии

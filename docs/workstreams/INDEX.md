@@ -549,6 +549,8 @@ F06 (Phase 0), F07 (Phase 1), F11 (Phase 5) ────┐
 **Total Workstreams:** 5
 **Estimated LOC:** ~3000
 
+> **Note:** Canonical implementation is `spark_k8s-47g`. Earlier `spark_k8s-aaq` (CLOSED) used different WS structure (CPU/memory scaling, concurrent, failure) and is superseded by this implementation.
+
 | ID | Name | Scenarios | Dependency | Status |
 |----|------|-----------|------------|--------|
 | WS-013-01 | Baseline load | 4 | F06, F12 | completed |
@@ -649,8 +651,10 @@ F06, F08, F12, F13 ──── WS-015-01 (Parallel execution)
 ### Review Summary
 
 **Review Date:** 2026-02-10  
-**Verdict:** ❌ CHANGES REQUESTED  
-**Blockers:** generate_html.py 203 LOC; smoke workflow doesn't use run_parallel+aggregate pipeline.
+**Verdict:** ⚠️ CHANGES REQUESTED (reduced)  
+**Blockers:** None critical. Remaining: WS-015-01 AC6 retry; scheduled-tests.yml.
+
+**Fixed:** generate_html.py 158 LOC; smoke workflow uses aggregate pipeline.
 
 See `docs/reports/review-F15-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F15-parallel.md`.
 
@@ -688,8 +692,10 @@ F06 ─────────────────────────�
 ### Review Summary
 
 **Review Date:** 2026-02-10  
-**Verdict:** ❌ CHANGES REQUESTED  
-**Blockers:** grafana values.yaml YAML error; prometheus/loki wrong template scope; test_observability.py 218 LOC.
+**Verdict:** ⚠️ CHANGES REQUESTED (reduced)  
+**Blockers:** grafana helm dependency build; test_observability.py 218 LOC.
+
+**Fixed:** prometheus values.yaml YAML; prometheus helm dependency; prometheus/loki templates (spark scope).
 
 See `docs/reports/review-F16-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F16-observability.md`.
 
@@ -723,7 +729,9 @@ F06, F11 ──── WS-017-01 (Go client library)
 
 **Review Date:** 2026-02-10  
 **Verdict:** ❌ CHANGES REQUESTED  
-**Status:** Not implemented. Skeleton exists (go.mod, dirs). Spec gaps: Spark Connect Go 404, API alignment, CI.
+**Status:** Not implemented. No .go files. Skeleton: go.mod, client/smoke/e2e/load READMEs.
+
+**Fixed (beads):** ecz API alignment; 85e proto source. **Remaining:** WS-017-01..04 implementation; bok CI.
 
 See `docs/reports/review-F17-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F17-go-client.md`.
 
@@ -746,8 +754,8 @@ See `docs/reports/review-F17-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F17-g
 ### Review Summary
 
 **Review Date:** 2026-02-10  
-**Verdict:** ❌ CHANGES REQUESTED  
-**Blockers:** F18 not in INDEX; test_runbooks.py has 0 pytest tests; WS-018-01 partial.
+**Verdict:** ✅ APPROVED  
+**Fixed (beads):** yck (test_runbooks pytest), 117 (WS-018-01 deliverables), 7xp (F16 refs), 6ki (ops scripts LOC).
 
 See `docs/reports/review-F18-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F18-operations.md`.
 
@@ -824,7 +832,7 @@ WS-025-01 (Fix metadata)     WS-025-02 (Standalone)     WS-025-05 (Routes)
 
 **Review Date:** 2026-02-10  
 **Verdict:** ✅ APPROVED (WS-025-01..10)  
-**Blockers:** None  
+**Fixed (beads):** ju2.4 — helm template connect.openTelemetry; y0m — loc exemption; pb8, 2f9 deliverables exist (blocked by parent).
 
 See `docs/reports/review-F25-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F25-spark-35-charts.md`.
 

@@ -70,6 +70,47 @@ jobs:
           # Add scalastyle plugin to sbt
           sbt scalastyle
 
+  go-validation:
+    name: Go Code Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: true
+          cache-dependency-path: tests/go/go.sum
+
+      - name: Download Go dependencies
+        working-directory: tests/go
+        run: go mod download
+
+      - name: Run go fmt (formatter check)
+        working-directory: tests/go
+        run: |
+          fmt_output=$(gofmt -l .)
+          if [ -n "$fmt_output" ]; then
+            echo "The following files need formatting:"
+            echo "$fmt_output"
+            exit 1
+          fi
+
+      - name: Run go vet (linter)
+        working-directory: tests/go
+        run: go vet ./...
+
+      - name: Run Go tests
+        working-directory: tests/go
+        run: go test -v -race -coverprofile=coverage.txt ./...
+
+      - name: Upload Go coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: go-coverage
+          path: tests/go/coverage.txt
+
   dependency-scan:
     name: Dependency Scanning
     runs-on: ubuntu-latest
