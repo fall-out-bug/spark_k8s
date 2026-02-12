@@ -1,6 +1,6 @@
 # Phase 5: Docker Final Images
 
-> **Status:** Backlog
+> **Status:** Completed
 > **Priority:** P1 - Инфраструктура для GPU/Iceberg
 > **Feature:** F11
 > **Estimated Workstreams:** 3
@@ -12,15 +12,15 @@
 
 ## Current State
 
-**Не реализовано** — Phase 5 только начинается.
+**F11 completed** — 16 runtime images created (Spark 8 + Jupyter 12), all tests passed (60/60 per F11-F12-review-report).
 
 ## Updated Workstreams
 
 | WS | Task | Scope | Dependencies | Status |
 |----|------|-------|-------------|--------|
-| WS-011-01 | Spark 3.5 images (8) + tests | LARGE (~1200 LOC) | Phase 4 (F10) | backlog |
-| WS-011-02 | Spark 4.1 images (8) + tests | LARGE (~1200 LOC) | Phase 4 (F10) | backlog |
-| WS-011-03 | Jupyter images (12) + tests | LARGE (~1500 LOC) | Phase 4 (F10) | backlog |
+| WS-011-01 | Spark 3.5 images (8) + tests | LARGE (~1200 LOC) | Phase 4 (F10) | completed |
+| WS-011-02 | Spark 4.1 images (8) + tests | LARGE (~1200 LOC) | Phase 4 (F10) | completed |
+| WS-011-03 | Jupyter images (12) + tests | LARGE (~1500 LOC) | Phase 4 (F10) | completed |
 
 ## Design Decisions
 
