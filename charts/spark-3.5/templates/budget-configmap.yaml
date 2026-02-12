@@ -1,0 +1,59 @@
+{{/*
+Budget Configuration ConfigMap
+Defines budget limits and alert thresholds per namespace
+*/}}
+{{- if .Values.budget.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spark.fullname" . }}-budget-limits
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "spark.labels" . | nindent 4 }}
+    app.kubernetes.io/component: budget
+data:
+  # Budget limit in USD for the billing period
+  limit: {{ .Values.budget.limit | default "10000" | quote }}
+
+  # Billing period: daily, weekly, or monthly
+  period: {{ .Values.budget.period | default "monthly" }}
+
+  # Currency: USD, EUR, etc.
+  currency: {{ .Values.budget.currency | default "USD" }}
+
+  # Alert thresholds (percentage)
+  warningThreshold: {{ .Values.budget.warningThreshold | default "50" | quote }}
+  criticalThreshold: {{ .Values.budget.criticalThreshold | default "80" | quote }}
+
+  # Alert recipients
+  alertEmails: {{ .Values.budget.alertEmails | default "team@company.com" | quote }}
+
+  # Whether to block jobs when budget is exceeded
+  blockOnExceed: {{ .Values.budget.blockOnExceed | default "false" | quote }}
+
+  # Labels for jobs that are exempt from budget blocks
+  exemptLabels: {{ .Values.budget.exemptLabels | default "criticality:essential" | quote }}
+{{- end }}
+
+---
+{{/*
+Budget Override Secret
+For temporary emergency budget overrides
+*/}}
+{{- if .Values.budget.overrideEnabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "spark.fullname" . }}-budget-override
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "spark.labels" . | nindent 4 }}
+    app.kubernetes.io/component: budget
+type: Opaque
+stringData:
+  # Override reason
+  reason: {{ .Values.budget.overrideReason | default "emergency" | quote }}
+
+  # Override expiration (RFC3339 timestamp)
+  until: {{ .Values.budget.overrideUntil | default "" | quote }}
+{{- end }}

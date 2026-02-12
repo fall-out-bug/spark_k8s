@@ -1,0 +1,211 @@
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  validate-pr:
+    name: Validate PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements-test.txt
+
+      - name: Check PR description
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            if (!pr.body || pr.body.length < 50) {
+              core.setFailed('PR description must be at least 50 characters');
+            }
+
+      - name: Check for linked issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const issueRegex = /(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s+#\d+/gi;
+            if (!issueRegex.test(pr.body)) {
+              core.warning('PR should link to an issue it resolves');
+            }
+
+      - name: Check commit messages
+        run: |
+          ./scripts/cicd/validate-commits.sh \
+            --target-branch ${{ github.base_ref }}
+
+      - name: Check for TODO/FIXME
+        run: |
+          TODO_COUNT=$(git diff origin/${{ github.base_ref }} --name-only | xargs grep -l "TODO\|FIXME" | wc -l)
+          if [ $TODO_COUNT -gt 0 ]; then
+            echo "Warning: $TODO_COUNT files with TODO/FIXME added"
+          fi
+
+      - name: Check file size limits
+        run: |
+          ./scripts/cicd/check-file-sizes.sh \
+            --max-size 200 \
+            --ref origin/${{ github.base_ref }}
+
+      - name: Validate documentation
+        run: |
+          # Check for new files requiring docs
+          NEW_FILES=$(git diff --name-only --diff-filter=A origin/${{ github.base_ref }} src/ || true)
+          if [ -n "$NEW_FILES" ]; then
+            echo "New source files detected. Ensure documentation is updated."
+            echo "$NEW_FILES"
+          fi
+
+      - name: Run quick tests
+        run: |
+          pytest tests/unit/ -v -x --tb=short --timeout=120
+
+      - name: Code quality checks
+        run: |
+          ./scripts/cicd/lint-python.sh --dir src/
+          ./scripts/cicd/lint-scala.sh --dir src/main/scala/
+
+      - name: Security scan
+        run: |
+          ./scripts/cicd/scan-dependencies.sh --project-dir . --language all
+
+      - name: Generate PR checklist
+        run: |
+          python scripts/cicd/generate-pr-checklist.py \
+            --pr-number ${{ github.event.pull_request.number }} \
+            --output checklist.md
+
+      - name: Comment checklist
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const checklist = fs.readFileSync('checklist.md', 'utf8');
+
+            // Find existing comment
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.data.find(c =>
+              c.user.type === 'Bot' && c.body.includes('## PR Validation Checklist')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: checklist
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: checklist
+              });
+            }
+
+      - name: Set PR status
+        uses: actions/github-script@v7
+        if: success()
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: 'success',
+              context: 'PR Validation',
+              description: 'All PR checks passed'
+            });
+
+  estimate-review-time:
+    name: Estimate Review Time
+    runs-on: ubuntu-latest
+    needs: validate-pr
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate PR size
+        id: pr-size
+        run: |
+          ADDED_LINES=$(git diff origin/${{ github.base_ref }} --numstat | awk '{sum+=$1} END {print sum}')
+          DELETED_LINES=$(git diff origin/${{ github.base_ref }} --numstat | awk '{sum+=$2} END {print sum}')
+          CHANGED_FILES=$(git diff origin/${{ github.base_ref }} --name-only | wc -l)
+
+          echo "added=$ADDED_LINES" >> $GITHUB_OUTPUT
+          echo "deleted=$DELETED_LINES" >> $GITHUB_OUTPUT
+          echo "files=$CHANGED_FILES" >> $GITHUB_OUTPUT
+
+          # Categorize PR size
+          if [ $CHANGED_FILES -lt 5 ] && [ $ADDED_LINES -lt 200 ]; then
+            echo "size=XS" >> $GITHUB_OUTPUT
+            echo "time=15" >> $GITHUB_OUTPUT
+          elif [ $CHANGED_FILES -lt 10 ] && [ $ADDED_LINES -lt 500 ]; then
+            echo "size=S" >> $GITHUB_OUTPUT
+            echo "time=30" >> $GITHUB_OUTPUT
+          elif [ $CHANGED_FILES -lt 20 ] && [ $ADDED_LINES -lt 1000 ]; then
+            echo "size=M" >> $GITHUB_OUTPUT
+            echo "time=45" >> $GITHUB_OUTPUT
+          else
+            echo "size=L" >> $GITHUB_OUTPUT
+            echo "time=60" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Post estimate
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const size = '${{ steps.pr-size.outputs.size }}';
+            const time = '${{ steps.pr-size.outputs.time }}';
+            const added = '${{ steps.pr-size.outputs.added }}';
+            const deleted = '${{ steps.pr-size.outputs.deleted }}';
+            const files = '${{ steps.pr-size.outputs.files }}';
+
+            const comment = `## PR Review Time Estimate
+
+| Metric | Value |
+|--------|-------|
+| Size | ${size} |
+| Files changed | ${files} |
+| Lines added | ${added} |
+| Lines deleted | ${deleted} |
+| **Estimated review time** | **~${time} minutes** |
+
+${size === 'L' ? '⚠️ This is a large PR. Consider splitting it if possible.' : '✅ PR size is manageable.'}
+            `;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
