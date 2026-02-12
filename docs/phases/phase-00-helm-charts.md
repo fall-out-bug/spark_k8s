@@ -1,6 +1,6 @@
 # Phase 0: Helm Charts Update
 
-> **Status:** Draft
+> **Status:** Completed
 > **Priority:** P0 - Foundation for all tests
 > **Estimated Workstreams:** 8-12
 > **Estimated LOC:** ~4000

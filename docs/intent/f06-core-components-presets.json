@@ -1,7 +1,7 @@
 {
   "feature_id": "F06",
   "title": "Phase 0: Core Components + Feature Presets",
-  "status": "draft",
+  "status": "completed",
   "created": "2026-02-02",
   "problem": "Spark K8s Constructor has completed features F01-F05, but Phase 0 foundation work is needed. Updated PRODUCT_VISION.md emphasizes Core Components (Hive Metastore, Minio, History Server) as mandatory for any build. DevOps Engineers need production-ready configurations with Core Components as foundation.",
   "users": [
