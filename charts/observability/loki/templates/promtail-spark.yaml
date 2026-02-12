@@ -7,10 +7,12 @@ This Promtail configuration scrapes Spark logs from pods and sends them to Loki.
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "spark.name" . }}-promtail-config
-  namespace: {{ include "spark.namespace" . }}
+  name: {{ .Release.Name }}-promtail-config
+  namespace: {{ .Release.Namespace }}
   labels:
     app: spark
+    chart: {{ .Chart.Name }}
+    release: {{ .Release.Name }}
 data:
   promtail.yaml: |
     server:

@@ -1,5 +1,8 @@
 # Loki values for Spark log aggregation on Kubernetes
 
+# Global namespace configuration for Spark logs
+targetNamespace: spark-operations
+
 loki:
   enabled: true
   # Loki configuration

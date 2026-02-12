@@ -3,12 +3,17 @@
 # This chart deploys Prometheus ServiceMonitors and PodMonitors
 # to scrape metrics from Spark pods' existing ServiceMonitor endpoints
 
+# Global namespace configuration for Spark metrics
+targetNamespace: spark-operations
+
 prometheus:
   # Enable Prometheus deployment
   enabled: true
 
-  # ServiceMonitor to scrape Spark ServiceMonitors
+  # Namespace where Spark pods are running
   serviceMonitors:
+    namespace: spark-operations
+    interval: 30s
     - name: spark-driver
       namespace: spark-operations
       selector:
