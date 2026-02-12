@@ -1,0 +1,132 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Cost Breakdown by Component",
+    "tags": ["cost", "spark"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "1h",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Cost by Component",
+        "type": "piechart",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "spark_job_cost_total{component=\"driver\"}",
+            "legendFormat": "Driver",
+            "refId": "A"
+          },
+          {
+            "expr": "spark_job_cost_total{component=\"executor\"}",
+            "legendFormat": "Executors",
+            "refId": "B"
+          },
+          {
+            "expr": "spark_job_cost_total{component=\"storage\"}",
+            "legendFormat": "Storage",
+            "refId": "C"
+          },
+          {
+            "expr": "spark_job_cost_total{component=\"network\"}",
+            "legendFormat": "Network",
+            "refId": "D"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Driver vs Executor Cost",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "USD",
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10
+            }
+          }
+        },
+        "targets": [
+          {
+            "expr": "rate(spark_job_cost_total{component=\"driver\"}[1h])",
+            "legendFormat": "Driver",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(spark_job_cost_total{component=\"executor\"}[1h])",
+            "legendFormat": "Executors",
+            "refId": "B"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Spot vs On-Demand Cost",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "USD",
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10
+            }
+          }
+        },
+        "targets": [
+          {
+            "expr": "sum(rate(spark_job_cost_total{instance_type=\"spot\"}[1h]))",
+            "legendFormat": "Spot",
+            "refId": "A"
+          },
+          {
+            "expr": "sum(rate(spark_job_cost_total{instance_type=\"on-demand\"}[1h]))",
+            "legendFormat": "On-Demand",
+            "refId": "B"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Cost per Job Type",
+        "type": "bargauge",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "targets": [
+          {
+            "expr": "sum by (job_type) (rate(spark_job_cost_total[1h]))",
+            "legendFormat": "{{job_type}}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Cost Distribution by Job",
+        "type": "table",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16},
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {"Time": true},
+              "sortBy": ["Value desc"],
+              "renameByName": {}
+            }
+          }
+        ],
+        "targets": [
+          {
+            "expr": "topk(20, sum by (job_id) (increase(spark_job_cost_total[24h])))",
+            "format": "table",
+            "instant": true,
+            "refId": "A"
+          }
+        ]
+      }
+    ]
+  }
+}

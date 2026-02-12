@@ -1,0 +1,145 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Cost Trends and Forecasting",
+    "tags": ["cost", "forecasting"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "1h",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Monthly Cost Trend",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 16, "x": 0, "y": 0},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "USD",
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10
+            }
+          }
+        },
+        "targets": [
+          {
+            "expr": "sum(increase(spark_job_cost_total[30d]))",
+            "legendFormat": "Total Cost",
+            "refId": "A"
+          },
+          {
+            "expr": "sum(increase(spark_job_cost_total{component=\"driver\"}[30d]))",
+            "legendFormat": "Driver",
+            "refId": "B"
+          },
+          {
+            "expr": "sum(increase(spark_job_cost_total{component=\"executor\"}[30d]))",
+            "legendFormat": "Executors",
+            "refId": "C"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Cost Forecast",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 16, "x": 0, "y": 8},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "USD",
+            "custom": {
+              "lineStyle": {
+                "dash": [5, 5]
+              }
+            }
+          }
+        },
+        "targets": [
+          {
+            "expr": "predict_linear(spark_job_cost_total[7d:])[7d:]",
+            "legendFormat": "Forecast",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Team Cost Trend",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 16, "x": 0, "y": 16},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "USD",
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10
+            }
+          }
+        },
+        "targets": [
+          {
+            "expr": "sum by (team) (increase(spark_job_cost_total[30d]))",
+            "legendFormat": "{{team}}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Cost Growth Rate",
+        "type": "gauge",
+        "gridPos": {"h": 6, "w": 8, "x": 0, "y": 24},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": -20,
+            "max": 50,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": -10, "color": "green"},
+                {"value": 0, "color": "yellow"},
+                {"value": 10, "color": "orange"},
+                {"value": 20, "color": "red"}
+              ]
+            }
+          }
+        },
+        "targets": [
+          {
+            "expr": "((spark_job_cost_total offset 30d) / (spark_job_cost_total offset 60d) - 1) * 100",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Forecast vs Actual",
+        "type": "timeseries",
+        "gridPos": {"h": 6, "w": 8, "x": 8, "y": 24},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "USD",
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10
+            }
+          }
+        },
+        "targets": [
+          {
+            "expr": "spark_job_cost_total",
+            "legendFormat": "Actual",
+            "refId": "A"
+          },
+          {
+            "expr": "predict_linear(spark_job_cost_total[30d])[30d:]",
+            "legendFormat": "Forecast",
+            "refId": "B"
+          }
+        ]
+      }
+    ]
+  }
+}
