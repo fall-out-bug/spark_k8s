@@ -120,12 +120,21 @@ data:
     spark.celeborn.client.spark.shuffle.writer=hash
     spark.celeborn.client.spark.fetch.throwsFetchFailure=true
     {{- end }}
-    {{- if .Values.monitoring.openTelemetry.enabled }}
+    {{- if .Values.connect.openTelemetry.enabled }}
     # OpenTelemetry configuration
-    spark.otel.exporter.protocol={{ .Values.monitoring.openTelemetry.protocol }}
-    spark.otel.exporter.endpoint={{ .Values.monitoring.openTelemetry.endpoint }}
-    spark.otel.resource.attributes={{ printf "service.name=%s" .Values.monitoring.openTelemetry.serviceName }}
-    spark.otel.sampling.ratio={{ .Values.monitoring.openTelemetry.samplingRatio | default "1.0" }}
+    spark.otel.exporter.protocol={{ .Values.connect.openTelemetry.protocol }}
+    spark.otel.exporter.endpoint={{ .Values.connect.openTelemetry.endpoint }}
+    spark.otel.resource.attributes={{ printf "service.name=%s" (.Values.connect.openTelemetry.serviceName | default "spark-connect-35") }}
+    spark.otel.sampling.ratio={{ .Values.connect.openTelemetry.samplingRatio | default "1.0" }}
+
+    # OpenTelemetry Listener for Spark
+    spark.extraListeners=org.apache.spark.sql.telemetry.OpenTelemetryListener
+    spark.plugins=org.apache.spark.sql.telemetry.SparkTelemetryPlugin
+
+    # Trace context propagation from Airflow via gRPC metadata
+    # Expects traceparent header (W3C trace context format)
+    spark.otel.context.tracepropagation.enabled=true
+    spark.otel.b3.multi=true
     {{- end }}
 
     {{- if and .Values.connect.extraLibraries (index .Values.connect.extraLibraries "resource-wait-tracker") (index (index .Values.connect.extraLibraries "resource-wait-tracker") "enabled") }}

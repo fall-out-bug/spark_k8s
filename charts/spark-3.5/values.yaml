@@ -177,7 +177,7 @@ historyServer:
     fullnameOverride: ""
     image:
       repository: spark-custom
-      tag: "3.5.7"
+      tag: "3.5.x"
       pullPolicy: IfNotPresent
     logDirectory: "s3a://spark-logs/events"
     service:
@@ -243,7 +243,7 @@ sparkStandalone:
   serviceAccountName: "spark-35"
   image:
     repository: spark-custom
-    tag: "3.5.7"
+    tag: "3.5.x"
     pullPolicy: IfNotPresent
   master:
     enabled: true
@@ -282,7 +282,7 @@ connect:
   replicas: 1
   image:
     repository: spark-custom
-    tag: "3.5.7"
+    tag: "3.5.x"
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -512,6 +512,8 @@ monitoring:
     enabled: false
     endpoint: "http://opentelemetry-collector:4317"
     protocol: "grpc"  # grpc or http
+    samplingRatio: "1.0"  # 0.0-1.0
+    serviceName: "spark-connect-35"  # Service name for traces
   s3aMetrics:
     enabled: false
   jobPhaseTimeline:

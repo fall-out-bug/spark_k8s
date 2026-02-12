@@ -1,6 +1,6 @@
 # Phase 3: Docker Base Layers
 
-> **Status:** Backlog
+> **Status:** Completed
 > **Priority:** P1 - Инфраструктура
 > **Feature:** F09
 > **Estimated Workstreams:** 3
@@ -12,15 +12,15 @@
 
 ## Current State
 
-**Не реализовано** — Phase 3 только начинается.
+**Реализовано** — JDK 17, Python 3.10, CUDA 12.1 base layers с test.sh.
 
 ## Updated Workstreams
 
 | WS | Task | Scope | Dependencies | Status |
 |----|------|-------|-------------|--------|
-| WS-009-01 | JDK 17 base layer + test | SMALL (~300 LOC) | None | backlog |
-| WS-009-02 | Python 3.10 base layer + test | SMALL (~250 LOC) | None | backlog |
-| WS-009-03 | CUDA 12.1 base layer + test | MEDIUM (~500 LOC) | WS-009-01 | backlog |
+| WS-009-01 | JDK 17 base layer + test | SMALL (~300 LOC) | None | completed |
+| WS-009-02 | Python 3.10 base layer + test | SMALL (~250 LOC) | None | completed |
+| WS-009-03 | CUDA 12.1 base layer + test | MEDIUM (~500 LOC) | WS-009-01 | completed |
 
 ## Design Decisions
 

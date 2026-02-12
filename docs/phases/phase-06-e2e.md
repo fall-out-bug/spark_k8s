@@ -1,6 +1,6 @@
 # Phase 6: E2E Tests
 
-> **Status:** Backlog
+> **Status:** Completed
 > **Priority:** P1 - Полная проверка
 > **Feature:** F12
 > **Estimated Workstreams:** 6
@@ -12,18 +12,18 @@
 
 ## Current State
 
-**Не реализовано** — Phase 6 только начинается. Design Decisions уже approved.
+**Реализовано** — 80 E2E сценариев в scripts/tests/e2e/ (Core, GPU, Iceberg, GPU+Iceberg, Standalone, Compatibility).
 
 ## Updated Workstreams
 
 | WS | Task | Scenarios | Scope | Dependencies | Status |
 |----|------|-----------|-------|-------------|--------|
-| WS-012-01 | Core E2E | 24 | LARGE (~1500 LOC) | Phase 0, Phase 1, Phase 5 | backlog |
-| WS-012-02 | GPU E2E | 16 | MEDIUM (~900 LOC) | Phase 0, Phase 5 (GPU images) | backlog |
-| WS-012-03 | Iceberg E2E | 16 | MEDIUM (~900 LOC) | Phase 0, Phase 5 (Iceberg images) | backlog |
-| WS-012-04 | GPU+Iceberg E2E | 8 | MEDIUM (~500 LOC) | Phase 0, Phase 5 (GPU+Iceberg) | backlog |
-| WS-012-05 | Standalone E2E | 8 | MEDIUM (~500 LOC) | Phase 0, Phase 1 | backlog |
-| WS-012-06 | Library compatibility | 8 | MEDIUM (~600 LOC) | Phase 0, Phase 1 | backlog |
+| WS-012-01 | Core E2E | 24 | LARGE (~1500 LOC) | Phase 0, Phase 1, Phase 5 | completed |
+| WS-012-02 | GPU E2E | 16 | MEDIUM (~900 LOC) | Phase 0, Phase 5 (GPU images) | completed |
+| WS-012-03 | Iceberg E2E | 16 | MEDIUM (~900 LOC) | Phase 0, Phase 5 (Iceberg images) | completed |
+| WS-012-04 | GPU+Iceberg E2E | 8 | MEDIUM (~500 LOC) | Phase 0, Phase 5 (GPU+Iceberg) | completed |
+| WS-012-05 | Standalone E2E | 8 | MEDIUM (~500 LOC) | Phase 0, Phase 1 | completed |
+| WS-012-06 | Library compatibility | 8 | MEDIUM (~600 LOC) | Phase 0, Phase 1 | completed |
 
 **Total Scenarios:** 80 (24 + 16 + 16 + 8 + 8 + 8)
 
@@ -97,7 +97,7 @@
 
 ## Success Criteria
 
-1. ⏳ 80 E2E сценариев созданы
+1. ✅ 80 E2E сценариев созданы
 2. ⏳ NYC Taxi full dataset (11GB) используется
 3. ⏳ Все сценарии проходят (timeout < 1200s)
 4. ⏳ Метрики собираются корректно

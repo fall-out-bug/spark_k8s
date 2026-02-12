@@ -3,18 +3,18 @@
 # Supports parameterization for running individual tests or full matrix
 
 # @meta
-name: "smoke-tests"
-type: "smoke"
-description: "Smoke test runner for Spark K8s deployments"
-version: "multiple"
-component: "all"
-mode: "all"
-features: []
-chart: "charts/spark-3.5,charts/spark-4.1"
-preset: "multiple"
-estimated_time: "5-15 min"
-depends_on: []
-tags: [smoke, matrix, validation]
+# name: "smoke-tests"
+# type: "smoke"
+# description: "Smoke test runner for Spark K8s deployments"
+# version: "multiple"
+# component: "all"
+# mode: "all"
+# features: []
+# chart: "charts/spark-3.5,charts/spark-4.1"
+# preset: "multiple"
+# estimated_time: "5-15 min"
+# depends_on: []
+# tags: [smoke, matrix, validation]
 # @endmeta
 
 set -e
@@ -24,7 +24,7 @@ set -e
 # ============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
 # Source libraries
 # shellcheck source=scripts/tests/lib/common.sh
@@ -50,7 +50,7 @@ RETRY_FAILED="${RETRY_FAILED:-false}"  # Retry failed scenarios
 MAX_RETRIES="${MAX_RETRIES:-3}"  # Max retry attempts
 AGGREGATE_LOGS="${AGGREGATE_LOGS:-true}"  # Aggregate parallel logs
 
-# Test matrix (14 scenarios as in current smoke tests)
+# Test matrix (scenarios discovered from scenarios/ directory)
 SPARK_VERSIONS=("3.5.7" "3.5.8" "4.1.0" "4.1.1")
 COMPONENTS=("jupyter")
 MODES_35=("k8s-submit")

@@ -53,7 +53,7 @@ connect:
   backendMode: k8s  # Dynamic executors via K8s API
   image:
     repository: spark-custom
-    tag: "3.5.7"
+    tag: "3.5.x"
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -78,7 +78,7 @@ jupyter:
   enabled: true
   image:
     repository: jupyter-spark
-    tag: "3.5.7"
+    tag: "3.5.x"
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP

@@ -107,7 +107,7 @@ jupyter:
   enabled: true
   image:
     repository: jupyter-spark-gpu
-    tag: "3.5.7"
+    tag: "3.5.x"
   resources:
     requests:
       memory: "2Gi"

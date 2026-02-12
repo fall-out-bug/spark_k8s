@@ -48,7 +48,7 @@ connect:
   replicas: 1
   image:
     repository: spark-custom
-    tag: "3.5.7"
+    tag: "3.5.x"
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -110,7 +110,7 @@ historyServer:
   enabled: true
   image:
     repository: spark-custom
-    tag: "3.5.7"
+    tag: "3.5.x"
     pullPolicy: IfNotPresent
   logDirectory: "s3a://spark-logs/events"
   service:

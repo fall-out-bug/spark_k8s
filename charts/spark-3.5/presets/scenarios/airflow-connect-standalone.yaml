@@ -53,7 +53,7 @@ connect:
   backendMode: standalone
   image:
     repository: spark-custom
-    tag: "3.5.7"
+    tag: "3.5.x"
     pullPolicy: IfNotPresent
   resources:
     requests:

@@ -1,6 +1,6 @@
 # Phase 2: Complete Smoke Tests
 
-> **Status:** In Progress
+> **Status:** Completed
 > **Priority:** P0 - Базовая функциональность
 > **Estimated Workstreams:** 7
 > **Estimated LOC:** ~6500
@@ -11,39 +11,21 @@
 
 ## Current State
 
-**Реализовано (15 сценариев):**
+**Реализовано (139 сценариев):**
 
-| Компонент | Режим | Версия | Фича | Статус |
-|-----------|-------|--------|------|--------|
-| Jupyter | k8s-submit | 3.5.7, 3.5.8 | - | ✅ |
-| Jupyter | connect-k8s | 4.1.0, 4.1.1 | - | ✅ |
-| Jupyter | connect-standalone | 4.1.0, 4.1.1 | ✅ |
-| Airflow | connect-k8s | 4.1.0, 4.1.1 | - | ✅ |
-| Airflow | connect-standalone | 4.1.0, 4.1.1 | ✅ |
-| Airflow | connect-k8s | 4.1.0, 4.1.1 | GPU | ✅ |
-| Airflow | connect-k8s | 4.1.0, 4.1.1 | Iceberg | ✅ |
+F08 completed. 139/139 smoke test scenarios created (jupyter 49, airflow 42, mlflow 48 + standalone, operator, history server, GPU, Iceberg, security, performance, load). See docs/reviews/F08-review.md.
 
-**Осталось реализовать (~124 сценария):**
-
-| Категория | Количество | Приоритет |
-|-----------|------------|-----------|
-| Jupyter GPU/Iceberg | 12 | P1 |
-| Standalone chart scenarios | 24 | P1 |
-| Spark Operator scenarios | 32 | P2 |
-| History Server scenarios | 32 | P2 |
-| MLflow scenarios | 24 | P3 |
-
-## Updated Workstreams
+## Workstreams
 
 | WS | Task | Scope | Dependencies | Status |
 |----|------|-------|-------------|--------|
-| WS-008-01 | Jupyter GPU/Iceberg scenarios (12) | SMALL (~500 LOC) | Phase 0, Phase 1, WS-006-06, WS-006-07 | backlog |
-| WS-008-02 | Standalone chart baseline scenarios (24) | MEDIUM (~800 LOC) | F01 | in_progress |
-| WS-008-03 | Spark Operator scenarios (32) | MEDIUM (~1200 LOC) | WS-020-12 | backlog |
-| WS-008-04 | History Server validation scenarios (32) | MEDIUM (~1000 LOC) | WS-012-01 | backlog |
-| WS-008-05 | MLflow scenarios (24) | MEDIUM (~800 LOC) | WS-001-07 | backlog |
-| WS-008-06 | Dataset generation utilities | SMALL (~400 LOC) | WS-008-01 | backlog |
-| WS-008-07 | Parallel execution improvements | SMALL (~600 LOC) | WS-008-02 | backlog |
+| WS-008-01 | Jupyter GPU/Iceberg scenarios (12) | SMALL (~500 LOC) | Phase 0, Phase 1, WS-006-06, WS-006-07 | completed |
+| WS-008-02 | Standalone chart baseline scenarios (24) | MEDIUM (~800 LOC) | F01 | completed |
+| WS-008-03 | Spark Operator scenarios (32) | MEDIUM (~1200 LOC) | WS-020-12 | completed |
+| WS-008-04 | History Server validation scenarios (32) | MEDIUM (~1000 LOC) | WS-012-01 | completed |
+| WS-008-05 | MLflow scenarios (24) | MEDIUM (~800 LOC) | WS-001-07 | completed |
+| WS-008-06 | Dataset generation utilities | SMALL (~400 LOC) | WS-008-01 | completed |
+| WS-008-07 | Parallel execution improvements | SMALL (~600 LOC) | WS-008-02 | completed |
 
 ## Design Decisions
 

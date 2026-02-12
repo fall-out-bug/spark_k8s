@@ -53,6 +53,20 @@ monitoring:
    - Shuffle Throughput
    - Task Duration
 
+4. **Job Phase Timeline** — Resource wait / compute / I/O breakdown
+   - Gantt timeline showing resource wait, compute, and I/O phases
+   - Phase breakdown ratios (wait:compute:io)
+   - Time to first executor metric
+   - S3 write throughput tracking
+
+5. **Spark Profiling** — Performance bottleneck analysis
+   - GC time percentage
+   - Serialization time
+   - Shuffle skew detection
+   - Spill to disk metrics
+   - Executor utilization
+   - Task duration heatmap
+
 **Enable dashboards:**
 
 ```yaml

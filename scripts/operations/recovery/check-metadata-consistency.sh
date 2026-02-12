@@ -358,7 +358,7 @@ check_schema_consistency() {
         else
             mapfile -t tables < <(kubectl exec -n "$NAMESPACE" "$HIVE_METASTORE_POD" -- \
                 hive -S -e "SHOW TABLES IN $db;" 2>/dev/null | tail -n +2)
-        done
+        fi
 
         for tbl in "${tables[@]}"; do
             [[ -z "$tbl" ]] && continue

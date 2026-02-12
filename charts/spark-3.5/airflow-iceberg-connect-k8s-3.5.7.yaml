@@ -27,7 +27,7 @@ connect:
   backendMode: k8s
   image:
     repository: spark-custom
-    tag: "3.5.7"
+    tag: "3.5.x"
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -80,7 +80,7 @@ jupyter:
   enabled: true
   image:
     repository: jupyter-spark
-    tag: "3.5.7"
+    tag: "3.5.x"
   env:
     PYSPARK_PYTHON: "/opt/conda/bin/python"
     PYSPARK_DRIVER_PYTHON: "/opt/conda/bin/python"

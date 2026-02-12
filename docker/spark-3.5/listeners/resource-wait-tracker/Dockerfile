@@ -1,8 +1,12 @@
 # Build ResourceWaitTracker SparkListener
 FROM eclipse-temurin:17-jdk-alpine AS builder
 
-# Install SBT
-RUN apk add --no-cache sbt
+# Install SBT (using curl to download)
+RUN apk add --no-cache curl bash && \
+    curl -L https://github.com/sbt/sbt/releases/download/v1.9.7/sbt-1.9.7.tgz | tar -xz -C /usr/local && \
+    ln -s /usr/local/sbt/bin/sbt /usr/local/bin/sbt && \
+    mkdir -p /root/.sbt && \
+    echo "SBT installed successfully"
 
 # Set working directory
 WORKDIR /app

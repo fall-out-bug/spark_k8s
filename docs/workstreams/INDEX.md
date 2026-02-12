@@ -283,16 +283,16 @@ WS-006-01 ───────────────────────�
 ## Feature F07: Phase 1 — Critical Security + Chart Updates
 
 **Source:** Implementation Plan (Critical Security + Chart Updates)
-**Status:** In Progress
+**Status:** Completed
 **Total Workstreams:** 4
 **Estimated LOC:** ~1250
 
 | ID | Name | Scope | Dependency | Status |
 |----|------|-------|------------|--------|
-| WS-022-01 | Create namespace.yaml Templates | SMALL (~150 LOC) | - | in_progress |
-| WS-022-02 | Enable podSecurityStandards by Default | SMALL (~100 LOC) | - | backlog |
-| WS-022-03 | Create OpenShift Presets | MEDIUM (~400 LOC) | WS-022-01, WS-022-02 | backlog |
-| WS-022-04 | Create PSS/SCC Smoke Tests | MEDIUM (~600 LOC) | WS-022-03 | backlog |
+| WS-022-01 | Create namespace.yaml Templates | SMALL (~150 LOC) | - | completed |
+| WS-022-02 | Enable podSecurityStandards by Default | SMALL (~100 LOC) | - | completed |
+| WS-022-03 | Create OpenShift Presets | MEDIUM (~400 LOC) | WS-022-01, WS-022-02 | completed |
+| WS-022-04 | Create PSS/SCC Smoke Tests | MEDIUM (~600 LOC) | WS-022-03 | completed |
 
 ### Dependency Graph
 
@@ -349,31 +349,19 @@ WS-TESTING-001 (Diagnostics)
 ## Feature F08: Phase 2 — Complete Smoke Tests
 
 **Source:** `docs/phases/phase-02-smoke.md`
-**Status:** In Progress
+**Status:** Completed
 **Total Workstreams:** 7
 **Estimated LOC:** ~6500
 
 | ID | Name | Scope | Dependency | Status |
 |----|------|-------|------------|--------|
-| WS-008-01 | Jupyter GPU/Iceberg scenarios (12) | SMALL (~500 LOC) | Phase 0, Phase 1, WS-006-06, WS-006-07 | backlog |
-| WS-008-02 | Standalone chart baseline scenarios (24) | MEDIUM (~800 LOC) | F01 | in_progress |
-| WS-008-03 | Spark Operator scenarios (32) | MEDIUM (~1200 LOC) | WS-020-12 | backlog |
-| WS-008-04 | History Server validation scenarios (32) | MEDIUM (~1000 LOC) | WS-012-01 | backlog |
-| WS-008-05 | MLflow scenarios (24) | MEDIUM (~800 LOC) | WS-001-07 | backlog |
-| WS-008-06 | Dataset generation utilities | SMALL (~400 LOC) | WS-008-01 | backlog |
-| WS-008-07 | Parallel execution improvements | SMALL (~600 LOC) | WS-008-02 | backlog |
-
-### Current State (15 scenarios implemented)
-
-| Компонент | Режим | Версия | Фича | Статус |
-|-----------|-------|--------|------|--------|
-| Jupyter | k8s-submit | 3.5.7, 3.5.8 | - | ✅ |
-| Jupyter | connect-k8s | 4.1.0, 4.1.1 | - | ✅ |
-| Jupyter | connect-standalone | 4.1.0, 4.1.1 | - | ✅ |
-| Airflow | connect-k8s | 4.1.0, 4.1.1 | - | ✅ |
-| Airflow | connect-standalone | 4.1.0, 4.1.1 | - | ✅ |
-| Airflow | connect-k8s | 4.1.0, 4.1.1 | GPU | ✅ |
-| Airflow | connect-k8s | 4.1.0, 4.1.1 | Iceberg | ✅ |
+| WS-008-01 | Jupyter GPU/Iceberg scenarios (12) | SMALL (~500 LOC) | Phase 0, Phase 1, WS-006-06, WS-006-07 | completed |
+| WS-008-02 | Standalone chart baseline scenarios (24) | MEDIUM (~800 LOC) | F01 | completed |
+| WS-008-03 | Spark Operator scenarios (32) | MEDIUM (~1200 LOC) | WS-020-12 | completed |
+| WS-008-04 | History Server validation scenarios (32) | MEDIUM (~1000 LOC) | WS-012-01 | completed |
+| WS-008-05 | MLflow scenarios (24) | MEDIUM (~800 LOC) | WS-001-07 | completed |
+| WS-008-06 | Dataset generation utilities | SMALL (~400 LOC) | WS-008-01 | completed |
+| WS-008-07 | Parallel execution improvements | SMALL (~600 LOC) | WS-008-02 | completed |
 
 ### Dependency Graph
 
@@ -417,15 +405,15 @@ WS-008-01 ───────────────────────�
 ## Feature F09: Phase 3 — Docker Base Layers
 
 **Source:** `docs/phases/phase-03-docker-base.md`
-**Status:** Backlog
+**Status:** Completed
 **Total Workstreams:** 3
 **Estimated LOC:** ~1050
 
 | ID | Name | Scope | Dependency | Status |
 |----|------|-------|------------|--------|
-| WS-009-01 | JDK 17 base layer + test | SMALL (~300 LOC) | None | backlog |
-| WS-009-02 | Python 3.10 base layer + test | SMALL (~250 LOC) | None | backlog |
-| WS-009-03 | CUDA 12.1 base layer + test | MEDIUM (~500 LOC) | WS-009-01 | backlog |
+| WS-009-01 | JDK 17 base layer + test | SMALL (~300 LOC) | None | completed |
+| WS-009-02 | Python 3.10 base layer + test | SMALL (~250 LOC) | None | completed |
+| WS-009-03 | CUDA 12.1 base layer + test | MEDIUM (~500 LOC) | WS-009-01 | completed |
 
 ### Dependency Graph
 
@@ -523,18 +511,18 @@ F10 (Phase 4 - Intermediate Layers) ───┐
 ## Feature F12: Phase 6 — E2E Tests
 
 **Source:** `docs/phases/phase-06-e2e.md`
-**Status:** Backlog
+**Status:** Completed
 **Total Workstreams:** 6
 **Estimated LOC:** ~4900
 
 | ID | Name | Scenarios | Dependency | Status |
 |----|------|-----------|------------|--------|
-| WS-012-01 | Core E2E | 24 | F06, F07, F11 | backlog |
-| WS-012-02 | GPU E2E | 16 | F06, F07, F11 | backlog |
-| WS-012-03 | Iceberg E2E | 16 | F06, F07, F11 | backlog |
-| WS-012-04 | GPU+Iceberg E2E | 8 | F06, F07, F11 | backlog |
-| WS-012-05 | Standalone E2E | 8 | F06, F07 | backlog |
-| WS-012-06 | Library compatibility | 8 | F06, F07 | backlog |
+| WS-012-01 | Core E2E | 24 | F06, F07, F11 | completed |
+| WS-012-02 | GPU E2E | 16 | F06, F07, F11 | completed |
+| WS-012-03 | Iceberg E2E | 16 | F06, F07, F11 | completed |
+| WS-012-04 | GPU+Iceberg E2E | 8 | F06, F07, F11 | completed |
+| WS-012-05 | Standalone E2E | 8 | F06, F07 | completed |
+| WS-012-06 | Library compatibility | 8 | F06, F07 | completed |
 
 ### Dependency Graph
 
@@ -557,17 +545,17 @@ F06 (Phase 0), F07 (Phase 1), F11 (Phase 5) ────┐
 ## Feature F13: Phase 7 — Load Tests
 
 **Source:** `docs/phases/phase-07-load.md`
-**Status:** Backlog
+**Status:** Completed
 **Total Workstreams:** 5
 **Estimated LOC:** ~3000
 
 | ID | Name | Scenarios | Dependency | Status |
 |----|------|-----------|------------|--------|
-| WS-013-01 | Baseline load | 4 | F06, F12 | backlog |
-| WS-013-02 | GPU load | 4 | F06, F12 | backlog |
-| WS-013-03 | Iceberg load | 4 | F06, F12 | backlog |
-| WS-013-04 | Comparison load | 4 | F06, F12 | backlog |
-| WS-013-05 | Security stability | 4 | F06, F07 | backlog |
+| WS-013-01 | Baseline load | 4 | F06, F12 | completed |
+| WS-013-02 | GPU load | 4 | F06, F12 | completed |
+| WS-013-03 | Iceberg load | 4 | F06, F12 | completed |
+| WS-013-04 | Comparison load | 4 | F06, F12 | completed |
+| WS-013-05 | Security stability | 4 | F06, F07 | completed |
 
 ### Dependency Graph
 
@@ -621,6 +609,14 @@ F06 (Phase 0), F07 (Phase 1) ────┐
 
 **All workstreams can run in parallel after Phases 0, 1 complete.**
 
+### Review Summary
+
+**Review Date:** 2026-02-10  
+**Verdict:** ❌ CHANGES REQUESTED  
+**Blocker:** `tests/security/test_security.py` exceeds 200 LOC (252). Split required.
+
+See `docs/reports/review-F14-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F14-security.md`.
+
 ---
 
 ## Feature F15: Phase 9 — Parallel Execution & CI/CD
@@ -649,6 +645,14 @@ F06, F08, F12, F13 ──── WS-015-01 (Parallel execution)
 ### Execution Order
 
 **Sequential:** WS-015-01 → WS-015-02 → WS-015-03
+
+### Review Summary
+
+**Review Date:** 2026-02-10  
+**Verdict:** ❌ CHANGES REQUESTED  
+**Blockers:** generate_html.py 203 LOC; smoke workflow doesn't use run_parallel+aggregate pipeline.
+
+See `docs/reports/review-F15-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F15-parallel.md`.
 
 ---
 
@@ -681,6 +685,14 @@ F06 ─────────────────────────�
                                    WS-016-01 + WS-016-03 ───────────┴── WS-016-06 (Spark UI)
 ```
 
+### Review Summary
+
+**Review Date:** 2026-02-10  
+**Verdict:** ❌ CHANGES REQUESTED  
+**Blockers:** grafana values.yaml YAML error; prometheus/loki wrong template scope; test_observability.py 218 LOC.
+
+See `docs/reports/review-F16-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F16-observability.md`.
+
 ---
 
 ## Feature F17: Spark Connect Go Client
@@ -707,6 +719,38 @@ F06, F11 ──── WS-017-01 (Go client library)
                 └── WS-017-04 (Go load tests)
 ```
 
+### Review Summary
+
+**Review Date:** 2026-02-10  
+**Verdict:** ❌ CHANGES REQUESTED  
+**Status:** Not implemented. Skeleton exists (go.mod, dirs). Spec gaps: Spark Connect Go 404, API alignment, CI.
+
+See `docs/reports/review-F17-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F17-go-client.md`.
+
+---
+
+## Feature F18: Production Operations Suite
+
+**Source:** `docs/drafts/feature-production-operations.md`
+**Status:** In Progress
+**Total Workstreams:** 17+
+**Bead:** spark_k8s-d5e
+
+| ID | Name | Status |
+|----|------|--------|
+| WS-018-01 | Incident Response Framework | closed |
+| WS-018-02 | Spark Application Failure Runbooks | completed |
+| WS-018-03 | Data Layer Recovery Runbooks | completed |
+| WS-018-04..17 | SLO, Scaling, Runbooks, etc. | open |
+
+### Review Summary
+
+**Review Date:** 2026-02-10  
+**Verdict:** ❌ CHANGES REQUESTED  
+**Blockers:** F18 not in INDEX; test_runbooks.py has 0 pytest tests; WS-018-01 partial.
+
+See `docs/reports/review-F18-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F18-operations.md`.
+
 ---
 
 ## Feature F25: Spark 3.5 Charts Production-Ready
@@ -719,16 +763,16 @@ F06, F11 ──── WS-017-01 (Go client library)
 
 | ID | Name | Scope | Dependency | Status | Bead |
 |----|------|-------|------------|--------|------|
-| WS-025-01 | Fix chart metadata + values.yaml | SMALL (~150 LOC) | - | backlog | spark_k8s-r6h |
-| WS-025-02 | Spark Standalone deployment template | MEDIUM (~300 LOC) | - | backlog | spark_k8s-3ip |
-| WS-025-03 | Prometheus metrics exporter config | SMALL (~100 LOC) | WS-025-01 | backlog | spark_k8s-ngl |
-| WS-025-04 | Monitoring templates (SM+PM+Grafana) | MEDIUM (~500 LOC) | WS-025-03 | backlog | spark_k8s-pqx |
-| WS-025-05 | OpenShift Route template | SMALL (~150 LOC) | - | backlog | spark_k8s-2zy |
-| WS-025-06 | Fix 8 scenario values files | MEDIUM (~400 LOC) | WS-025-01, WS-025-02 | backlog | spark_k8s-ni8 |
-| WS-025-07 | Update OpenShift presets | SMALL (~100 LOC) | WS-025-04, WS-025-05 | backlog | spark_k8s-r51 |
-| WS-025-08 | Fix spark-connect-configmap | SMALL (~50 LOC) | WS-025-01 | backlog | spark_k8s-og4 |
-| WS-025-09 | Helm validation + smoke tests | MEDIUM (~300 LOC) | WS-025-06..08 | backlog | spark_k8s-2if |
-| WS-025-10 | Minikube integration tests | MEDIUM (~400 LOC) | WS-025-09 | backlog | spark_k8s-6q1 |
+| WS-025-01 | Fix chart metadata + values.yaml | SMALL (~150 LOC) | - | completed | spark_k8s-r6h |
+| WS-025-02 | Spark Standalone deployment template | MEDIUM (~300 LOC) | - | completed | spark_k8s-3ip |
+| WS-025-03 | Prometheus metrics exporter config | SMALL (~100 LOC) | WS-025-01 | completed | spark_k8s-ngl |
+| WS-025-04 | Monitoring templates (SM+PM+Grafana) | MEDIUM (~500 LOC) | WS-025-03 | completed | spark_k8s-pqx |
+| WS-025-05 | OpenShift Route template | SMALL (~150 LOC) | - | completed | spark_k8s-2zy |
+| WS-025-06 | Fix 8 scenario values files | MEDIUM (~400 LOC) | WS-025-01, WS-025-02 | completed | spark_k8s-ni8 |
+| WS-025-07 | Update OpenShift presets | SMALL (~100 LOC) | WS-025-04, WS-025-05 | completed | spark_k8s-r51 |
+| WS-025-08 | Fix spark-connect-configmap | SMALL (~50 LOC) | WS-025-01 | completed | spark_k8s-og4 |
+| WS-025-09 | Helm validation + smoke tests | MEDIUM (~300 LOC) | WS-025-06..08 | completed | spark_k8s-2if |
+| WS-025-10 | Minikube integration tests | MEDIUM (~400 LOC) | WS-025-09 | completed | spark_k8s-6q1 |
 | WS-025-11 | Load tests 10GB NYC Taxi | LARGE (~600 LOC) | WS-025-10, WS-025-12 | backlog | spark_k8s-got |
 | WS-025-12 | Tracing + profiling dashboards/recipes | LARGE (~800 LOC) | WS-025-03, WS-025-04 | backlog | spark_k8s-znp |
 
@@ -776,6 +820,14 @@ WS-025-01 (Fix metadata)     WS-025-02 (Standalone)     WS-025-05 (Routes)
 **Phase 3b (after 03+04):** WS-025-12 (tracing + profiling dashboards/recipes)
 **Phase 8 (after 10+12):** WS-025-11 (load tests 10GB NYC Taxi + Grafana validation)
 
+### Review Summary
+
+**Review Date:** 2026-02-10  
+**Verdict:** ✅ APPROVED (WS-025-01..10)  
+**Blockers:** None  
+
+See `docs/reports/review-F25-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F25-spark-35-charts.md`.
+
 ---
 
 ## Summary
@@ -788,18 +840,19 @@ WS-025-01 (Fix metadata)     WS-025-02 (Standalone)     WS-025-05 (Routes)
 | F04: Spark 4.1.0 Charts | 24 | 0 | 0 | 24 |
 | F05: Docs Refresh (Airflow vars) | 2 | 0 | 0 | 2 |
 | F06: Core Components + Presets | 10 | 10 | 0 | 0 |
-| F07: Critical Security + Chart Updates | 4 | 0 | 1 | 3 |
-| F08: Phase 2 — Smoke Tests | 7 | 0 | 0 | 7 |
-| F09: Phase 3 — Docker Base Layers | 3 | 0 | 0 | 3 |
-| F10: Phase 4 — Docker Intermediate Layers | 4 | 0 | 0 | 4 |
-| F11: Phase 5 — Docker Final Images | 3 | 0 | 0 | 3 |
-| F12: Phase 6 — E2E Tests | 6 | 0 | 0 | 6 |
-| F13: Phase 7 — Load Tests | 5 | 0 | 0 | 5 |
+| F07: Critical Security + Chart Updates | 4 | 4 | 0 | 0 |
+| F08: Phase 2 — Smoke Tests | 7 | 7 | 0 | 0 |
+| F09: Phase 3 — Docker Base Layers | 3 | 3 | 0 | 0 |
+| F10: Phase 4 — Docker Intermediate Layers | 4 | 4 | 0 | 0 |
+| F11: Phase 5 — Docker Final Images | 3 | 3 | 0 | 0 |
+| F12: Phase 6 — E2E Tests | 6 | 6 | 0 | 0 |
+| F13: Phase 7 — Load Tests | 5 | 5 | 0 | 0 |
 | F14: Phase 8 — Advanced Security | 7 | 7 | 0 | 0 |
 | F15: Phase 9 — Parallel Execution & CI/CD | 3 | 0 | 0 | 3 |
 | F16: Observability Stack | 6 | 0 | 0 | 6 |
 | F17: Spark Connect Go Client | 4 | 0 | 0 | 4 |
-| **F25: Spark 3.5 Production-Ready** | **12** | **0** | **0** | **12** |
+| F18: Production Operations Suite | 17+ | 2 | 0 | 15+ |
+| **F25: Spark 3.5 Production-Ready** | **12** | **10** | **0** | **2** |
 | TESTING: Testing Infrastructure | 3+ | 0 | 0 | 3+ |
 | **TOTAL** | **121+** | **37** | **1** | **85+** |
 
