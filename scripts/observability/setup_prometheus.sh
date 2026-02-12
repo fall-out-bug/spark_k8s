@@ -91,13 +91,33 @@ check_prerequisites() {
     log_info "Prerequisites check passed"
 }
 
+add_helm_repo() {
+    log_info "Adding Prometheus Community Helm repository..."
+
+    local repo_add_cmd="helm repo add prometheus-community https://prometheus-community.github.io/helm-charts"
+
+    if [[ "$DRY_RUN" == true ]]; then
+        log_info "[DRY RUN] Would run: $repo_add_cmd"
+    else
+        eval "$repo_add_cmd"
+    fi
+
+    local repo_update_cmd="helm repo update prometheus-community"
+
+    if [[ "$DRY_RUN" == true ]]; then
+        log_info "[DRY RUN] Would run: $repo_update_cmd"
+    else
+        eval "$repo_update_cmd"
+    fi
+
+    log_info "Helm repository added and updated"
+}
+
 deploy_prometheus_operator() {
     log_info "Deploying Prometheus Operator..."
 
-    local helm_cmd="helm upgrade --install prometheus-operator \\
-        --repo prometheus-community \\
+    local helm_cmd="helm install prometheus-operator prometheus-community/prometheus-operator \\
         --namespace $NAMESPACE \\
-        --create-namespace \\
         --set prometheusOperator.enabled=true"
 
     if [[ "$VERBOSE" == true ]]; then
@@ -185,6 +205,7 @@ main() {
     log_info "Namespace: $NAMESPACE"
 
     check_prerequisites
+    add_helm_repo
     deploy_prometheus_operator
     create_spark_servicemonitors
 
