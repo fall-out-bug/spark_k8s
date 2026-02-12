@@ -1,16 +1,16 @@
 # F16 Review Report
 
 **Feature:** F16 — Observability Stack (Monitoring & Tracing)  
-**Review Date:** 2026-02-10  
+**Review Date:** 2026-02-10 (updated 2026-02-10)  
 **Reviewer:** Cursor Composer  
 
 ---
 
 ## Executive Summary
 
-**VERDICT: ❌ CHANGES REQUESTED**
+**VERDICT: ⚠️ CHANGES REQUESTED (reduced blockers)**
 
-Charts exist (prometheus, loki, jaeger, grafana, alertmanager) and scripts/observability/ has setup scripts. Critical issues: (1) grafana values.yaml has YAML syntax error (invalid JSON in jsonData); (2) prometheus/loki templates reference `include "spark.name"` but observability charts are standalone; (3) prometheus chart missing helm dependency build; (4) test_observability.py 218 LOC (>200); (5) tests hardcode spark-4.1 only.
+Charts exist (prometheus, loki, jaeger, grafana, alertmanager) and scripts/observability/ has setup scripts. **Fixed:** prometheus values.yaml YAML error (serviceMonitors structure); prometheus helm dependency built. **Remaining:** (1) grafana needs `helm dependency build`; (2) test_observability.py 218 LOC (>200); (3) tests hardcode spark-4.1 paths; (4) runtime tests missing; (5) test_metrics.sh missing.
 
 ---
 
@@ -31,38 +31,27 @@ Charts exist (prometheus, loki, jaeger, grafana, alertmanager) and scripts/obser
 
 ## 2. Critical Issues
 
-### 2.1 grafana/values.yaml — YAML syntax error
+### 2.1 grafana chart — dependency build
 
-**Line 36–40:** jsonData block has invalid JSON (missing comma):
+**Status:** Grafana chart requires `helm dependency build charts/observability/grafana`. Chart depends on grafana subchart.
 
-```yaml
-"httpMethod": "POST"   # missing comma
-"exemplarTraceIdLink": true
-```
+### 2.2 prometheus values.yaml — YAML structure
 
-**Line 33:** Typo `prometheus-operato` → should be `prometheus-operator`.
+**Status:** ✅ FIXED. serviceMonitors had invalid mix of map+list; restructured to use `items:` list.
 
-**Lines 34, 48, 62:** Multiple datasources have `isDefault: true` — only one should be default.
+### 2.3 prometheus chart — dependency
 
-**Result:** `helm template test charts/observability/grafana` fails.
+**Status:** ✅ FIXED. prometheus-operator dependency built (Chart.lock, charts/*.tgz).
 
-### 2.2 prometheus/loki templates — wrong scope
+### 2.4 prometheus/loki templates — spark scope
 
-Templates reference `include "spark.name"` and `include "spark.namespace"` — these are Spark chart helpers. Observability charts are standalone; they don't have access to Spark subchart. Templates will fail when rendered standalone.
+**Status:** ✅ FIXED (per bead kcj). Templates use Release.Name/Namespace.
 
-### 2.3 prometheus chart — missing dependency
+### 2.5 test_observability.py — 218 LOC (>200)
 
-```
-Error: found in Chart.yaml, but missing in charts/ directory: prometheus-operator
-```
+**Status:** Open. File exceeds 200 LOC. scripts/observability/ has test_observability_monitoring.py, test_observability_logging.py but tests/observability/test_observability.py is main pytest target.
 
-**Fix:** `helm dependency build charts/observability/prometheus`
-
-### 2.4 test_observability.py — 218 LOC (>200)
-
-File exceeds 200 LOC limit. Split required.
-
-### 2.5 tests hardcode spark-4.1
+### 2.6 tests hardcode spark-4.1
 
 All paths point to `charts/spark-4.1`. Spark 3.5 has same monitoring; tests should be parameterized.
 
@@ -107,30 +96,29 @@ No consolidation — Spark dashboards in spark-* templates; ops dashboards in ob
 
 ## 5. Blockers & Nedodelki
 
-| # | Severity | Issue | Fix |
-|---|----------|-------|-----|
-| 1 | CRITICAL | grafana values.yaml invalid JSON in jsonData | Add comma after "POST"; fix typo prometheus-operato |
-| 2 | CRITICAL | grafana helm template fails | Fix YAML syntax |
-| 3 | HIGH | prometheus/loki templates use spark.name, spark.namespace | Use observability chart values or make configurable |
-| 4 | HIGH | prometheus chart dependency missing | helm dependency build |
-| 5 | MEDIUM | test_observability.py 218 LOC | Split to <200 |
-| 6 | MEDIUM | tests hardcode spark-4.1 | Parameterize for 3.5 and 4.1 |
-| 7 | MEDIUM | test_metrics.sh missing | Create per spec |
-| 8 | MEDIUM | Runtime tests missing | test_metrics_scrape, test_logs, test_traces, test_dashboards |
-| 9 | LOW | F18 references F16 as completed | Update WS-018 docs |
-| 10 | LOW | Dashboards mismatch | Consolidate Spark vs ops dashboards |
+| # | Severity | Issue | Fix | Status |
+|---|----------|-------|-----|--------|
+| 1 | ~~CRITICAL~~ | ~~grafana values.yaml~~ | Fixed (8h5) | ✅ CLOSED |
+| 2 | ~~HIGH~~ | ~~prometheus/loki templates~~ | Fixed (kcj) | ✅ CLOSED |
+| 3 | ~~HIGH~~ | ~~prometheus dependency~~ | helm dep build (emp) | ✅ CLOSED |
+| 4 | HIGH | grafana helm dependency build | helm dependency build charts/observability/grafana | Open |
+| 5 | MEDIUM | test_observability.py 218 LOC | Split to <200 | Open |
+| 6 | MEDIUM | tests hardcode spark-4.1 | Parameterize for 3.5 and 4.1 | Open |
+| 7 | MEDIUM | test_metrics.sh missing | Create per spec | Open |
+| 8 | MEDIUM | Runtime tests missing | test_metrics_scrape, test_logs, test_traces, test_dashboards | Open |
+| 9 | LOW | F18 references F16 as completed | Update WS-018 docs | Open |
+| 10 | LOW | Dashboards mismatch | Consolidate Spark vs ops dashboards | Open |
 
 ---
 
 ## 6. Next Steps
 
-1. Fix grafana values.yaml (JSON syntax, typo, isDefault).
-2. Fix prometheus/loki template helpers (observability-scoped).
-3. Run `helm dependency build` for prometheus.
-4. Split test_observability.py.
-5. Parameterize tests for Spark 3.5 and 4.1.
-6. Create test_metrics.sh and runtime tests.
-7. Re-run `/review F16` after fixes.
+1. ~~Fix prometheus values.yaml~~ — Done (serviceMonitors structure)
+2. Run `helm dependency build` for grafana.
+3. Split test_observability.py.
+4. Parameterize tests for Spark 3.5 and 4.1.
+5. Create test_metrics.sh and runtime tests.
+6. Re-run `/review F16` after fixes.
 
 ---
 

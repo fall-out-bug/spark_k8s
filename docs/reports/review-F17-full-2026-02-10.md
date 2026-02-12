@@ -1,7 +1,7 @@
 # F17 Review Report
 
 **Feature:** F17 — Spark Connect Go Client  
-**Review Date:** 2026-02-10  
+**Review Date:** 2026-02-10 (updated 2026-02-10)  
 **Reviewer:** Cursor Composer  
 
 ---
@@ -10,7 +10,7 @@
 
 **VERDICT: ❌ CHANGES REQUESTED**
 
-Feature not implemented. Skeleton exists (tests/go/go.mod, client/, smoke/, e2e/, load/ with READMEs). No Go code. Spec/design gaps must be resolved before implementation.
+Feature not implemented. Skeleton exists (tests/go/go.mod, client/smoke/e2e/load/ with READMEs). **No .go files.** **Fixed (beads):** ecz — API template alignment; 85e — proto source (README: build from gRPC protobuf). **Remaining:** Implement WS-017-01..04; add Go test to CI (bok).
 
 ---
 
@@ -107,23 +107,23 @@ INDEX: WS-017-01 depends on F06, F11. F11 (Docker Final Images) is completed per
 
 ## 4. Blockers & Nedodelki
 
-| # | Severity | Issue | Fix |
-|---|----------|-------|-----|
-| 1 | CRITICAL | No implementation | Execute WS-017-01..04 |
-| 2 | HIGH | Spark Connect Go source 404 | Verify proto/gRPC source before coding |
-| 3 | HIGH | API template may not match proto | Align WS-017-01 with actual Spark Connect API |
-| 4 | MEDIUM | No CI for go test | Add Go test step to workflows |
-| 5 | LOW | client/README notes "awaiting official client" | Clarify build-from-proto vs wait |
+| # | Severity | Issue | Fix | Status |
+|---|----------|-------|-----|--------|
+| 1 | CRITICAL | No implementation | Execute WS-017-01..04 | Open |
+| 2 | ~~HIGH~~ | ~~Spark Connect Go source 404~~ | Verify proto source | ✅ CLOSED (85e) |
+| 3 | ~~HIGH~~ | ~~API template alignment~~ | Align with actual API | ✅ CLOSED (ecz) |
+| 4 | MEDIUM | No CI for go test | Add Go test step (bok) | Open |
+| 5 | ~~LOW~~ | ~~client/README~~ | Build from gRPC protobuf | ✅ Updated |
 
 ---
 
 ## 5. Next Steps
 
-1. Verify Spark Connect Go/Proto source (Apache Spark repo).
-2. Align WS-017-01 template with actual API.
+1. ~~Verify Spark Connect Go/Proto source~~ — README updated (build from protobuf)
+2. ~~Align WS-017-01 template~~ — ecz closed
 3. Implement WS-017-01 (Go client library).
 4. Implement WS-017-02, 03, 04 (tests).
-5. Add Go test step to CI.
+5. Add Go test step to CI (bok).
 6. Re-run `/review F17` after implementation.
 
 ---

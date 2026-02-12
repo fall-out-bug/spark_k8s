@@ -1,16 +1,16 @@
 # F15 Review Report
 
 **Feature:** F15 — Phase 9 Parallel Execution & CI/CD  
-**Review Date:** 2026-02-10  
+**Review Date:** 2026-02-10 (updated 2026-02-10)  
 **Reviewer:** Cursor Composer  
 
 ---
 
 ## Executive Summary
 
-**VERDICT: ❌ CHANGES REQUESTED**
+**VERDICT: ⚠️ CHANGES REQUESTED (reduced blockers)**
 
-Scripts (`scripts/parallel/`, `scripts/aggregate/`) and workflows exist. One blocker: `generate_html.py` exceeds 200 LOC (203). Critical integration gap: `smoke-tests-parallel.yml` does not use `run_parallel.sh`; aggregate steps expect `aggregated.json` but workflow creates fake `summary.json`.
+Scripts and workflows exist. **Fixed:** `generate_html.py` now 158 LOC (split to generate_html_styles.py, generate_html_metrics.py). **Fixed:** smoke-tests-parallel uses aggregate pipeline (aggregate_json → aggregate_junit → generate_html); matrix jobs emit JSON, aggregate-results runs pipeline. **Remaining:** WS-015-01 AC6 retry mechanism; scheduled-tests.yml.
 
 ---
 
@@ -75,7 +75,9 @@ Scripts (`scripts/parallel/`, `scripts/aggregate/`) and workflows exist. One blo
 
 | File | LOC | Status |
 |------|-----|--------|
-| generate_html.py | 203 | 🔴 BLOCKING (>200) |
+| generate_html.py | 158 | ✅ (was 203, split) |
+| generate_html_styles.py | 99 | ✅ |
+| generate_html_metrics.py | 49 | ✅ |
 | run_parallel.sh | 151 | ✅ |
 | aggregate_json.py | 121 | ✅ |
 | aggregate_junit.py | 112 | ✅ |
@@ -84,13 +86,10 @@ Scripts (`scripts/parallel/`, `scripts/aggregate/`) and workflows exist. One blo
 
 ### 3.2 Integration Gap
 
-**smoke-tests-parallel.yml:**
-- Uses matrix strategy (each scenario = separate job), not `run_parallel.sh`
-- `aggregate-results` creates `summary.json` manually (passed: 0, failed: 0)
-- `aggregate_junit.py` and `generate_html.py` expect `aggregated.json` (from `aggregate_json.py`)
-- `aggregate_json.py` expects `*.json` from `run_scenario.sh` — not produced by matrix jobs
-
-**Fix:** Either (a) use `run_parallel.sh` in a single job and collect artifacts, or (b) have matrix jobs emit JSON and a follow-up job run `aggregate_json.py` then junit/html.
+**smoke-tests-parallel.yml:** ✅ Fixed
+- Matrix jobs create `test-results/{scenario}.json`, upload artifacts
+- `aggregate-results` job downloads artifacts, runs `aggregate_json.py` → `aggregate_junit.py` → `generate_html.py`
+- Pipeline wired correctly
 
 ### 3.3 Missing from Phase Spec
 
@@ -100,22 +99,22 @@ Scripts (`scripts/parallel/`, `scripts/aggregate/`) and workflows exist. One blo
 
 ## 4. Blockers & Nedodelki
 
-| # | Severity | Issue | Fix |
-|---|----------|-------|-----|
-| 1 | CRITICAL | generate_html.py 203 LOC (>200) | Split or reduce to <200 |
-| 2 | HIGH | smoke-tests-parallel doesn't use run_parallel.sh + aggregate pipeline | Wire run_parallel.sh or adapt aggregate for matrix output |
-| 3 | MEDIUM | WS-015-01: No retry on namespace conflict | Add retry in run_scenario.sh |
-| 4 | MEDIUM | scheduled-tests.yml (daily full run) missing | Create per phase spec |
+| # | Severity | Issue | Fix | Status |
+|---|----------|-------|-----|--------|
+| 1 | ~~CRITICAL~~ | ~~generate_html.py 203 LOC~~ | Split | ✅ FIXED |
+| 2 | ~~HIGH~~ | ~~smoke aggregate pipeline~~ | Wire aggregate | ✅ FIXED |
+| 3 | MEDIUM | WS-015-01: No retry on namespace conflict | Add retry in run_scenario.sh | Open |
+| 4 | MEDIUM | scheduled-tests.yml (daily full run) missing | Create per phase spec | Open |
 
 ---
 
 ## 5. Next Steps
 
-1. Split `generate_html.py` (or extract template to separate file).
-2. Integrate run_parallel.sh + aggregate in smoke workflow, or adapt aggregate for matrix.
+1. ~~Split `generate_html.py`~~ — Done (158 LOC)
+2. ~~Integrate aggregate in smoke workflow~~ — Done
 3. Add retry for namespace conflicts in run_scenario.sh.
 4. Create scheduled-tests.yml for daily full run.
-5. Re-run `/review F15` after fixes.
+5. Re-run `/review F15` after remaining fixes.
 
 ---
 
