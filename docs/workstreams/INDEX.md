@@ -692,9 +692,9 @@ F06 ─────────────────────────�
 
 **Review Date:** 2026-02-10  
 **Verdict:** ⚠️ CHANGES REQUESTED (reduced)  
-**Blockers:** grafana helm dep build (ozu); test_observability.py 270 LOC (k5r).
+**Blockers:** grafana helm template (74z.8); tests >200 LOC (k5r); Spark 3.5 prod env (2qk).
 
-**Fixed:** 8h5, emp, kcj, dee, ci6, mgv CLOSED.
+**Fixed:** 8h5, emp, kcj, dee, ci6, mgv, ozu CLOSED.
 
 See `docs/reports/review-F16-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F16-observability.md`.
 

@@ -24,11 +24,12 @@
 | spark_k8s-dee | Split test_observability.py (200 LOC) | P1 | spark_k8s-74z | ✅ CLOSED |
 | spark_k8s-emp | Run helm dependency build for prometheus | P1 | spark_k8s-74z | ✅ CLOSED |
 | spark_k8s-kcj | Fix prometheus/loki templates (spark.name scope) | P1 | spark_k8s-74z | ✅ CLOSED |
-| spark_k8s-ozu | Run helm dependency build for grafana | P2 | spark_k8s-74z | open |
-| spark_k8s-k5r | Split test_observability.py (270 LOC) | P2 | spark_k8s-74z | open |
+| spark_k8s-ozu | Run helm dependency build for grafana | P2 | spark_k8s-74z | ✅ CLOSED |
+| spark_k8s-74z.8 | Fix grafana helm template (datasources jsonData type) | P1 | spark_k8s-74z | open |
+| spark_k8s-k5r | Split tests >200 LOC (dashboards, traces, logs, metrics_scrape) | P2 | spark_k8s-74z | open |
 | spark_k8s-ci6 | Create test_metrics.sh | P2 | spark_k8s-74z | ✅ CLOSED |
 | spark_k8s-mgv | Add runtime tests | P2 | spark_k8s-74z | ✅ CLOSED |
-| spark_k8s-2qk | Parameterize tests for Spark 3.5 and 4.1 | P2 | spark_k8s-74z | open |
+| spark_k8s-2qk | Parameterize/Fix tests: Spark 3.5 lacks environments/prod | P2 | spark_k8s-74z | open |
 | spark_k8s-31l | Consolidate dashboards | P2 | spark_k8s-74z | open |
 | spark_k8s-8e9 | Fix F18 references F16 as completed | P2 | spark_k8s-74z | ✅ CLOSED (via 7xp) |
 
@@ -129,7 +130,7 @@
 
 ```
 F15 (dyz) ──► ksz, zjq
-F16 (74z) ──► 8h5, dee, emp, kcj
+F16 (74z) ──► 8h5, dee, emp, kcj, 74z.8, k5r, 2qk, 31l
 F17 (cqy) ──► ecz, 85e
 F18 (d5e) ──► yck, 117, 7xp, 6ki
 F25 (ju2) ──► pb8, 2f9, 7nn, bbk, y0m
