@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # Common test functions for JARs intermediate layers
-
-set -euo pipefail
+# Note: set -euo pipefail removed to allow full test execution even if individual tests fail
 
 # Colors
 readonly RED='\033[0;31m'
