@@ -1,8 +1,8 @@
 # Grafana values for Spark dashboards on Kubernetes
-
+#
 # Grafana configuration for Spark monitoring dashboards
 # Data sources: Prometheus, Loki, Jaeger
-
+#
 grafana:
   enabled: true
   image:
@@ -23,55 +23,46 @@ grafana:
 
   # Data sources
   datasources:
-    datasources.yaml:
-      apiVersion: 1
+    # Prometheus datasource for metrics
+    - name: Prometheus
+      type: prometheus
+      access: proxy
+      url: http://prometheus-operator:9090/api/v1/query
+      isDefault: true
+      editable: false
+      jsonData: |
+        {
+          "timeInterval": "30s",
+          "httpMethod": "POST",
+          "exemplarTraceIdLink": true
+        }
 
-      # Prometheus datasource for metrics
-      - name: Prometheus
-        type: prometheus
-        access: proxy
-        url: http://prometheus-operato:9090/api/v1/query
-        isDefault: true
-        editable: false
-        jsonData: |
-          {
-            "timeInterval": "30s",
-            "httpMethod": "POST"
-            "exemplarTraceIdLink": true
-          }
+    # Loki datasource for logs
+    - name: Loki
+      type: loki
+      access: proxy
+      url: http://loki:3100
+      editable: false
+      jsonData: |
+        {
+          "maxLines": 1000,
+          "timeInterval": "30s",
+          "deriveField": true
+        }
 
-      # Loki datasource for logs
-      - name: Loki
-        type: loki
-        access: proxy
-        url: http://loki:3100
-        isDefault: true
-        editable: false
-        jsonData: |
-          {
-            "maxLines": 1000,
-            "timeInterval": "30s",
-            "deriveField": true
-          }
-
-      # Jaeger datasource for traces
-      - name: Jaeger
-        type: jaeger
-        access: proxy
-        url: http://jaeger-query:16686
-        isDefault: true
-        editable: false
+    # Jaeger datasource for traces
+    - name: Jaeger
+      type: jaeger
+      access: proxy
+      url: http://jaeger-query:16686
+      editable: false
 
   # Dashboard providers
   dashboardProviders:
-    dashboards.yaml:
-      apiVersion: 1
-
-      # Import from observability/grafana/dashboards directory
-      - disableDeletion: false
-        folder: ""
-        options:
-          path: /var/lib/grafana/dashboards/spark
+    - disableDeletion: false
+      folder: ""
+      options:
+        path: /var/lib/grafana/dashboards/spark
 
   # Resource configuration
   resources:
@@ -95,7 +86,7 @@ grafana:
 env:
   # Grafana environment
   GF_SECURITY_ALLOW_EMBEDDING: "true"
-  GF_SERVER_ROOT_URL: "http://prometheus-operato:9090"
+  GF_SERVER_ROOT_URL: "http://prometheus-operator:9090"
   GF_INSTALL_PLUGINS: "grafana-piechart-panel,grafana-worldmap-panel"
 
 # Ingress configuration
