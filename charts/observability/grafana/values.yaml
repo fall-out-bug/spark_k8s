@@ -23,46 +23,51 @@ grafana:
 
   # Data sources
   datasources:
-    # Prometheus datasource for metrics
-    - name: Prometheus
-      type: prometheus
-      access: proxy
-      url: http://prometheus-operator:9090/api/v1/query
-      isDefault: true
-      editable: false
-      jsonData: |
-        {
-          "timeInterval": "30s",
-          "httpMethod": "POST",
-          "exemplarTraceIdLink": true
-        }
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        # Prometheus datasource for metrics
+        - name: Prometheus
+          type: prometheus
+          access: proxy
+          url: http://prometheus-operator:9090
+          isDefault: true
+          editable: false
+          jsonData:
+            timeInterval: 30s
+            httpMethod: POST
+            exemplarTraceIdLink: true
 
-    # Loki datasource for logs
-    - name: Loki
-      type: loki
-      access: proxy
-      url: http://loki:3100
-      editable: false
-      jsonData: |
-        {
-          "maxLines": 1000,
-          "timeInterval": "30s",
-          "deriveField": true
-        }
+        # Loki datasource for logs
+        - name: Loki
+          type: loki
+          access: proxy
+          url: http://loki:3100
+          editable: false
+          jsonData:
+            maxLines: 1000
+            timeInterval: 30s
+            deriveField: true
 
-    # Jaeger datasource for traces
-    - name: Jaeger
-      type: jaeger
-      access: proxy
-      url: http://jaeger-query:16686
-      editable: false
+        # Jaeger datasource for traces
+        - name: Jaeger
+          type: jaeger
+          access: proxy
+          url: http://jaeger-query:16686
+          editable: false
 
   # Dashboard providers
   dashboardProviders:
-    - disableDeletion: false
-      folder: ""
-      options:
-        path: /var/lib/grafana/dashboards/spark
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - disableDeletion: false
+          folder: ""
+          name: spark
+          options:
+            path: /var/lib/grafana/dashboards/spark
+          type: file
+          allowUiUpdates: true
 
   # Resource configuration
   resources:
