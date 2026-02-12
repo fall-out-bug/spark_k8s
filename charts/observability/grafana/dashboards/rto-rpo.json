@@ -1,0 +1,227 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "RTO/RPO Metrics",
+    "tags": ["backup", "dr", "sla"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "1m",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Recovery Time Objective (RTO)",
+        "type": "gauge",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "min": 0,
+            "max": 3600,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 1800, "color": "yellow"},
+                {"value": 3600, "color": "red"}
+              ]
+            }
+          }
+        },
+        "targets": [
+          {
+            "expr": "backup_restore_time_seconds",
+            "legendFormat": "RTO",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Recovery Point Objective (RPO)",
+        "type": "gauge",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "min": 0,
+            "max": 3600,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 600, "color": "yellow"},
+                {"value": 3600, "color": "red"}
+              ]
+            }
+          }
+        },
+        "targets": [
+          {
+            "expr": "backup_data_age_seconds",
+            "legendFormat": "RPO",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "RTO by Component",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10
+            }
+          }
+        },
+        "targets": [
+          {
+            "expr": "backup_restore_time_seconds{component=\"hive\"}",
+            "legendFormat": "Hive Metastore",
+            "refId": "A"
+          },
+          {
+            "expr": "backup_restore_time_seconds{component=\"minio\"}",
+            "legendFormat": "MinIO",
+            "refId": "B"
+          },
+          {
+            "expr": "backup_restore_time_seconds{component=\"airflow\"}",
+            "legendFormat": "Airflow",
+            "refId": "C"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "RPO by Component",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10
+            }
+          }
+        },
+        "targets": [
+          {
+            "expr": "backup_data_age_seconds{component=\"hive\"}",
+            "legendFormat": "Hive Metastore",
+            "refId": "A"
+          },
+          {
+            "expr": "backup_data_age_seconds{component=\"minio\"}",
+            "legendFormat": "MinIO",
+            "refId": "B"
+          },
+          {
+            "expr": "backup_data_age_seconds{component=\"airflow\"}",
+            "legendFormat": "Airflow",
+            "refId": "C"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Backup Success Rate",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 16},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit",
+            "min": 0,
+            "max": 1,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 0.99, "color": "yellow"},
+                {"value": 0.999, "color": "green"}
+              ]
+            }
+          }
+        },
+        "targets": [
+          {
+            "expr": "rate(backup_verification_success_total[24h]) / rate(backup_verification_total[24h])",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Last Backup Age",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 16},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 86400, "color": "yellow"},
+                {"value": 172800, "color": "red"}
+              ]
+            }
+          }
+        },
+        "targets": [
+          {
+            "expr": "time() - max(backup_timestamp_seconds)",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Restore Tests - Last 30 Days",
+        "type": "table",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {"Time": true, "__name__": true, "job": true},
+              "indexByName": {},
+              "renameByName": {}
+            }
+          }
+        ],
+        "targets": [
+          {
+            "expr": "backup_restore_test_result",
+            "format": "table",
+            "instant": true,
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "RTO Target Compliance",
+        "type": "piechart",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+        "targets": [
+          {
+            "expr": "count(backup_restore_time_seconds <= 1800)",
+            "legendFormat": "Within Target (≤30m)",
+            "refId": "A"
+          },
+          {
+            "expr": "count(backup_restore_time_seconds > 1800)",
+            "legendFormat": "Exceeded Target (>30m)",
+            "refId": "B"
+          }
+        ]
+      }
+    ]
+  }
+}
