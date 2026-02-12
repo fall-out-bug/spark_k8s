@@ -47,9 +47,9 @@ Charts exist (prometheus, loki, jaeger, grafana, alertmanager) and scripts/obser
 
 **Status:** ✅ FIXED (per bead kcj). Templates use Release.Name/Namespace.
 
-### 2.5 test_observability.py — 218 LOC (>200)
+### 2.5 test_observability.py — 270 LOC (>200)
 
-**Status:** Open. File exceeds 200 LOC. scripts/observability/ has test_observability_monitoring.py, test_observability_logging.py but tests/observability/test_observability.py is main pytest target.
+**Status:** Open (bead k5r). File exceeds 200 LOC. scripts/observability/ has test_observability_monitoring.py, test_observability_logging.py; tests/observability/test_observability.py is main pytest target.
 
 ### 2.6 tests hardcode spark-4.1
 
@@ -68,17 +68,17 @@ All paths point to `charts/spark-4.1`. Spark 3.5 has same monitoring; tests shou
 | setup_jaeger.sh | ✅ |
 | setup_alertmanager.sh | ✅ |
 | setup_grafana.sh | ✅ |
-| test_metrics.sh | ❌ |
+| test_metrics.sh | ✅ |
 
 ### tests/observability/
 
 | Test | Exists | Notes |
 |------|--------|-------|
 | test_observability.py | ✅ | 19 pass; template validation only |
-| test_metrics_scrape.py | ❌ | Runtime validation |
-| test_logs_aggregation.py | ❌ | Runtime validation |
-| test_traces.py | ❌ | Runtime validation |
-| test_dashboards.py | ❌ | Runtime validation |
+| test_metrics_scrape.py | ✅ | Runtime validation |
+| test_logs_aggregation.py | ✅ | Runtime validation |
+| test_traces.py | ✅ | Runtime validation |
+| test_dashboards.py | ✅ | Runtime validation |
 
 ---
 
@@ -96,18 +96,18 @@ No consolidation — Spark dashboards in spark-* templates; ops dashboards in ob
 
 ## 5. Blockers & Nedodelki
 
-| # | Severity | Issue | Fix | Status |
-|---|----------|-------|-----|--------|
-| 1 | ~~CRITICAL~~ | ~~grafana values.yaml~~ | Fixed (8h5) | ✅ CLOSED |
-| 2 | ~~HIGH~~ | ~~prometheus/loki templates~~ | Fixed (kcj) | ✅ CLOSED |
-| 3 | ~~HIGH~~ | ~~prometheus dependency~~ | helm dep build (emp) | ✅ CLOSED |
-| 4 | HIGH | grafana helm dependency build | helm dependency build charts/observability/grafana | Open |
-| 5 | MEDIUM | test_observability.py 218 LOC | Split to <200 | Open |
-| 6 | MEDIUM | tests hardcode spark-4.1 | Parameterize for 3.5 and 4.1 | Open |
-| 7 | MEDIUM | test_metrics.sh missing | Create per spec | Open |
-| 8 | MEDIUM | Runtime tests missing | test_metrics_scrape, test_logs, test_traces, test_dashboards | Open |
-| 9 | LOW | F18 references F16 as completed | Update WS-018 docs | Open |
-| 10 | LOW | Dashboards mismatch | Consolidate Spark vs ops dashboards | Open |
+| # | Severity | Issue | Fix | Status | Bead |
+|---|----------|-------|-----|--------|------|
+| 1 | ~~CRITICAL~~ | ~~grafana values.yaml~~ | Fixed (8h5) | ✅ CLOSED | spark_k8s-8h5 |
+| 2 | ~~HIGH~~ | ~~prometheus/loki templates~~ | Fixed (kcj) | ✅ CLOSED | spark_k8s-kcj |
+| 3 | ~~HIGH~~ | ~~prometheus dependency~~ | helm dep build (emp) | ✅ CLOSED | spark_k8s-emp |
+| 4 | HIGH | grafana helm dependency build | helm dependency build charts/observability/grafana | Open | spark_k8s-ozu |
+| 5 | MEDIUM | test_observability.py 270 LOC | Split to <200 | Open | spark_k8s-k5r |
+| 6 | MEDIUM | tests hardcode spark-4.1 | Parameterize for 3.5 and 4.1 | Open | spark_k8s-2qk |
+| 7 | ~~MEDIUM~~ | ~~test_metrics.sh missing~~ | Created | ✅ CLOSED | spark_k8s-ci6 |
+| 8 | ~~MEDIUM~~ | ~~Runtime tests missing~~ | test_metrics_scrape, test_logs, test_traces, test_dashboards exist | ✅ CLOSED | spark_k8s-mgv |
+| 9 | ~~LOW~~ | ~~F18 references F16 as completed~~ | Update WS-018 docs | ✅ CLOSED (via 7xp) | spark_k8s-8e9 |
+| 10 | LOW | Dashboards mismatch | Consolidate Spark vs ops dashboards | Open | spark_k8s-31l, spark_k8s-b23 |
 
 ---
 
@@ -117,7 +117,7 @@ No consolidation — Spark dashboards in spark-* templates; ops dashboards in ob
 2. Run `helm dependency build` for grafana.
 3. Split test_observability.py.
 4. Parameterize tests for Spark 3.5 and 4.1.
-5. Create test_metrics.sh and runtime tests.
+5. ~~Create test_metrics.sh and runtime tests~~ — Done (ci6, mgv).
 6. Re-run `/review F16` after fixes.
 
 ---

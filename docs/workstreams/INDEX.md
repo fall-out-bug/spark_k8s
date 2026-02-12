@@ -624,15 +624,16 @@ See `docs/reports/review-F14-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F14-s
 ## Feature F15: Phase 9 — Parallel Execution & CI/CD
 
 **Source:** `docs/phases/phase-09-parallel.md`
-**Status:** Backlog
+**Status:** Completed
+**Bead:** spark_k8s-dyz CLOSED
 **Total Workstreams:** 3
 **Estimated LOC:** ~2100
 
 | ID | Name | Scope | Dependencies | Status |
 |----|------|-------|-------------|--------|
-| WS-015-01 | Parallel execution framework | MEDIUM (~800 LOC) | F06, F08, F12, F13 | backlog |
-| WS-015-02 | Result aggregation | MEDIUM (~600 LOC) | WS-015-01 | backlog |
-| WS-015-03 | CI/CD integration | MEDIUM (~700 LOC) | WS-015-02 | backlog |
+| WS-015-01 | Parallel execution framework | MEDIUM (~800 LOC) | F06, F08, F12, F13 | completed |
+| WS-015-02 | Result aggregation | MEDIUM (~600 LOC) | WS-015-01 | completed |
+| WS-015-03 | CI/CD integration | MEDIUM (~700 LOC) | WS-015-02 | completed |
 
 ### Dependency Graph
 
@@ -651,10 +652,8 @@ F06, F08, F12, F13 ──── WS-015-01 (Parallel execution)
 ### Review Summary
 
 **Review Date:** 2026-02-10  
-**Verdict:** ⚠️ CHANGES REQUESTED (reduced)  
-**Blockers:** None critical. Remaining: WS-015-01 AC6 retry; scheduled-tests.yml.
-
-**Fixed:** generate_html.py 158 LOC; smoke workflow uses aggregate pipeline.
+**Verdict:** ✅ APPROVED  
+**Bead:** spark_k8s-dyz CLOSED. Tech-debt: ksz, zjq, 78m, wcb CLOSED.
 
 See `docs/reports/review-F15-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F15-parallel.md`.
 
@@ -693,9 +692,9 @@ F06 ─────────────────────────�
 
 **Review Date:** 2026-02-10  
 **Verdict:** ⚠️ CHANGES REQUESTED (reduced)  
-**Blockers:** grafana helm dependency build; test_observability.py 218 LOC.
+**Blockers:** grafana helm dep build (ozu); test_observability.py 270 LOC (k5r).
 
-**Fixed:** prometheus values.yaml YAML; prometheus helm dependency; prometheus/loki templates (spark scope).
+**Fixed:** 8h5, emp, kcj, dee, ci6, mgv CLOSED.
 
 See `docs/reports/review-F16-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F16-observability.md`.
 
@@ -856,7 +855,7 @@ See `docs/reports/review-F25-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F25-s
 | F12: Phase 6 — E2E Tests | 6 | 6 | 0 | 0 |
 | F13: Phase 7 — Load Tests | 5 | 5 | 0 | 0 |
 | F14: Phase 8 — Advanced Security | 7 | 7 | 0 | 0 |
-| F15: Phase 9 — Parallel Execution & CI/CD | 3 | 0 | 0 | 3 |
+| F15: Phase 9 — Parallel Execution & CI/CD | 3 | 3 | 0 | 0 |
 | F16: Observability Stack | 6 | 0 | 0 | 6 |
 | F17: Spark Connect Go Client | 4 | 0 | 0 | 4 |
 | F18: Production Operations Suite | 17+ | 2 | 0 | 15+ |

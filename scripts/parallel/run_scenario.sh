@@ -20,6 +20,10 @@ log_info() {
     echo -e "${GREEN}[INFO]${NC} $*"
 }
 
+log_warn() {
+    echo -e "${YELLOW}[WARN]${NC} $*"
+}
+
 log_error() {
     echo -e "${RED}[ERROR]${NC} $*"
 }
@@ -39,12 +43,42 @@ echo "Namespace: ${NAMESPACE}"
 echo "Release: ${RELEASE_NAME}"
 echo "========================================"
 
-# Create unique namespace
-if kubectl create namespace "${NAMESPACE}" 2>/dev/null; then
-    log_info "Created namespace: ${NAMESPACE}"
-else
-    log_error "Failed to create namespace ${NAMESPACE}"
-    echo "{\"status\": \"failed\", \"reason\": \"namespace_creation_failed\"}" > "${RESULT_FILE}"
+# Create unique namespace with retry mechanism
+MAX_RETRIES=3
+RETRY_DELAY=2
+namespace_created=false
+
+for attempt in $(seq 1 $MAX_RETRIES); do
+    if kubectl create namespace "${NAMESPACE}" 2>/dev/null; then
+        log_info "Created namespace: ${NAMESPACE} (attempt ${attempt}/${MAX_RETRIES})"
+        namespace_created=true
+        break
+    else
+        error_output=$(kubectl create namespace "${NAMESPACE}" 2>&1 || true)
+        # Check if error is a conflict that might resolve with retry
+        if echo "$error_output" | grep -qi "AlreadyExists\|conflict"; then
+            if [[ $attempt -lt $MAX_RETRIES ]]; then
+                log_warn "Namespace conflict detected (attempt ${attempt}/${MAX_RETRIES}), retrying in ${RETRY_DELAY}s..."
+                sleep $RETRY_DELAY
+                # Generate new namespace name for next retry
+                NAMESPACE="spark-test-${SCENARIO_NAME}-${TIMESTAMP}-${RANDOM}"
+                log_info "Trying new namespace: ${NAMESPACE}"
+            else
+                log_error "Failed to create namespace after ${MAX_RETRIES} attempts"
+                echo "{\"status\": \"failed\", \"reason\": \"namespace_creation_failed\", \"attempts\": ${MAX_RETRIES}}" > "${RESULT_FILE}"
+                exit 1
+            fi
+        else
+            log_error "Failed to create namespace ${NAMESPACE}: ${error_output}"
+            echo "{\"status\": \"failed\", \"reason\": \"namespace_creation_failed\", \"error\": \"${error_output}\"}" > "${RESULT_FILE}"
+            exit 1
+        fi
+    fi
+done
+
+if [[ "$namespace_created" != "true" ]]; then
+    log_error "Failed to create namespace after ${MAX_RETRIES} attempts"
+    echo "{\"status\": \"failed\", \"reason\": \"namespace_creation_failed\", \"attempts\": ${MAX_RETRIES}}" > "${RESULT_FILE}"
     exit 1
 fi
 

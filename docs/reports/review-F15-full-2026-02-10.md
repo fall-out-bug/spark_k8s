@@ -8,9 +8,9 @@
 
 ## Executive Summary
 
-**VERDICT: ⚠️ CHANGES REQUESTED (reduced blockers)**
+**VERDICT: ✅ APPROVED**
 
-Scripts and workflows exist. **Fixed:** `generate_html.py` now 158 LOC (split to generate_html_styles.py, generate_html_metrics.py). **Fixed:** smoke-tests-parallel uses aggregate pipeline (aggregate_json → aggregate_junit → generate_html); matrix jobs emit JSON, aggregate-results runs pipeline. **Remaining:** WS-015-01 AC6 retry mechanism; scheduled-tests.yml.
+Scripts and workflows exist. **Fixed:** `generate_html.py` 158 LOC (split). **Fixed:** smoke-tests-parallel aggregate pipeline. **Fixed:** WS-015-01 AC6 retry (bead 78m CLOSED). **Fixed:** scheduled-tests.yml (bead wcb CLOSED). All nedodelki resolved.
 
 ---
 
@@ -21,8 +21,8 @@ Scripts and workflows exist. **Fixed:** `generate_html.py` now 158 LOC (split to
 | WS ID | Title | Files | Status | LOC Max |
 |-------|-------|-------|--------|---------|
 | 00-015-01 | Parallel execution | run_parallel.sh, run_scenario.sh, cleanup.sh | ✅ Delivered | 151 |
-| 00-015-02 | Result aggregation | aggregate_json.py, aggregate_junit.py, generate_html.py | ⚠️ Partial | 203 (blocker) |
-| 00-015-03 | CI/CD integration | smoke-tests-parallel, e2e-tests, load-test-* | ⚠️ Partial | — |
+| 00-015-02 | Result aggregation | aggregate_json.py, aggregate_junit.py, generate_html.py (+ split) | ✅ Delivered | 158 |
+| 00-015-03 | CI/CD integration | smoke-tests-parallel, e2e-tests, load-test-*, scheduled-tests | ✅ Delivered | — |
 
 ---
 
@@ -37,9 +37,9 @@ Scripts and workflows exist. **Fixed:** `generate_html.py` now 158 LOC (split to
 | AC3: Namespace isolation | ✅ | spark-test-{scenario}-{timestamp}-{random} |
 | AC4: Configurable concurrency | ✅ | MAX_PARALLEL env, -j/--max-parallel |
 | AC5: Automatic cleanup | ✅ | cleanup.sh, trap in run_parallel |
-| AC6: Retry mechanism for conflicts | ❌ | No retry on namespace creation failure |
+| AC6: Retry mechanism for conflicts | ✅ | MAX_RETRIES=3, RETRY_DELAY=2 in run_scenario.sh |
 
-**Goal Achieved:** ⚠️ Partial (AC6 missing)
+**Goal Achieved:** ✅
 
 ### WS-00-015-02: Result aggregation
 
@@ -52,7 +52,7 @@ Scripts and workflows exist. **Fixed:** `generate_html.py` now 158 LOC (split to
 | AC5: Summary statistics | ✅ | pass/fail/skip counts |
 | AC6: Per-scenario timings | ✅ | duration in JSON, JUnit |
 
-**Goal Achieved:** ✅ (but generate_html.py 203 LOC > 200)
+**Goal Achieved:** ✅ (generate_html.py 158 LOC, split complete — bead ksz CLOSED)
 
 ### WS-00-015-03: CI/CD integration
 
@@ -63,9 +63,9 @@ Scripts and workflows exist. **Fixed:** `generate_html.py` now 158 LOC (split to
 | AC3: Load tests workflow | ✅ | load-test-nightly/weekly/smoke.yml |
 | AC4: Scheduled runs | ✅ | load-test cron |
 | AC5: PR validation | ✅ | smoke-tests-parallel on PR |
-| AC6: Results published | ⚠️ | smoke aggregate creates fake summary.json; aggregate_junit/generate_html expect aggregated.json |
+| AC6: Results published | ✅ | aggregate-results runs aggregate_json → aggregate_junit → generate_html (bead zjq CLOSED) |
 
-**Goal Achieved:** ⚠️ Partial (workflow doesn't use run_parallel.sh + aggregate pipeline)
+**Goal Achieved:** ⚠️ Partial (scheduled-tests.yml missing — bead wcb)
 
 ---
 
@@ -93,28 +93,27 @@ Scripts and workflows exist. **Fixed:** `generate_html.py` now 158 LOC (split to
 
 ### 3.3 Missing from Phase Spec
 
-- `scheduled-tests.yml` (daily full run: smoke → e2e → load) — not present
+- ~~`scheduled-tests.yml`~~ — ✅ Created (bead wcb CLOSED)
 
 ---
 
 ## 4. Blockers & Nedodelki
 
-| # | Severity | Issue | Fix | Status |
-|---|----------|-------|-----|--------|
-| 1 | ~~CRITICAL~~ | ~~generate_html.py 203 LOC~~ | Split | ✅ FIXED |
-| 2 | ~~HIGH~~ | ~~smoke aggregate pipeline~~ | Wire aggregate | ✅ FIXED |
-| 3 | MEDIUM | WS-015-01: No retry on namespace conflict | Add retry in run_scenario.sh | Open |
-| 4 | MEDIUM | scheduled-tests.yml (daily full run) missing | Create per phase spec | Open |
+| # | Severity | Issue | Fix | Status | Bead |
+|---|----------|-------|-----|--------|------|
+| 1 | ~~CRITICAL~~ | ~~generate_html.py 203 LOC~~ | Split | ✅ FIXED | spark_k8s-ksz CLOSED |
+| 2 | ~~HIGH~~ | ~~smoke aggregate pipeline~~ | Wire aggregate | ✅ FIXED | spark_k8s-zjq CLOSED |
+| 3 | MEDIUM | WS-015-01: No retry on namespace conflict | Add retry in run_scenario.sh | ✅ FIXED | spark_k8s-78m CLOSED |
+| 4 | MEDIUM | scheduled-tests.yml (daily full run) missing | Create per phase spec | ✅ FIXED | spark_k8s-wcb CLOSED |
 
 ---
 
 ## 5. Next Steps
 
-1. ~~Split `generate_html.py`~~ — Done (158 LOC)
-2. ~~Integrate aggregate in smoke workflow~~ — Done
-3. Add retry for namespace conflicts in run_scenario.sh.
-4. Create scheduled-tests.yml for daily full run.
-5. Re-run `/review F15` after remaining fixes.
+1. ~~Split `generate_html.py`~~ — Done (bead ksz CLOSED)
+2. ~~Integrate aggregate in smoke workflow~~ — Done (bead zjq CLOSED)
+3. ~~Add retry for namespace conflicts~~ — Done (bead 78m CLOSED)
+4. ~~Create scheduled-tests.yml~~ — Done (bead wcb CLOSED)
 
 ---
 
