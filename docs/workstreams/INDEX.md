@@ -451,16 +451,16 @@ WS-009-01 ───────────────────────�
 ## Feature F10: Phase 4 — Docker Intermediate Layers
 
 **Source:** `docs/phases/phase-04-docker-intermediate.md`
-**Status:** Backlog
+**Status:** Completed
 **Total Workstreams:** 4
 **Estimated LOC:** ~2500
 
 | ID | Name | Scope | Dependency | Status |
 |----|------|-------|------------|--------|
-| WS-010-01 | Spark core layers (4) + tests | MEDIUM (~800 LOC) | F09 | backlog |
-| WS-010-02 | Python dependencies layer + test | MEDIUM (~600 LOC) | F09 | backlog |
-| WS-010-03 | JDBC drivers layer + test | SMALL (~400 LOC) | F09 | backlog |
-| WS-010-04 | JARs layers (RAPIDS, Iceberg) + tests | MEDIUM (~700 LOC) | F09, WS-010-01 | backlog |
+| WS-010-01 | Spark core layers (4) + tests | MEDIUM (~800 LOC) | F09 | completed |
+| WS-010-02 | Python dependencies layer + test | MEDIUM (~600 LOC) | F09 | completed |
+| WS-010-03 | JDBC drivers layer + test | SMALL (~400 LOC) | F09 | completed |
+| WS-010-04 | JARs layers (RAPIDS, Iceberg) + tests | MEDIUM (~700 LOC) | F09, WS-010-01 | completed |
 
 ### Dependency Graph
 
