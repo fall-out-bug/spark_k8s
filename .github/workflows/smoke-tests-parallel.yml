@@ -107,11 +107,48 @@ jobs:
           export TEST_NAMESPACE="$namespace"
           export TEST_RELEASE="$release"
 
-          # Run the scenario
+          # Create test results directory
+          mkdir -p test-results
+
+          # Track test start time
+          start_time=$(date +%s)
+
+          # Run scenario
           if "$scenario_script" "$namespace" "$release"; then
-            echo "✅ Scenario ${SCENARIO} PASSED"
+            end_time=$(date +%s)
+            duration=$((end_time - start_time))
+            echo "✅ Scenario ${SCENARIO} PASSED (duration: ${duration}s)"
+
+            # Create result JSON for aggregation
+            cat > "test-results/${SCENARIO}.json" <<EOF
+          {
+            "scenario": "${SCENARIO}",
+            "status": "passed",
+            "duration": ${duration},
+            "namespace": "${namespace}",
+            "release": "${release}",
+            "timestamp": "$(date -Iseconds)"
+          }
+          EOF
           else
-            echo "❌ Scenario ${SCENARIO} FAILED"
+            exit_code=${?}
+            end_time=$(date +%s)
+            duration=$((end_time - start_time))
+            echo "❌ Scenario ${SCENARIO} FAILED (duration: ${duration}s, exit code: ${exit_code})"
+
+            # Create result JSON for aggregation
+            cat > "test-results/${SCENARIO}.json" <<EOF
+          {
+            "scenario": "${SCENARIO}",
+            "status": "failed",
+            "exit_code": ${exit_code},
+            "duration": ${duration},
+            "namespace": "${namespace}",
+            "release": "${release}",
+            "timestamp": "$(date -Iseconds)",
+            "error": "Test failed with exit code ${exit_code}"
+          }
+          EOF
             exit 1
           fi
 
@@ -128,6 +165,14 @@ jobs:
           namespace="spark-test-${{ matrix.scenario }}"
           kubectl delete namespace "$namespace" --ignore-not-found=true --wait=true || true
 
+      - name: Upload test result artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-result-${{ matrix.scenario }}
+          path: test-results/${{ matrix.scenario }}.json
+          retention-days: 1
+
   # Aggregate test results
   aggregate-results:
     name: Aggregate Results
@@ -139,31 +184,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Python dependencies
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-result-*
+          path: test-results
+          merge-multiple: true
+
+      - name: List downloaded results
         run: |
-          pip install pytest pyyaml jinja2
+          ls -la test-results/
+          echo "---"
+          cat test-results/*.json || echo "No JSON files found"
 
-      - name: Create test results summary
+      - name: Aggregate JSON results
         run: |
-          # Create test results directory
-          mkdir -p test-results
-
-          # Create summary based on job status
-          total=${{ needs.discover-scenarios.outputs.count }}
-
-          # This would be populated by actual test runners in a real implementation
-          cat > test-results/summary.json <<EOF
-          {
-            "total": $total,
-            "passed": 0,
-            "failed": 0,
-            "timestamp": "$(date -Iseconds)",
-            "workflow": "${{ github.workflow }}",
-            "run_id": "${{ github.run_id }}"
-          }
-          EOF
-
-          cat test-results/summary.json
+          python scripts/aggregate/aggregate_json.py --results-dir test-results
 
       - name: Generate JUnit report
         run: |
@@ -173,7 +209,7 @@ jobs:
         run: |
           python scripts/aggregate/generate_html.py --results-dir test-results
 
-      - name: Upload test results
+      - name: Upload aggregated test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -184,20 +220,54 @@ jobs:
 
       - name: Comment PR with results
         if: github.event_name == 'pull_request'
+        run: |
+          # Read aggregated results
+          aggregated=$(cat test-results/aggregated.json)
+
+          # Extract metrics
+          total=$(echo "$aggregated" | jq -r '.total')
+          passed=$(echo "$aggregated" | jq -r '.passed')
+          failed=$(echo "$aggregated" | jq -r '.failed')
+          pass_rate=$(echo "$aggregated" | jq -r '.pass_rate')
+
+          # Generate comment
+          cat <<EOF > pr_comment.md
+          ## Smoke Test Results
+
+          | Metric | Value |
+          |---------|--------|
+          | Total | ${total} |
+          | Passed | ${passed} |
+          | Failed | ${failed} |
+          | Pass Rate | ${pass_rate}% |
+          | Timestamp | $(echo "$aggregated" | jq -r '.timestamp') |
+
+          **Workflow:** ${{ github.workflow }}
+          **Run ID:** ${{ github.run_id }}
+          EOF
+
+          echo "PR Comment:"
+          cat pr_comment.md
+
+      - name: Post PR comment
+        if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const summary = JSON.parse(fs.readFileSync('test-results/summary.json', 'utf8'));
+            const aggregated = JSON.parse(fs.readFileSync('test-results/aggregated.json', 'utf8'));
 
             const comment = `## Smoke Test Results
 
             | Metric | Value |
             |---------|--------|
-            | Total | ${summary.total} |
-            | Passed | ${summary.passed} |
-            | Failed | ${summary.failed} |
-            | Timestamp | ${summary.timestamp} |
+            | Total | ${aggregated.total} |
+            | Passed | ${aggregated.passed} |
+            | Failed | ${aggregated.failed} |
+            | Skipped | ${aggregated.skipped} |
+            | Pass Rate | ${aggregated.pass_rate}% |
+            | Duration | ${aggregated.duration}s |
+            | Timestamp | ${aggregated.timestamp} |
 
             **Workflow:** ${{ github.workflow }}
             **Run ID:** ${{ github.run_id }}
