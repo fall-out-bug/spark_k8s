@@ -167,5 +167,96 @@ def main():
     sys.exit(0 if passed == total else 1)
 
 
+# Test functions for pytest discovery
+# These allow pytest to collect individual test cases
+
+
+def test_runbook_finder():
+    """Test finding runbooks in directory"""
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tester = RunbookTester(tmpdir)
+        runbooks = tester.find_runbooks()
+        assert len(runbooks) == 0, "Expected no runbooks in empty dir"
+        assert isinstance(runbooks, list), "Should return list"
+
+
+def test_structure_validation():
+    """Test runbook structure validation"""
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Create test runbook with all required sections
+        test_file = Path(tmpdir) / "test-runbook.md"
+        test_file.write_text("""
+## Overview
+
+Test overview content.
+
+## Detection
+
+Detection section.
+
+## Diagnosis
+
+Diagnosis section.
+
+## Remediation
+
+Remediation section.
+
+""")
+        tester = RunbookTester(tmpdir)
+        result = tester.validate_structure(test_file)
+
+        assert result["passed"], f"Structure validation should pass: {result}"
+        assert len(result["sections"]) >= 4, "Should find all required sections"
+
+
+def test_code_block_validation():
+    """Test code block validation"""
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Create test runbook with bash blocks
+        test_file = Path(tmpdir) / "test-code.md"
+        test_file.write_text("""
+## Test Section
+
+```bash
+kubectl get pods
+echo "test"
+```
+
+""")
+        tester = RunbookTester(tmpdir)
+        result = tester.validate_code_blocks(test_file)
+
+        assert result["passed"], f"Code block validation should pass: {result}"
+        assert result["bash_blocks"] == 1, f"Should find 1 bash block"
+
+
+def test_link_validation():
+    """Test link validation"""
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Create test runbook with various links
+        test_file = Path(tmpdir) / "test-links.md"
+        test_file.write_text("""
+## Test Section
+
+[Internal Link](../other-file.md)
+
+[Broken Link](nonexistent.md)
+
+[External Link](https://example.com)
+
+""")
+        tester = RunbookTester(tmpdir)
+        result = tester.validate_links(test_file)
+
+        assert result["passed"], f"Link validation should pass: {result}"
+        assert len(result["links"]) == 3, f"Should find 3 links"
+        assert len(result["broken"]) == 1, f"Should detect 1 broken link"
+
+
 if __name__ == "__main__":
     main()
