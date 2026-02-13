@@ -15,6 +15,7 @@
 | spark_k8s-zjq | Wire smoke-tests-parallel с run_parallel.sh | P1 | spark_k8s-dyz | ✅ CLOSED |
 | spark_k8s-78m | Add retry for namespace conflicts in run_scenario.sh | P2 | spark_k8s-dyz | ✅ CLOSED |
 | spark_k8s-wcb | Create scheduled-tests.yml (daily full run) | P2 | spark_k8s-dyz | ✅ CLOSED |
+| spark_k8s-dyz.8 | Fix scheduled-tests aggregate args (--results-dir) | P2 | spark_k8s-dyz | ✅ CLOSED |
 
 ### F16 — Observability
 
@@ -25,20 +26,30 @@
 | spark_k8s-emp | Run helm dependency build for prometheus | P1 | spark_k8s-74z | ✅ CLOSED |
 | spark_k8s-kcj | Fix prometheus/loki templates (spark.name scope) | P1 | spark_k8s-74z | ✅ CLOSED |
 | spark_k8s-ozu | Run helm dependency build for grafana | P2 | spark_k8s-74z | ✅ CLOSED |
-| spark_k8s-74z.8 | Fix grafana helm template (datasources jsonData type) | P1 | spark_k8s-74z | open |
-| spark_k8s-k5r | Split tests >200 LOC (dashboards, traces, logs, metrics_scrape) | P2 | spark_k8s-74z | open |
+| spark_k8s-74z.8 | Fix grafana helm template (datasources jsonData type) | P1 | spark_k8s-74z | ✅ CLOSED |
+| spark_k8s-74z.9 | Skip Spark 3.5 in tests when paths missing | P2 | spark_k8s-74z | ✅ CLOSED |
+| spark_k8s-k5r | Split tests >200 LOC | P2 | spark_k8s-74z | ✅ CLOSED |
 | spark_k8s-ci6 | Create test_metrics.sh | P2 | spark_k8s-74z | ✅ CLOSED |
 | spark_k8s-mgv | Add runtime tests | P2 | spark_k8s-74z | ✅ CLOSED |
-| spark_k8s-2qk | Parameterize/Fix tests: Spark 3.5 lacks environments/prod | P2 | spark_k8s-74z | open |
-| spark_k8s-31l | Consolidate dashboards | P2 | spark_k8s-74z | open |
+| spark_k8s-2qk | Parameterize tests Spark 3.5/4.1 | P2 | spark_k8s-74z | ✅ CLOSED |
+| spark_k8s-31l | Consolidate dashboards | P2 | spark_k8s-74z | ✅ CLOSED |
+| spark_k8s-74z.10 | Fix 4 failing observability tests | P2 | spark_k8s-74z | ✅ CLOSED |
 | spark_k8s-8e9 | Fix F18 references F16 as completed | P2 | spark_k8s-74z | ✅ CLOSED (via 7xp) |
+
+### F14 — Phase 8 Advanced Security
+
+| ID | Задача | Приоритет | Блокер | Статус |
+|----|--------|-----------|--------|--------|
+| spark_k8s-rlk | Fix 17 failing security tests | P1 | spark_k8s-cy5 | ✅ CLOSED |
+| spark_k8s-bch | Add PYTHONPATH for security tests | P2 | spark_k8s-cy5 | ✅ CLOSED |
 
 ### F17 — Spark Connect Go Client
 
-| ID | Задача | Приоритет | Блокер |
-|----|--------|-----------|--------|
-| spark_k8s-ecz | Align WS-017-01 code template with gRPC/proto API | P1 | spark_k8s-cqy |
-| spark_k8s-85e | Re-verify Spark Connect Go/Proto source | P1 | spark_k8s-cqy |
+| ID | Задача | Приоритет | Блокер | Статус |
+|----|--------|-----------|--------|--------|
+| spark_k8s-ecz | Align WS-017-01 code template with gRPC/proto API | P1 | spark_k8s-cqy | ✅ CLOSED |
+| spark_k8s-85e | Re-verify Spark Connect Go/Proto source | P1 | spark_k8s-cqy | ✅ CLOSED |
+| spark_k8s-bok | Add Go test to CI | P2 | spark_k8s-cqy | ✅ CLOSED |
 
 ### F18 — Production Operations Suite
 
@@ -129,9 +140,10 @@
 ## Граф зависимостей (features → tech-debt)
 
 ```
-F15 (dyz) ──► ksz, zjq
-F16 (74z) ──► 8h5, dee, emp, kcj, 74z.8, k5r, 2qk, 31l
-F17 (cqy) ──► ecz, 85e
+F15 (dyz) ──► ksz, zjq, 78m, wcb, dyz.8
+F14 (cy5) ──► rlk, bch
+F16 (74z) ──► 8h5, dee, emp, kcj, 74z.8, 74z.9, k5r, 2qk, 31l, 74z.10
+F17 (cqy) ──► ecz, 85e, bok
 F18 (d5e) ──► yck, 117, 7xp, 6ki
 F25 (ju2) ──► pb8, 2f9, 7nn, bbk, y0m
 ```

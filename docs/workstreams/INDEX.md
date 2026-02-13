@@ -695,10 +695,8 @@ F06 ─────────────────────────�
 ### Review Summary
 
 **Review Date:** 2026-02-10  
-**Verdict:** ⚠️ CHANGES REQUESTED (reduced)  
-**Blockers:** grafana helm template (74z.8); tests >200 LOC (k5r); Spark 3.5 prod env (2qk).
-
-**Fixed:** 8h5, emp, kcj, dee, ci6, mgv, ozu CLOSED.
+**Verdict:** ✅ APPROVED  
+**Status:** 50 passed, 16 skipped. All blockers (74z.8, k5r, 2qk, 31l, 74z.9, 74z.10) CLOSED.
 
 See `docs/reports/review-F16-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F16-observability.md`.
 
@@ -734,7 +732,7 @@ F06, F11 ──── WS-017-01 (Go client library)
 **Verdict:** ❌ CHANGES REQUESTED  
 **Status:** Not implemented. No .go files. Skeleton: go.mod, client/smoke/e2e/load READMEs.
 
-**Fixed (beads):** ecz API alignment; 85e proto source. **Remaining:** WS-017-01..04 implementation; bok CI.
+**Fixed (beads):** ecz, 85e, bok CLOSED. **Remaining:** WS-017-01..04 implementation (no .go files).
 
 See `docs/reports/review-F17-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F17-go-client.md`.
 

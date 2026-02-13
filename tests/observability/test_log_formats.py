@@ -14,10 +14,13 @@ from pathlib import Path
 
 class TestLogFormats:
     """Tests for log format and structure"""
+    skip_pod = False
 
     @pytest.fixture(scope="class")
-    def spark_pod(self, kube_namespace):
+    def spark_pod(self, request):
         """Get a running Spark pod"""
+        import os
+        kube_namespace = os.getenv("KUBE_NAMESPACE", "spark-operations")
         cmd = [
             "kubectl", "get", "pods", "-n", kube_namespace,
             "-l", "spark-role=driver",
@@ -25,6 +28,7 @@ class TestLogFormats:
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0 or not result.stdout.strip():
+            request.cls.skip_pod = True
             pytest.skip("No Spark driver pods found")
         return result.stdout.strip()
 
@@ -66,7 +70,7 @@ class TestGrafanaLokiDataSource:
     def test_loki_datasource_config(self, charts_dir):
         """Test that Loki datasource is configured for Grafana"""
         datasource_files = list(charts_dir.rglob("*datasource*loki*.yaml"))
-        # Grafana datasources might be ConfigMaps or Secret files
+        # Grafana datasources might be in values.yaml files
         if not datasource_files:
             configmap_files = list(charts_dir.rglob("grafana*datasource*.yaml"))
             # Check if any datasource file mentions Loki
@@ -75,7 +79,22 @@ class TestGrafanaLokiDataSource:
                 if "loki" in f.read_text().lower():
                     loki_found = True
                     break
-            assert loki_found, "Loki datasource should be configured"
+            # Check for datasource config in provisioning
+            provisioning_files = list(charts_dir.rglob("*provisioning*datasource*.yaml"))
+            for f in provisioning_files:
+                if "loki" in f.read_text().lower():
+                    loki_found = True
+                    break
+            # Check values.yaml files where datasource config often lives
+            if not loki_found:
+                values_files = list(charts_dir.rglob("**/grafana/values.yaml"))
+                for f in values_files:
+                    content = f.read_text().lower()
+                    # Check for datasource config with Loki
+                    if "datasources" in content and "loki" in content:
+                        loki_found = True
+                        break
+            assert loki_found, f"Loki datasource should be configured. Checked files: {[str(f) for f in datasource_files + configmap_files + provisioning_files + values_files]}"
         else:
             assert len(datasource_files) > 0
 

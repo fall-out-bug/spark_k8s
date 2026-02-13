@@ -12,10 +12,13 @@ import subprocess
 
 class TestJaegerService:
     """Tests for Jaeger service accessibility"""
+    skip_pod = False
 
     @pytest.fixture(scope="class")
-    def jaeger_pod(self, kube_namespace):
+    def jaeger_pod(self, request):
         """Get Jaeger pod (collector or query)"""
+        import os
+        kube_namespace = os.getenv("KUBE_NAMESPACE", "spark-operations")
         # Try collector first
         cmd = [
             "kubectl", "get", "pods", "-n", kube_namespace,
@@ -33,6 +36,7 @@ class TestJaegerService:
             result = subprocess.run(cmd, capture_output=True, text=True)
 
         if result.returncode != 0 or not result.stdout.strip():
+            request.cls.skip_pod = True
             pytest.skip("Jaeger pod not found")
         return result.stdout.strip()
 
@@ -53,18 +57,23 @@ class TestJaegerService:
             "-o", "jsonpath={.items[*].metadata.name}"
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0 or not result.stdout.strip():
+            pytest.skip("No services found in namespace (cluster not running)")
         services = result.stdout.split()
 
         jaeger_services = [s for s in services if "jaeger" in s.lower()]
-        assert len(jaeger_services) > 0, "Jaeger service should exist"
+        assert len(jaeger_services) > 0, f"Jaeger service should exist, got services: {services}"
 
 
 class TestTraceCollection:
     """Tests for trace collection from Spark applications"""
+    skip_pod = False
 
     @pytest.fixture(scope="class")
-    def jaeger_query_pod(self, kube_namespace):
+    def jaeger_query_pod(self, request):
         """Get Jaeger Query pod for API access"""
+        import os
+        kube_namespace = os.getenv("KUBE_NAMESPACE", "spark-operations")
         cmd = [
             "kubectl", "get", "pods", "-n", kube_namespace,
             "-l", "app=jaeger-query",
@@ -72,6 +81,7 @@ class TestTraceCollection:
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0 or not result.stdout.strip():
+            request.cls.skip_pod = True
             pytest.skip("Jaeger Query pod not found")
         return result.stdout.strip()
 

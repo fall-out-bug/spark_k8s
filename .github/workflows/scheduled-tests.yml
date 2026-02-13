@@ -65,21 +65,9 @@ jobs:
       - name: Aggregate results
         if: always()
         run: |
-          ./scripts/aggregate/aggregate_json.py \
-            --input-dir /tmp/smoke-results \
-            --output /tmp/smoke-results/aggregated.json
-
-          ./scripts/aggregate/aggregate_junit.py \
-            --input-dir /tmp/smoke-results \
-            --output /tmp/smoke-results/junit.xml
-
-      - name: Generate HTML report
-        if: always()
-        run: |
-          ./scripts/aggregate/generate_html.py \
-            --json-input /tmp/smoke-results/aggregated.json \
-            --junit-input /tmp/smoke-results/junit.xml \
-            --output /tmp/smoke-results/report.html
+          python scripts/aggregate/aggregate_json.py --results-dir /tmp/smoke-results
+          python scripts/aggregate/aggregate_junit.py --results-dir /tmp/smoke-results
+          python scripts/aggregate/generate_html.py --results-dir /tmp/smoke-results
 
       - name: Upload smoke test results
         if: always()

@@ -14,10 +14,13 @@ from pathlib import Path
 
 class TestGrafanaService:
     """Tests for Grafana service accessibility"""
+    skip_pod = False
 
     @pytest.fixture(scope="class")
-    def grafana_pod(self, kube_namespace):
+    def grafana_pod(self, request):
         """Get Grafana pod"""
+        import os
+        kube_namespace = os.getenv("KUBE_NAMESPACE", "spark-operations")
         cmd = [
             "kubectl", "get", "pods", "-n", kube_namespace,
             "-l", "app.kubernetes.io/name=grafana",
@@ -34,6 +37,7 @@ class TestGrafanaService:
             result = subprocess.run(cmd, capture_output=True, text=True)
 
         if result.returncode != 0 or not result.stdout.strip():
+            request.cls.skip_pod = True
             pytest.skip("Grafana pod not found")
         return result.stdout.strip()
 
@@ -49,16 +53,14 @@ class TestGrafanaService:
     def test_grafana_service_exists(self, kube_namespace):
         """Test that Grafana service exists"""
         cmd = [
-            "kubectl", "get", "svc", "-n", kube_namespace, "grafana",
-            "-o", "jsonpath={.metadata.name}"
+            "kubectl", "get", "svc", "-n", kube_namespace, "-o", "jsonpath={.items[*].metadata.name}"
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         # Service might have different name
-        services = subprocess.run(
-            ["kubectl", "get", "svc", "-n", kube_namespace, "-o", "jsonpath={.items[*].metadata.name}"],
-            capture_output=True, text=True
-        )
-        assert "grafana" in services.stdout.lower()
+        services = result.stdout.lower()
+        if not services or result.returncode != 0:
+            pytest.skip("No services found in namespace (cluster not running)")
+        assert "grafana" in services, f"Grafana service should exist, got services: {result.stdout}"
 
     def test_grafana_http_endpoint(self, grafana_pod, kube_namespace):
         """Test that Grafana HTTP endpoint responds"""
