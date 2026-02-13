@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	spark "github.com/fall-out-bug/spark_k8s/tests/go/client"
 )
 

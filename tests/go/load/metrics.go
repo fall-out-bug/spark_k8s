@@ -33,7 +33,7 @@ func calculateLatencyMetrics(latencies []time.Duration) *LoadTestMetrics {
 	avgLatency := sum / time.Duration(len(sorted))
 	p50 := sorted[len(sorted)*50/100]
 	p95 := sorted[len(sorted)*95/100]
-	p99 := sorted[len(sorted)*99/100
+	p99 := sorted[len(sorted)*99/100]
 	return &LoadTestMetrics{
 		AvgLatency: avgLatency,
 		P50Latency: p50,
