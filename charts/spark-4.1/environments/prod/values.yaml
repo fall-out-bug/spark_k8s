@@ -41,17 +41,18 @@ connect:
     spark.executor.heartbeatInterval: "60s"
     spark.storage.blockManagerSlaveTimeout: "240s"
 
-    # Production shuffle
-    spark.sql.shuffle.partitions: "200"
-
-    # Production retry settings
+    # Production retry settings (AQE handles shuffle partitions)
     spark.task.maxFailures: "4"
     spark.speculation: "true"
     spark.speculation.multiplier: "2"
 
-    # Blacklist for faulty executors
-    spark.blacklist.enabled: "true"
-    spark.blacklist.timeout: "30m"
+    # Serialization and compression
+    spark.serializer: "org.apache.spark.serializer.KryoSerializer"
+    spark.sql.parquet.compression.codec: "zstd"
+
+    # Exclude on failure (Spark 4.x; was spark.blacklist in 3.x)
+    spark.excludeOnFailure.enabled: "true"
+    spark.excludeOnFailure.timeout: "30m"
 
 # RBAC (minimal permissions)
 rbac:

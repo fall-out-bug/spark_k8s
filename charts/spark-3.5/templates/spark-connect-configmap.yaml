@@ -43,7 +43,16 @@ data:
     spark.dynamicAllocation.shuffleTracking.enabled=true
     spark.dynamicAllocation.minExecutors={{ .Values.connect.dynamicAllocation.minExecutors }}
     spark.dynamicAllocation.maxExecutors={{ .Values.connect.dynamicAllocation.maxExecutors }}
+
+    # Executor observability
+    spark.kubernetes.executor.podNamePrefix={{ .Release.Name }}-exec
     {{- end }}
+
+    # AQE (Adaptive Query Execution) - enabled by default for +20-40% perf
+    spark.sql.adaptive.enabled=true
+    spark.sql.adaptive.coalescePartitions.enabled=true
+    spark.sql.adaptive.skewJoin.enabled=true
+
     spark.connect.grpc.binding.address=0.0.0.0
     spark.connect.grpc.binding.port=15002
 

@@ -943,16 +943,16 @@ See `docs/reports/review-F25-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F25-s
 ## Feature F26: Spark Performance Defaults
 
 **Source:** `docs/drafts/idea-spark-performance-defaults.md`
-**Status:** Backlog
+**Status:** Completed
 **Total Workstreams:** 3
 **Estimated LOC:** ~400
 **Audit source:** repo-audit-2026-02-13.md (Spark Practices SP-1..SP-8)
 
 | ID | Name | Scope | Dependency | Status |
 |----|------|-------|------------|--------|
-| WS-026-01 | Enable AQE and Modern Spark Defaults | SMALL (~150 LOC) | - | backlog |
-| WS-026-02 | Fix Deprecated Spark 4.x Properties | SMALL (~100 LOC) | - | backlog |
-| WS-026-03 | Structured Streaming Example (Kafka → Iceberg) | MEDIUM (~150 LOC) | WS-026-01 | backlog |
+| WS-026-01 | Enable AQE and Modern Spark Defaults | SMALL (~150 LOC) | - | completed |
+| WS-026-02 | Fix Deprecated Spark 4.x Properties | SMALL (~100 LOC) | - | completed |
+| WS-026-03 | Structured Streaming Example (Kafka → Iceberg) | MEDIUM (~150 LOC) | WS-026-01 | completed |
 
 ### Dependency Graph
 
@@ -1213,7 +1213,7 @@ WS-030-03 (Iceberg guide)    (independent)
 | F17: Spark Connect Go Client | 4 | 4 | 0 | 0 |
 | F18: Production Operations Suite | 17+ | 2 | 0 | 15+ |
 | F25: Spark 3.5 Production-Ready | 12 | 10 | 0 | 2 |
-| **F26: Spark Performance Defaults** | **3** | **0** | **0** | **3** |
+| **F26: Spark Performance Defaults** | **3** | **3** | **0** | **0** |
 | **F27: Code Quality A*** | **3** | **0** | **0** | **3** |
 | **F28: Chart Architecture DRY** | **3** | **0** | **0** | **3** |
 | **F29: CI/CD Hardening** | **4** | **0** | **0** | **4** |
