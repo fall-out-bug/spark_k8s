@@ -12,6 +12,7 @@ Project progress by feature. Auto-generated from [docs/workstreams/INDEX.md](doc
 | F06: Core Components + Presets | 10 | 10 | 0 | 0 |
 | F07: Critical Security + Chart Updates | 4 | 4 | 0 | 0 |
 | F22: Progress Automation | 4 | 4 | 0 | 0 |
+| F23: Project Origins Documentation | 5 | 5 | 0 | 0 |
 | F08: Phase 2 — Smoke Tests | 7 | 7 | 0 | 0 |
 | F09: Phase 3 — Docker Base Layers | 3 | 3 | 0 | 0 |
 | F10: Phase 4 — Docker Intermediate Layers | 4 | 4 | 0 | 0 |
