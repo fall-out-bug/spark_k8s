@@ -8,7 +8,7 @@ metadata:
     app: spark-cost-exporter
     app.kubernetes.io/name: spark-cost-exporter
 spec:
-  schedule: "{{ .Values.costExporter.schedule | default \"0 * * * *\" }}"
+  schedule: {{ .Values.costExporter.schedule | default "0 * * * *" | quote }}
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 1
   jobTemplate:
@@ -36,7 +36,7 @@ spec:
             - name: PROMETHEUS_URL
               value: {{ .Values.costExporter.prometheusUrl | default "http://prometheus-operator:9090" }}
             - name: COST_EXPORT_PERIOD
-              value: "{{ .Values.costExporter.period | default \"24h\" }}"
+              value: {{ .Values.costExporter.period | default "24h" | quote }}
             resources:
               {{- toYaml .Values.costExporter.resources | nindent 14 }}
             volumeMounts:

@@ -2,15 +2,12 @@
 
 import pytest
 import subprocess
+import yaml
 from pathlib import Path
 
 
 class TestSecretsHardcoded:
     """Tests for hardcoded secrets detection"""
-
-    @pytest.fixture(scope="class")
-    def repository_root(self):
-        return Path(__file__).parent.parent.parent
 
     def test_no_aws_access_keys_in_code(self, repository_root):
         """Test that no AWS access keys are hardcoded in actual code"""

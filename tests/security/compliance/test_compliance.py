@@ -8,10 +8,6 @@ from pathlib import Path
 class TestCompliance:
     """Tests for compliance requirements"""
 
-    @pytest.fixture(scope="class")
-    def repository_root(self):
-        return Path(__file__).parent.parent.parent
-
     def test_pod_security_standards_enforced(self, repository_root):
         """Test that PSS labels can be enforced"""
         # Check for namespace labels in documentation

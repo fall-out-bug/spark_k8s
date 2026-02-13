@@ -104,6 +104,10 @@ keda:
 hpa:
   enabled: false
 
+# Cost exporter (disabled in production)
+costExporter:
+  enabled: false
+
 # Production-specific settings
 tolerations:
   - key: "workload"

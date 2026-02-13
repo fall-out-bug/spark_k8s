@@ -73,6 +73,8 @@ def helm_template(chart_path: Path, values_files: List[Path] = None,
         "vpa.enabled": "false",
         "keda.enabled": "false",
         "hpa.enabled": "false",
+        "budget.enabled": "false",
+        "costExporter.enabled": "false",
     }
     for key, value in default_sets.items():
         if key not in set_values:
