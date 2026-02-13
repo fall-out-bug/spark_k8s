@@ -318,6 +318,37 @@ WS-022-01 (namespace.yaml)
 
 ---
 
+## Feature F22: Progress Automation
+
+**Source:** `docs/drafts/idea-f22-progress-automation.md`  
+**Beads:** spark_k8s-703  
+**Status:** Completed  
+**Total Workstreams:** 4  
+**Estimated LOC:** ~520
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-031-01 | Workstream completion bot | SMALL (~150 LOC) | - | completed |
+| WS-031-02 | ROADMAP auto-update | SMALL (~120 LOC) | - | completed |
+| WS-031-03 | Weekly digest generator | SMALL (~150 LOC) | WS-031-01 | completed |
+| WS-031-04 | Metrics dashboard | SMALL (~100 LOC) | WS-031-01, WS-031-02 | completed |
+
+### Dependency Graph
+
+```
+WS-031-01 (Completion bot) ──┬── WS-031-03 (Weekly digest)
+                             └── WS-031-04 (Metrics dashboard)
+WS-031-02 (ROADMAP update) ───── WS-031-04 (Metrics dashboard)
+```
+
+### Execution Order
+
+1. **Parallel:** WS-031-01 + WS-031-02
+2. **Sequential:** WS-031-03 (after WS-031-01)
+3. **Sequential:** WS-031-04 (after WS-031-01, WS-031-02)
+
+---
+
 ## Feature TESTING: Testing Infrastructure
 
 **Source:** `docs/issues/issue-001-minikube-pvc-provisioning.md`
@@ -1095,6 +1126,7 @@ WS-030-03 (Iceberg guide)    (independent)
 | F05: Docs Refresh (Airflow vars) | 2 | 2 | 0 | 0 |
 | F06: Core Components + Presets | 10 | 10 | 0 | 0 |
 | F07: Critical Security + Chart Updates | 4 | 4 | 0 | 0 |
+| F22: Progress Automation | 4 | 4 | 0 | 0 |
 | F08: Phase 2 — Smoke Tests | 7 | 7 | 0 | 0 |
 | F09: Phase 3 — Docker Base Layers | 3 | 3 | 0 | 0 |
 | F10: Phase 4 — Docker Intermediate Layers | 4 | 4 | 0 | 0 |
