@@ -384,6 +384,43 @@ WS-032-01 (Origin story)
 
 ---
 
+## Feature F24: Pre-built Docker Images
+
+**Source:** `docs/drafts/idea-f24-prebuilt-docker-images.md`  
+**Beads:** spark_k8s-ds8  
+**Status:** Completed  
+**Total Workstreams:** 6  
+**Estimated LOC:** ~660
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-033-01 | GHCR registry setup | SMALL (~80 LOC) | - | completed |
+| WS-033-02 | Build automation for spark-custom | MEDIUM (~150 LOC) | WS-033-01 | completed |
+| WS-033-03 | Build automation for jupyter-spark | MEDIUM (~150 LOC) | WS-033-01 | completed |
+| WS-033-04 | Multi-arch support | MEDIUM (~120 LOC) | WS-033-02, WS-033-03 | completed |
+| WS-033-05 | Version tagging strategy | SMALL (~60 LOC) | - | completed |
+| WS-033-06 | Update charts for GHCR images | MEDIUM (~100 LOC) | WS-033-04, WS-033-05 | completed |
+
+### Dependency Graph
+
+```
+WS-033-01 (GHCR setup) ──┬── WS-033-02 (spark-custom build)
+                         └── WS-033-03 (jupyter-spark build)
+                                    │
+WS-033-05 (Version tagging) ────────┼── WS-033-04 (Multi-arch)
+                                    │           │
+                                    └───────────┴── WS-033-06 (Update charts)
+```
+
+### Execution Order
+
+1. **Parallel:** WS-033-01 + WS-033-05
+2. **Parallel:** WS-033-02 + WS-033-03 (after 01)
+3. **Sequential:** WS-033-04 (after 02, 03)
+4. **Sequential:** WS-033-06 (after 04, 05)
+
+---
+
 ## Feature TESTING: Testing Infrastructure
 
 **Source:** `docs/issues/issue-001-minikube-pvc-provisioning.md`
@@ -1163,6 +1200,7 @@ WS-030-03 (Iceberg guide)    (independent)
 | F07: Critical Security + Chart Updates | 4 | 4 | 0 | 0 |
 | F22: Progress Automation | 4 | 4 | 0 | 0 |
 | F23: Project Origins Documentation | 5 | 5 | 0 | 0 |
+| F24: Pre-built Docker Images | 6 | 6 | 0 | 0 |
 | F08: Phase 2 — Smoke Tests | 7 | 7 | 0 | 0 |
 | F09: Phase 3 — Docker Base Layers | 3 | 3 | 0 | 0 |
 | F10: Phase 4 — Docker Intermediate Layers | 4 | 4 | 0 | 0 |

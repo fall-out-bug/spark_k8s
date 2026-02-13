@@ -48,6 +48,10 @@ secrets:
     address: "https://vault.example.com:8200"
     role: "spark-connect"
 
+# Cost exporter CronJob (optional)
+costExporter:
+  enabled: false
+
 spark-base:
   enabled: true
   serviceAccount:
@@ -164,7 +168,7 @@ historyServer:
   enabled: true  # Spark History Server for completed applications
   fullnameOverride: ""
   image:
-    repository: spark-custom
+    repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
     tag: "4.1.0"
     pullPolicy: IfNotPresent
   logDirectory: "s3a://spark-logs/events"
@@ -241,7 +245,7 @@ connect:
   enabled: true
   replicas: 1
   image:
-    repository: spark-custom
+    repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
     tag: "4.1.0"
     pullPolicy: IfNotPresent
   service:
@@ -337,8 +341,8 @@ ingress:
 jupyter:
   enabled: true
   image:
-    repository: jupyter/all-spark-notebook
-    tag: "latest"
+    repository: ghcr.io/fall-out-bug/spark-k8s-jupyter-spark
+    tag: "4.1.0"
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP

@@ -41,7 +41,7 @@ connect:
   replicas: 1
   backendMode: local
   image:
-    repository: spark-custom
+    repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
     tag: "4.1.0"
     pullPolicy: IfNotPresent
   resources:
@@ -66,8 +66,8 @@ connect:
 jupyter:
   enabled: false
   image:
-    repository: jupyter-spark
-    tag: "latest"
+    repository: ghcr.io/fall-out-bug/spark-k8s-jupyter-spark
+    tag: "4.1.0"
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP

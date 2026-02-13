@@ -44,7 +44,7 @@ connect:
   enabled: true
   replicas: 1
   image:
-    repository: spark-custom
+    repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
     tag: "4.1.0"
     pullPolicy: IfNotPresent
   resources:
@@ -106,7 +106,7 @@ hiveMetastore:
 historyServer:
   enabled: true
   image:
-    repository: spark-custom
+    repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
     tag: "4.1.0"
     pullPolicy: IfNotPresent
   logDirectory: "s3a://spark-logs/events"

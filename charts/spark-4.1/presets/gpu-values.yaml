@@ -11,7 +11,7 @@ connect:
   enabled: true
   replicas: 1
   image:
-    repository: spark-custom
+    repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
     tag: "4.1.0-gpu"
     pullPolicy: IfNotPresent
 
