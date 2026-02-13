@@ -705,16 +705,16 @@ See `docs/reports/review-F16-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F16-o
 ## Feature F17: Spark Connect Go Client
 
 **Source:** `docs/drafts/feature-spark-connect-go.md`
-**Status:** Backlog
+**Status:** In Progress (implemented; review CHANGES REQUESTED — LOC blocker)
 **Total Workstreams:** 4
-**Estimated LOC:** ~2800
+**Actual LOC:** ~1655
 
 | ID | Name | Scope | Dependencies | Status |
 |----|------|-------|-------------|--------|
-| WS-017-01 | Spark Connect Go client library | MEDIUM (~800 LOC) | F06, F11 | backlog |
-| WS-017-02 | Go smoke tests | MEDIUM (~600 LOC) | WS-017-01 | backlog |
-| WS-017-03 | Go E2E tests | MEDIUM (~700 LOC) | WS-017-01 | backlog |
-| WS-017-04 | Go load tests | MEDIUM (~700 LOC) | WS-017-01 | backlog |
+| WS-017-01 | Spark Connect Go client library | MEDIUM (217 LOC) | F06, F11 | completed |
+| WS-017-02 | Go smoke tests | MEDIUM (316 LOC) | WS-017-01 | completed |
+| WS-017-03 | Go E2E tests | MEDIUM (493 LOC) | WS-017-01 | completed |
+| WS-017-04 | Go load tests | MEDIUM (349 LOC) | WS-017-01 | completed |
 
 ### Dependency Graph
 
@@ -730,9 +730,9 @@ F06, F11 ──── WS-017-01 (Go client library)
 
 **Review Date:** 2026-02-10  
 **Verdict:** ❌ CHANGES REQUESTED  
-**Status:** Not implemented. No .go files. Skeleton: go.mod, client/smoke/e2e/load READMEs.
+**Blocker:** 5 Go files >200 LOC (4 >250). Tech debt: `spark_k8s-cqy.6`.
 
-**Fixed (beads):** ecz, 85e, bok CLOSED. **Remaining:** WS-017-01..04 implementation (no .go files).
+**Fixed (beads):** ecz, 85e, bok CLOSED. **Remaining:** Split files per cqy.6, re-review.
 
 See `docs/reports/review-F17-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F17-go-client.md`.
 
@@ -859,7 +859,7 @@ See `docs/reports/review-F25-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F25-s
 | F14: Phase 8 — Advanced Security | 7 | 7 | 0 | 0 |
 | F15: Phase 9 — Parallel Execution & CI/CD | 3 | 3 | 0 | 0 |
 | F16: Observability Stack | 6 | 0 | 0 | 6 |
-| F17: Spark Connect Go Client | 4 | 0 | 0 | 4 |
+| F17: Spark Connect Go Client | 4 | 4 | 0 | 0 |
 | F18: Production Operations Suite | 17+ | 2 | 0 | 15+ |
 | **F25: Spark 3.5 Production-Ready** | **12** | **10** | **0** | **2** |
 | TESTING: Testing Infrastructure | 3+ | 0 | 0 | 3+ |

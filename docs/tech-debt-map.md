@@ -50,6 +50,7 @@
 | spark_k8s-ecz | Align WS-017-01 code template with gRPC/proto API | P1 | spark_k8s-cqy | ✅ CLOSED |
 | spark_k8s-85e | Re-verify Spark Connect Go/Proto source | P1 | spark_k8s-cqy | ✅ CLOSED |
 | spark_k8s-bok | Add Go test to CI | P2 | spark_k8s-cqy | ✅ CLOSED |
+| spark_k8s-cqy.6 | Split Go files >200 LOC (connect 217, connect_test 280, smoke 316, load 349, e2e 493) | P1 | spark_k8s-cqy | open |
 
 ### F18 — Production Operations Suite
 
@@ -82,6 +83,7 @@
 | spark_k8s-dee | F16 | test_observability.py | ✅ CLOSED |
 | spark_k8s-6ki | F18 | ops scripts (6 шт.) | ✅ CLOSED |
 | spark_k8s-y0m | F25 | test-spark-35-minikube.sh | ✅ CLOSED |
+| spark_k8s-cqy.6 | F17 | Go: connect.go, connect_test.go, smoke, load, e2e | open |
 
 ### Docs
 
@@ -143,7 +145,7 @@
 F15 (dyz) ──► ksz, zjq, 78m, wcb, dyz.8
 F14 (cy5) ──► rlk, bch
 F16 (74z) ──► 8h5, dee, emp, kcj, 74z.8, 74z.9, k5r, 2qk, 31l, 74z.10
-F17 (cqy) ──► ecz, 85e, bok
+F17 (cqy) ──► ecz, 85e, bok, cqy.6
 F18 (d5e) ──► yck, 117, 7xp, 6ki
 F25 (ju2) ──► pb8, 2f9, 7nn, bbk, y0m
 ```
