@@ -1,6 +1,6 @@
 # Карта техдолга
 
-**Обновлено:** 2026-02-10  
+**Обновлено:** 2026-02-13  
 **Источник:** beads (label: tech-debt)
 
 ---
@@ -50,16 +50,18 @@
 | spark_k8s-ecz | Align WS-017-01 code template with gRPC/proto API | P1 | spark_k8s-cqy | ✅ CLOSED |
 | spark_k8s-85e | Re-verify Spark Connect Go/Proto source | P1 | spark_k8s-cqy | ✅ CLOSED |
 | spark_k8s-bok | Add Go test to CI | P2 | spark_k8s-cqy | ✅ CLOSED |
-| spark_k8s-cqy.6 | Split Go files >200 LOC (connect 217, connect_test 280, smoke 316, load 349, e2e 493) | P1 | spark_k8s-cqy | open |
+| spark_k8s-cqy.6 | Split Go files >200 LOC (connect 217, connect_test 280, smoke 316, load 349, e2e 493) | P1 | spark_k8s-cqy | ✅ CLOSED |
 
 ### F18 — Production Operations Suite
 
-| ID | Задача | Приоритет | Блокер |
-|----|--------|-----------|--------|
-| spark_k8s-yck | Add pytest test_* to test_runbooks.py | P2 | spark_k8s-d5e |
-| spark_k8s-117 | Complete WS-018-01 (on-call, escalation, declare-incident) | P2 | spark_k8s-d5e |
-| spark_k8s-7xp | Update F16 dependency references | P2 | spark_k8s-d5e |
-| spark_k8s-6ki | Split ops scripts > 200 LOC (или exemption) | P3 | spark_k8s-d5e |
+| ID | Задача | Приоритет | Блокер | Статус |
+|----|--------|-----------|--------|--------|
+| spark_k8s-yck | Add pytest test_* to test_runbooks.py | P2 | spark_k8s-d5e | ✅ CLOSED |
+| spark_k8s-117 | Complete WS-018-01 (on-call, escalation, declare-incident) | P2 | spark_k8s-d5e | ✅ CLOSED |
+| spark_k8s-7xp | Update F16 dependency references | P2 | spark_k8s-d5e | ✅ CLOSED |
+| spark_k8s-6ki | Split ops scripts > 200 LOC (или exemption) | P3 | spark_k8s-d5e | ✅ CLOSED |
+| spark_k8s-d5e.20 | Increase test_runbooks.py coverage to ≥80% (current 70%) | P2 | spark_k8s-d5e | ✅ CLOSED |
+| spark_k8s-d5e.21 | Fix ops-scripts-assessment.md (incorrect NOT FOUND) | P3 | spark_k8s-d5e | ✅ CLOSED |
 
 ### F25 — Spark 3.5 Charts Production-Ready
 
@@ -83,21 +85,23 @@
 | spark_k8s-dee | F16 | test_observability.py | ✅ CLOSED |
 | spark_k8s-6ki | F18 | ops scripts (6 шт.) | ✅ CLOSED |
 | spark_k8s-y0m | F25 | test-spark-35-minikube.sh | ✅ CLOSED |
-| spark_k8s-cqy.6 | F17 | Go: connect.go, connect_test.go, smoke, load, e2e | open |
+| spark_k8s-cqy.6 | F17 | Go: connect.go, connect_test.go, smoke, load, e2e | ✅ CLOSED |
 
 ### Docs
 
-| ID | Feature | Описание |
-|----|---------|----------|
+| ID | Feature | Описание | Статус |
+|----|---------|----------|--------|
 | spark_k8s-2f9 | F25 | F25-load-test-report.md, report-template.md |
-| spark_k8s-7xp | F18 | F16 dependency refs |
+| spark_k8s-7xp | F18 | F16 dependency refs | ✅ CLOSED |
 | spark_k8s-bbk | F25 | observability-stack.md links |
+| spark_k8s-d5e.21 | F18 | ops-scripts-assessment.md (fix NOT FOUND) | ✅ CLOSED |
 
 ### Tests
 
-| ID | Feature | Описание |
-|----|---------|----------|
-| spark_k8s-yck | F18 | test_runbooks.py test_* |
+| ID | Feature | Описание | Статус |
+|----|---------|----------|--------|
+| spark_k8s-yck | F18 | test_runbooks.py test_* | ✅ CLOSED |
+| spark_k8s-d5e.20 | F18 | test_runbooks.py coverage ≥80% | ✅ CLOSED |
 
 ### CI/Infra
 
@@ -146,7 +150,7 @@ F15 (dyz) ──► ksz, zjq, 78m, wcb, dyz.8
 F14 (cy5) ──► rlk, bch
 F16 (74z) ──► 8h5, dee, emp, kcj, 74z.8, 74z.9, k5r, 2qk, 31l, 74z.10
 F17 (cqy) ──► ecz, 85e, bok, cqy.6
-F18 (d5e) ──► yck, 117, 7xp, 6ki
+F18 (d5e) ──► yck, 117, 7xp, 6ki, d5e.20, d5e.21
 F25 (ju2) ──► pb8, 2f9, 7nn, bbk, y0m
 ```
 
