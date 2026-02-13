@@ -85,6 +85,8 @@ The script automatically sets Airflow Variables required by DAGs (`spark_image`,
 
 This ensures prod-like DAG tests work deterministically without manual variable setup.
 
+**Manual variable setup:** When `SET_AIRFLOW_VARIABLES=false`, set variables manually via Airflow CLI (see [spark-standalone chart guide](charts/spark-standalone.md) or upstream Airflow docs).
+
 **Expected Output:**
 ```
 === Airflow prod-like DAG tests (spark-prodlike in spark-sa-prodlike) ===
@@ -395,5 +397,6 @@ Before considering a deployment "green":
 ## Reference
 
 - **Chart guides:** [`docs/guides/en/charts/`](charts/)
+- **Prod-like overlay:** [`docs/guides/en/overlays/values-sa-prodlike.yaml`](overlays/values-sa-prodlike.yaml) (references `charts/spark-standalone/values-prod-like.yaml`)
 - **OpenShift notes:** [`docs/guides/en/openshift-notes.md`](openshift-notes.md)
 - **Repository map:** [`docs/PROJECT_MAP.md`](../../PROJECT_MAP.md)

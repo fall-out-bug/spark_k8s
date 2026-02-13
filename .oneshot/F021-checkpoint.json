@@ -1,0 +1,14 @@
+{
+  "feature": "F021",
+  "feature_alias": "F05",
+  "feature_title": "Documentation Refresh (prod-like Airflow vars)",
+  "agent_id": "agent-20260213-oneshot-f021",
+  "status": "completed",
+  "completed_ws": ["WS-021-01", "WS-021-02"],
+  "execution_order": ["WS-021-01", "WS-021-02"],
+  "blocked": {},
+  "started_at": "2026-02-13T00:00:00Z",
+  "updated_at": "2026-02-13T00:00:00Z",
+  "last_completed": ["WS-021-01", "WS-021-02"],
+  "note": "Both WS completed. EN and RU validation.md updated with Airflow Variables section, manual setup, prod-like overlay reference. F021 (F05) feature complete."
+}

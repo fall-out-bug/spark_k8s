@@ -85,6 +85,8 @@
 
 Это обеспечивает детерминированную работу prod-like DAG тестов без ручной настройки переменных.
 
+**Ручная настройка переменных:** При `SET_AIRFLOW_VARIABLES=false` задайте переменные вручную через Airflow CLI (см. [гайд по чарту spark-standalone](charts/spark-standalone.md) или документацию Airflow).
+
 **Ожидаемый вывод:**
 ```
 === Airflow prod-like DAG tests (spark-prodlike in spark-sa-prodlike) ===
@@ -395,6 +397,7 @@ kubectl exec -n <namespace> <worker-pod> -- nslookup <release>-spark-standalone-
 ## Справочник
 
 - **Гайды по чартам:** [`docs/guides/ru/charts/`](charts/)
+- **Prod-like overlay:** [`docs/guides/en/overlays/values-sa-prodlike.yaml`](../../en/overlays/values-sa-prodlike.yaml) (ссылается на `charts/spark-standalone/values-prod-like.yaml`)
 - **Заметки по OpenShift:** [`docs/guides/ru/openshift-notes.md`](openshift-notes.md)
 - **Карта репозитория:** [`docs/PROJECT_MAP.md`](../../PROJECT_MAP.md)
 - **English version:** [`docs/guides/en/validation.md`](../../en/validation.md)

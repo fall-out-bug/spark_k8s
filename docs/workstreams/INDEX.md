@@ -194,14 +194,14 @@ WS-020-24 (ADRs) → independent
 ## Feature F05: Documentation Refresh (prod-like Airflow vars)
 
 **Source:** `docs/drafts/idea-repo-documentation.md`
-**Status:** Backlog
+**Status:** Completed
 **Total Workstreams:** 2
 **Estimated LOC:** ~200 (docs)
 
 | ID | Name | Scope | Dependency | Status |
 |----|------|-------|------------|--------|
-| WS-021-01 | Update validation docs EN (Airflow vars) | SMALL (~120 LOC) | - | backlog |
-| WS-021-02 | Update validation docs RU (Airflow vars) | SMALL (~120 LOC) | WS-021-01 | backlog |
+| WS-021-01 | Update validation docs EN (Airflow vars) | SMALL (~120 LOC) | - | completed |
+| WS-021-02 | Update validation docs RU (Airflow vars) | SMALL (~120 LOC) | WS-021-01 | completed |
 
 ### Dependency Graph
 
@@ -705,16 +705,16 @@ See `docs/reports/review-F16-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F16-o
 ## Feature F17: Spark Connect Go Client
 
 **Source:** `docs/drafts/feature-spark-connect-go.md`
-**Status:** In Progress (implemented; review CHANGES REQUESTED — LOC blocker)
+**Status:** Completed
 **Total Workstreams:** 4
-**Actual LOC:** ~1655
+**Actual LOC:** ~1701 (25 files, all <200)
 
 | ID | Name | Scope | Dependencies | Status |
 |----|------|-------|-------------|--------|
-| WS-017-01 | Spark Connect Go client library | MEDIUM (217 LOC) | F06, F11 | completed |
-| WS-017-02 | Go smoke tests | MEDIUM (316 LOC) | WS-017-01 | completed |
-| WS-017-03 | Go E2E tests | MEDIUM (493 LOC) | WS-017-01 | completed |
-| WS-017-04 | Go load tests | MEDIUM (349 LOC) | WS-017-01 | completed |
+| WS-017-01 | Spark Connect Go client library | MEDIUM | F06, F11 | completed |
+| WS-017-02 | Go smoke tests | MEDIUM | WS-017-01 | completed |
+| WS-017-03 | Go E2E tests | MEDIUM | WS-017-01 | completed |
+| WS-017-04 | Go load tests | MEDIUM | WS-017-01 | completed |
 
 ### Dependency Graph
 
@@ -729,10 +729,8 @@ F06, F11 ──── WS-017-01 (Go client library)
 ### Review Summary
 
 **Review Date:** 2026-02-10  
-**Verdict:** ❌ CHANGES REQUESTED  
-**Blocker:** 5 Go files >200 LOC (4 >250). Tech debt: `spark_k8s-cqy.6`.
-
-**Fixed (beads):** ecz, 85e, bok CLOSED. **Remaining:** Split files per cqy.6, re-review.
+**Verdict:** ✅ APPROVED  
+**Beads:** ecz, 85e, bok, cqy.6 — all CLOSED.
 
 See `docs/reports/review-F17-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F17-go-client.md`.
 
@@ -756,7 +754,7 @@ See `docs/reports/review-F17-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F17-g
 
 **Review Date:** 2026-02-10  
 **Verdict:** ✅ APPROVED  
-**Fixed (beads):** yck (test_runbooks pytest), 117 (WS-018-01 deliverables), 7xp (F16 refs), 6ki (ops scripts LOC).
+**Fixed (beads):** yck, 117, 7xp, 6ki — CLOSED. **Nedodelki:** d5e.20 (coverage ≥80%). d5e.21 (ops-scripts-assessment) — CLOSED.
 
 See `docs/reports/review-F18-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F18-operations.md`.
 
@@ -833,9 +831,256 @@ WS-025-01 (Fix metadata)     WS-025-02 (Standalone)     WS-025-05 (Routes)
 
 **Review Date:** 2026-02-10  
 **Verdict:** ✅ APPROVED (WS-025-01..10)  
-**Fixed (beads):** ju2.4 — helm template connect.openTelemetry; y0m — loc exemption; pb8, 2f9 deliverables exist (blocked by parent).
+**Fixed (beads):** ju2.5 — budget.enabled nil; y0m — loc exemption; pb8, 2f9 deliverables exist. **Parity test:** spark-4.1 costExporter (ds8.7).
 
 See `docs/reports/review-F25-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F25-spark-35-charts.md`.
+
+---
+
+## Feature F26: Spark Performance Defaults
+
+**Source:** `docs/drafts/idea-spark-performance-defaults.md`
+**Status:** Backlog
+**Total Workstreams:** 3
+**Estimated LOC:** ~400
+**Audit source:** repo-audit-2026-02-13.md (Spark Practices SP-1..SP-8)
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-026-01 | Enable AQE and Modern Spark Defaults | SMALL (~150 LOC) | - | backlog |
+| WS-026-02 | Fix Deprecated Spark 4.x Properties | SMALL (~100 LOC) | - | backlog |
+| WS-026-03 | Structured Streaming Example (Kafka → Iceberg) | MEDIUM (~150 LOC) | WS-026-01 | backlog |
+
+### Dependency Graph
+
+```
+WS-026-01 (AQE + defaults) ──── WS-026-03 (Streaming example)
+WS-026-02 (Fix deprecated)      (independent)
+```
+
+### Audit Cross-Reference
+
+| Audit ID | Description | WS |
+|----------|-------------|-----|
+| SP-1 | No AQE in defaults (+20-40% perf) | WS-026-01 |
+| SP-2 | spark.blacklist deprecated in 4.x | WS-026-02 |
+| SP-4 | Hardcoded shuffle.partitions=200 | WS-026-01 |
+| SP-5 | No KryoSerializer | WS-026-01 |
+| SP-6 | No zstd parquet compression | WS-026-01 |
+| SP-7 | No podNamePrefix | WS-026-01 |
+| SP-8 | No Structured Streaming example | WS-026-03 |
+
+---
+
+## Feature F27: Code Quality A*
+
+**Source:** `docs/drafts/idea-code-quality-astar.md`
+**Status:** Backlog
+**Total Workstreams:** 3
+**Estimated LOC:** ~600 (config + refactoring)
+**Audit source:** repo-audit-2026-02-13.md (Code Quality CQ-1..CQ-6)
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-027-01 | Create pyproject.toml and Enforce Coverage | SMALL (~100 LOC) | - | backlog |
+| WS-027-02 | Split Oversized Test Files (13 files > 200 LOC) | MEDIUM (~300 LOC refactor) | WS-027-01 | backlog |
+| WS-027-03 | Split Oversized Scripts + Add Pre-commit | SMALL (~200 LOC refactor) | WS-027-01 | backlog |
+
+### Dependency Graph
+
+```
+WS-027-01 (pyproject.toml + coverage)
+    ├── WS-027-02 (Split test files)
+    └── WS-027-03 (Split scripts + pre-commit)
+```
+
+### Audit Cross-Reference
+
+| Audit ID | Description | WS |
+|----------|-------------|-----|
+| CQ-1 | 13 test files > 200 LOC | WS-027-02 |
+| CQ-2 | 3 Python scripts > 200 LOC | WS-027-03 |
+| CQ-3 | No unified linter config | WS-027-01 |
+| CQ-4 | No requirements.txt / pyproject.toml | WS-027-01 |
+| CQ-5 | Coverage not enforced | WS-027-01 |
+| CQ-6 | No pre-commit hooks | WS-027-03 |
+
+---
+
+## Feature F28: Chart Architecture DRY
+
+**Source:** `docs/drafts/idea-chart-architecture-dry.md`
+**Status:** Backlog
+**Total Workstreams:** 3
+**Estimated LOC:** ~800 (refactoring)
+**Audit source:** repo-audit-2026-02-13.md (Architecture AR-1..AR-7)
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-028-01 | Extract Shared Templates to spark-base | LARGE (~400 LOC refactor) | - | backlog |
+| WS-028-02 | Remove Intra-chart Template Duplicates | SMALL (~100 LOC) | WS-028-01 | backlog |
+| WS-028-03 | Add values.schema.json and Helm Test Templates | MEDIUM (~300 LOC) | WS-028-02 | backlog |
+
+### Dependency Graph
+
+```
+WS-028-01 (Extract to spark-base)
+    └── WS-028-02 (Remove duplicates)
+            └── WS-028-03 (Schema + Helm tests)
+```
+
+### Audit Cross-Reference
+
+| Audit ID | Description | WS |
+|----------|-------------|-----|
+| AR-1 | Template duplication between 3.5 and 4.1 | WS-028-01 |
+| AR-2 | values.yaml > 460 LOC (monolithic) | WS-028-03 |
+| AR-3 | Duplicate hive-metastore templates | WS-028-02 |
+| AR-4 | Duplicate RBAC (rbac.yaml + rbac/) | WS-028-02 |
+| AR-5 | Duplicate KEDA (keda + autoscaling/) | WS-028-02 |
+| AR-6 | No Helm chart tests | WS-028-03 |
+| AR-7 | No values.schema.json | WS-028-03 |
+
+---
+
+## Feature F29: CI/CD Hardening
+
+**Source:** `docs/drafts/idea-cicd-hardening.md`
+**Status:** Backlog
+**Total Workstreams:** 4
+**Estimated LOC:** ~500
+**Audit source:** repo-audit-2026-02-13.md (DevOps DO-1..DO-10)
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-029-01 | Fix CI/CD Bugs and Modernize Actions | SMALL (~100 LOC) | - | backlog |
+| WS-029-02 | Add Dependabot, CODEOWNERS, .dockerignore | SMALL (~100 LOC) | WS-029-01 | backlog |
+| WS-029-03 | Chart Release Pipeline (OCI Registry) | MEDIUM (~200 LOC) | WS-029-01 | backlog |
+| WS-029-04 | Harden Default Credentials in Values Files | SMALL (~100 LOC) | - | backlog |
+
+### Dependency Graph
+
+```
+WS-029-01 (Fix CI bugs) ──┬── WS-029-02 (Dependabot + CODEOWNERS)
+                           └── WS-029-03 (Chart release pipeline)
+WS-029-04 (Harden credentials)    (independent, CRITICAL priority)
+```
+
+### Audit Cross-Reference
+
+| Audit ID | Description | WS | Priority |
+|----------|-------------|-----|----------|
+| DO-1 | Hardcoded minioadmin in 49+ files | WS-029-04 | **CRITICAL** |
+| DO-2 | security-scan.yml typo ubuntu-litted | WS-029-01 | High |
+| DO-3 | security-scan.yml sarif mismatch | WS-029-01 | High |
+| DO-4 | No chart release pipeline | WS-029-03 | Medium |
+| DO-5 | No image pinning (SHA digest) | WS-029-02 | Medium |
+| DO-6 | No .dockerignore | WS-029-02 | Medium |
+| DO-8 | Outdated actions/checkout@v3 | WS-029-01 | Low |
+| DO-9 | No Dependabot/Renovate | WS-029-02 | Medium |
+| DO-10 | No CODEOWNERS | WS-029-02 | Low |
+
+---
+
+## Feature F30: Data Engineering Patterns
+
+**Source:** `docs/drafts/idea-data-engineering-patterns.md`
+**Status:** Backlog
+**Total Workstreams:** 4
+**Estimated LOC:** ~1200
+**Audit source:** repo-audit-2026-02-13.md (Data Engineering DE-1..DE-8)
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-030-01 | OpenLineage Integration Preset | MEDIUM (~300 LOC) | - | backlog |
+| WS-030-02 | Production Airflow DAG Templates | MEDIUM (~300 LOC) | - | backlog |
+| WS-030-03 | Iceberg Best Practices Guide | MEDIUM (~400 LOC) | - | backlog |
+| WS-030-04 | Integrate Observability as Chart Dependency | MEDIUM (~200 LOC) | WS-030-01 | backlog |
+
+### Dependency Graph
+
+```
+WS-030-01 (OpenLineage) ──── WS-030-04 (Observability integration)
+WS-030-02 (Airflow DAGs)     (independent)
+WS-030-03 (Iceberg guide)    (independent)
+```
+
+### Audit Cross-Reference
+
+| Audit ID | Description | WS |
+|----------|-------------|-----|
+| DE-1 | No data lineage (OpenLineage) | WS-030-01 |
+| DE-2 | No schema registry | Future (out of scope) |
+| DE-3 | No data quality framework examples | WS-030-02 (DQ DAG) |
+| DE-4 | No production ETL pipeline examples | WS-030-02 |
+| DE-6 | No Iceberg partitioning strategy docs | WS-030-03 |
+| DE-7 | Airflow DAGs are examples only | WS-030-02 |
+| DE-8 | Observability charts not integrated | WS-030-04 |
+
+---
+
+## Audit → Feature Cross-Reference Map
+
+**Source:** `docs/reports/repo-audit-2026-02-13.md`
+
+| Audit Aspect | Grade | Existing Features | New Features | Gap Coverage |
+|-------------|-------|-------------------|--------------|--------------|
+| Code Quality (B+) | CQ-1..CQ-6 | — | **F27** (3 WS) | 100% |
+| Architecture (B) | AR-1..AR-7 | F04 (backlog) | **F28** (3 WS) | 100% |
+| DevOps (B+) | DO-1..DO-10 | F15, F16 | **F29** (4 WS) | 100% |
+| Spark Practices (A-) | SP-1..SP-8 | F25 (WS-025-11, WS-025-12) | **F26** (3 WS) | 100% |
+| Data Engineering (B) | DE-1..DE-8 | F16, F18 | **F30** (4 WS) | 87% (DE-2 deferred) |
+
+### Existing Backlog Augmentation
+
+| Existing WS | Audit Items Absorbed | Notes |
+|-------------|---------------------|-------|
+| F16 WS-016-01..06 | DE-8 partially | Observability stack exists; F30 WS-030-04 integrates it |
+| F18 WS-018-02..03 | — | Already covers ops runbooks |
+| F25 WS-025-11 | — | Load tests remain as-is |
+| F25 WS-025-12 | SP-1 partially | Tracing + profiling; AQE defaults in F26 |
+| F04 WS-020-* | AR-1 partially | 4.1 chart refactoring; F28 handles DRY extraction |
+
+---
+
+## Execution Priority (Waves)
+
+### Wave 1 — Critical & Quick Wins (F26 + F29 partial)
+
+| WS | Feature | Effort | Impact |
+|----|---------|--------|--------|
+| **WS-029-04** | F29: Harden credentials | SMALL | **CRITICAL security** |
+| **WS-029-01** | F29: Fix CI bugs | SMALL | CI reliability |
+| **WS-026-01** | F26: AQE + modern defaults | SMALL | +20-40% performance |
+| **WS-026-02** | F26: Fix deprecated props | SMALL | Forward compat |
+
+### Wave 2 — Foundation (F27 + F28 partial)
+
+| WS | Feature | Effort | Impact |
+|----|---------|--------|--------|
+| **WS-027-01** | F27: pyproject.toml + coverage | SMALL | Quality foundation |
+| **WS-028-02** | F28: Remove duplicates | SMALL | Clean templates |
+| **WS-027-02** | F27: Split test files | MEDIUM | Quality gate |
+| **WS-027-03** | F27: Split scripts + pre-commit | SMALL | DX |
+
+### Wave 3 — Structural (F28 + F29 rest)
+
+| WS | Feature | Effort | Impact |
+|----|---------|--------|--------|
+| **WS-028-01** | F28: Extract to spark-base | LARGE | DRY architecture |
+| **WS-028-03** | F28: Schema + Helm tests | MEDIUM | Validation UX |
+| **WS-029-02** | F29: Dependabot + CODEOWNERS | SMALL | Maintenance |
+| **WS-029-03** | F29: Chart release (OCI) | MEDIUM | Release maturity |
+
+### Wave 4 — Feature Completeness (F26 rest + F30)
+
+| WS | Feature | Effort | Impact |
+|----|---------|--------|--------|
+| **WS-026-03** | F26: Streaming example | MEDIUM | Use case coverage |
+| **WS-030-01** | F30: OpenLineage | MEDIUM | Lineage visibility |
+| **WS-030-02** | F30: Production DAGs | MEDIUM | Production patterns |
+| **WS-030-03** | F30: Iceberg guide | MEDIUM | Knowledge |
+| **WS-030-04** | F30: Observability integration | MEDIUM | Single install |
 
 ---
 
@@ -847,7 +1092,7 @@ See `docs/reports/review-F25-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F25-s
 | F02: Repo Documentation | 4 | 4 | 0 | 0 |
 | F03: History Server (SA) | 2 | 2 | 0 | 0 |
 | F04: Spark 4.1.0 Charts | 24 | 0 | 0 | 24 |
-| F05: Docs Refresh (Airflow vars) | 2 | 0 | 0 | 2 |
+| F05: Docs Refresh (Airflow vars) | 2 | 2 | 0 | 0 |
 | F06: Core Components + Presets | 10 | 10 | 0 | 0 |
 | F07: Critical Security + Chart Updates | 4 | 4 | 0 | 0 |
 | F08: Phase 2 — Smoke Tests | 7 | 7 | 0 | 0 |
@@ -861,10 +1106,15 @@ See `docs/reports/review-F25-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F25-s
 | F16: Observability Stack | 6 | 0 | 0 | 6 |
 | F17: Spark Connect Go Client | 4 | 4 | 0 | 0 |
 | F18: Production Operations Suite | 17+ | 2 | 0 | 15+ |
-| **F25: Spark 3.5 Production-Ready** | **12** | **10** | **0** | **2** |
+| F25: Spark 3.5 Production-Ready | 12 | 10 | 0 | 2 |
+| **F26: Spark Performance Defaults** | **3** | **0** | **0** | **3** |
+| **F27: Code Quality A*** | **3** | **0** | **0** | **3** |
+| **F28: Chart Architecture DRY** | **3** | **0** | **0** | **3** |
+| **F29: CI/CD Hardening** | **4** | **0** | **0** | **4** |
+| **F30: Data Engineering Patterns** | **4** | **0** | **0** | **4** |
 | TESTING: Testing Infrastructure | 3+ | 0 | 0 | 3+ |
-| **TOTAL** | **121+** | **37** | **1** | **85+** |
+| **TOTAL** | **138+** | **86** | **0** | **102+** |
 
 ---
 
-*Last updated: 2026-02-12*
+*Last updated: 2026-02-13*
