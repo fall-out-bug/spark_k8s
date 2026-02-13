@@ -134,6 +134,16 @@ spark.extraListeners=org.apache.spark.sql.SparkSessionExtension
 spark.sql.queryExecutionListeners=org.apache.spark.sql.telemetry.TelemetryListener
 ```
 
+### Resource Wait Tracker (Spark 3.5)
+
+Optional custom SparkListener for **resource wait time** (time from application start to first executor). Feeds the **Job Phase Timeline** dashboard and profiling recipes.
+
+- **Build & usage**: [docker/spark-3.5/listeners/resource-wait-tracker/README.md](../../../docker/spark-3.5/listeners/resource-wait-tracker/README.md)
+- **Job Phase Timeline**: See dashboard #4 above; recipe: [job-phase-timeline-recipe.md](job-phase-timeline-recipe.md)
+- **Spark Profiling**: [spark-profiling-guide.md](spark-profiling-guide.md)
+
+JAR is not published; it is built locally or via Docker and must be present in the Spark image at `/opt/spark/jars/` when `connect.extraLibraries.resource-wait-tracker.enabled` is `true`. By default disabled; you can use Spark native metrics and Job Phase Timeline without the JAR.
+
 ## Metrics Reference
 
 ### Spark Metrics

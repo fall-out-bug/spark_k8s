@@ -10,7 +10,9 @@
 
 **VERDICT: ✅ APPROVED (WS-025-01..10)**
 
-WS-025-01 through WS-025-10 deliverables are complete. All 8 scenario values files use correct backendMode (k8s/standalone). **Fixed:** helm template failed on `connect.openTelemetry.enabled` nil pointer — added `connect.openTelemetry` section to values.yaml (bead ju2.4 CLOSED). Helm template now passes. Monitoring templates (ServiceMonitor, PodMonitor, Grafana dashboards), spark-standalone, route templates exist. Smoke scripts and minikube integration test script present.
+WS-025-01 through WS-025-10 deliverables are complete. All 8 scenario values files use correct backendMode (k8s/standalone). **Fixed:** budget.enabled nil pointer — added `budget.enabled: false` to values.yaml (bead ju2.5 CLOSED). Helm template passes for spark-3.5. Monitoring templates (ServiceMonitor, PodMonitor, Grafana dashboards), spark-standalone, route templates exist. Smoke scripts and minikube integration test script present.
+
+**Parity test note:** test_spark35_complete_matrix parity tests fail on spark-4.1 (costExporter.enabled nil) — bead ds8.7 (F04 scope).
 
 WS-025-11 (Load tests 10GB NYC Taxi) and WS-025-12 (Tracing + profiling) remain in backlog.
 
@@ -102,14 +104,15 @@ Chart templates and integration scripts may exceed 200 LOC; document as tech deb
 
 | # | Severity | Issue | Status | Bead |
 |---|----------|-------|--------|------|
-| 1 | CRITICAL | helm template: connect.openTelemetry nil pointer | ✅ Fixed | spark_k8s-ju2.4 CLOSED |
+| 1 | CRITICAL | helm template: budget.enabled nil pointer | ✅ Fixed | spark_k8s-ju2.5 CLOSED |
 | 2 | LOW | INDEX.md F25 shows 0 completed | ✅ Fixed | — |
 | 3 | LOW | WS frontmatter status: backlog | ✅ Fixed | — |
 | 4 | LOW | test-spark-35-minikube.sh 599 LOC | ✅ Documented | spark_k8s-y0m CLOSED (loc-exemptions.md) |
 | 5 | LOW | WS-025-11: prepare-nyc-taxi-data.sh | ✅ Exists | spark_k8s-pb8 (blocked by ju2) |
 | 6 | LOW | WS-025-11: F25-load-test-report.md, report-template.md | ✅ Exist | spark_k8s-2f9 (blocked by ju2) |
 | 7 | P3 | WS-025-12: observability-stack.md Job Phase links | Backlog | spark_k8s-bbk |
-| 8 | P2 | WS-025-12: resource-wait-tracker JAR | Backlog | spark_k8s-7nn |
+| 8 | P2 | WS-025-12: resource-wait-tracker JAR | ✅ Closed | spark_k8s-7nn CLOSED |
+| 9 | P0 | Parity test: spark-4.1 costExporter.enabled nil | open | spark_k8s-ds8.7 (F04) |
 
 ---
 

@@ -69,9 +69,10 @@
 |----|--------|-----------|--------|--------|
 | spark_k8s-pb8 | WS-025-11: Add prepare-nyc-taxi-data.sh | P2 | spark_k8s-ju2 | ✅ CLOSED |
 | spark_k8s-2f9 | WS-025-11: Add F25-load-test-report.md + report-template.md | P2 | spark_k8s-ju2 | ✅ CLOSED |
-| spark_k8s-7nn | WS-025-12: Verify/publish resource-wait-tracker JAR | P2 | spark_k8s-ju2 | open |
+| spark_k8s-7nn | WS-025-12: Verify/publish resource-wait-tracker JAR | P2 | spark_k8s-ju2 | ✅ CLOSED |
 | spark_k8s-bbk | WS-025-12: Add Job Phase Timeline + Spark Profiling links to observability-stack.md | P3 | spark_k8s-ju2 | ✅ CLOSED |
 | spark_k8s-y0m | Document LOC exemption for test-spark-35-minikube.sh (599 LOC) | P3 | spark_k8s-ju2 | ✅ CLOSED |
+| spark_k8s-ju2.5 | Fix helm template budget.enabled nil pointer | P0 | spark_k8s-ju2 | ✅ CLOSED |
 
 ---
 
@@ -113,12 +114,14 @@
 
 ### Charts/Templates
 
-| ID | Feature | Описание |
-|----|---------|----------|
+| ID | Feature | Описание | Статус |
+|----|---------|----------|--------|
 | spark_k8s-8h5 | F16 | grafana values.yaml |
 | spark_k8s-kcj | F16 | prometheus/loki templates |
 | spark_k8s-pb8 | F25 | prepare-nyc-taxi-data.sh |
-| spark_k8s-7nn | F25 | resource-wait-tracker JAR |
+| spark_k8s-7nn | F25 | resource-wait-tracker JAR | ✅ CLOSED |
+| spark_k8s-ju2.5 | F25 | budget.enabled nil (spark-3.5) | ✅ CLOSED |
+| spark_k8s-ds8.7 | F04 | costExporter.enabled nil (spark-4.1) | open |
 
 ### Feature completeness
 
@@ -151,7 +154,7 @@ F14 (cy5) ──► rlk, bch
 F16 (74z) ──► 8h5, dee, emp, kcj, 74z.8, 74z.9, k5r, 2qk, 31l, 74z.10
 F17 (cqy) ──► ecz, 85e, bok, cqy.6
 F18 (d5e) ──► yck, 117, 7xp, 6ki, d5e.20, d5e.21
-F25 (ju2) ──► pb8, 2f9, 7nn, bbk, y0m
+F25 (ju2) ──► pb8, 2f9, 7nn, bbk, y0m, ju2.5
 ```
 
 ---
