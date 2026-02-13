@@ -1,0 +1,12 @@
+{
+  "feature": "F027",
+  "agent_id": "oneshot-20260213",
+  "status": "partial",
+  "completed_ws": ["WS-027-01"],
+  "partial_ws": {
+    "WS-027-02": "test_runbooks.py split into 3 modules; 12 files >200 LOC remain",
+    "WS-027-03": "pre-commit added; script splits (iceberg, rightsizing, gpu) deferred"
+  },
+  "execution_order": ["WS-027-01", "WS-027-02", "WS-027-03"],
+  "updated_at": "2026-02-13"
+}

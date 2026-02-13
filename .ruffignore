@@ -1,0 +1,11 @@
+# Excluded from ruff (WS-027-01 known exclusions)
+# tests/, scripts/, examples/ - legacy style, addressed in WS-027-02, WS-027-03
+tests/
+scripts/
+examples/
+docker/
+configs/
+k8s/
+hooks/
+notebooks/
+.sdp/
