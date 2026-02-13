@@ -18,6 +18,7 @@ Modular Helm charts for deploying Apache Spark on Kubernetes. Deploy Spark Conne
 | **Quick Reference** | Command cheat sheet (RU/EN) | [RU](docs/guides/ru/quick-reference.md) \| [EN](docs/guides/en/quick-reference.md) |
 | **Architecture** | System architecture and components | [Architecture](docs/architecture/spark-k8s-charts.md) |
 | **Recipes** | Operations, Troubleshooting, Deployment, Integration | [Recipes](#recipes) |
+| **Project Origins** | Why spark_k8s — problem, solution, vision (EN/RU) | [EN](docs/about/origin-story.md) \| [RU](docs/about/ru/origin-story.md) |
 | **What's New** | Changelog and release notes | [CHANGELOG.md](CHANGELOG.md) |
 
 ---

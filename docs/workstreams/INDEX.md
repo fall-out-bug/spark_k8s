@@ -349,6 +349,41 @@ WS-031-02 (ROADMAP update) ───── WS-031-04 (Metrics dashboard)
 
 ---
 
+## Feature F23: Project Origins Documentation
+
+**Source:** `docs/drafts/idea-f23-project-origins.md`  
+**Beads:** spark_k8s-1wf (F21)  
+**Status:** Completed  
+**Total Workstreams:** 5  
+**Estimated LOC:** ~640 (docs)
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-032-01 | Write origin story | SMALL (~150 LOC) | - | completed |
+| WS-032-02 | Problem deep dive | SMALL (~120 LOC) | WS-032-01 | completed |
+| WS-032-03 | Solution philosophy | SMALL (~120 LOC) | WS-032-01 | completed |
+| WS-032-04 | Vision and future roadmap | SMALL (~100 LOC) | WS-032-03 | completed |
+| WS-032-05 | Bilingual version (RU) | SMALL (~150 LOC) | WS-032-04 | completed |
+
+### Dependency Graph
+
+```
+WS-032-01 (Origin story)
+    ├── WS-032-02 (Problem deep dive)
+    └── WS-032-03 (Solution philosophy)
+            └── WS-032-04 (Vision & roadmap)
+                    └── WS-032-05 (Bilingual RU)
+```
+
+### Execution Order
+
+1. **WS-032-01** — Origin story (first)
+2. **Parallel:** WS-032-02 + WS-032-03 (after 01)
+3. **Sequential:** WS-032-04 (after 03)
+4. **Sequential:** WS-032-05 (after 04)
+
+---
+
 ## Feature TESTING: Testing Infrastructure
 
 **Source:** `docs/issues/issue-001-minikube-pvc-provisioning.md`
@@ -1127,6 +1162,7 @@ WS-030-03 (Iceberg guide)    (independent)
 | F06: Core Components + Presets | 10 | 10 | 0 | 0 |
 | F07: Critical Security + Chart Updates | 4 | 4 | 0 | 0 |
 | F22: Progress Automation | 4 | 4 | 0 | 0 |
+| F23: Project Origins Documentation | 5 | 5 | 0 | 0 |
 | F08: Phase 2 — Smoke Tests | 7 | 7 | 0 | 0 |
 | F09: Phase 3 — Docker Base Layers | 3 | 3 | 0 | 0 |
 | F10: Phase 4 — Docker Intermediate Layers | 4 | 4 | 0 | 0 |
