@@ -115,6 +115,7 @@ All files < 200 LOC:
 | spark_k8s-zjq | Aggregate pipeline | ✅ CLOSED |
 | spark_k8s-78m | Retry mechanism | ✅ CLOSED |
 | spark_k8s-wcb | scheduled-tests.yml | ✅ CLOSED |
+| spark_k8s-dyz.8 | scheduled-tests aggregate args | ✅ CLOSED (fixed) |
 
 ---
 
@@ -131,6 +132,14 @@ The following are **extensions** (not core F15):
 | spark_k8s-dyz.5 | WS-015-09: Job Testing Templates | P2 |
 
 These are **NOT blockers** for F15 completion.
+
+---
+
+---
+
+## 6. Re-Review (2026-02-10)
+
+**Verified:** All deliverables present. **Fixed:** scheduled-tests.yml used wrong aggregate args (--input-dir/--output vs --results-dir). Updated workflow. Bead dyz.8 CLOSED.
 
 ---
 

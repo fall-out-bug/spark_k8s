@@ -10,7 +10,7 @@
 
 **VERDICT: ❌ CHANGES REQUESTED**
 
-Feature not implemented. Skeleton exists (tests/go/go.mod, client/smoke/e2e/load/ with READMEs). **No .go files.** **Fixed (beads):** ecz — API template alignment; 85e — proto source (README: build from gRPC protobuf). **Remaining:** Implement WS-017-01..04; add Go test to CI (bok).
+Feature not implemented. Skeleton exists (tests/go/go.mod, client/smoke/e2e/load/ with READMEs). **No .go files.** **Fixed (beads):** ecz — API template alignment; 85e — proto source (README: build from gRPC protobuf); bok — Go test in CI (code-validation.yml). **Remaining:** Implement WS-017-01..04 (no .go files).
 
 ---
 
@@ -112,7 +112,7 @@ INDEX: WS-017-01 depends on F06, F11. F11 (Docker Final Images) is completed per
 | 1 | CRITICAL | No implementation | Execute WS-017-01..04 | Open |
 | 2 | ~~HIGH~~ | ~~Spark Connect Go source 404~~ | Verify proto source | ✅ CLOSED (85e) |
 | 3 | ~~HIGH~~ | ~~API template alignment~~ | Align with actual API | ✅ CLOSED (ecz) |
-| 4 | MEDIUM | No CI for go test | Add Go test step (bok) | Open |
+| 4 | ~~MEDIUM~~ | ~~No CI for go test~~ | Added (bok) | ✅ CLOSED | spark_k8s-bok |
 | 5 | ~~LOW~~ | ~~client/README~~ | Build from gRPC protobuf | ✅ Updated |
 
 ---
@@ -123,8 +123,10 @@ INDEX: WS-017-01 depends on F06, F11. F11 (Docker Final Images) is completed per
 2. ~~Align WS-017-01 template~~ — ecz closed
 3. Implement WS-017-01 (Go client library).
 4. Implement WS-017-02, 03, 04 (tests).
-5. Add Go test step to CI (bok).
-6. Re-run `/review F17` after implementation.
+5. ~~Add Go test step to CI~~ — Done (bok, code-validation.yml)
+6. Implement WS-017-01 (Go client library).
+7. Implement WS-017-02, 03, 04 (tests).
+8. Re-run `/review F17` after implementation.
 
 ---
 
@@ -136,4 +138,22 @@ INDEX: WS-017-01 depends on F06, F11. F11 (Docker Final Images) is completed per
 
 ---
 
-**Report ID:** review-F17-full-2026-02-10
+---
+
+## 7. Beads Referenced
+
+| Bead | Issue | Status |
+|------|-------|--------|
+| spark_k8s-cqy | F17 parent | open |
+| spark_k8s-ecz | Align WS-017-01 template with gRPC/proto | ✅ CLOSED |
+| spark_k8s-85e | Verify Spark Connect Go/Proto source | ✅ CLOSED |
+| spark_k8s-bok | Add Go test to CI | ✅ CLOSED |
+| spark_k8s-1cb | WS-017-01: Go client library | open |
+| spark_k8s-lve | WS-017-02: Go smoke tests | open |
+| spark_k8s-772 | WS-017-03: Go E2E tests | open |
+| spark_k8s-3yd | WS-017-04: Go load tests | open |
+
+---
+
+**Report ID:** review-F17-full-2026-02-10  
+**Updated:** 2026-02-10 (protocol review, beads sync)

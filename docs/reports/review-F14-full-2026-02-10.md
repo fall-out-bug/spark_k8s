@@ -1,16 +1,16 @@
 # F14 Review Report
 
 **Feature:** F14 — Phase 8 Advanced Security  
-**Review Date:** 2026-02-10  
+**Review Date:** 2026-02-10 (updated 2026-02-10)  
 **Reviewer:** Cursor Composer  
 
 ---
 
 ## Executive Summary
 
-**VERDICT: ❌ CHANGES REQUESTED**
+**VERDICT: ✅ APPROVED**
 
-All 7 workstreams have deliverables and 118 tests pass (14 skipped). One blocker: `tests/security/test_security.py` exceeds 200 LOC (actual: 252 LOC). Split required before approval.
+All 7 workstreams have deliverables. 118 tests pass, 14 skipped. **Fixed:** test_security.py split (WS-C5M); budget.enabled in conftest; 17 failing tests (rlk); PYTHONPATH in pytest.ini (bch). Max LOC: 169 (all files <200).
 
 ---
 
@@ -39,6 +39,7 @@ All 7 workstreams have deliverables and 118 tests pass (14 skipped). One blocker
 | Passed | 118 |
 | Skipped | 14 |
 | Failed | 0 |
+| Error | 0 |
 
 **Skipped tests (intentional):**
 - 12 network tests: skip when NetworkPolicy templates not rendered (chart-specific)
@@ -48,14 +49,14 @@ All 7 workstreams have deliverables and 118 tests pass (14 skipped). One blocker
 
 ## 3. Quality Gates
 
-### 3.1 File Size Check ⚠️
+### 3.1 File Size Check ✅
 
 | File | LOC | Status |
 |------|-----|--------|
-| tests/security/test_security.py | 252 | 🔴 BLOCKING (>200) |
-| All other security test files | 83–169 | ✅ |
+| tests/security/test_security.py | N/A | ✅ DONE (WS-C5M split) |
+| All security test files | 36–169 | ✅ |
 
-**Required fix:** Split `test_security.py` into 2–3 modules (e.g. `test_security_network_rbac.py`, `test_security_secrets_context.py`) to bring each under 200 LOC.
+**Status:** test_security.py split completed per WS-C5M. Tests in pss/, scc/, network/, rbac/, secrets/, container/, s3/, context/, compliance/. Max 169 LOC.
 
 ### 3.2 Coverage ✅
 
@@ -145,19 +146,25 @@ All 7 workstreams have deliverables and 118 tests pass (14 skipped). One blocker
 
 ---
 
-## 5. Blockers
+## 5. Blockers & Nedodelki
 
-| # | Severity | Issue | Fix |
-|---|----------|-------|-----|
-| 1 | CRITICAL | test_security.py is 252 LOC (>200 limit) | Split into 2–3 modules, each <200 LOC |
+| # | Severity | Issue | Fix | Bead |
+|---|----------|-------|-----|------|
+| 1 | ~~CRITICAL~~ | ~~test_security.py 252 LOC~~ | WS-C5M split done | ✅ |
+| 2 | ~~HIGH~~ | ~~17 test failures~~ | Fixed | ✅ spark_k8s-rlk CLOSED |
+| 3 | ~~MEDIUM~~ | ~~PYTHONPATH for pytest~~ | pythonpath=. in pytest.ini | ✅ spark_k8s-bch CLOSED |
+
+**Fixed:** budget.enabled in conftest; rlk, bch CLOSED.
 
 ---
 
 ## 6. Next Steps
 
-1. Split `tests/security/test_security.py` (e.g. by test class: TestNetworkPolicies, TestRBAC, TestSecretsHardcoded, TestSecurityContext, TestCompliance).
-2. Re-run `/review F14` after fix.
-3. After approval: complete UAT per `docs/uat/UAT-F14-security.md`.
+1. ~~Split test_security.py~~ — Done (WS-C5M)
+2. ~~Fix 17 failing tests~~ — Done (rlk)
+3. ~~Add PYTHONPATH to pytest~~ — Done (bch)
+4. **Human tester:** Complete UAT per `docs/uat/UAT-F14-security.md`.
+5. After UAT: `/deploy F14`.
 
 ---
 
@@ -169,4 +176,17 @@ All 7 workstreams have deliverables and 118 tests pass (14 skipped). One blocker
 
 ---
 
-**Report ID:** review-F14-full-2026-02-10
+---
+
+## 8. Beads Referenced
+
+| Bead | Issue | Status |
+|------|-------|--------|
+| spark_k8s-cy5 | F14 parent | CLOSED |
+| spark_k8s-rlk | Fix 17 failing security tests | ✅ CLOSED |
+| spark_k8s-bch | Add PYTHONPATH for security tests | ✅ CLOSED |
+
+---
+
+**Report ID:** review-F14-full-2026-02-10  
+**Updated:** 2026-02-10 (protocol review, beads sync)

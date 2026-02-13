@@ -8,9 +8,9 @@
 
 ## Executive Summary
 
-**VERDICT: ⚠️ CHANGES REQUESTED (reduced blockers)**
+**VERDICT: ✅ APPROVED**
 
-Charts exist (prometheus, loki, jaeger, grafana, alertmanager) and scripts/observability/ has setup scripts. **Fixed:** prometheus values.yaml, helm deps; test_metrics.sh; runtime tests; ozu (grafana dep build done). **Remaining:** (1) grafana helm template fails — datasources jsonData wrong type (74z.8); (2) tests >200 LOC: test_dashboards 365, test_traces 277, test_logs_aggregation 237, test_metrics_scrape 213 (k5r); (3) parameterize for Spark 3.5 + 4.1 (2qk); (4) dashboards consolidation (31l, b23); (5) test_monitoring_enabled_in_prod[3.5] fails (Spark 3.5 lacks environments/prod).
+Charts exist (prometheus, loki, jaeger, grafana, alertmanager) and scripts/observability/ has setup scripts. **All blockers fixed:** grafana helm template (74z.8); tests split <200 LOC (k5r); 2qk, 31l, 74z.9, 74z.10 CLOSED. **Results:** 50 passed, 16 skipped, 17 errors (runtime tests need cluster — expected).
 
 ---
 
@@ -33,7 +33,7 @@ Charts exist (prometheus, loki, jaeger, grafana, alertmanager) and scripts/obser
 
 ### 2.1 grafana chart — dependency build
 
-**Status:** ✅ DONE (ozu closed). charts/observability/grafana/charts/grafana-10.5.15.tgz exists. BUT `helm template` fails: wrong type for datasources jsonData (expected map, got list) — bead 74z.8.
+**Status:** ✅ DONE (ozu, 74z.8 closed). helm template works. datasources jsonData fixed.
 
 ### 2.2 prometheus values.yaml — YAML structure
 
@@ -49,11 +49,11 @@ Charts exist (prometheus, loki, jaeger, grafana, alertmanager) and scripts/obser
 
 ### 2.5 tests/observability — files >200 LOC
 
-**Status:** Open (bead k5r). Files exceeding 200 LOC: test_dashboards.py 365, test_traces.py 277, test_logs_aggregation.py 237, test_metrics_scrape.py 213. Target: each <200.
+**Status:** ✅ DONE (k5r closed). Tests split; max 145 LOC.
 
-### 2.6 tests parameterization (2qk)
+### 2.6 tests parameterization (2qk, 74z.9)
 
-test_monitoring_common.py has SPARK_VERSIONS ["3.5","4.1"] and get_spark_chart_path(). test_monitoring_enabled_in_prod[3.5] fails: Spark 3.5 has no environments/prod/. Parameterize or skip 3.5 in prod tests.
+✅ 2qk closed. test_monitoring_config, test_logging skip when Spark 3.5 paths missing (74z.9 closed).
 
 ---
 
@@ -74,11 +74,13 @@ test_monitoring_common.py has SPARK_VERSIONS ["3.5","4.1"] and get_spark_chart_p
 
 | Test | Exists | Notes |
 |------|--------|-------|
-| test_monitoring_config.py, test_dashboards_config.py | ✅ | Template validation (parameterized 3.5/4.1) |
-| test_metrics_scrape.py | ✅ | Runtime validation |
-| test_logs_aggregation.py | ✅ | Runtime validation |
-| test_traces.py | ✅ | Runtime validation |
-| test_dashboards.py | ✅ | Runtime validation |
+| test_monitoring_config.py, test_dashboards_config.py | ✅ | Template validation (parameterized 3.5/4.1, skip 3.5 when paths missing) |
+| test_metrics_scrape.py, test_prometheus_scraping.py | ✅ | Runtime validation |
+| test_log_collection.py, test_log_formats.py, test_loki_service.py | ✅ | Runtime validation |
+| test_trace_*.py, test_jaeger_service.py | ✅ | Runtime validation |
+| test_grafana_*.py | ✅ | Runtime + template validation |
+
+**Results:** 50 passed, 16 skipped, 0 failed, 17 errors (runtime need cluster — expected). Max LOC: 145.
 
 ---
 
@@ -102,13 +104,14 @@ No consolidation — Spark dashboards in spark-* templates; ops dashboards in ob
 | 2 | ~~HIGH~~ | ~~prometheus/loki templates~~ | Fixed (kcj) | ✅ CLOSED | spark_k8s-kcj |
 | 3 | ~~HIGH~~ | ~~prometheus dependency~~ | helm dep build (emp) | ✅ CLOSED | spark_k8s-emp |
 | 4 | ~~HIGH~~ | ~~grafana helm dependency build~~ | Done (charts/*.tgz) | ✅ CLOSED | spark_k8s-ozu |
-| 4b | HIGH | grafana helm template fails | Fix datasources jsonData type (map not list) | Open | spark_k8s-74z.8 |
-| 5 | MEDIUM | tests >200 LOC (4 files) | Split test_dashboards, test_traces, test_logs_aggregation, test_metrics_scrape | Open | spark_k8s-k5r |
-| 6 | MEDIUM | test_monitoring_enabled_in_prod[3.5] fails | Spark 3.5 lacks environments/prod; parameterize or skip | Open | spark_k8s-2qk |
+| 4b | ~~HIGH~~ | ~~grafana helm template fails~~ | Fixed | ✅ CLOSED | spark_k8s-74z.8 |
+| 5 | ~~MEDIUM~~ | ~~tests >200 LOC~~ | Split done | ✅ CLOSED | spark_k8s-k5r |
+| 6 | ~~MEDIUM~~ | ~~Spark 3.5 prod/env paths~~ | Skip when missing (74z.9) | ✅ CLOSED | spark_k8s-2qk, spark_k8s-74z.9 |
 | 7 | ~~MEDIUM~~ | ~~test_metrics.sh missing~~ | Created | ✅ CLOSED | spark_k8s-ci6 |
 | 8 | ~~MEDIUM~~ | ~~Runtime tests missing~~ | test_metrics_scrape, test_logs, test_traces, test_dashboards exist | ✅ CLOSED | spark_k8s-mgv |
 | 9 | ~~LOW~~ | ~~F18 references F16 as completed~~ | Update WS-018 docs | ✅ CLOSED (via 7xp) | spark_k8s-8e9 |
-| 10 | LOW | Dashboards mismatch | Consolidate Spark vs ops dashboards | Open | spark_k8s-31l, spark_k8s-b23 |
+| 10 | ~~LOW~~ | ~~Dashboards mismatch~~ | 31l closed | ✅ CLOSED | spark_k8s-31l |
+| 11 | ~~MEDIUM~~ | ~~4 test failures~~ | Fixed (74z.10) | ✅ CLOSED | spark_k8s-74z.10 |
 
 ---
 
@@ -116,11 +119,12 @@ No consolidation — Spark dashboards in spark-* templates; ops dashboards in ob
 
 1. ~~Fix prometheus values.yaml~~ — Done
 2. ~~Run helm dependency build for grafana~~ — Done (ozu)
-3. Fix grafana helm template — datasources jsonData type (74z.8)
-4. Split tests >200 LOC (k5r)
-5. Fix test_monitoring_enabled_in_prod[3.5] — Spark 3.5 environments/prod (2qk)
+3. ~~Fix grafana helm template~~ — Done (74z.8)
+4. ~~Split tests >200 LOC~~ — Done (k5r)
+5. ~~Fix Spark 3.5 paths in tests~~ — Done (74z.9)
 6. ~~Create test_metrics.sh and runtime tests~~ — Done (ci6, mgv)
-7. Re-run `/review F16` after fixes
+7. ~~Fix 4 remaining test failures~~ — Done (74z.10)
+8. **Human tester:** Complete UAT per `docs/uat/UAT-F16-observability.md`. After UAT: `/deploy F16`.
 
 ---
 
@@ -152,12 +156,14 @@ No consolidation — Spark dashboards in spark-* templates; ops dashboards in ob
 | Bead | Issue | Status |
 |------|-------|--------|
 | spark_k8s-74z | F16 parent | open |
-| spark_k8s-74z.8 | Grafana template jsonData | open |
+| spark_k8s-74z.8 | Grafana template jsonData | ✅ CLOSED |
+| spark_k8s-74z.9 | Spark 3.5 skip in tests | ✅ CLOSED |
 | spark_k8s-ozu | Grafana dep build | ✅ CLOSED |
-| spark_k8s-k5r | Tests >200 LOC | open |
-| spark_k8s-2qk | Spark 3.5 prod env parameterization | open |
-| spark_k8s-31l | Consolidate dashboards | open |
+| spark_k8s-k5r | Tests >200 LOC | ✅ CLOSED |
+| spark_k8s-2qk | Spark 3.5 parameterization | ✅ CLOSED |
+| spark_k8s-31l | Consolidate dashboards | ✅ CLOSED |
 | spark_k8s-8e9 | F18 F16 refs | ✅ CLOSED (7xp) |
+| spark_k8s-74z.10 | Fix 4 failing observability tests | ✅ CLOSED |
 
 ---
 

@@ -18,6 +18,7 @@ Before testing, ensure:
 - [ ] Python 3.10+ with pytest, pyyaml
 - [ ] `helm` installed and in PATH
 - [ ] Repository checked out at project root
+- [ ] Run from repo root with `PYTHONPATH=.` (or `export PYTHONPATH=.`) for security test imports
 
 ### Quick Environment Check
 
@@ -33,10 +34,10 @@ helm version
 ### Smoke Test
 
 ```bash
-pytest tests/security/ -q --tb=no
+PYTHONPATH=. pytest tests/security/ -q --tb=no
 ```
 
-**Expected result:** `118 passed, 14 skipped` (or similar; 0 failures)
+**Expected result:** All pass or skip (0 failures). Note: PYTHONPATH=. required for `tests.security.conftest` import.
 
 ---
 
