@@ -115,3 +115,39 @@ capabilities:
     - ALL
 {{- end }}
 {{- end }}
+
+{{- /* spark.core.postgresql.fullname - Fullname for PostgreSQL (core layout) */ -}}
+{{- define "spark.core.postgresql.fullname" -}}
+{{- if .Values.core.postgresql.fullnameOverride -}}
+{{- .Values.core.postgresql.fullnameOverride -}}
+{{- else -}}
+{{- printf "%s-postgresql" .Release.Name -}}
+{{- end -}}
+{{- end -}}
+
+{{- /* spark.core.hiveMetastore.fullname - Fullname for Hive Metastore (core layout) */ -}}
+{{- define "spark.core.hiveMetastore.fullname" -}}
+{{- if .Values.core.hiveMetastore.fullnameOverride -}}
+{{- .Values.core.hiveMetastore.fullnameOverride -}}
+{{- else -}}
+{{- printf "%s-hive-metastore" .Release.Name -}}
+{{- end -}}
+{{- end -}}
+
+{{- /* spark.core.podSecurityContext - Common security context for core components */ -}}
+{{- define "spark.core.podSecurityContext" -}}
+{{- if .Values.security.podSecurityStandards }}
+runAsNonRoot: true
+seccompProfile:
+  type: RuntimeDefault
+{{- else if .Values.security -}}
+runAsUser: {{ .Values.security.runAsUser | default 1000 }}
+runAsGroup: {{ .Values.security.runAsGroup | default 1000 }}
+fsGroup: {{ .Values.security.fsGroup | default 1000 }}
+{{- end -}}
+{{- end -}}
+
+{{- /* spark.core.serviceAccountName - ServiceAccount for core components (from rbac) */ -}}
+{{- define "spark.core.serviceAccountName" -}}
+{{- .Values.rbac.serviceAccountName | default "spark" -}}
+{{- end -}}

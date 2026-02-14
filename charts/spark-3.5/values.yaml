@@ -69,27 +69,12 @@ budget:
   enabled: false
   overrideEnabled: false
 
-spark-base:
-  enabled: true
-  serviceAccount:
-    create: false
-    name: spark
-  rbac:
-    create: false
-  minio:
-    enabled: false
-  postgresql:
-    enabled: false
-  security:
-    podSecurityStandards: false
-
 rbac:
   create: true
   serviceAccountName: "spark-35"
 
-# Core Infrastructure Components
-# Unified configuration for core infrastructure components
-core:
+# Core Infrastructure Components (anchor for spark-base)
+core: &core
   minio:
     enabled: false  # Set to true to enable MinIO S3-compatible storage
     fullnameOverride: ""
@@ -176,6 +161,22 @@ core:
     limits:
       memory: "2Gi"
       cpu: "1000m"
+
+spark-base:
+  enabled: true
+  serviceAccount:
+    create: false
+    name: spark
+  rbac:
+    create: false
+    serviceAccountName: "spark-35"
+  core: *core
+  minio:
+    enabled: false
+  postgresql:
+    enabled: false
+  security:
+    podSecurityStandards: false
 
 historyServer:
     enabled: true  # Spark History Server for completed applications

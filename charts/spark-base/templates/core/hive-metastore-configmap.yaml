@@ -1,14 +1,14 @@
 {{- if .Values.core.hiveMetastore.enabled }}
+{{- $chartName := .Chart.Name -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "spark.core.hiveMetastore.fullname" . }}-config
   labels:
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    helm.sh/chart: {{ $chartName }}-{{ .Chart.Version }}
     app.kubernetes.io/component: "hive-metastore"
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 data:
   hive-site.xml.template: |
     <?xml version="1.0" encoding="UTF-8"?>

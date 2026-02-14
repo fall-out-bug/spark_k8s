@@ -87,14 +87,14 @@ data:
 
     {{- if or .Values.hiveMetastore.enabled .Values.core.hiveMetastore.enabled }}
     # Hive Metastore configuration
-    spark.hadoop.hive.metastore.uris=thrift://{{ include "spark-3.5.fullname" . }}-metastore:9083
+    spark.hadoop.hive.metastore.uris=thrift://{{ if .Values.core.hiveMetastore.enabled }}{{ include "spark.core.hiveMetastore.fullname" . }}{{ else }}{{ include "spark-3.5.fullname" . }}-metastore{{ end }}:{{ .Values.core.hiveMetastore.service.port | default .Values.hiveMetastore.service.port | default 9083 }}
     {{- if and .Values.hiveMetastore.enabled .Values.hiveMetastore.database.postgresql }}
     spark.hadoop.javax.jdo.option.ConnectionURL=jdbc:postgresql://{{ .Values.global.postgresql.host }}:{{ .Values.global.postgresql.port }}/{{ .Values.hiveMetastore.database.name }}
     spark.hadoop.javax.jdo.option.ConnectionUserName={{ .Values.hiveMetastore.database.postgresql.username | default "hive" }}
     spark.hadoop.javax.jdo.option.ConnectionPassword={{ .Values.hiveMetastore.database.postgresql.password | default "hive" }}
     {{- end }}
     spark.sql.catalogImplementation=hive
-    spark.sql.warehouse.dir={{ .Values.hiveMetastore.warehouseDir | default "s3a://warehouse/spark-35" }}
+    spark.sql.warehouse.dir={{ .Values.core.hiveMetastore.warehouseDir | default .Values.hiveMetastore.warehouseDir | default "s3a://warehouse/spark-35" }}
     {{- end }}
 
     {{- if .Values.global.s3.enabled }}

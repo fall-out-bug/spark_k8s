@@ -320,10 +320,10 @@ WS-022-01 (namespace.yaml)
 
 ## Feature F22: Progress Automation
 
-**Source:** `docs/drafts/idea-f22-progress-automation.md`  
-**Beads:** spark_k8s-703  
-**Status:** Completed  
-**Total Workstreams:** 4  
+**Source:** `docs/drafts/idea-f22-progress-automation.md`
+**Beads:** spark_k8s-703
+**Status:** Completed
+**Total Workstreams:** 4
 **Estimated LOC:** ~520
 
 | ID | Name | Scope | Dependency | Status |
@@ -351,10 +351,10 @@ WS-031-02 (ROADMAP update) ───── WS-031-04 (Metrics dashboard)
 
 ## Feature F23: Project Origins Documentation
 
-**Source:** `docs/drafts/idea-f23-project-origins.md`  
-**Beads:** spark_k8s-1wf (F21)  
-**Status:** Completed  
-**Total Workstreams:** 5  
+**Source:** `docs/drafts/idea-f23-project-origins.md`
+**Beads:** spark_k8s-1wf (F21)
+**Status:** Completed
+**Total Workstreams:** 5
 **Estimated LOC:** ~640 (docs)
 
 | ID | Name | Scope | Dependency | Status |
@@ -386,10 +386,10 @@ WS-032-01 (Origin story)
 
 ## Feature F24: Pre-built Docker Images
 
-**Source:** `docs/drafts/idea-f24-prebuilt-docker-images.md`  
-**Beads:** spark_k8s-ds8  
-**Status:** Completed  
-**Total Workstreams:** 6  
+**Source:** `docs/drafts/idea-f24-prebuilt-docker-images.md`
+**Beads:** spark_k8s-ds8
+**Status:** Completed
+**Total Workstreams:** 6
 **Estimated LOC:** ~660
 
 | ID | Name | Scope | Dependency | Status |
@@ -797,8 +797,8 @@ F06 ─────────────────────────�
 
 ### Review Summary
 
-**Review Date:** 2026-02-10  
-**Verdict:** ✅ APPROVED  
+**Review Date:** 2026-02-10
+**Verdict:** ✅ APPROVED
 **Status:** 50 passed, 16 skipped. All blockers (74z.8, k5r, 2qk, 31l, 74z.9, 74z.10) CLOSED.
 
 See `docs/reports/review-F16-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F16-observability.md`.
@@ -831,8 +831,8 @@ F06, F11 ──── WS-017-01 (Go client library)
 
 ### Review Summary
 
-**Review Date:** 2026-02-10  
-**Verdict:** ✅ APPROVED  
+**Review Date:** 2026-02-10
+**Verdict:** ✅ APPROVED
 **Beads:** ecz, 85e, bok, cqy.6 — all CLOSED.
 
 See `docs/reports/review-F17-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F17-go-client.md`.
@@ -855,8 +855,8 @@ See `docs/reports/review-F17-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F17-g
 
 ### Review Summary
 
-**Review Date:** 2026-02-10  
-**Verdict:** ✅ APPROVED  
+**Review Date:** 2026-02-10
+**Verdict:** ✅ APPROVED
 **Fixed (beads):** yck, 117, 7xp, 6ki — CLOSED. **Nedodelki:** d5e.20 (coverage ≥80%). d5e.21 (ops-scripts-assessment) — CLOSED.
 
 See `docs/reports/review-F18-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F18-operations.md`.
@@ -932,8 +932,8 @@ WS-025-01 (Fix metadata)     WS-025-02 (Standalone)     WS-025-05 (Routes)
 
 ### Review Summary
 
-**Review Date:** 2026-02-10  
-**Verdict:** ✅ APPROVED (WS-025-01..10)  
+**Review Date:** 2026-02-10
+**Verdict:** ✅ APPROVED (WS-025-01..10)
 **Fixed (beads):** ju2.5 — budget.enabled nil; y0m — loc exemption; pb8, 2f9 deliverables exist. **Parity test:** spark-4.1 costExporter (ds8.7).
 
 See `docs/reports/review-F25-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F25-spark-35-charts.md`.
@@ -1013,36 +1013,54 @@ WS-027-01 (pyproject.toml + coverage)
 ## Feature F28: Chart Architecture DRY
 
 **Source:** `docs/drafts/idea-chart-architecture-dry.md`
-**Status:** Backlog
+**Status:** In Progress (WS-028-01, WS-028-03 completed)
 **Total Workstreams:** 3
 **Estimated LOC:** ~800 (refactoring)
 **Audit source:** repo-audit-2026-02-13.md (Architecture AR-1..AR-7)
+**Oneshot report:** `docs/reports/oneshot-F028-2026-02-13.md`
 
 | ID | Name | Scope | Dependency | Status |
 |----|------|-------|------------|--------|
-| WS-028-01 | Extract Shared Templates to spark-base | LARGE (~400 LOC refactor) | - | backlog |
-| WS-028-02 | Remove Intra-chart Template Duplicates | SMALL (~100 LOC) | WS-028-01 | backlog |
-| WS-028-03 | Add values.schema.json and Helm Test Templates | MEDIUM (~300 LOC) | WS-028-02 | backlog |
+| WS-028-01 | Unify Values Layout + Extract to spark-base | LARGE (~400 LOC refactor) | - | **completed** |
+| WS-028-02 | Consolidate RBAC + Remove Legacy Hive Duplicates | MEDIUM (~200 LOC) | WS-028-01 | backlog (redesigned) |
+| WS-028-03 | Add values.schema.json and Helm Test Templates | MEDIUM (~300 LOC) | - | **completed** |
 
 ### Dependency Graph
 
 ```
-WS-028-01 (Extract to spark-base)
-    └── WS-028-02 (Remove duplicates)
-            └── WS-028-03 (Schema + Helm tests)
+WS-028-01 (Unify values + extract)
+    └── WS-028-02 (Consolidate RBAC + remove legacy)
+
+WS-028-03 (Schema + Helm tests) ── DONE
 ```
+
+### Oneshot Agent Findings (2026-02-13)
+
+Agent correctly identified WS-028-01 and WS-028-02 could not be executed as originally designed:
+
+1. **WS-028-01:** Values layout differs between charts (`core.postgresql` in 3.5/4.1 vs `postgresql` in spark-base). **Resolution:** Redesigned to include ADR + values unification before template extraction.
+
+2. **WS-028-02:** "Duplicates" serve different purposes:
+   - `rbac.yaml` (82 LOC) = Role + RoleBinding + ClusterRole + ClusterRoleBinding (comprehensive)
+   - `rbac/role.yaml` (35 LOC) = Role only (minimal) — **NOT a duplicate, needs merge**
+   - `keda-scaledobject.yaml` = Spark Operator target; `autoscaling/keda-scaledobject.yaml` = Connect S3 target — **different features**
+   - `hive-metastore.yaml` (`.Values.hiveMetastore`) = legacy; `core/hive-metastore-deployment.yaml` (`.Values.core.hiveMetastore`) = new — **needs values unification first**
+
+   **Resolution:** Redesigned as consolidation (merge RBAC, remove legacy hive after values unification, rename KEDA for clarity).
+
+3. **WS-028-03:** Completed successfully — `values.schema.json` and Helm test templates verified.
 
 ### Audit Cross-Reference
 
-| Audit ID | Description | WS |
-|----------|-------------|-----|
-| AR-1 | Template duplication between 3.5 and 4.1 | WS-028-01 |
-| AR-2 | values.yaml > 460 LOC (monolithic) | WS-028-03 |
-| AR-3 | Duplicate hive-metastore templates | WS-028-02 |
-| AR-4 | Duplicate RBAC (rbac.yaml + rbac/) | WS-028-02 |
-| AR-5 | Duplicate KEDA (keda + autoscaling/) | WS-028-02 |
-| AR-6 | No Helm chart tests | WS-028-03 |
-| AR-7 | No values.schema.json | WS-028-03 |
+| Audit ID | Description | WS | Status |
+|----------|-------------|-----|--------|
+| AR-1 | Template duplication between 3.5 and 4.1 | WS-028-01 | redesigned |
+| AR-2 | values.yaml > 460 LOC (monolithic) | WS-028-03 | **done** (schema validates) |
+| AR-3 | Duplicate hive-metastore templates | WS-028-02 | redesigned |
+| AR-4 | Duplicate RBAC (rbac.yaml + rbac/) | WS-028-02 | redesigned |
+| AR-5 | Duplicate KEDA (keda + autoscaling/) | WS-028-02 | redesigned (rename) |
+| AR-6 | No Helm chart tests | WS-028-03 | **done** |
+| AR-7 | No values.schema.json | WS-028-03 | **done** |
 
 ---
 
@@ -1215,11 +1233,11 @@ WS-030-03 (Iceberg guide)    (independent)
 | F25: Spark 3.5 Production-Ready | 12 | 10 | 0 | 2 |
 | **F26: Spark Performance Defaults** | **3** | **3** | **0** | **0** |
 | **F27: Code Quality A*** | **3** | **0** | **0** | **3** |
-| **F28: Chart Architecture DRY** | **3** | **0** | **0** | **3** |
+| **F28: Chart Architecture DRY** | **3** | **1** | **0** | **2** |
 | **F29: CI/CD Hardening** | **4** | **0** | **0** | **4** |
 | **F30: Data Engineering Patterns** | **4** | **0** | **0** | **4** |
 | TESTING: Testing Infrastructure | 3+ | 0 | 0 | 3+ |
-| **TOTAL** | **138+** | **86** | **0** | **102+** |
+| **TOTAL** | **138+** | **87** | **0** | **101+** |
 
 ---
 

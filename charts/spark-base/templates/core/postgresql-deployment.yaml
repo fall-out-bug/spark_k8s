@@ -1,10 +1,11 @@
 {{- if .Values.core.postgresql.enabled }}
+{{- $chartName := .Chart.Name -}}
 apiVersion: v1
 kind: Secret
 metadata:
   name: {{ include "spark.core.postgresql.fullname" . }}-credentials
   labels:
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    helm.sh/chart: {{ $chartName }}-{{ .Chart.Version }}
     app.kubernetes.io/component: "postgresql"
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -19,7 +20,7 @@ kind: ConfigMap
 metadata:
   name: {{ include "spark.core.postgresql.fullname" . }}-init
   labels:
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    helm.sh/chart: {{ $chartName }}-{{ .Chart.Version }}
     app.kubernetes.io/component: "postgresql"
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -34,8 +35,8 @@ data:
     psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
     DO $$
     BEGIN
-      IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '{{ .Values.core.hiveMetastore.database.name | default "metastore_spark35" }}') THEN
-        CREATE DATABASE "{{ .Values.core.hiveMetastore.database.name | default "metastore_spark35" }}";
+      IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '{{ .Values.core.hiveMetastore.database.name | default "metastore" }}') THEN
+        CREATE DATABASE "{{ .Values.core.hiveMetastore.database.name | default "metastore" }}";
       END IF;
     END $$;
     EOSQL
@@ -50,7 +51,7 @@ data:
       END IF;
     END $$;
     {{- if .Values.core.hiveMetastore.enabled }}
-    GRANT ALL PRIVILEGES ON DATABASE {{ .Values.core.hiveMetastore.database.name | default "metastore_spark35" }} TO hive;
+    GRANT ALL PRIVILEGES ON DATABASE {{ .Values.core.hiveMetastore.database.name | default "metastore" }} TO hive;
     {{- end }}
     EOSQL
     {{- range .Values.core.postgresql.databases }}
@@ -69,7 +70,7 @@ kind: StatefulSet
 metadata:
   name: {{ include "spark.core.postgresql.fullname" . }}
   labels:
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    helm.sh/chart: {{ $chartName }}-{{ .Chart.Version }}
     app.kubernetes.io/component: "postgresql"
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -79,19 +80,18 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ .Chart.Name }}-postgresql
+      app.kubernetes.io/name: {{ $chartName }}-postgresql
       app.kubernetes.io/instance: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ .Chart.Name }}-postgresql
+        app.kubernetes.io/name: {{ $chartName }}-postgresql
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       {{- if .Values.security.podSecurityStandards }}
       securityContext:
         {{- include "spark-base.podSecurityContext" . | nindent 8 }}
       {{- end }}
-      # Init container to set up data directory permissions
       {{- if .Values.security.podSecurityStandards }}
       initContainers:
       - name: setup-data-dir
@@ -100,17 +100,14 @@ spec:
         - sh
         - -c
         - |
-          # Create data directory with proper permissions
           mkdir -p /var/lib/postgresql/data
-          # Set ownership (Postgres runs as uid 999)
           chown -R 999:999 /var/lib/postgresql/data || true
-          # Set permissions
           chmod 700 /var/lib/postgresql/data || true
         volumeMounts:
         - name: data
           mountPath: /var/lib/postgresql/data
         securityContext:
-          runAsUser: 0  # Run as root to change permissions
+          runAsUser: 0
           runAsGroup: 0
       {{- end }}
       containers:
@@ -165,13 +162,12 @@ spec:
   {{- end }}
 ---
 {{- if .Values.core.hiveMetastore.enabled }}
-{{/* Job to create hive user and database in existing Postgres */}}
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ include "spark.core.postgresql.fullname" . }}-hive-init
   labels:
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    helm.sh/chart: {{ $chartName }}-{{ .Chart.Version }}
     app.kubernetes.io/component: "postgresql"
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -184,7 +180,7 @@ spec:
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ .Chart.Name }}-postgresql-hive-init
+        app.kubernetes.io/name: {{ $chartName }}-postgresql-hive-init
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       restartPolicy: OnFailure
@@ -231,15 +227,10 @@ spec:
         - -c
         - |
           set -e
-          # Set PGPASSWORD from Secret (psql uses PGPASSWORD, not POSTGRES_PASSWORD)
           export PGPASSWORD=$POSTGRES_PASSWORD
           echo "Creating Hive metastore database and user..."
-
-          # Create Hive Metastore database (if not exists)
-          psql -v ON_ERROR_STOP=1 -tc "SELECT 1 FROM pg_database WHERE datname = '{{ .Values.core.hiveMetastore.database.name | default "metastore_spark35" }}'" | grep -q 1 || \
-            psql -v ON_ERROR_STOP=1 -c "CREATE DATABASE \"{{ .Values.core.hiveMetastore.database.name | default "metastore_spark35" }}\""
-
-          # Create Hive user and grant privileges
+          psql -v ON_ERROR_STOP=1 -tc "SELECT 1 FROM pg_database WHERE datname = '{{ .Values.core.hiveMetastore.database.name | default "metastore" }}'" | grep -q 1 || \
+            psql -v ON_ERROR_STOP=1 -c "CREATE DATABASE \"{{ .Values.core.hiveMetastore.database.name | default "metastore" }}\""
           psql -v ON_ERROR_STOP=1 <<-EOSQL
           DO \$\$
           BEGIN
@@ -247,17 +238,12 @@ spec:
               CREATE USER hive WITH PASSWORD 'hive123';
             END IF;
           END \$\$;
-          -- Grant ALL on database
-          GRANT ALL PRIVILEGES ON DATABASE {{ .Values.core.hiveMetastore.database.name | default "metastore_spark35" }} TO hive;
-          -- Connect to the database and grant schema privileges
-          \c {{ .Values.core.hiveMetastore.database.name | default "metastore_spark35" }}
-          -- Grant ALL on schema public (needed for Hive schema initialization)
+          GRANT ALL PRIVILEGES ON DATABASE {{ .Values.core.hiveMetastore.database.name | default "metastore" }} TO hive;
+          \c {{ .Values.core.hiveMetastore.database.name | default "metastore" }}
           GRANT ALL PRIVILEGES ON SCHEMA public TO hive;
-          -- Grant ALL on existing and future objects in public schema
           ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO hive;
           ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO hive;
           EOSQL
-
           echo "Hive user and database created successfully!"
 {{- end }}
 {{- end }}
