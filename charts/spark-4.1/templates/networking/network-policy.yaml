@@ -139,7 +139,7 @@ spec:
     port: 5432
 ---
 {{- if .Values.hiveMetastore }}
-{{- if .Values.hiveMetastore.enabled }}
+{{- if or .Values.hiveMetastore.enabled .Values.core.hiveMetastore.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

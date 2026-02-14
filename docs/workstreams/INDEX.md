@@ -1013,7 +1013,7 @@ WS-027-01 (pyproject.toml + coverage)
 ## Feature F28: Chart Architecture DRY
 
 **Source:** `docs/drafts/idea-chart-architecture-dry.md`
-**Status:** In Progress (WS-028-01, WS-028-03 completed)
+**Status:** Completed (WS-028-01, WS-028-02, WS-028-03)
 **Total Workstreams:** 3
 **Estimated LOC:** ~800 (refactoring)
 **Audit source:** repo-audit-2026-02-13.md (Architecture AR-1..AR-7)
@@ -1022,7 +1022,7 @@ WS-027-01 (pyproject.toml + coverage)
 | ID | Name | Scope | Dependency | Status |
 |----|------|-------|------------|--------|
 | WS-028-01 | Unify Values Layout + Extract to spark-base | LARGE (~400 LOC refactor) | - | **completed** |
-| WS-028-02 | Consolidate RBAC + Remove Legacy Hive Duplicates | MEDIUM (~200 LOC) | WS-028-01 | backlog (redesigned) |
+| WS-028-02 | Consolidate RBAC + Remove Legacy Hive Duplicates | MEDIUM (~200 LOC) | WS-028-01 | **completed** |
 | WS-028-03 | Add values.schema.json and Helm Test Templates | MEDIUM (~300 LOC) | - | **completed** |
 
 ### Dependency Graph

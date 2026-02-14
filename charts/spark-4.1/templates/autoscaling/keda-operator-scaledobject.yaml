@@ -24,6 +24,5 @@ spec:
   fallback:
   {{- toYaml . | nindent 4 }}
   {{- end }}
----
 {{- end }}
 {{- end }}

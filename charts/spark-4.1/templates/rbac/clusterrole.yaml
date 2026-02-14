@@ -1,8 +1,8 @@
-{{- if .Values.rbac.create }}
+{{- if and .Values.rbac.create .Values.connect.enabled }}
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
-  name: {{ include "spark-4.1.fullname" . }}-spark-role
+  name: {{ include "spark-4.1.fullname" . }}-spark-cluster-role
   labels:
     {{- include "spark-4.1.labels" . | nindent 4 }}
 rules:
