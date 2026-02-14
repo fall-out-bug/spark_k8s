@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-02-13T21:24:01Z",
+  "generated_at": "2026-02-14T08:45:08Z",
   "total_ws": 153,
-  "completed_ws": 77,
-  "completion_pct": 50,
+  "completed_ws": 80,
+  "completion_pct": 52,
   "features": [
     {"id": "F01: Spark Standalone", "total": 12, "completed": 12, "pct": 100},
     {"id": "F02: Repo Documentation", "total": 4, "completed": 4, "pct": 100},
@@ -28,7 +28,7 @@
     {"id": "F25: Spark 3.5 Production-Ready", "total": 12, "completed": 10, "pct": 83},
     {"id": "**F26: Spark Performance Defaults**", "total": 3, "completed": 3, "pct": 100},
     {"id": "**F27: Code Quality A***", "total": 3, "completed": 0, "pct": 0},
-    {"id": "**F28: Chart Architecture DRY**", "total": 3, "completed": 0, "pct": 0},
+    {"id": "**F28: Chart Architecture DRY**", "total": 3, "completed": 1, "pct": 33},
     {"id": "**F29: CI/CD Hardening**", "total": 4, "completed": 0, "pct": 0},
     {"id": "**F30: Data Engineering Patterns**", "total": 4, "completed": 0, "pct": 0},
     {"id": "TESTING: Testing Infrastructure", "total": 3, "completed": 0, "pct": 0}
