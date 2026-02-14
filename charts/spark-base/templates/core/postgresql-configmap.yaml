@@ -1,0 +1,52 @@
+{{- if .Values.core.postgresql.enabled }}
+{{- $chartName := .Chart.Name -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spark.core.postgresql.fullname" . }}-init
+  labels:
+    helm.sh/chart: {{ $chartName }}-{{ .Chart.Version }}
+    app.kubernetes.io/component: "postgresql"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+data:
+  init-dbs.sh: |
+    #!/bin/sh
+    set -e
+
+    # Create Hive Metastore database if core.hiveMetastore is enabled
+    {{- if .Values.core.hiveMetastore.enabled }}
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '{{ .Values.core.hiveMetastore.database.name | default "metastore" }}') THEN
+        CREATE DATABASE "{{ .Values.core.hiveMetastore.database.name | default "metastore" }}";
+      END IF;
+    END $$;
+    EOSQL
+    {{- end }}
+
+    # Create Hive user for Hive Metastore
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-'EOSQL'
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'hive') THEN
+        CREATE USER hive WITH PASSWORD 'hive123';
+      END IF;
+    END $$;
+    {{- if .Values.core.hiveMetastore.enabled }}
+    GRANT ALL PRIVILEGES ON DATABASE {{ .Values.core.hiveMetastore.database.name | default "metastore" }} TO hive;
+    {{- end }}
+    EOSQL
+    {{- range .Values.core.postgresql.databases }}
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-'EOSQL'
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '{{ . }}') THEN
+        CREATE DATABASE "{{ . }}";
+      END IF;
+    END $$;
+    EOSQL
+    {{- end }}
+{{- end }}

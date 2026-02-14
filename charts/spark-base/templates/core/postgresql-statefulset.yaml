@@ -1,0 +1,98 @@
+{{- if .Values.core.postgresql.enabled }}
+{{- $chartName := .Chart.Name -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "spark.core.postgresql.fullname" . }}
+  labels:
+    helm.sh/chart: {{ $chartName }}-{{ .Chart.Version }}
+    app.kubernetes.io/component: "postgresql"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+spec:
+  serviceName: {{ include "spark.core.postgresql.fullname" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ $chartName }}-postgresql
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ $chartName }}-postgresql
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      {{- if .Values.security.podSecurityStandards }}
+      securityContext:
+        {{- include "spark-base.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.security.podSecurityStandards }}
+      initContainers:
+      - name: setup-data-dir
+        image: "{{ .Values.core.postgresql.image.repository }}:{{ .Values.core.postgresql.image.tag }}"
+        command:
+        - sh
+        - -c
+        - |
+          mkdir -p /var/lib/postgresql/data
+          chown -R 999:999 /var/lib/postgresql/data || true
+          chmod 700 /var/lib/postgresql/data || true
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+      {{- end }}
+      containers:
+      - name: postgresql
+        {{- if .Values.security.podSecurityStandards }}
+        securityContext:
+          {{- include "spark-base.containerSecurityContext" . | nindent 10 }}
+          runAsUser: 999
+          runAsGroup: 999
+        {{- end }}
+        image: "{{ .Values.core.postgresql.image.repository }}:{{ .Values.core.postgresql.image.tag }}"
+        imagePullPolicy: {{ .Values.core.postgresql.image.pullPolicy }}
+        envFrom:
+        - secretRef:
+            name: {{ include "spark.core.postgresql.fullname" . }}-credentials
+        ports:
+        - name: postgres
+          containerPort: {{ .Values.core.postgresql.service.port }}
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+        - name: init
+          mountPath: /docker-entrypoint-initdb.d
+        - name: tmp
+          mountPath: /tmp
+        resources:
+          {{- toYaml .Values.core.postgresql.resources | nindent 10 }}
+      volumes:
+      - name: init
+        configMap:
+          name: {{ include "spark.core.postgresql.fullname" . }}-init
+          defaultMode: 0755
+      - name: tmp
+        emptyDir: {}
+      {{- if not .Values.core.postgresql.persistence.enabled }}
+      - name: data
+        emptyDir: {}
+      {{- end }}
+  {{- if .Values.core.postgresql.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      {{- if .Values.core.postgresql.persistence.storageClass }}
+      storageClassName: {{ .Values.core.postgresql.persistence.storageClass | quote }}
+      {{- end }}
+      resources:
+        requests:
+          storage: {{ .Values.core.postgresql.persistence.size }}
+  {{- end }}
+{{- end }}
