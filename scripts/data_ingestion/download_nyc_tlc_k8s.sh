@@ -33,7 +33,7 @@ spec:
   restartPolicy: Never
   containers:
   - name: downloader
-    image: spark-custom:3.5.7-new
+    image: spark-custom:3.5.7-ml
     imagePullPolicy: IfNotPresent
     command:
     - sh
