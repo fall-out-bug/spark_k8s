@@ -55,6 +55,7 @@ data:
 
     spark.connect.grpc.binding.address=0.0.0.0
     spark.connect.grpc.binding.port=15002
+    spark.connect.server.artifactDir=/opt/spark/artifacts
 
     # Prometheus metrics
     {{- if .Values.connect.metrics.enabled }}
@@ -81,6 +82,9 @@ data:
     {{- if .Values.connect.eventLog.enabled }}
     spark.eventLog.enabled=true
     spark.eventLog.dir={{ .Values.connect.eventLog.dir }}
+    # Rolling event log: each 128MB or 5min a new completed file is created; History Server picks it up immediately
+    spark.eventLog.rolling.enabled=true
+    spark.eventLog.rolling.maxFileSize=128m
     {{- else }}
     spark.eventLog.enabled=false
     {{- end }}

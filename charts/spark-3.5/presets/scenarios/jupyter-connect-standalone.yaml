@@ -86,8 +86,8 @@ connect:
 jupyter:
   enabled: true
   image:
-    repository: jupyter-spark
-    tag: "3.5.x"
+    repository: jupyter/all-spark-notebook
+    tag: "spark-3.5.0"
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP

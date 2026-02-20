@@ -57,6 +57,21 @@ spec:
       securityContext:
         {{- include "spark-base.podSecurityContext" . | nindent 8 }}
       {{- end }}
+      {{- if and .Values.postgresql.authMethod (eq .Values.postgresql.authMethod "md5") }}
+      initContainers:
+      - name: pg-hba-md5
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - |
+          if [ -f /var/lib/postgresql/data/pg_hba.conf ]; then
+            sed -i 's/scram-sha-256/md5/g' /var/lib/postgresql/data/pg_hba.conf
+          fi
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+      {{- end }}
       containers:
       - name: postgresql
         {{- if .Values.security.podSecurityStandards }}
@@ -70,6 +85,21 @@ spec:
         envFrom:
         - secretRef:
             name: {{ include "spark-base.fullname" . }}-postgresql-credentials
+        {{- if .Values.postgresql.authMethod }}
+        env:
+        - name: POSTGRES_HOST_AUTH_METHOD
+          value: {{ .Values.postgresql.authMethod | quote }}
+        {{- end }}
+        {{- if and .Values.postgresql.authMethod (eq .Values.postgresql.authMethod "md5") }}
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - sh
+              - -c
+              - |
+                psql -U {{ .Values.postgresql.auth.username | quote }} -v ON_ERROR_STOP=1 -c "SET password_encryption='md5'; ALTER USER {{ .Values.postgresql.auth.username | quote }} PASSWORD {{ .Values.postgresql.auth.password | quote }};" || true
+        {{- end }}
         ports:
         - name: postgres
           containerPort: {{ .Values.postgresql.service.port }}

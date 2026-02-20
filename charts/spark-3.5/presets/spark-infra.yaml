@@ -10,6 +10,11 @@ global:
     secretKey: "minioadmin"
     pathStyleAccess: true
     sslEnabled: false
+  postgresql:
+    host: "spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local"
+    port: 5432
+    user: "postgres"
+    password: "spark123"
 
 # Enable base infrastructure components
 spark-base:
@@ -43,6 +48,10 @@ spark-base:
       username: postgres
       password: spark123
       database: spark_db
+    databases:
+      - spark_db
+    # md5 required for Hive 3.1.x JDBC driver (does not support SCRAM-SHA-256)
+    authMethod: "md5"
     primary:
       resources:
         requests:
@@ -55,9 +64,10 @@ spark-base:
       enabled: true
       size: "5Gi"
 
-# Disable Spark components
+# RBAC: create SA for hive-metastore and history-server pods
 rbac:
-  create: false
+  create: true
+  serviceAccountName: "spark-35"
 
 connect:
   enabled: false
@@ -77,17 +87,21 @@ jupyterGateway:
 sparkOperator:
   enabled: false
 
-# Hive Metastore with S3 warehouse
+# Hive Metastore with S3 warehouse (build: docker/hive with HIVE_VERSION=3.1.3)
 hiveMetastore:
   enabled: true
+  image:
+    repository: spark-k8s/hive
+    tag: "3.1.3-pg"
+    pullPolicy: IfNotPresent
   service:
     port: 9083
   warehouseDir: "s3a://warehouse/"
   database:
     name: "spark_db"
   postgresql:
-    enabled: false  # Use global Postgres
-    host: "postgresql.spark-infra.svc.cluster.local"
+    enabled: false  # Use Postgres from spark-base in same release
+    host: "spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local"
     port: 5432
     database: "spark_db"
     username: "postgres"
@@ -99,18 +113,20 @@ hiveMetastore:
     limits:
       memory: "2Gi"
       cpu: "1000m"
-    persistence:
-      enabled: true  # Store metastore DB on disk
 
-# History Server
+# History Server (build: docker/spark-custom Dockerfile.3.5.7 → spark-custom:3.5.7-new)
 historyServer:
   enabled: true
   sparkVersion: "3.5.7"
+  image:
+    repository: spark-custom
+    tag: "3.5.7-new"
+    pullPolicy: IfNotPresent
   service:
     type: ClusterIP
     port: 18080
   # Use MinIO for logs (requires hadoop-aws jars)
-  logDirectory: "s3a://spark-logs/"
+  logDirectory: "s3a://spark-logs/events"
   resources:
     requests:
       memory: "1Gi"
@@ -118,8 +134,6 @@ historyServer:
     limits:
       memory: "2Gi"
       cpu: "1000m"
-    persistence:
-      enabled: false  # Logs stored in MinIO
 
 # Ingress for local access (optional)
 ingress:
@@ -129,6 +143,9 @@ ingress:
 security:
   podSecurityStandards: false
 
-# Monitoring
+# Monitoring: Grafana dashboards (ConfigMaps); deploy OTEL collector + Grafana separately (see scripts/tests/minikube/deploy-observability.sh)
 monitoring:
-  enabled: false  # Can be enabled later
+  enabled: true
+  grafanaDashboards:
+    enabled: true
+    namespace: ""  # release namespace

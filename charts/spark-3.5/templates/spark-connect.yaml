@@ -50,6 +50,8 @@ spec:
           emptyDir: {}
         - name: ivy-cache
           emptyDir: {}
+        - name: connect-artifacts
+          emptyDir: {}
       initContainers:
         - name: render-spark-config
           image: alpine:3.19
@@ -197,6 +199,8 @@ spec:
               mountPath: /tmp/spark-conf
             - name: ivy-cache
               mountPath: /tmp/spark-ivy-cache
+            - name: connect-artifacts
+              mountPath: /opt/spark/artifacts
           resources:
             {{- if and .Values.connect.executor.gpu .Values.connect.executor.gpu.enabled }}
             limits:
