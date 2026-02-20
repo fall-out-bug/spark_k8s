@@ -67,15 +67,14 @@ def load_raw_data(spark):
     """Load raw TLC parquet files."""
     print(f"Loading raw data from {RAW_PATH}...")
 
-    # Read each file separately and union after casting
-    # This avoids schema merge issues between files with different types
+    # Read all parquet files from 2023-2024 (24 months)
+    # Generate file list dynamically
+    file_list = []
+    for year in [2023, 2024]:
+        for month in range(1, 13):
+            file_list.append(f"s3a://nyc-taxi/raw/yellow_tripdata_{year}-{month:02d}.parquet")
 
-    # Get list of parquet files
-    file_list = [
-        "s3a://nyc-taxi/raw/yellow_tripdata_2023-01.parquet",
-        "s3a://nyc-taxi/raw/yellow_tripdata_2023-02.parquet",
-        "s3a://nyc-taxi/raw/yellow_tripdata_2023-03.parquet",
-    ]
+    print(f"  Found {len(file_list)} files to process")
 
     dfs = []
     for file_path in file_list:
