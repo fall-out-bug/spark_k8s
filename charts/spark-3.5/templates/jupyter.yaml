@@ -46,7 +46,14 @@ spec:
                   - |
                     # Install Spark Connect dependencies if connect is enabled
                     {{- if .Values.connect.enabled }}
-                    pip install --quiet grpcio>=1.48.1 grpcio-status googleapis-common-protos boto3 prometheus_client || true
+                    # Core Spark Connect packages
+                    pip install --quiet pyspark grpcio>=1.48.1 grpcio-status googleapis-common-protos || true
+                    # S3/MinIO support
+                    pip install --quiet boto3 || true
+                    # Prometheus metrics
+                    pip install --quiet prometheus_client || true
+                    # Fix pandas/pyarrow compatibility for Spark Connect (pyspark 4.x requires pandas>=2.2, pyarrow>=15)
+                    pip install --quiet 'pandas>=2.2,<3' 'pyarrow>=15' 'numpy<2' || true
                     {{- end }}
                     # Install any extra pip packages specified in values
                     {{- if .Values.jupyter.extraPipPackages }}
