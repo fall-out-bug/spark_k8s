@@ -79,7 +79,13 @@ class TestPSSBaseline41:
 
     def test_basic_security_context(self, chart_41_path, preset_41_baseline):
         """Test that basic security context is configured for baseline"""
-        output = helm_template(chart_41_path, [preset_41_baseline])
+        output = helm_template(
+            chart_41_path,
+            [preset_41_baseline],
+            set_values={
+                "security.podSecurityStandards": "true"
+            }
+        )
 
         if output is None:
             pytest.fail("helm template should succeed")
