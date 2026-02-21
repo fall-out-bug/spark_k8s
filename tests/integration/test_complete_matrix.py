@@ -158,8 +158,8 @@ class TestCompleteMatrixSummary:
             "charts/spark-4.1/templates/jupyter.yaml",
             "charts/spark-4.1/templates/executor-pod-template-configmap.yaml",
             # Spark 3.5
-            "charts/spark-3.5/charts/spark-connect",
-            "charts/spark-3.5/charts/spark-standalone",
+            "charts/spark-3.5/templates/spark-connect.yaml",
+            "charts/spark-3.5/templates/spark-standalone.yaml",
         ]
 
         for component in components:

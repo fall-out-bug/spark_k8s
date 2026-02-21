@@ -357,8 +357,8 @@ class TestRealIcebergWorkload:
             [
                 "kubectl", "exec", "-n", iceberg_namespace, pod_name, "--",
                 "/bin/bash", "-c",
-                """
-                python3 << 'EOF'
+                '''
+                python3 << 'PYEOF'
                 from pyspark.sql import SparkSession
                 spark = SparkSession.builder.appName("TimeTravel-Test").getOrCreate()
 
@@ -385,8 +385,8 @@ class TestRealIcebergWorkload:
 
                 spark.stop()
                 print("TIME_TRAVEL_TEST_SUCCESS")
-                EOF
-                """
+                PYEOF
+                '''
             ],
             capture_output=True,
             text=True,
