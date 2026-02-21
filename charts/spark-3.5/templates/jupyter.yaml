@@ -37,6 +37,21 @@ spec:
         - name: jupyter
           image: "{{ .Values.jupyter.image.repository }}:{{ .Values.jupyter.image.tag }}"
           imagePullPolicy: {{ .Values.jupyter.image.pullPolicy }}
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/bash
+                  - -c
+                  - |
+                    # Install Spark Connect dependencies if connect is enabled
+                    {{- if .Values.connect.enabled }}
+                    pip install --quiet grpcio>=1.48.1 grpcio-status googleapis-common-protos boto3 prometheus_client || true
+                    {{- end }}
+                    # Install any extra pip packages specified in values
+                    {{- if .Values.jupyter.extraPipPackages }}
+                    pip install --quiet {{ .Values.jupyter.extraPipPackages | join " " }} || true
+                    {{- end }}
           command: ["jupyter-lab"]
           args: ["--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=''", "--NotebookApp.password=''"]
           env:

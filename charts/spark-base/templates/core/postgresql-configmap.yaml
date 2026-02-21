@@ -15,6 +15,13 @@ data:
     #!/bin/sh
     set -e
 
+    # Set password_encryption to md5 for compatibility with older JDBC drivers
+    # PostgreSQL 14+ defaults to scram-sha-256 which is not supported by Hive Metastore JDBC
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
+    ALTER SYSTEM SET password_encryption = 'md5';
+    SELECT pg_reload_conf();
+    EOSQL
+
     # Create Hive Metastore database if core.hiveMetastore is enabled
     {{- if .Values.core.hiveMetastore.enabled }}
     psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
@@ -27,8 +34,9 @@ data:
     EOSQL
     {{- end }}
 
-    # Create Hive user for Hive Metastore
-    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-'EOSQL'
+    # Create Hive user for Hive Metastore with md5 password (for JDBC compatibility)
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
+    SET password_encryption = 'md5';
     DO $$
     BEGIN
       IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'hive') THEN

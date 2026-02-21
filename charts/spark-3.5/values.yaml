@@ -439,6 +439,12 @@ jupyter:
     enabled: false
     size: "10Gi"
     storageClass: ""
+  # Extra pip packages to install on startup
+  # Spark Connect requires: grpcio>=1.48.1, grpcio-status, googleapis-common-protos, boto3
+  # These are auto-installed when connect.enabled=true
+  extraPipPackages: []
+  # - pandas==2.0.0
+  # - scikit-learn
 
 # Celeborn integration (optional)
 # Requires separate Celeborn deployment:
