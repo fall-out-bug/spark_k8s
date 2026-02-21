@@ -2,10 +2,10 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "spark-3.5.fullname" . }}-grafana-dashboards
+  name: {{ include "spark-3.5.fullname" . }}-dashboard-profiling
   labels:
     {{- include "spark-3.5.labels" . | nindent 4 }}
-    grafana.dashboard: "2"
+    grafana.dashboard: "1"
 data:
   spark-profiling.json: |
     {
