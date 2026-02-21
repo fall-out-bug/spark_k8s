@@ -9,3 +9,8 @@ dependencies:
     version: 0.1.0
     repository: "file://../spark-base"
     condition: spark-base.enabled
+  - name: spark-standalone
+    version: 0.1.0
+    repository: "file://./charts/spark-standalone"
+    condition: standalone.enabled
+    alias: standalone

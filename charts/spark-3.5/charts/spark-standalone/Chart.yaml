@@ -1,0 +1,15 @@
+apiVersion: v2
+name: spark-standalone
+version: 0.1.0
+appVersion: "3.5.7"
+description: Spark Standalone cluster with Airflow orchestration for batch ETL workloads
+type: application
+keywords:
+  - spark
+  - standalone
+  - airflow
+  - etl
+  - batch-processing
+maintainers:
+  - name: spark-k8s
+    email: spark-k8s@example.com

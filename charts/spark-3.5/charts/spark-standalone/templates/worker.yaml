@@ -1,0 +1,89 @@
+{{- if and .Values.worker.enabled .Values.master.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "spark-standalone.fullname" . }}-worker
+  labels:
+    {{- include "spark-standalone.workerLabels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.worker.replicas }}
+  selector:
+    matchLabels:
+      {{- include "spark-standalone.workerSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "spark-standalone.workerSelectorLabels" . | nindent 8 }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8081"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: {{ include "spark-standalone.serviceAccountName" . }}
+      {{- with .Values.worker.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.worker.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.worker.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: spark-worker
+          image: "{{ .Values.worker.image.repository }}:{{ .Values.worker.image.tag }}"
+          imagePullPolicy: {{ .Values.worker.image.pullPolicy }}
+          ports:
+            - name: ui
+              containerPort: 8081
+              protocol: TCP
+          env:
+            - name: SPARK_MASTER
+              value: "spark://{{ include "spark-standalone.fullname" . }}-master:{{ .Values.master.service.rpcPort }}"
+            - name: SPARK_WORKER_WEBUI_PORT
+              value: "8081"
+            - name: SPARK_WORKER_DIR
+              value: {{ .Values.worker.workDir | quote }}
+          {{- range $key, $value := .Values.worker.sparkConf }}
+            - name: {{ upper $key | replace "." "_" }}
+              value: {{ $value | quote }}
+          {{- end }}
+          command: ["/opt/spark/bin/spark-class"]
+          args:
+            - "org.apache.spark.deploy.worker.Worker"
+            - "spark://{{ include "spark-standalone.fullname" . }}-master:{{ .Values.master.service.rpcPort }}"
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: ui
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: ui
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          volumeMounts:
+            - name: work-dir
+              mountPath: {{ .Values.worker.workDir }}
+          {{- if .Values.security.podSecurityStandards }}
+          securityContext:
+            runAsUser: {{ .Values.security.runAsUser }}
+            runAsGroup: {{ .Values.security.runAsGroup }}
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          {{- end }}
+      volumes:
+        - name: work-dir
+          emptyDir: {}
+      {{- if .Values.security.podSecurityStandards }}
+      securityContext:
+        fsGroup: {{ .Values.security.fsGroup }}
+      {{- end }}
+{{- end }}

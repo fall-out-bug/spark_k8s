@@ -1,0 +1,67 @@
+{{- if .Values.airflow.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "spark-standalone.fullname" . }}-airflow-scheduler
+  labels:
+    {{- include "spark-standalone.airflowSchedulerLabels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.airflow.scheduler.replicas }}
+  selector:
+    matchLabels:
+      {{- include "spark-standalone.airflowSchedulerLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "spark-standalone.airflowSchedulerLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "spark-standalone.serviceAccountName" . }}
+      initContainers:
+        - name: wait-for-db
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z {{ include "spark-standalone.fullname" . }}-airflow-postgresql {{ .Values.airflow.postgresql.service.port }}; do echo waiting for db; sleep 2; done']
+      containers:
+        - name: scheduler
+          image: "{{ .Values.airflow.image.repository }}:{{ .Values.airflow.image.tag }}"
+          imagePullPolicy: {{ .Values.airflow.image.pullPolicy }}
+          env:
+            - name: AIRFLOW__CORE__DAGS_FOLDER
+              value: /opt/airflow/dags
+            - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+              value: "postgresql://{{ .Values.airflow.postgresql.auth.username }}:{{ .Values.airflow.postgresql.auth.password }}@{{ include "spark-standalone.fullname" . }}-airflow-postgresql/{{ .Values.airflow.postgresql.auth.database }}"
+            - name: AIRFLOW__WEBSERVER__SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "spark-standalone.fullname" . }}-airflow-secret
+                  key: secret-key
+          command: ['airflow', 'scheduler']
+          resources:
+            {{- toYaml .Values.airflow.scheduler.resources | nindent 12 }}
+          livenessProbe:
+            exec:
+              command:
+                - airflow
+                - jobs
+                - check
+                - --job-type
+                - SchedulerJob
+            initialDelaySeconds: 60
+            periodSeconds: 60
+          volumeMounts:
+            - name: airflow-config
+              mountPath: /opt/airflow/airflow.cfg
+              subPath: airflow.cfg
+            - name: airflow-dags
+              mountPath: /opt/airflow/dags
+            - name: airflow-logs
+              mountPath: /opt/airflow/logs
+      volumes:
+        - name: airflow-config
+          configMap:
+            name: {{ include "spark-standalone.fullname" . }}-airflow-config
+        - name: airflow-dags
+          configMap:
+            name: {{ include "spark-standalone.fullname" . }}-airflow-dags
+        - name: airflow-logs
+          emptyDir: {}
+{{- end }}
