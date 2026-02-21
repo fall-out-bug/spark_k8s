@@ -72,6 +72,12 @@ spec:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
           {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
       {{- if .Values.security.podSecurityStandards }}
       securityContext:
         fsGroup: {{ .Values.security.fsGroup }}
