@@ -33,38 +33,63 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      volumes:
+        - name: notebooks
+          {{- if .Values.jupyter.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "spark-3.5.fullname" . }}-jupyter-notebooks
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: jupyter-runtime
+          emptyDir: {}
+        {{- if .Values.connect.enabled }}
+        - name: python-packages
+          emptyDir: {}
+        {{- end }}
+      {{- if .Values.connect.enabled }}
+      initContainers:
+        - name: install-spark-connect-deps
+          image: python:3.11-slim
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              pip install --target=/deps \
+                'pyspark==4.0.0' \
+                'grpcio>=1.48.1,<2' \
+                'grpcio-status>=1.48.1,<2' \
+                'googleapis-common-protos>=1.56.0,<2' \
+                'boto3>=1.26.0,<2' \
+                'prometheus_client>=0.16.0,<1' \
+                'pandas>=2.2,<2.3' \
+                'pyarrow>=15.0.0,<19' \
+                'numpy>=1.24.0,<2'
+              echo "Dependencies installed successfully"
+          volumeMounts:
+            - name: python-packages
+              mountPath: /deps
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      {{- end }}
       containers:
         - name: jupyter
           image: "{{ .Values.jupyter.image.repository }}:{{ .Values.jupyter.image.tag }}"
           imagePullPolicy: {{ .Values.jupyter.image.pullPolicy }}
-          lifecycle:
-            postStart:
-              exec:
-                command:
-                  - /bin/bash
-                  - -c
-                  - |
-                    # Install Spark Connect dependencies if connect is enabled
-                    {{- if .Values.connect.enabled }}
-                    # Core Spark Connect packages
-                    pip install --quiet pyspark grpcio>=1.48.1 grpcio-status googleapis-common-protos || true
-                    # S3/MinIO support
-                    pip install --quiet boto3 || true
-                    # Prometheus metrics
-                    pip install --quiet prometheus_client || true
-                    # Fix pandas/pyarrow compatibility for Spark Connect (pyspark 4.x requires pandas>=2.2, pyarrow>=15)
-                    pip install --quiet 'pandas>=2.2,<3' 'pyarrow>=15' 'numpy<2' || true
-                    {{- end }}
-                    # Install any extra pip packages specified in values
-                    {{- if .Values.jupyter.extraPipPackages }}
-                    pip install --quiet {{ .Values.jupyter.extraPipPackages | join " " }} || true
-                    {{- end }}
           command: ["jupyter-lab"]
           args: ["--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=''", "--NotebookApp.password=''"]
           env:
             {{- if .Values.connect.enabled }}
             - name: SPARK_CONNECT_URL
               value: "sc://{{ include "spark-3.5.fullname" . }}-connect:15002"
+            - name: PYTHONPATH
+              value: "/deps:$(PYTHONPATH)"
             {{- end }}
             - name: JUPYTER_ENABLE_LAB
               value: "yes"
@@ -130,16 +155,13 @@ spec:
               mountPath: /home/spark/notebooks
             - name: jupyter-runtime
               mountPath: /tmp/jupyter-runtime
-      volumes:
-        - name: notebooks
-          {{- if .Values.jupyter.persistence.enabled }}
-          persistentVolumeClaim:
-            claimName: {{ include "spark-3.5.fullname" . }}-jupyter-notebooks
-          {{- else }}
-          emptyDir: {}
-          {{- end }}
-        - name: jupyter-runtime
-          emptyDir: {}
+            {{- if .Values.connect.enabled }}
+            - name: python-packages
+              mountPath: /deps
+            {{- end }}
+---
+apiVersion: v1
+kind: Service
 ---
 apiVersion: v1
 kind: Service

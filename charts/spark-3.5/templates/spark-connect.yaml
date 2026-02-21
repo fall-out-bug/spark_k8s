@@ -107,15 +107,6 @@ spec:
         - name: spark-connect
           image: "{{ .Values.connect.image.repository }}:{{ .Values.connect.image.tag }}"
           imagePullPolicy: {{ .Values.connect.image.pullPolicy }}
-          lifecycle:
-            postStart:
-              exec:
-                command:
-                  - /bin/bash
-                  - -c
-                  - |
-                    # Install prometheus_client for metrics push
-                    pip install --quiet prometheus_client || true
           env:
             - name: SPARK_MODE
               value: "connect"

@@ -28,7 +28,8 @@ core:
       pullPolicy: IfNotPresent
     auth:
       username: "spark"
-      password: "spark123"
+      password: ""  # Set password or use existingSecret (recommended for production)
+      existingSecret: ""  # Name of existing secret with POSTGRES_USER, POSTGRES_PASSWORD keys
     service:
       port: 5432
     persistence:
@@ -60,7 +61,7 @@ core:
       port: 5432
       database: "metastore"
       username: "hive"
-      password: "hive123"
+      password: ""  # Set password or rely on auto-generated (recommended for production)
     resources:
       requests:
         memory: "512Mi"
