@@ -31,6 +31,7 @@ spec:
     metadata:
       labels:
         app: spark-history-server
+        app.kubernetes.io/component: history-server
         {{- include "spark-4.1.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "spark-4.1.serviceAccountName" . }}
