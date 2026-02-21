@@ -52,6 +52,11 @@ spec:
         --conf spark.driver.host=$POD_IP \
         --conf spark.driver.bindAddress=0.0.0.0 \
         --conf spark.sql.adaptive.enabled=true \
+        --conf spark.eventLog.enabled=true \
+        --conf spark.eventLog.dir=s3a://spark-logs/events/ \
+        --conf spark.eventLog.rolling.enabled=true \
+        --conf spark.eventLog.rolling.maxFileSize=128m \
+        --conf spark.hadoop.fs.s3a.path.style.access=true \
         /jobs/taxi_catboost_training.py
     env:
     - name: POD_IP
