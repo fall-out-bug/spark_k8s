@@ -12,7 +12,7 @@ data:
     # Clients connect via Spark Connect, driver and executors in same JVM
     spark.master=local[*]
     spark.driver.bindAddress=0.0.0.0
-    spark.driver.host={{ default (printf "%s-connect" (include "spark-3.5.fullname" .)) .Values.connect.driver.host }}
+    spark.driver.host=${POD_IP}
     {{- else if eq .Values.connect.backendMode "k8s" }}
     # Spark Connect Server runs on K8s
     # Driver in pod, executors on K8s cluster
@@ -29,7 +29,7 @@ data:
     spark.driver.port={{ .Values.connect.driver.port }}
     spark.driver.blockManager.port={{ .Values.connect.driver.blockManagerPort }}
 
-    {{- if ne .Values.connect.backendMode "standalone" }}
+    {{- if eq .Values.connect.backendMode "k8s" }}
     # K8s executor config (for clients launching executors on K8s)
     spark.kubernetes.namespace={{ .Release.Namespace }}
     spark.kubernetes.executor.podTemplateFile=/tmp/spark-conf/executor-pod-template.yaml

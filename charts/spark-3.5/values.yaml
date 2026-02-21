@@ -183,7 +183,7 @@ historyServer:
     fullnameOverride: ""
     image:
       repository: spark-custom
-      tag: "3.5.x"
+      tag: "3.5.7"
       pullPolicy: IfNotPresent
     logDirectory: "s3a://spark-logs/events"
     service:
@@ -249,7 +249,7 @@ sparkStandalone:
   serviceAccountName: "spark-35"
   image:
     repository: spark-custom
-    tag: "3.5.x"
+    tag: "3.5.7"
     pullPolicy: IfNotPresent
   master:
     enabled: true
@@ -288,7 +288,7 @@ connect:
   replicas: 1
   image:
     repository: spark-custom
-    tag: "3.5.x"
+    tag: "3.5.7"
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -420,8 +420,8 @@ routes:
 jupyter:
   enabled: true
   image:
-    repository: jupyter/all-spark-notebook
-    tag: "latest"
+    repository: spark-k8s-jupyter
+    tag: "3.5-3.5.7"
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP

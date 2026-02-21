@@ -50,26 +50,22 @@ spec:
       {{- if .Values.connect.enabled }}
       initContainers:
         - name: install-spark-connect-deps
-          image: python:3.11-slim
+          image: "{{ .Values.jupyter.image.repository }}:{{ .Values.jupyter.image.tag }}"
           command:
             - /bin/bash
             - -c
             - |
               set -e
-              pip install --target=/deps \
-                'pyspark==4.0.0' \
+              # Install Spark Connect client dependencies to shared volume
+              # Using same image as main container to ensure Python version matches
+              pip install --no-cache-dir --prefix=/opt/pypackages \
                 'grpcio>=1.48.1,<2' \
                 'grpcio-status>=1.48.1,<2' \
-                'googleapis-common-protos>=1.56.0,<2' \
-                'boto3>=1.26.0,<2' \
-                'prometheus_client>=0.16.0,<1' \
-                'pandas>=2.2,<2.3' \
-                'pyarrow>=15.0.0,<19' \
-                'numpy>=1.24.0,<2'
+                'googleapis-common-protos>=1.56.0,<2'
               echo "Dependencies installed successfully"
           volumeMounts:
             - name: python-packages
-              mountPath: /deps
+              mountPath: /opt/pypackages
           resources:
             requests:
               memory: "256Mi"
@@ -89,7 +85,7 @@ spec:
             - name: SPARK_CONNECT_URL
               value: "sc://{{ include "spark-3.5.fullname" . }}-connect:15002"
             - name: PYTHONPATH
-              value: "/deps:$(PYTHONPATH)"
+              value: "/opt/pypackages/local/lib/python3.10/dist-packages:$(PYTHONPATH)"
             {{- end }}
             - name: JUPYTER_ENABLE_LAB
               value: "yes"
@@ -157,11 +153,8 @@ spec:
               mountPath: /tmp/jupyter-runtime
             {{- if .Values.connect.enabled }}
             - name: python-packages
-              mountPath: /deps
+              mountPath: /opt/pypackages
             {{- end }}
----
-apiVersion: v1
-kind: Service
 ---
 apiVersion: v1
 kind: Service
