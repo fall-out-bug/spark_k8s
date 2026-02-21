@@ -17,6 +17,8 @@ Environment variables:
 import os
 import sys
 import socket
+import time
+import requests
 from datetime import datetime, timedelta
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
@@ -27,6 +29,30 @@ from pyspark.sql.types import *
 MINIO_ENDPOINT = os.environ.get("MINIO_ENDPOINT", "http://minio.spark-infra.svc.cluster.local:9000")
 MINIO_ACCESS_KEY = os.environ.get("MINIO_ACCESS_KEY", "minioadmin")
 MINIO_SECRET_KEY = os.environ.get("MINIO_SECRET_KEY", "minioadmin")
+PUSHGATEWAY_URL = os.environ.get("PUSHGATEWAY_URL", "http://prometheus-pushgateway.spark-operations:9091")
+
+# Metrics
+METRICS = {}
+
+
+def push_metric(name, value, labels=None):
+    """Push metric to Prometheus Pushgateway."""
+    if labels is None:
+        labels = {}
+    labels['job'] = 'spark_feature_engineering'
+
+    label_str = ','.join([f'{k}="{v}"' for k, v in labels.items()])
+    metric_data = f'# TYPE {name} gauge\n{name}{{{label_str}}} {value}\n'
+
+    try:
+        requests.post(
+            f"{PUSHGATEWAY_URL}/metrics/job/spark_feature_engineering",
+            data=metric_data,
+            timeout=5
+        )
+        print(f"  Pushed metric: {name}={value}")
+    except Exception as e:
+        print(f"  Warning: Could not push metric: {e}")
 
 
 def get_pod_ip():
@@ -298,28 +324,64 @@ def save_features(df, output_path):
 
 
 def main():
+    global METRICS
+    start_time = time.time()
+
     print("=== NYC Taxi Feature Engineering ===")
     print(f"MinIO: {MINIO_ENDPOINT}")
     print(f"Input: {RAW_PATH}")
     print(f"Output: {FEATURES_PATH}")
+    print(f"Pushgateway: {PUSHGATEWAY_URL}")
     print()
 
     # Create Spark session
     spark = create_spark_session()
 
-    # Pipeline
+    # Pipeline with timing
+    t0 = time.time()
     df = load_raw_data(spark)
+    raw_count = df.count()
+    push_metric('spark_feature_raw_records', raw_count)
+    print(f"  Raw data load: {time.time() - t0:.2f}s")
+
+    t0 = time.time()
     df = add_temporal_features(df)
+    print(f"  Temporal features: {time.time() - t0:.2f}s")
+
+    t0 = time.time()
     df = add_geospatial_features(df)
+    print(f"  Geospatial features: {time.time() - t0:.2f}s")
+
+    t0 = time.time()
     df = add_historical_features(df)
+    print(f"  Historical features: {time.time() - t0:.2f}s")
+
+    t0 = time.time()
     df = create_target_variables(df)
+    print(f"  Target variables: {time.time() - t0:.2f}s")
 
     # Save
+    t0 = time.time()
     df_features = save_features(df, FEATURES_PATH)
+    feature_count = df_features.count()
+    print(f"  Save features: {time.time() - t0:.2f}s")
 
     # Show sample
     print("\nSample features:")
     df_features.show(5, truncate=False)
+
+    # Calculate total duration
+    duration = time.time() - start_time
+
+    # Push final metrics
+    push_metric('spark_feature_engineering_duration_seconds', duration)
+    push_metric('spark_feature_engineering_raw_records', raw_count)
+    push_metric('spark_feature_engineering_feature_records', feature_count)
+    push_metric('spark_feature_engineering_success', 1)
+
+    print(f"\nTotal duration: {duration:.2f}s")
+    print(f"Raw records: {raw_count:,}")
+    print(f"Feature records: {feature_count:,}")
 
     spark.stop()
     print("\nDone!")
