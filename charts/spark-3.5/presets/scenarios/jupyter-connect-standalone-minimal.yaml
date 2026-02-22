@@ -1,0 +1,136 @@
+# Scenario Preset: Jupyter + Spark Connect (Standalone backend) - Minimal Resources
+#
+# Self-contained deployment: standalone + connect + jupyter in one release
+# Uses parent chart sparkStandalone for backend
+#
+# Usage:
+#   helm install jupyter-sc charts/spark-3.5 -n spark-jupyter-sa \
+#     -f charts/spark-3.5/presets/scenarios/jupyter-connect-standalone-minimal.yaml
+
+# Core Infrastructure (minimal)
+spark-base:
+  enabled: true
+  minio:
+    enabled: true
+    fullnameOverride: "minio"
+    resources:
+      requests:
+        cpu: "0"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "512Mi"
+    persistence:
+      enabled: false
+  postgresql:
+    enabled: false
+
+# RBAC for Spark pods
+rbac:
+  create: true
+  serviceAccountName: "spark"
+
+# Spark Standalone Cluster (backend for Connect)
+sparkStandalone:
+  enabled: true
+  serviceAccountName: "spark"
+  image:
+    repository: spark-custom
+    tag: "3.5.7"
+    pullPolicy: IfNotPresent
+  master:
+    enabled: true
+    service:
+      type: ClusterIP
+      rpcPort: 7077
+      uiPort: 8080
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "100m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+  worker:
+    enabled: true
+    replicas: 1
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "100m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+    sparkConf:
+      spark.worker.memory: "512m"
+      spark.worker.cores: "1"
+
+# Spark Connect Server (standalone backend mode)
+connect:
+  enabled: true
+  replicas: 1
+  backendMode: standalone
+  image:
+    repository: spark-custom
+    tag: "3.5.7"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "0"
+      memory: "256Mi"
+    limits:
+      cpu: "300m"
+      memory: "1Gi"
+  driver:
+    host: ""
+    port: 7078
+  standalone:
+    # Will be set dynamically based on release name
+    masterService: ""  # Uses default from sparkStandalone
+    masterPort: 7077
+  eventLog:
+    enabled: false
+  sparkConf:
+    spark.executor.instances: "1"
+    spark.executor.cores: "1"
+    spark.executor.memory: "512m"
+    spark.dynamicAllocation.enabled: "false"
+
+# Jupyter Notebook
+jupyter:
+  enabled: true
+  image:
+    repository: spark-k8s-jupyter
+    tag: "3.5-3.5.7"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8888
+  env:
+    SPARK_CONNECT_URL: "sc://spark-connect:15002"
+  resources:
+    requests:
+      cpu: "0"
+      memory: "256Mi"
+    limits:
+      cpu: "300m"
+      memory: "1Gi"
+  persistence:
+    enabled: false
+
+# Disable other components
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false
+
+# DISABLE subchart to avoid conflict with parent sparkStandalone
+standalone:
+  enabled: false
