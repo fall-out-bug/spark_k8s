@@ -1,0 +1,110 @@
+# Safety bounds for Spark configuration recommendations
+# Used by scripts/autotuning/recommender.py
+
+safety_bounds:
+  spark.executor.memory:
+    min: "1Gi"
+    max: "32Gi"
+    max_increase_pct: 100
+    max_decrease_pct: 50
+    format: "memory"
+    description: "Memory per executor"
+
+  spark.executor.memoryOverhead:
+    min: "384Mi"
+    max: "8Gi"
+    max_increase_pct: 100
+    format: "memory"
+    description: "Off-heap memory for JVM overhead"
+
+  spark.executor.cores:
+    min: 1
+    max: 8
+    max_increase_pct: 50
+    max_decrease_pct: 50
+    format: "integer"
+    description: "CPU cores per executor"
+
+  spark.executor.instances:
+    min: 1
+    max: 100
+    max_increase_pct: 100
+    max_decrease_pct: 75
+    format: "integer"
+    description: "Number of executors"
+
+  spark.sql.shuffle.partitions:
+    min: 10
+    max: 2000
+    max_increase_pct: 200
+    max_decrease_pct: 75
+    format: "integer"
+    description: "Number of shuffle partitions"
+
+  spark.sql.autoBroadcastJoinThreshold:
+    min: "10MB"
+    max: "500MB"
+    max_increase_pct: 500
+    format: "memory"
+    description: "Max size for broadcast joins"
+
+  spark.memory.fraction:
+    min: 0.5
+    max: 0.8
+    format: "float"
+    description: "Fraction of heap for execution and storage"
+
+  spark.memory.storageFraction:
+    min: 0.2
+    max: 0.7
+    format: "float"
+    description: "Fraction of memory for storage"
+
+  spark.driver.memory:
+    min: "1Gi"
+    max: "16Gi"
+    max_increase_pct: 100
+    format: "memory"
+    description: "Driver memory"
+
+  spark.driver.maxResultSize:
+    min: "1Gi"
+    max: "4Gi"
+    format: "memory"
+    description: "Max size of results returned to driver"
+
+  spark.sql.adaptive.advisoryPartitionSizeInBytes:
+    min: "32MB"
+    max: "512MB"
+    format: "memory"
+    description: "Target size for adaptive partition coalescing"
+
+# Global limits (cluster-wide)
+global_limits:
+  max_total_memory: "256Gi"
+  max_total_cores: 200
+  max_total_executors: 500
+
+# Safety rules
+safety_rules:
+  - name: "memory_cores_ratio"
+    description: "Ensure reasonable memory per core ratio"
+    check: "memory_per_core >= 2GB and memory_per_core <= 8GB"
+    severity: "warning"
+
+  - name: "total_memory_limit"
+    description: "Don't exceed cluster memory capacity"
+    check: "executor_memory * executor_instances <= max_total_memory"
+    severity: "critical"
+
+  - name: "shuffle_partitions_v_cores"
+    description: "Shuffle partitions should scale with cores"
+    check: "shuffle_partitions >= total_cores * 2"
+    severity: "info"
+
+# Conversion helpers
+memory_units:
+  Ki: 1024
+  Mi: 1048576
+  Gi: 1073741824
+  Ti: 1099511627776

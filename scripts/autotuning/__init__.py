@@ -10,11 +10,12 @@ Modules:
     applier: Helm values generation
 
 Usage:
-    from autotuning import collect_metrics, analyze_metrics
+    from autotuning import collect_metrics, analyze_metrics, generate_recommendations
 
     metrics = collect_metrics(app_id="app-123")
     analysis = analyze_metrics(metrics_file="metrics.json")
-    print(analysis.issues)
+    recs = generate_recommendations(analysis_file="analysis.json")
+    print(recs.recommendations)
 """
 
 from autotuning.analyzer import (
@@ -31,8 +32,16 @@ from autotuning.collector import (
     collect_metrics,
     load_metrics_config,
 )
+from autotuning.recommender import (
+    ConfigRecommender,
+    Recommendation,
+    RecommendationSet,
+    generate_recommendations,
+    load_bounds_config,
+    load_profiles_config,
+)
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __all__ = [
     # Collector
     "MetricsCollector",
@@ -46,4 +55,11 @@ __all__ = [
     "analyze_metrics",
     "classify_workload",
     "load_rules_config",
+    # Recommender
+    "ConfigRecommender",
+    "Recommendation",
+    "RecommendationSet",
+    "generate_recommendations",
+    "load_bounds_config",
+    "load_profiles_config",
 ]

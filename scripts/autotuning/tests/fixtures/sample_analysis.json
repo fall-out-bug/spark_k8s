@@ -1,0 +1,55 @@
+{
+  "app_id": "app-20260222120000-0001",
+  "timestamp": "2026-02-22T12:00:00",
+  "workload_type": "etl_batch",
+  "issues": [
+    {
+      "issue_type": "memory_spill",
+      "severity": "critical",
+      "metric_value": 1500000000,
+      "threshold": 1073741824,
+      "recommendation": "increase_memory_or_reduce_storage_fraction",
+      "rationale": "1500000000 bytes spilled to disk"
+    },
+    {
+      "issue_type": "data_skew",
+      "severity": "critical",
+      "metric_value": 5.0,
+      "threshold": 5.0,
+      "recommendation": "enable_skew_join_or_salting",
+      "rationale": "Task duration p99/p50 ratio is 5.0"
+    },
+    {
+      "issue_type": "low_cpu_utilization",
+      "severity": "warning",
+      "metric_value": 0.55,
+      "threshold": 0.6,
+      "recommendation": "reduce_cores_or_increase_parallelism",
+      "rationale": "CPU utilization is 0.55"
+    },
+    {
+      "issue_type": "high_shuffle_bytes",
+      "severity": "warning",
+      "metric_value": 1800000000,
+      "threshold": 1073741824,
+      "recommendation": "increase_partitions_or_broadcast_join",
+      "rationale": "1800000000 bytes shuffled"
+    }
+  ],
+  "metrics_summary": {
+    "gc_time": 5.2,
+    "memory_spill": 1500000000,
+    "task_duration_p50": 2.5,
+    "task_duration_p99": 12.5,
+    "cpu_utilization": 0.55,
+    "executor_memory": 12000000000,
+    "shuffle_write": 1800000000,
+    "gc_ratio": 0.08,
+    "task_skew_ratio": 5.0
+  },
+  "duration_seconds": 45.0,
+  "confidence": 1.0,
+  "has_issues": true,
+  "critical_count": 2,
+  "warning_count": 2
+}

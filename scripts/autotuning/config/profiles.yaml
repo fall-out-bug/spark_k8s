@@ -1,0 +1,157 @@
+# Workload-specific tuning profiles for Spark autotuning
+# Used by scripts/autotuning/recommender.py
+
+profiles:
+  etl_batch:
+    description: "Batch ETL processing - optimize for throughput"
+    base_config:
+      spark.sql.adaptive.enabled: "true"
+      spark.sql.adaptive.coalescePartitions.enabled: "true"
+      spark.sql.adaptive.coalescePartitions.minPartitionSize: "1MB"
+      spark.memory.fraction: "0.7"
+      spark.memory.storageFraction: "0.3"
+    priority_params:
+      - spark.executor.memory
+      - spark.sql.shuffle.partitions
+      - spark.sql.adaptive.advisoryPartitionSizeInBytes
+    typical_resources:
+      executor_memory: "8g"
+      executor_cores: 4
+      executor_instances: 4
+
+  interactive:
+    description: "Interactive analytics - optimize for latency"
+    base_config:
+      spark.sql.adaptive.enabled: "true"
+      spark.sql.adaptive.localShuffleReader.enabled: "true"
+      spark.sql.adaptive.coalescePartitions.initialPartitionNum: "50"
+    priority_params:
+      - spark.executor.cores
+      - spark.sql.autoBroadcastJoinThreshold
+    typical_resources:
+      executor_memory: "4g"
+      executor_cores: 4
+      executor_instances: 2
+
+  ml_training:
+    description: "ML model training - optimize for cache/persistence"
+    base_config:
+      spark.sql.adaptive.enabled: "true"
+      spark.sql.execution.arrow.pyspark.enabled: "true"
+      spark.memory.storageFraction: "0.6"
+    priority_params:
+      - spark.executor.memory
+      - spark.driver.maxResultSize
+    typical_resources:
+      executor_memory: "16g"
+      executor_cores: 4
+      executor_instances: 2
+
+  streaming:
+    description: "Structured streaming - optimize for stability"
+    base_config:
+      spark.sql.streaming.stateStore.providerClass: "org.apache.spark.sql.execution.streaming.RocksDBStateStoreProvider"
+      spark.streaming.backpressure.enabled: "true"
+      spark.sql.shuffle.partitions: "200"
+    priority_params:
+      - spark.executor.memory
+      - spark.sql.shuffle.partitions
+    typical_resources:
+      executor_memory: "8g"
+      executor_cores: 2
+      executor_instances: 4
+
+# Issue-to-recommendation mapping
+recommendation_rules:
+  gc_pressure:
+    actions:
+      - parameter: "spark.executor.memory"
+        operation: "multiply"
+        factor: 1.2
+        rationale: "Increase memory to reduce GC pressure"
+      - parameter: "spark.memory.fraction"
+        operation: "set"
+        value: "0.7"
+        rationale: "Increase execution memory fraction"
+    confidence_factor: 0.9
+
+  memory_spill:
+    actions:
+      - parameter: "spark.executor.memory"
+        operation: "multiply"
+        factor: 1.3
+        rationale: "Increase memory to prevent disk spill"
+      - parameter: "spark.memory.storageFraction"
+        operation: "set"
+        value: "0.3"
+        rationale: "Reduce storage fraction to give more memory to execution"
+    confidence_factor: 0.95
+
+  data_skew:
+    actions:
+      - parameter: "spark.sql.adaptive.skewJoin.enabled"
+        operation: "set"
+        value: "true"
+        rationale: "Enable adaptive skew join handling"
+      - parameter: "spark.sql.adaptive.skewJoin.skewedPartitionFactor"
+        operation: "set"
+        value: "5"
+        rationale: "Set skew detection threshold"
+      - parameter: "spark.sql.adaptive.skewJoin.skewedPartitionThresholdInBytes"
+        operation: "set"
+        value: "268435456"
+        rationale: "Set 256MB as skew partition threshold"
+    confidence_factor: 0.85
+
+  low_cpu_utilization:
+    actions:
+      - parameter: "spark.executor.cores"
+        operation: "decrease"
+        amount: 1
+        rationale: "Reduce cores to improve utilization"
+    confidence_factor: 0.7
+    conditions:
+      - "not data_skew"
+
+  high_cpu_utilization:
+    actions:
+      - parameter: "spark.executor.instances"
+        operation: "multiply"
+        factor: 1.5
+        rationale: "Add executors to handle CPU load"
+      - parameter: "spark.executor.cores"
+        operation: "set"
+        value: "4"
+        rationale: "Ensure sufficient cores per executor"
+    confidence_factor: 0.8
+
+  high_shuffle_bytes:
+    actions:
+      - parameter: "spark.sql.shuffle.partitions"
+        operation: "multiply"
+        factor: 2.0
+        rationale: "Increase partitions to handle shuffle data"
+      - parameter: "spark.sql.autoBroadcastJoinThreshold"
+        operation: "set"
+        value: "104857600"
+        rationale: "Enable broadcast joins for small tables (100MB)"
+    confidence_factor: 0.75
+
+  long_task_duration:
+    actions:
+      - parameter: "spark.sql.shuffle.partitions"
+        operation: "multiply"
+        factor: 1.5
+        rationale: "Increase parallelism to reduce task duration"
+    confidence_factor: 0.65
+
+# Parameter priorities for conflicts
+param_priorities:
+  - spark.executor.memory
+  - spark.executor.cores
+  - spark.executor.instances
+  - spark.sql.shuffle.partitions
+  - spark.sql.adaptive.skewJoin.enabled
+  - spark.memory.fraction
+  - spark.memory.storageFraction
+  - spark.sql.autoBroadcastJoinThreshold
