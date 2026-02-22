@@ -1,0 +1,65 @@
+{
+  "app_id": "app-20260222120000-0001",
+  "workload_type": "etl_batch",
+  "recommendations": [
+    {
+      "parameter": "spark.executor.memory",
+      "current_value": "8Gi",
+      "recommended_value": "10Gi",
+      "change_pct": 25.0,
+      "confidence": 0.95,
+      "rationale": "Increase memory to prevent disk spill",
+      "safety_check": "pass",
+      "source": "memory_spill"
+    },
+    {
+      "parameter": "spark.executor.cores",
+      "current_value": "4",
+      "recommended_value": "3",
+      "change_pct": -25.0,
+      "confidence": 0.7,
+      "rationale": "Reduce cores to improve utilization",
+      "safety_check": "pass",
+      "source": "low_cpu_utilization"
+    },
+    {
+      "parameter": "spark.sql.shuffle.partitions",
+      "current_value": "200",
+      "recommended_value": "400",
+      "change_pct": 100.0,
+      "confidence": 0.75,
+      "rationale": "Increase partitions to handle shuffle data",
+      "safety_check": "pass",
+      "source": "high_shuffle_bytes"
+    },
+    {
+      "parameter": "spark.sql.adaptive.skewJoin.enabled",
+      "current_value": "not set",
+      "recommended_value": "true",
+      "change_pct": 100.0,
+      "confidence": 0.85,
+      "rationale": "Enable adaptive skew join handling",
+      "safety_check": "pass",
+      "source": "data_skew"
+    },
+    {
+      "parameter": "spark.memory.storageFraction",
+      "current_value": "not set",
+      "recommended_value": "0.3",
+      "change_pct": 100.0,
+      "confidence": 0.95,
+      "rationale": "Reduce storage fraction to give more memory to execution",
+      "safety_check": "pass",
+      "source": "memory_spill"
+    }
+  ],
+  "overall_confidence": 0.78,
+  "safety_issues": [],
+  "generated_at": "2026-02-22T12:00:00",
+  "base_config": {
+    "spark.sql.adaptive.enabled": "true",
+    "spark.sql.adaptive.coalescePartitions.enabled": "true",
+    "spark.memory.fraction": "0.7"
+  },
+  "recommendation_count": 5
+}
