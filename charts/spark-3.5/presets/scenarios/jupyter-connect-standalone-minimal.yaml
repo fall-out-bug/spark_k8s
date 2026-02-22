@@ -51,6 +51,9 @@ sparkStandalone:
       limits:
         memory: "1Gi"
         cpu: "500m"
+    metrics:
+      enabled: true
+      port: 8080
   worker:
     enabled: true
     replicas: 1
@@ -64,6 +67,9 @@ sparkStandalone:
     sparkConf:
       spark.worker.memory: "512m"
       spark.worker.cores: "1"
+    metrics:
+      enabled: true
+      port: 8081
 
 # Spark Connect Server (standalone backend mode)
 connect:
@@ -130,6 +136,29 @@ ingress:
 
 security:
   podSecurityStandards: false
+
+# Telemetry & Monitoring
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    labels:
+      release: prometheus-stack  # Must match Prometheus release
+  s3aMetrics:
+    enabled: true
+  grafanaDashboards:
+    enabled: true
+    namespace: spark-operations
+  grafana:
+    dashboards:
+      enabled: true
+
+connect:
+  metrics:
+    enabled: true
+    port: 8080
+  service:
+    metricsPort: 8080
 
 # DISABLE subchart to avoid conflict with parent sparkStandalone
 standalone:

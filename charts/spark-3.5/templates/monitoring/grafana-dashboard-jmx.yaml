@@ -1,0 +1,77 @@
+{{- if .Values.monitoring.grafanaDashboards.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-dashboard-jmx
+  namespace: {{ .Values.monitoring.grafanaDashboards.namespace | default .Release.Namespace }}
+  labels:
+    grafana_dashboard: "1"
+    app: spark-connect
+    app.kubernetes.io/name: spark-3.5
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  spark-jmx-metrics.json: |
+    {
+      "annotations": {"list": []},
+      "editable": true,
+      "gnetId": null,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "panels": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}}},
+          "gridPos": {"h": 6, "w": 8, "x": 0, "y": 0},
+          "id": 1,
+          "options": {"orientation": "auto", "showThresholdLabels": false, "showThresholdMarkers": true},
+          "targets": [{"expr": "process_resident_memory_bytes{job=\"spark-infra-spark-35-connect\"}", "refId": "A"}],
+          "title": "Memory (MiB)",
+          "type": "gauge",
+          "fieldConfig": {"defaults": {"unit": "decbytes", "max": 1073741824}}
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"h": 6, "w": 8, "x": 8, "y": 0},
+          "id": 2,
+          "targets": [{"expr": "process_cpu_seconds_total{job=\"spark-infra-spark-35-connect\"}", "refId": "A"}],
+          "title": "CPU Seconds",
+          "type": "stat"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"h": 6, "w": 8, "x": 16, "y": 0},
+          "id": 3,
+          "targets": [{"expr": "process_open_fds{job=\"spark-infra-spark-35-connect\"}", "refId": "A"}],
+          "title": "Open File Descriptors",
+          "type": "stat"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"h": 8, "w": 24, "x": 0, "y": 6},
+          "id": 4,
+          "targets": [{"expr": "rate(process_cpu_seconds_total{job=\"spark-infra-spark-35-connect\"}[5m])", "refId": "A", "legendFormat": "CPU Rate"}],
+          "title": "CPU Usage Over Time",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"h": 8, "w": 24, "x": 0, "y": 14},
+          "id": 5,
+          "targets": [{"expr": "process_resident_memory_bytes{job=\"spark-infra-spark-35-connect\"}", "refId": "A", "legendFormat": "Memory"}],
+          "title": "Memory Over Time",
+          "type": "timeseries",
+          "fieldConfig": {"defaults": {"unit": "decbytes"}}
+        }
+      ],
+      "refresh": "10s",
+      "schemaVersion": 38,
+      "style": "dark",
+      "tags": ["spark", "jmx", "connect"],
+      "templating": {"list": []},
+      "time": {"from": "now-1h", "to": "now"},
+      "title": "Spark Connect JMX Metrics",
+      "uid": "spark-jmx",
+      "version": 1
+    }
+{{- end }}

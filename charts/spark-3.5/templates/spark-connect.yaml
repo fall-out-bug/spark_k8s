@@ -119,7 +119,7 @@ spec:
             - name: HADOOP_SECURITY_AUTHENTICATION
               value: "simple"
             - name: SPARK_SUBMIT_OPTS
-              value: "-Dhadoop.security.authentication=simple"
+              value: "-Dhadoop.security.authentication=simple{{ if .Values.connect.metrics.enabled }} -javaagent:/opt/jmx/jmx_prometheus_javaagent.jar={{ .Values.connect.metrics.port | default 8080 }}:/opt/jmx/config.yaml{{ end }}"
             {{- range $key, $val := .Values.connect.sparkConf }}
             - name: SPARK_{{ $key | replace "." "_" | upper }}
               value: {{ $val | quote }}
@@ -201,6 +201,11 @@ spec:
               mountPath: /tmp/spark-ivy-cache
             - name: connect-artifacts
               mountPath: /opt/spark/artifacts
+            {{- if .Values.connect.metrics.enabled }}
+            - name: spark-connect-config
+              mountPath: /opt/spark/conf/metrics.properties
+              subPath: metrics.properties
+            {{- end }}
           resources:
             {{- if and .Values.connect.executor.gpu .Values.connect.executor.gpu.enabled }}
             limits:

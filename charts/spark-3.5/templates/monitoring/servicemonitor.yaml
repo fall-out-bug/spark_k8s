@@ -16,11 +16,10 @@ spec:
   selector:
     matchLabels:
       app: spark-connect
-      app.kubernetes.io/name: spark-3.5
       app.kubernetes.io/instance: {{ .Release.Name }}
   endpoints:
   - port: metrics
-    path: /metrics/prometheus
+    path: /metrics
     scheme: http
     interval: {{ .Values.monitoring.serviceMonitor.interval | default "30s" }}
     scrapeTimeout: {{ .Values.monitoring.serviceMonitor.scrapeTimeout | default "10s" }}

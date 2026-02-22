@@ -146,6 +146,10 @@ RUN cd /opt/spark/jars && \
     wget -q https://repo1.maven.org/maven2/org/apache/spark/spark-sql-kafka-0-10_2.12/${SPARK_VERSION}/spark-sql-kafka-0-10_2.12-${SPARK_VERSION}.jar && \
     wget -q https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/3.7.1/kafka-clients-3.7.1.jar
 
+# Prometheus metrics sink for Spark (enables /metrics/prometheus endpoint)
+RUN cd /opt/spark/jars && \
+    wget -q https://repo1.maven.org/maven2/org/apache/spark/spark-metrics_2.12/${SPARK_VERSION}/spark-metrics_2.12-${SPARK_VERSION}.jar
+
 # Install Python dependencies for PySpark
 RUN pip3 install --no-cache-dir \
     pyspark==${SPARK_VERSION} \

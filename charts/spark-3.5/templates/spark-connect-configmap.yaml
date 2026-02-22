@@ -60,15 +60,7 @@ data:
     # Prometheus metrics
     {{- if .Values.connect.metrics.enabled }}
     spark.ui.prometheus.enabled=true
-    spark.metrics.conf=*
-    {
-      "sink": {
-        "prometheus": {
-          "class": "org.apache.spark.metrics.sink.PrometheusServlet",
-          "path": "metrics/prometheus"
-        }
-      }
-    }
+    spark.metrics.conf.path=/opt/spark/conf/metrics.properties
     {{- end }}
 
     # Ivy cache (for Maven dependencies)
@@ -155,4 +147,14 @@ data:
     spark.extraListeners={{ index (index .Values.connect.extraLibraries "resource-wait-tracker") "className" }}
     "spark.resource.wait.tracker.jar"={{ index (index .Values.connect.extraLibraries "resource-wait-tracker") "jar" }}
     {{- end }}
+
+  {{- if .Values.connect.metrics.enabled }}
+  metrics.properties: |-
+    *.sink.prometheus.class=org.apache.spark.metrics.sink.PrometheusServlet
+    *.sink.prometheus.path=/metrics/prometheus
+    master.source.jvm.class=org.apache.spark.metrics.source.JvmSource
+    worker.source.jvm.class=org.apache.spark.metrics.source.JvmSource
+    driver.source.jvm.class=org.apache.spark.metrics.source.JvmSource
+    executor.source.jvm.class=org.apache.spark.metrics.source.JvmSource
+  {{- end }}
 {{- end }}
