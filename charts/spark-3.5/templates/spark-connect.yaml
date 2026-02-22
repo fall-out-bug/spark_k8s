@@ -157,7 +157,7 @@ spec:
               {{- else if eq .Values.connect.backendMode "k8s" }}
               /opt/spark/bin/spark-submit --properties-file /tmp/spark-conf/spark-defaults.conf --master k8s://https://kubernetes.default.svc:443 --deploy-mode client --conf spark.driver.host=$(POD_IP) --class org.apache.spark.sql.connect.service.SparkConnectServer
               {{- else if eq .Values.connect.backendMode "standalone" }}
-              /opt/spark/bin/spark-submit --properties-file /tmp/spark-conf/spark-defaults.conf --master spark://{{ include "spark-3.5.fullname" . }}-standalone-master:7077 --class org.apache.spark.sql.connect.service.SparkConnectServer
+              /opt/spark/bin/spark-submit --properties-file /tmp/spark-conf/spark-defaults.conf --master spark://{{ include "spark-3.5.fullname" . }}-standalone-master:7077 --conf spark.driver.host=$(POD_IP) --conf spark.driver.bindAddress=0.0.0.0 --class org.apache.spark.sql.connect.service.SparkConnectServer
               {{- end }}
           ports:
             - name: grpc
