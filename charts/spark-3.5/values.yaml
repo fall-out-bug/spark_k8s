@@ -588,3 +588,24 @@ autoscaling:
       secretKey: ""
       existingSecret: ""
 
+
+# =============================================================================
+# Observability Stack (optional)
+# =============================================================================
+observability:
+  enabled: false
+  prometheus:
+    enabled: false
+    prometheus:
+      prometheusSpec:
+        retention: 15d
+        serviceMonitorSelectorNilUsesHelmValues: false
+  grafana:
+    enabled: false
+    adminPassword: ""
+  loki:
+    enabled: false
+    loki:
+      auth_enabled: false
+      storage:
+        type: filesystem

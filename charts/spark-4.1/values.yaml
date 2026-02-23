@@ -494,3 +494,75 @@ autoscaling:
       accessKey: ""
       secretKey: ""
       existingSecret: ""
+
+# =============================================================================
+# Observability Stack (optional)
+# Enable with: helm install spark charts/spark-4.1 --set observability.enabled=true
+# =============================================================================
+observability:
+  enabled: false
+
+  prometheus:
+    enabled: false
+    # Prometheus configuration
+    prometheus:
+      prometheusSpec:
+        retention: 15d
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 50Gi
+        serviceMonitorSelectorNilUsesHelmValues: false
+        podMonitorSelectorNilUsesHelmValues: false
+
+  grafana:
+    enabled: false
+    # Grafana configuration
+    adminPassword: ""  # REQUIRED if enabled
+    datasources:
+      datasources.yaml:
+        apiVersion: 1
+        datasources:
+          - name: Prometheus
+            type: prometheus
+            url: http://spark-prometheus-server
+            access: proxy
+            isDefault: true
+          - name: Loki
+            type: loki
+            url: http://spark-loki:3100
+            access: proxy
+    dashboardProviders:
+      dashboardproviders.yaml:
+        apiVersion: 1
+        providers:
+          - name: 'spark'
+            orgId: 1
+            folder: 'Spark'
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/spark
+
+  loki:
+    enabled: false
+    # Loki configuration
+    loki:
+      auth_enabled: false
+      commonConfig:
+        replication_factor: 1
+      storage:
+        type: filesystem
+      schemaConfig:
+        configs:
+          - from: 2024-01-01
+            store: boltdb-shipper
+            object_store: filesystem
+            schema: v12
+            index:
+              prefix: index_
+              period: 24h

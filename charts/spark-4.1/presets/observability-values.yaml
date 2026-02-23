@@ -1,0 +1,119 @@
+# Observability Preset - Full monitoring stack
+# Deploys Spark + Prometheus + Grafana + Loki
+#
+# Usage:
+#   helm dependency update charts/spark-4.1
+#   helm install spark charts/spark-4.1 -f charts/spark-4.1/presets/observability-values.yaml
+#
+# Access:
+#   Grafana: kubectl port-forward svc/spark-grafana 3000:80
+#   Prometheus: kubectl port-forward svc/spark-prometheus-server 9090:80
+
+# Enable observability stack
+observability:
+  enabled: true
+
+  prometheus:
+    enabled: true
+    prometheus:
+      prometheusSpec:
+        retention: 15d
+        resources:
+          requests:
+            memory: 2Gi
+            cpu: 500m
+          limits:
+            memory: 4Gi
+            cpu: 2000m
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 50Gi
+
+  grafana:
+    enabled: true
+    # REQUIRED: Set via --set or ExternalSecrets
+    adminPassword: ""
+    plugins:
+      - grafana-piechart-panel
+      - grafana-clock-panel
+    datasources:
+      datasources.yaml:
+        apiVersion: 1
+        datasources:
+          - name: Prometheus
+            type: prometheus
+            url: http://spark-prometheus-server
+            access: proxy
+            isDefault: true
+          - name: Loki
+            type: loki
+            url: http://spark-loki:3100
+            access: proxy
+    dashboardProviders:
+      dashboardproviders.yaml:
+        apiVersion: 1
+        providers:
+          - name: 'spark'
+            orgId: 1
+            folder: 'Spark'
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/spark
+
+  loki:
+    enabled: true
+    loki:
+      auth_enabled: false
+      commonConfig:
+        replication_factor: 1
+      storage:
+        type: filesystem
+      schemaConfig:
+        configs:
+          - from: 2024-01-01
+            store: boltdb-shipper
+            object_store: filesystem
+            schema: v12
+            index:
+              prefix: index_
+              period: 24h
+    singleBinary:
+      replicas: 1
+      resources:
+        requests:
+          memory: 512Mi
+          cpu: 100m
+        limits:
+          memory: 1Gi
+          cpu: 500m
+
+# Enable Spark monitoring
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    labels:
+      release: spark
+  grafanaDashboards:
+    enabled: true
+    namespace: ""
+
+# Enable Spark Connect
+connect:
+  enabled: true
+  backendMode: "k8s"
+
+# S3 storage
+global:
+  s3:
+    enabled: true
+    endpoint: "http://minio:9000"
+    # REQUIRED: Set via --set or ExternalSecrets
+    accessKey: ""
+    secretKey: ""
