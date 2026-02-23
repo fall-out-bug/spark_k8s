@@ -1,0 +1,160 @@
+{{- if .Values.connect.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-connect-config
+  labels:
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+data:
+  spark-properties.conf.template: |-
+    {{- if eq .Values.connect.backendMode "local" }}
+    # Spark Connect Server runs in local mode
+    # Clients connect via Spark Connect, driver and executors in same JVM
+    spark.master=local[*]
+    spark.driver.bindAddress=0.0.0.0
+    spark.driver.host=${POD_IP}
+    {{- else if eq .Values.connect.backendMode "k8s" }}
+    # Spark Connect Server runs on K8s
+    # Driver in pod, executors on K8s cluster
+    spark.master=k8s://https://kubernetes.default.svc:443
+    spark.driver.bindAddress=0.0.0.0
+    spark.driver.host=$(POD_IP)
+    {{- else if eq .Values.connect.backendMode "standalone" }}
+    # Spark Connect Server runs in standalone mode
+    # Driver connects to standalone Spark master
+    spark.master=spark://{{ include "spark-3.5.fullname" . }}-standalone-master:7077
+    spark.driver.bindAddress=0.0.0.0
+    spark.driver.host={{ default (printf "%s-connect" (include "spark-3.5.fullname" .)) .Values.connect.driver.host }}
+    {{- end }}
+    spark.driver.port={{ .Values.connect.driver.port }}
+    spark.driver.blockManager.port={{ .Values.connect.driver.blockManagerPort }}
+
+    {{- if eq .Values.connect.backendMode "k8s" }}
+    # K8s executor config (for clients launching executors on K8s)
+    spark.kubernetes.namespace={{ .Release.Namespace }}
+    spark.kubernetes.executor.podTemplateFile=/tmp/spark-conf/executor-pod-template.yaml
+    spark.kubernetes.executor.request.cores={{ .Values.connect.executor.cores }}
+    spark.kubernetes.executor.limit.cores={{ .Values.connect.executor.coresLimit }}
+    spark.kubernetes.executor.request.memory={{ .Values.connect.executor.memory }}
+    spark.kubernetes.container.image={{ .Values.connect.image.repository }}:{{ .Values.connect.image.tag }}
+
+    # Dynamic allocation
+    spark.dynamicAllocation.enabled={{ .Values.connect.dynamicAllocation.enabled }}
+    spark.dynamicAllocation.shuffleTracking.enabled=true
+    spark.dynamicAllocation.minExecutors={{ .Values.connect.dynamicAllocation.minExecutors }}
+    spark.dynamicAllocation.maxExecutors={{ .Values.connect.dynamicAllocation.maxExecutors }}
+
+    # Executor observability
+    spark.kubernetes.executor.podNamePrefix={{ .Release.Name }}-exec
+    {{- end }}
+
+    # AQE (Adaptive Query Execution) - enabled by default for +20-40% perf
+    spark.sql.adaptive.enabled=true
+    spark.sql.adaptive.coalescePartitions.enabled=true
+    spark.sql.adaptive.skewJoin.enabled=true
+
+    spark.connect.grpc.binding.address=0.0.0.0
+    spark.connect.grpc.binding.port=15002
+    spark.connect.server.artifactDir=/opt/spark/artifacts
+
+    # Prometheus metrics
+    {{- if .Values.connect.metrics.enabled }}
+    spark.ui.prometheus.enabled=true
+    spark.metrics.conf.path=/opt/spark/conf/metrics.properties
+    {{- end }}
+
+    # Ivy cache (for Maven dependencies)
+    spark.jars.ivy=/tmp/spark-ivy-cache
+
+    # Disable push-based shuffle (may conflict with PSS restricted)
+    spark.shuffle.push.enabled=false
+    spark.shuffle.sort.bypassMergeThreshold=0
+
+    # Event log (for History Server)
+    {{- if .Values.connect.eventLog.enabled }}
+    spark.eventLog.enabled=true
+    spark.eventLog.dir={{ .Values.connect.eventLog.dir }}
+    # Rolling event log: each 128MB or 5min a new completed file is created; History Server picks it up immediately
+    spark.eventLog.rolling.enabled=true
+    spark.eventLog.rolling.maxFileSize=128m
+    {{- else }}
+    spark.eventLog.enabled=false
+    {{- end }}
+
+    {{- if or .Values.hiveMetastore.enabled .Values.core.hiveMetastore.enabled }}
+    # Hive Metastore configuration
+    spark.hadoop.hive.metastore.uris=thrift://{{ if .Values.core.hiveMetastore.enabled }}{{ include "spark.core.hiveMetastore.fullname" . }}{{ else }}{{ include "spark-3.5.fullname" . }}-metastore{{ end }}:{{ .Values.core.hiveMetastore.service.port | default .Values.hiveMetastore.service.port | default 9083 }}
+    {{- if and .Values.hiveMetastore.enabled .Values.hiveMetastore.database.postgresql }}
+    spark.hadoop.javax.jdo.option.ConnectionURL=jdbc:postgresql://{{ .Values.global.postgresql.host }}:{{ .Values.global.postgresql.port }}/{{ .Values.hiveMetastore.database.name }}
+    spark.hadoop.javax.jdo.option.ConnectionUserName={{ .Values.hiveMetastore.database.postgresql.username | default "hive" }}
+    spark.hadoop.javax.jdo.option.ConnectionPassword={{ .Values.hiveMetastore.database.postgresql.password | default "hive" }}
+    {{- end }}
+    spark.sql.catalogImplementation=hive
+    spark.sql.warehouse.dir={{ .Values.core.hiveMetastore.warehouseDir | default .Values.hiveMetastore.warehouseDir | default "s3a://warehouse/spark-35" }}
+    {{- end }}
+
+    {{- if .Values.global.s3.enabled }}
+    # S3 config
+    spark.hadoop.fs.s3a.endpoint={{ .Values.global.s3.endpoint }}
+    spark.hadoop.fs.s3a.access.key=${AWS_ACCESS_KEY_ID}
+    spark.hadoop.fs.s3a.secret.key=${AWS_SECRET_ACCESS_KEY}
+    spark.hadoop.fs.s3a.path.style.access={{ .Values.global.s3.pathStyleAccess }}
+    spark.hadoop.fs.s3a.connection.ssl.enabled={{ .Values.global.s3.sslEnabled | toString }}
+    spark.hadoop.fs.s3a.connection.SSL.enabled={{ .Values.global.s3.sslEnabled | toString }}
+    {{- end }}
+    {{- if .Values.monitoring.s3aMetrics.enabled }}
+    # S3A Metrics for Hadoop FileSystem
+    # These metrics track S3 write operations and performance
+    spark.metrics.conf.s3a.metricsystem=all
+    spark.metrics.s3a.metricbyteswritten.interval=1s
+    spark.metrics.s3a.metricbyteswritten.prefix=filesystem.s3a.byteswritten
+    {{- end }}
+
+    {{- if .Values.connect.sparkConf }}
+    # Extra Spark conf (user overrides)
+    {{- range $key, $value := .Values.connect.sparkConf }}
+    {{ $key }}={{ $value }}
+    {{- end }}
+    {{- end }}
+
+    {{- if .Values.celeborn.enabled }}
+    # Celeborn shuffle
+    spark.shuffle.manager=org.apache.spark.shuffle.celeborn.RssShuffleManager
+    spark.celeborn.master.endpoints={{ .Values.celeborn.masterEndpoints }}
+    spark.celeborn.push.replicate.enabled=true
+    spark.celeborn.client.spark.shuffle.writer=hash
+    spark.celeborn.client.spark.fetch.throwsFetchFailure=true
+    {{- end }}
+    {{- if .Values.connect.openTelemetry.enabled }}
+    # OpenTelemetry configuration
+    spark.otel.exporter.protocol={{ .Values.connect.openTelemetry.protocol }}
+    spark.otel.exporter.endpoint={{ .Values.connect.openTelemetry.endpoint }}
+    spark.otel.resource.attributes={{ printf "service.name=%s" (.Values.connect.openTelemetry.serviceName | default "spark-connect-35") }}
+    spark.otel.sampling.ratio={{ .Values.connect.openTelemetry.samplingRatio | default "1.0" }}
+
+    # OpenTelemetry Listener for Spark
+    spark.extraListeners=org.apache.spark.sql.telemetry.OpenTelemetryListener
+    spark.plugins=org.apache.spark.sql.telemetry.SparkTelemetryPlugin
+
+    # Trace context propagation from Airflow via gRPC metadata
+    # Expects traceparent header (W3C trace context format)
+    spark.otel.context.tracepropagation.enabled=true
+    spark.otel.b3.multi=true
+    {{- end }}
+
+    {{- if and .Values.connect.extraLibraries (index .Values.connect.extraLibraries "resource-wait-tracker") (index (index .Values.connect.extraLibraries "resource-wait-tracker") "enabled") }}
+    # Resource Wait Tracker Listener
+    spark.extraListeners={{ index (index .Values.connect.extraLibraries "resource-wait-tracker") "className" }}
+    "spark.resource.wait.tracker.jar"={{ index (index .Values.connect.extraLibraries "resource-wait-tracker") "jar" }}
+    {{- end }}
+
+  {{- if .Values.connect.metrics.enabled }}
+  metrics.properties: |-
+    *.sink.prometheus.class=org.apache.spark.metrics.sink.PrometheusServlet
+    *.sink.prometheus.path=/metrics/prometheus
+    master.source.jvm.class=org.apache.spark.metrics.source.JvmSource
+    worker.source.jvm.class=org.apache.spark.metrics.source.JvmSource
+    driver.source.jvm.class=org.apache.spark.metrics.source.JvmSource
+    executor.source.jvm.class=org.apache.spark.metrics.source.JvmSource
+  {{- end }}
+{{- end }}

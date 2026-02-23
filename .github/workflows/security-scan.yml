@@ -1,0 +1,114 @@
+name: Security Scan with Trivy
+
+on:
+  push:
+    branches: [main, dev, staging]
+    paths:
+      - 'docker/**'
+  pull_request:
+    branches: [main, dev, staging]
+  schedule:
+    - cron: '0 6 * * 1'  # Weekly Monday 6 AM
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  scan-images:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image:
+          - spark-k8s:4.1.0
+          - spark-k8s:3.5.7
+          - jupyter-spark:4.1.0
+    name: Scan ${{ matrix.image }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pull image for scanning
+        run: |
+          docker pull ${{ matrix.image }} || echo "Image not found, skipping..."
+
+      - name: Scan with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ matrix.image }}
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          format: 'table'
+          output: 'trivy-report.txt'
+        continue-on-error: true
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            echo "### Trivy Scan Results 🔍" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat trivy-report.txt >> $GITHUB_STEP_SUMMARY || echo "No vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_SUMMARY
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fail on HIGH/CRITICAL vulnerabilities
+        run: |
+          if grep -E "HIGH|CRITICAL" trivy-report.txt; then
+            echo "❌ Security scan failed: HIGH or CRITICAL vulnerabilities found"
+            exit 1
+          else
+            echo "✅ Security scan passed: No HIGH/CRITICAL vulnerabilities"
+          fi
+
+  scan-secrets:
+    name: Scan for Hardcoded Secrets
+    runs-on: ubuntu-litted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan for secrets in code
+        run: |
+          echo "Scanning for hardcoded secrets..."
+          echo ""
+
+          # Check for AWS access keys
+          if git grep -r "AKIAIOSFODNN7" charts/; then
+            echo "❌ Found AWS access keys in code!"
+            git grep -rn "AKIAIOSFODNN7" charts/
+            exit 1
+          fi
+
+          # Check for secret keys
+          if git grep -ri "secret.key\|secret_key\|password" charts/ | \
+             grep -v "# Comment" | grep -v "skip:" | grep -v "example" | \
+             grep -E "wJalrXUtnFEMI|wJalrXUtnFEMI/K7MDENG" charts/; then
+            echo "⚠️  Warning: Possible secret keys found"
+            git grep -rn "secret.key\|secret_key\|password" charts/ | \
+              grep -v "# Comment" | grep -v "skip:" | grep -v "example" | \
+              grep -vE "wJalrXUtnFEMI" | head -10
+          else
+            echo "✅ No hardcoded secrets found"
+          fi
+
+      - name: Check for external secrets enabled
+        run: |
+          # Check production values
+          if grep -q "externalSecrets:" charts/spark-4.1/environments/prod/values.yaml; then
+            if ! grep -A1 "externalSecrets:" charts/spark-4.1/environments/prod/values.yaml | grep -q "enabled: true"; then
+              echo "❌ External secrets MUST be enabled in production"
+              exit 1
+            fi
+            echo "✅ External secrets enabled in production"
+          else
+            echo "⚠️  Warning: No external secrets configuration found in prod"
+          fi

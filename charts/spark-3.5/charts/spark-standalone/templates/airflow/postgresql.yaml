@@ -1,24 +1,75 @@
 {{- if and .Values.airflow.enabled .Values.airflow.postgresql.enabled }}
-apiVersion: v1
-kind: Secret
+apiVersion: apps/v1
+kind: StatefulSet
 metadata:
-  name: {{ include "spark-standalone.fullname" . }}-postgresql-airflow-credentials
+  name: {{ include "spark-standalone.fullname" . }}-airflow-postgresql
   labels:
-    app: postgresql-airflow
-    {{- include "spark-standalone.labels" . | nindent 4 }}
-type: Opaque
-stringData:
-  POSTGRES_DB: {{ .Values.airflow.postgresql.database | quote }}
-  POSTGRES_USER: {{ .Values.airflow.postgresql.username | quote }}
-  POSTGRES_PASSWORD: {{ .Values.airflow.postgresql.password | quote }}
+    {{- include "spark-standalone.airflowPostgresqlLabels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "spark-standalone.fullname" . }}-airflow-postgresql
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "spark-standalone.airflowPostgresqlLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "spark-standalone.airflowPostgresqlLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: postgresql
+          image: "{{ .Values.airflow.postgresql.image.repository }}:{{ .Values.airflow.postgresql.image.tag }}"
+          imagePullPolicy: {{ .Values.airflow.postgresql.image.pullPolicy }}
+          ports:
+            - name: postgresql
+              containerPort: {{ .Values.airflow.postgresql.service.port }}
+              protocol: TCP
+          env:
+            - name: POSTGRES_DB
+              value: {{ .Values.airflow.postgresql.auth.database | quote }}
+            - name: POSTGRES_USER
+              value: {{ .Values.airflow.postgresql.auth.username | quote }}
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.airflow.postgresql.auth.password | quote }}
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          resources:
+            {{- toYaml .Values.airflow.postgresql.resources | nindent 12 }}
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - {{ .Values.airflow.postgresql.auth.username }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - {{ .Values.airflow.postgresql.auth.username }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          {{- if .Values.airflow.postgresql.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "spark-standalone.fullname" . }}-airflow-postgresql
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
 ---
+{{- if .Values.airflow.postgresql.persistence.enabled }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "spark-standalone.fullname" . }}-postgresql-airflow-data
+  name: {{ include "spark-standalone.fullname" . }}-airflow-postgresql
   labels:
-    app: postgresql-airflow
-    {{- include "spark-standalone.labels" . | nindent 4 }}
+    {{- include "spark-standalone.airflowPostgresqlLabels" . | nindent 4 }}
 spec:
   accessModes:
     - ReadWriteOnce
@@ -29,93 +80,20 @@ spec:
     requests:
       storage: {{ .Values.airflow.postgresql.persistence.size }}
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: {{ .Values.airflow.postgresql.host }}
-  labels:
-    app: postgresql-airflow
-    {{- include "spark-standalone.labels" . | nindent 4 }}
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: postgresql-airflow
-      {{- include "spark-standalone.selectorLabels" . | nindent 6 }}
-  strategy:
-    type: Recreate
-  template:
-    metadata:
-      labels:
-        app: postgresql-airflow
-        {{- include "spark-standalone.selectorLabels" . | nindent 8 }}
-    spec:
-      {{- if not .Values.security.postgresql.relaxed }}
-      securityContext:
-        {{- include "spark-standalone.podSecurityContext" . | nindent 8 }}
-      {{- end }}
-      containers:
-      - name: postgresql
-        {{- if not .Values.security.postgresql.relaxed }}
-        securityContext:
-          {{- include "spark-standalone.containerSecurityContext" . | nindent 10 }}
-          runAsUser: 999
-          runAsGroup: 999
-        {{- end }}
-        image: "postgres:16-alpine"
-        imagePullPolicy: IfNotPresent
-        env:
-        - name: PGDATA
-          value: /var/lib/postgresql/data
-        - name: POSTGRES_INITDB_ARGS
-          value: "--auth-host=md5 --auth-local=trust"
-        envFrom:
-        - secretRef:
-            name: {{ include "spark-standalone.fullname" . }}-postgresql-airflow-credentials
-        ports:
-        - name: postgres
-          containerPort: {{ .Values.airflow.postgresql.port }}
-        volumeMounts:
-        - name: data
-          {{- if .Values.security.postgresql.relaxed }}
-          mountPath: /var/lib/postgresql/data
-          {{- else }}
-          mountPath: /var/lib/postgresql
-          {{- end }}
-        {{- if not .Values.security.postgresql.relaxed }}
-        - name: run
-          mountPath: /var/run/postgresql
-        {{- end }}
-        - name: tmp
-          mountPath: /tmp
-      volumes:
-      - name: data
-        {{- if .Values.airflow.postgresql.persistence.enabled }}
-        persistentVolumeClaim:
-          claimName: {{ include "spark-standalone.fullname" . }}-postgresql-airflow-data
-        {{- else }}
-        emptyDir: {}
-        {{- end }}
-      {{- if not .Values.security.postgresql.relaxed }}
-      - name: run
-        emptyDir: {}
-      {{- end }}
-      - name: tmp
-        emptyDir: {}
----
+{{- end }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.airflow.postgresql.host }}
+  name: {{ include "spark-standalone.fullname" . }}-airflow-postgresql
   labels:
-    app: postgresql-airflow
-    {{- include "spark-standalone.labels" . | nindent 4 }}
+    {{- include "spark-standalone.airflowPostgresqlLabels" . | nindent 4 }}
 spec:
-  selector:
-    app: postgresql-airflow
-    {{- include "spark-standalone.selectorLabels" . | nindent 4 }}
+  type: ClusterIP
   ports:
-  - name: postgres
-    port: {{ .Values.airflow.postgresql.port }}
-    targetPort: postgres
+    - name: postgresql
+      port: {{ .Values.airflow.postgresql.service.port }}
+      targetPort: postgresql
+      protocol: TCP
+  selector:
+    {{- include "spark-standalone.airflowPostgresqlLabels" . | nindent 4 }}
 {{- end }}

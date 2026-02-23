@@ -32,13 +32,6 @@ Create chart name and version as used by the chart label.
 Common labels
 */}}
 {{- define "spark-standalone.labels" -}}
-{{- $useBase := false -}}
-{{- if .Values.global }}
-{{- $useBase = (default false .Values.global.useSparkBaseHelpers) -}}
-{{- end }}
-{{- if $useBase -}}
-{{- include "spark-base.labels" . }}
-{{- else }}
 helm.sh/chart: {{ include "spark-standalone.chart" . }}
 {{ include "spark-standalone.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
@@ -46,98 +39,78 @@ app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
-{{- end }}
 
 {{/*
 Selector labels
 */}}
 {{- define "spark-standalone.selectorLabels" -}}
-{{- $useBase := false -}}
-{{- if .Values.global }}
-{{- $useBase = (default false .Values.global.useSparkBaseHelpers) -}}
-{{- end }}
-{{- if $useBase -}}
-{{- include "spark-base.selectorLabels" . }}
-{{- else }}
 app.kubernetes.io/name: {{ include "spark-standalone.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+Spark Master labels
+*/}}
+{{- define "spark-standalone.masterLabels" -}}
+{{ include "spark-standalone.labels" . }}
+app.kubernetes.io/component: spark-master
 {{- end }}
 
 {{/*
-Service account name
+Spark Master selector labels
+*/}}
+{{- define "spark-standalone.masterSelectorLabels" -}}
+{{ include "spark-standalone.selectorLabels" . }}
+app.kubernetes.io/component: spark-master
+{{- end }}
+
+{{/*
+Spark Worker labels
+*/}}
+{{- define "spark-standalone.workerLabels" -}}
+{{ include "spark-standalone.labels" . }}
+app.kubernetes.io/component: spark-worker
+{{- end }}
+
+{{/*
+Spark Worker selector labels
+*/}}
+{{- define "spark-standalone.workerSelectorLabels" -}}
+{{ include "spark-standalone.selectorLabels" . }}
+app.kubernetes.io/component: spark-worker
+{{- end }}
+
+{{/*
+Airflow Webserver labels
+*/}}
+{{- define "spark-standalone.airflowWebserverLabels" -}}
+{{ include "spark-standalone.labels" . }}
+app.kubernetes.io/component: airflow-webserver
+{{- end }}
+
+{{/*
+Airflow Scheduler labels
+*/}}
+{{- define "spark-standalone.airflowSchedulerLabels" -}}
+{{ include "spark-standalone.labels" . }}
+app.kubernetes.io/component: airflow-scheduler
+{{- end }}
+
+{{/*
+Airflow PostgreSQL labels
+*/}}
+{{- define "spark-standalone.airflowPostgresqlLabels" -}}
+{{ include "spark-standalone.labels" . }}
+app.kubernetes.io/component: airflow-postgresql
+{{- end }}
+
+{{/*
+Create the name of the service account to use
 */}}
 {{- define "spark-standalone.serviceAccountName" -}}
-{{- $useBase := false -}}
-{{- if .Values.global }}
-{{- $useBase = (default false .Values.global.useSparkBaseHelpers) -}}
-{{- end }}
-{{- if $useBase -}}
-{{- include "spark-base.serviceAccountName" . }}
-{{- else }}
 {{- if .Values.serviceAccount.create }}
-{{- default "spark" .Values.serviceAccount.name }}
+{{- default (include "spark-standalone.fullname" . ) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
-{{- end }}
-{{- end }}
-{{- end }}
-
-{{/*
-Image name helper
-*/}}
-{{- define "spark-standalone.image" -}}
-{{- $registry := .global.imageRegistry | default "" -}}
-{{- $repository := .image.repository -}}
-{{- $tag := .image.tag | default "latest" -}}
-{{- if $registry }}
-{{- printf "%s/%s:%s" $registry $repository $tag }}
-{{- else }}
-{{- printf "%s:%s" $repository $tag }}
-{{- end }}
-{{- end }}
-
-{{/*
-Pod security context (PSS restricted compatible)
-*/}}
-{{- define "spark-standalone.podSecurityContext" -}}
-{{- $useBase := false -}}
-{{- if .Values.global }}
-{{- $useBase = (default false .Values.global.useSparkBaseHelpers) -}}
-{{- end }}
-{{- if $useBase -}}
-{{- include "spark-base.podSecurityContext" . }}
-{{- else }}
-runAsNonRoot: true
-{{- with .Values.security.runAsUser }}
-runAsUser: {{ . }}
-{{- end }}
-{{- with .Values.security.runAsGroup }}
-runAsGroup: {{ . }}
-{{- end }}
-{{- with .Values.security.fsGroup }}
-fsGroup: {{ . }}
-{{- end }}
-seccompProfile:
-  type: RuntimeDefault
-{{- end }}
-{{- end }}
-
-{{/*
-Container security context (PSS restricted compatible)
-*/}}
-{{- define "spark-standalone.containerSecurityContext" -}}
-{{- $useBase := false -}}
-{{- if .Values.global }}
-{{- $useBase = (default false .Values.global.useSparkBaseHelpers) -}}
-{{- end }}
-{{- if $useBase -}}
-{{- include "spark-base.containerSecurityContext" . }}
-{{- else }}
-allowPrivilegeEscalation: false
-readOnlyRootFilesystem: true
-capabilities:
-  drop:
-    - ALL
 {{- end }}
 {{- end }}

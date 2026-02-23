@@ -1,0 +1,155 @@
+name: Code Validation
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  python-validation:
+    name: Python Code Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Python linting tools
+        run: |
+          pip install black flake8 pylint mypy bandit[toml] safety
+
+      - name: Run Black (formatter check)
+        run: black --check --diff .
+
+      - name: Run Flake8 (linter)
+        run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Run Pylint
+        run: pylint **/*.py --exit-zero --output-format=colorized
+
+      - name: Run MyPy (type checker)
+        run: mypy . --ignore-missing-imports || true
+
+      - name: Run Bandit (security)
+        run: bandit -r . -f json -o bandit-report.json || true
+
+      - name: Run Safety (dependency scan)
+        run: safety check --json > safety-report.json || true
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-security-reports
+          path: |
+            bandit-report.json
+            safety-report.json
+
+  scala-validation:
+    name: Scala Code Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Scala
+        uses: olafurpg/setup-scala@v13
+        with:
+          java-version: "11"
+
+      - name: Run Scalafmt (formatter check)
+        run: |
+          curl -L https://github.com/scalameta/scalafmt/releases/download/v3.7.17/scalafmt-linux-x86_64 -o scalafmt
+          chmod +x scalafmt
+          ./scalafmt --check .
+
+      - name: Run Scalastyle (linter)
+        run: |
+          # Add scalastyle plugin to sbt
+          sbt scalastyle
+
+  go-validation:
+    name: Go Code Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: true
+          cache-dependency-path: tests/go/go.sum
+
+      - name: Download Go dependencies
+        working-directory: tests/go
+        run: go mod download
+
+      - name: Run go fmt (formatter check)
+        working-directory: tests/go
+        run: |
+          fmt_output=$(gofmt -l .)
+          if [ -n "$fmt_output" ]; then
+            echo "The following files need formatting:"
+            echo "$fmt_output"
+            exit 1
+          fi
+
+      - name: Run go vet (linter)
+        working-directory: tests/go
+        run: go vet ./...
+
+      - name: Run Go tests
+        working-directory: tests/go
+        run: go test -v -race -coverprofile=coverage.txt ./...
+
+      - name: Upload Go coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: go-coverage
+          path: tests/go/coverage.txt
+
+  dependency-scan:
+    name: Dependency Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run Snyk (Python)
+        uses: snyk/actions/python@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Run Snyk (Scala)
+        uses: snyk/actions/scala@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+  performance-regression:
+    name: Performance Regression Detection
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+
+      - name: Install dependencies
+        run: pip install pytest-benchmark
+
+      - name: Run performance benchmarks
+        run: |
+          scripts/cicd/detect-performance-regression.sh \
+            --base origin/main \
+            --head HEAD
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v3
+        with:
+          name: benchmark-results
+          path: benchmark-results.json

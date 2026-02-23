@@ -1,0 +1,68 @@
+{{- if .Values.core.postgresql.enabled }}
+{{- $chartName := .Chart.Name -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spark.core.postgresql.fullname" . }}-init
+  labels:
+    helm.sh/chart: {{ $chartName }}-{{ .Chart.Version }}
+    app.kubernetes.io/component: "postgresql"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+data:
+  init-dbs.sh: |
+    #!/bin/sh
+    set -e
+
+    # SECURITY NOTE: password_encryption set to md5 for compatibility with
+    # Hive Metastore JDBC driver which doesn't support SCRAM-SHA-256.
+    # This is a known security tradeoff. For production, consider:
+    # 1. Using a newer JDBC driver (postgresql-42.7.x+)
+    # 2. Using a separate PostgreSQL instance for Hive
+    # 3. Using pg_hba.conf to allow md5 only for hive user
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
+    ALTER SYSTEM SET password_encryption = 'md5';
+    SELECT pg_reload_conf();
+    EOSQL
+
+    # Create Hive Metastore database if core.hiveMetastore is enabled
+    {{- if .Values.core.hiveMetastore.enabled }}
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
+    DO \$\$
+    BEGIN
+      IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '{{ .Values.core.hiveMetastore.database.name | default "metastore" }}') THEN
+        CREATE DATABASE "{{ .Values.core.hiveMetastore.database.name | default "metastore" }}";
+      END IF;
+    END \$\$;
+    EOSQL
+    {{- end }}
+
+    # Create Hive user for Hive Metastore using password from environment variable
+    # HIVE_PASSWORD should be set via Kubernetes Secret
+    if [ -n "$HIVE_PASSWORD" ]; then
+      psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
+      SET password_encryption = 'md5';
+      DO \$\$
+      BEGIN
+        IF NOT EXISTS (SELECT FROM pg_user WHERE usename = '${HIVE_USER:-hive}') THEN
+          CREATE USER "${HIVE_USER:-hive}" WITH PASSWORD '${HIVE_PASSWORD}';
+        END IF;
+      END \$\$;
+      {{- if .Values.core.hiveMetastore.enabled }}
+      GRANT ALL PRIVILEGES ON DATABASE {{ .Values.core.hiveMetastore.database.name | default "metastore" }} TO "${HIVE_USER:-hive}";
+      {{- end }}
+      EOSQL
+    fi
+
+    {{- range .Values.core.postgresql.databases }}
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-'EOSQL'
+    DO \$\$
+    BEGIN
+      IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '{{ . }}') THEN
+        CREATE DATABASE "{{ . }}";
+      END IF;
+    END \$\$;
+    EOSQL
+    {{- end }}
+{{- end }}

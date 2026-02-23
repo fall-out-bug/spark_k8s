@@ -1,0 +1,126 @@
+# ============================================================================
+# Persistent Spark Infrastructure (NEVER delete by tests!)
+# ============================================================================
+# Namespace: spark-infra
+# Components: MinIO, Hive Metastore, Spark History Server
+#
+# Deploy: helm install spark-infra -n spark-infra charts/spark-3.5 -f spark-infra.yaml
+# ============================================================================
+
+# Disable all test components
+connect:
+  enabled: false
+
+jupyter:
+  enabled: false
+
+airflow:
+  enabled: false
+
+sparkStandalone:
+  enabled: false
+
+# Enable infrastructure components
+global:
+  s3:
+    enabled: true
+    # MinIO S3 credentials
+    accessKey: minioadmin
+    secretKey: minioadmin
+    endpoint: http://spark-infra-minio:9000
+
+# MinIO (S3-compatible storage)
+minio:
+  enabled: true
+  image:
+    repository: quay.io/minio/minio
+    tag: RELEASE.2024-01-16T16-07-38Z
+    pullPolicy: IfNotPresent
+  persistence:
+    size: 50Gi
+    storageClass: standard
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 500m
+    limits:
+      memory: 2Gi
+      cpu: 1000m
+  buckets:
+    - name: raw-data
+      policy: public
+    - name: processed-data
+      policy: public
+    - name: checkpoint
+      policy: public
+    - name: warehouse
+      policy: public
+    - name: test-data
+      policy: public
+
+# Hive Metastore with PostgreSQL
+hiveMetastore:
+  enabled: true
+  image:
+    repository: apache/hive
+    tag: 3.1.3
+    pullPolicy: IfNotPresent
+  database:
+    type: postgresql
+    host: spark-infra-postgresql
+    port: 5432
+    user: hive
+    password: hive
+    dbName: metastore
+  warehouseDir: s3a://warehouse/
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 500m
+    limits:
+      memory: 2Gi
+      cpu: 1000m
+
+# PostgreSQL for Hive Metastore
+postgresql:
+  enabled: true
+  image:
+    repository: postgres
+    tag: 15-alpine
+    pullPolicy: IfNotPresent
+  auth:
+    user: hive
+    password: hive
+    database: metastore
+  persistence:
+    size: 20Gi
+    storageClass: standard
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 250m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+
+# Spark History Server
+sparkHistoryServer:
+  enabled: true
+  image:
+    repository: spark-custom
+    tag: 3.5.7-new
+    pullPolicy: IfNotPresent
+  sparkVersion: "3.5.7"
+  memory: 1g
+  cores: 1
+  logStore: s3a://checkpoint/spark-logs/
+  fs.s3a.endpoint: http://spark-infra-minio:9000
+  fs.s3a.access.key: minioadmin
+  fs.s3a.secret.key: minioadmin
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 500m
+    limits:
+      memory: 2Gi
+      cpu: 1000m

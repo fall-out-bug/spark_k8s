@@ -1,0 +1,35 @@
+apiVersion: v2
+name: prometheus-spark
+description: Prometheus monitoring for Apache Spark on Kubernetes
+type: application
+version: 1.0.0
+
+keywords:
+  - spark
+  - monitoring
+  - prometheus
+  - metrics
+  - observability
+
+maintainers:
+  - name: S7 Spark K8s Team
+    email: spark@s7.ru
+
+sources:
+  - https://github.com/prometheus-operator/prometheus-operator
+  - https://spark.apache.org/docs/latest/monitoring.html
+
+# Spark ServiceMonitors are already created by Spark pods
+# This chart deploys additional Prometheus scrapers for Spark-specific metrics
+
+dependencies:
+  - name: prometheus-operator
+    version: ">=0.50.0"
+    repository: https://prometheus-community.github.io/helm-charts
+
+annotations:
+  artifacthub.io/category: monitoring
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/links: |
+    - https://spark.apache.org/docs/latest/monitoring.html
+    - https://github.com/prometheus-operator/prometheus-operator

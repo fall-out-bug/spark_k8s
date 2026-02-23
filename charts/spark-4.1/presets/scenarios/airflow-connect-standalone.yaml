@@ -1,0 +1,108 @@
+# Scenario Preset: Airflow + Spark Connect (Standalone backend)
+#
+# This preset enables Spark Connect with Standalone backend mode for use with Airflow.
+# Airflow and Spark Standalone are deployed separately, Airflow connects to Spark Connect.
+#
+# Use Cases:
+# - Data engineers who want pipeline orchestration with Airflow
+# - Production ETL workflows with fixed executor allocation
+# - Scheduled Spark jobs via Airflow DAGs
+# - Clusters with Spark Standalready deployed
+#
+# Components Enabled:
+# - Spark Connect (backendMode: standalone) - Fixed executors via Standalone
+#
+# Prerequisites:
+# - Airflow must be deployed separately
+# - Spark Standalone master must be deployed separately
+# - Default master service: spark-sa-spark-standalone-master:7077
+# - Airflow SparkHook connects to: sc://<release>-spark-connect:15002
+#
+# Usage:
+#   helm install my-spark charts/spark-4.1 -f charts/spark-4.1/presets/scenarios/airflow-connect-standalone.yaml
+#
+# Airflow DAG Example:
+#   from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
+#   SparkSubmitOperator(
+#       task_id='spark_job',
+#       application='jobs/my_spark_job.py',
+#       conn_id='spark_connect',
+#       conf={
+#           'spark.connect.appName': 'my-job',
+#           'spark.remote': 'sc://my-spark-spark-41-connect:15002'
+#       }
+#   )
+
+# Core Infrastructure (minimal - Airflow manages storage)
+spark-base:
+  enabled: true
+  minio:
+    enabled: false
+  postgresql:
+    enabled: false
+
+# RBAC (shared with Airflow)
+rbac:
+  create: false
+  serviceAccountName: "spark"
+
+# Spark Connect Server
+connect:
+  enabled: true
+  replicas: 1
+  backendMode: standalone
+  image:
+    repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
+    tag: "4.1.0"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1"
+      memory: "2Gi"
+  driver:
+    host: "${POD_IP}"  # Use POD_IP for standalone backend
+    port: 7078
+    memory: "512m"
+  executor:
+    cores: "1"
+    coresLimit: "1"
+    memory: "512Mi"
+    memoryLimit: "640Mi"
+  standalone:
+    masterService: "spark-sa-spark-standalone-master"
+    masterPort: 7077
+  eventLog:
+    enabled: true
+    dir: "s3a://spark-logs/events"
+  dynamicAllocation:
+    enabled: false
+  sparkConf:
+    spark.driver.memory: "512m"
+    spark.executor.memory: "512m"
+    spark.executor.memoryOverhead: "128m"
+    spark.executor.cores: "1"
+    spark.executor.instances: "1"
+    spark.cores.max: "1"
+    spark.scheduler.minRegisteredResourcesRatio: "0.0"
+    spark.scheduler.maxRegisteredResourcesWaitingTime: "30s"
+    spark.sql.shuffle.partitions: "2"
+
+# Jupyter (disabled for Airflow scenario)
+jupyter:
+  enabled: false
+
+# Disable other components
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false

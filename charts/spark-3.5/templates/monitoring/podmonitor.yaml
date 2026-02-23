@@ -1,0 +1,33 @@
+{{- if .Values.monitoring.podMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-executors
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: spark-connect
+    app.kubernetes.io/component: executor
+    app.kubernetes.io/name: spark-3.5
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- with .Values.monitoring.podMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      spark-role: executor
+  podMetricsEndpoints:
+  - port: metrics
+    path: /metrics/prometheus
+    scheme: http
+    interval: {{ .Values.monitoring.podMonitor.interval | default "30s" }}
+    scrapeTimeout: {{ .Values.monitoring.podMonitor.scrapeTimeout | default "10s" }}
+    {{- with .Values.monitoring.podMonitor.relabelings }}
+    relabelings:
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+{{- end }}

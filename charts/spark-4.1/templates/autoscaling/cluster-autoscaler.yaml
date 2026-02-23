@@ -1,0 +1,84 @@
+{{- if .Values.autoscaling.clusterAutoscaler.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spark-cluster-autoscaler-config
+  namespace: {{ .Release.Namespace }}
+data:
+  cluster-autoscaler-config.yaml: |
+    balance-similar-node-groups: true
+    skip-nodes-with-system-pods: false
+    max-node-provision-time: 15m
+    ok-total-unready-count: 3
+    max-total-unready-percentage: 45
+    scan-interval: 10s
+    scale-down-enabled: {{ .Values.autoscaling.clusterAutoscaler.scaleDown.enabled | quote }}
+    scale-down-delay-after-add: {{ .Values.autoscaling.clusterAutoscaler.scaleDown.delayAfterAdd }}
+    scale-down-unneeded-time: {{ .Values.autoscaling.clusterAutoscaler.scaleDown.unneededTime }}
+    scale-down-unready-time: {{ .Values.autoscaling.clusterAutoscaler.scaleDown.unreadyTime }}
+    scale-down-utilization-threshold: {{ .Values.autoscaling.clusterAutoscaler.scaleDown.utilizationThreshold }}
+    {{- with .Values.autoscaling.clusterAutoscaler.nodeGroups }}
+    node-group-auto-discovery: |
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: spark-cluster-autoscaler
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - list
+      - watch
+      - get
+  - apiGroups:
+      - ""
+    resources:
+      - nodes
+    verbs:
+      - list
+      - watch
+      - get
+  - apiGroups:
+      - ""
+    resources:
+      - persistentvolumeclaims
+      - persistentvolumes
+    verbs:
+      - list
+      - watch
+      - get
+  - apiGroups:
+      - "storage.k8s.io"
+    resources:
+      - storageclasses
+    verbs:
+      - list
+      - watch
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: spark-cluster-autoscaler
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: spark-cluster-autoscaler
+subjects:
+  - kind: ServiceAccount
+    name: cluster-autoscaler
+    namespace: kube-system
+---
+{{- end }}

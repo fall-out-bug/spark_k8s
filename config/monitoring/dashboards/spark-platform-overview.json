@@ -1,0 +1,179 @@
+{
+  "dashboard": {
+    "title": "Spark Platform Overview",
+    "description": "Platform health and SLO monitoring",
+    "tags": ["spark", "k8s", "slo"],
+    "timezone": "UTC",
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Availability (SLO: 99.9%)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "slo_availability_30d * 100"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 99,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 99.9, "color": "red" },
+                { "value": 99.95, "color": "yellow" },
+                { "value": 99.99, "color": "green" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Job Success Rate (SLO: 99%)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "slo_job_success_rate_7d"
+          }
+        ],
+        "yaxes": [
+          { "format": "percent", "label": "Success Rate" }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Jobs Per Hour (Target: 100)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "slo_throughput_1h"
+          }
+        ],
+        "yaxes": [
+          { "format": "short", "label": "Jobs/Hour" }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Submission Latency p95 (Target: <5s)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "slo_latency_p95_24h"
+          }
+        ],
+        "yaxes": [
+          { "format": "s", "label": "Seconds" }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Active Jobs",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(spark_jobs_running)"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Error Budget Remaining",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "error_budget_remaining"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "red" },
+                { "value": 20, "color": "yellow" },
+                { "value": 50, "color": "green" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Error Budget Burn Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "error_budget_burn_rate"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 1, "color": "yellow" },
+                { "value": 2, "color": "orange" },
+                { "value": 10, "color": "red" }
+              ]
+            },
+            "mappings": [
+              { "type": "value", "value": "<1", "text": "✅ OK" },
+              { "type": "range", "from": 1, "to": 2, "text": "⚠️ Monitor" },
+              { "type": "range", "from": 2, "to": 10, "text": "🚨 Stop Releases" },
+              { "type": "value", "from": 10, "text": "🔴 Emergency" }
+            ]
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Failed Jobs (24h)",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum by (error_type) (increase(spark_job_failed_total[24h]))"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Pod Status",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "count by (phase) (kube_pod_status_phase{namespace=\"spark\"})"
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Resource Utilization",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"spark\"}[5m])) by (pod)",
+            "legendFormat": "{{pod}} CPU"
+          },
+          {
+            "expr": "sum(container_memory_working_set_bytes{namespace=\"spark\"}) by (pod) / 1024 / 1024 / 1024",
+            "legendFormat": "{{pod}} Memory"
+          }
+        ],
+        "yaxes": [
+          { "format": "short" },
+          { "format": "decmbytes" }
+        ]
+      }
+    ]
+  }
+}

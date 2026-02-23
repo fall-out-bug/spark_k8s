@@ -1,0 +1,43 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: spark-driver
+  namespace: spark-operations
+  labels:
+    app: spark
+spec:
+  selector:
+    matchLabels:
+      app: spark
+      spark-role: driver
+  endpoints:
+    - port: metrics
+      path: /metrics/prometheus
+      scheme: http
+      namespaceSelector:
+        matchNames:
+          - spark-operations
+      query: '{__name__="spark_driver_metrics"}'
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: spark-executor
+  namespace: spark-operations
+  labels:
+    app: spark
+spec:
+  selector:
+    matchLabels:
+      app: spark
+      spark-role: executor
+  endpoints:
+    - port: metrics
+      path: /metrics/prometheus
+      scheme: http
+      namespaceSelector:
+        matchNames:
+          - spark-operations
+      query: '{__name__="spark_executor_metrics"}'
+      interval: 30s

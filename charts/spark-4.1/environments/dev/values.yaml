@@ -1,0 +1,56 @@
+# Development Environment Values
+
+connect:
+  # Minimal replicas for dev
+  replicas: 1
+
+  # Resource requests (minimal)
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "1"
+    limits:
+      memory: "4Gi"
+      cpu: "2"
+
+  # Dynamic allocation (scale to zero)
+  dynamicAllocation:
+    enabled: true
+    initialExecutors: 1
+    minExecutors: 0
+    maxExecutors: 5
+    executorAllocationRatio: 0.5
+
+  # No PDB in dev
+  podDisruptionBudget:
+    enabled: false
+
+  # Debug configuration
+  sparkConf:
+    # Debug logging
+    spark.sql.debug.maxToStringFields: "100"
+    spark.driver.extraJavaOptions: "-Dlog4j.debug=true"
+    spark.executor.extraJavaOptions: "-Dlog4j.debug=true"
+
+    # Faster timeouts for dev
+    spark.network.timeout: "200s"
+    spark.executor.heartbeatInterval: "30s"
+
+    # Lower shuffle partitions for dev
+    spark.sql.shuffle.partitions: "50"
+
+# Security settings (dev is less strict)
+security:
+  podSecurityStandards: false  # Disabled for debugging
+
+# Monitoring (opt-in)
+monitoring:
+  serviceMonitor:
+    enabled: false
+
+# Secrets (use default/dev secrets)
+secrets:
+  externalSecrets:
+    enabled: false  # Use hardcoded secrets in dev
+  sealedSecrets:
+    enabled: false

@@ -1,0 +1,112 @@
+# Loki values for Spark log aggregation on Kubernetes
+
+# Global namespace configuration for Spark logs
+targetNamespace: spark-operations
+
+loki:
+  enabled: true
+  # Loki configuration
+  config:
+    # Loki server configuration
+    server:
+      http_listen_port: 3100
+
+  # Storage configuration
+  storage:
+    type: filesystem
+    filesystem:
+      path: /loki/chunks
+    retention:
+      enabled: true
+      days: 30
+
+  # Limits configuration
+  limits_config:
+    enforce_metric_name: false
+    reject_old_samples:
+      max_age_days: 30
+    ingestion_rate_mb: 16
+    ingestion_burst_size_mb: 32
+    per_stream_rate_limit: 10MB
+    cardinality_limit: 100000
+
+# Promtail configuration for Spark logs
+promtail:
+  enabled: true
+
+  # Promtail configuration
+  config:
+    serverUrl: http://loki:3100/loki/api/v1/push
+
+    clients:
+      - url: http://loki:3100/loki/api/v1/push
+        # Promtail configuration for Spark pods
+        externalLabels:
+          cluster: s7-spark-k8s
+          namespace: spark-operations
+
+        # Spark log paths to scrape
+        snippets:
+          # Driver logs
+          - job_name: spark-driver
+            kubernetes_sd_configs:
+              - role:
+                  value: pod
+                selector:
+                  app: spark
+                  spark-role: driver
+                relabel_configs:
+                  - source_labels:
+                      app: spark
+                      spark_role: driver
+                  - regex:
+                      source: __path__
+                    replacement: /var/log/spark/*
+
+          # Executor logs
+          - job_name: spark-executor
+            kubernetes_sd_configs:
+              - role:
+                  value: pod
+                selector:
+                  app: spark
+                  spark-role: executor
+                relabel_configs:
+                  - source_labels:
+                      app: spark
+                      spark_role: executor
+                  - regex:
+                      source: __path__
+                    replacement: /var/log/spark/*
+
+        # Pipeline configuration
+        pipeline_stages:
+          - json:
+              expressions:
+                # Extract log level
+                - expression: "(?i<(level|LEVEL>)=(?P<INFO|D|E>W>)(?:\s+(?P< TRACE|DEBUG|INFO>WARN>ERROR)?)(?:\s+)"
+                  labels:
+                    level:
+
+  # Resource configuration
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Service configuration
+service:
+  port: 3100
+  targetPort: http-metrics
+
+# Resource configuration
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi

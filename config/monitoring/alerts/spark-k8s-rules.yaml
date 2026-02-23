@@ -1,0 +1,235 @@
+# Prometheus Alert Rules for Spark K8s Platform
+# Part of WS-018-04: SLI/SLO Definitions & Monitoring
+
+groups:
+  - name: spark_platform_slo
+    interval: 30s
+    rules:
+      # Critical Alerts (P0)
+      - alert: HighFailureRate
+        expr: |
+          (
+            sum(rate(spark_job_failed_total{error_type="platform"}[5m]))
+            /
+            sum(rate(spark_job_completed_total[5m]))
+          ) > 0.05
+        for: 10m
+        labels:
+          severity: critical
+          slo: job_success_rate
+          runbook: "https://docs/spark-k8s/runbooks/job-failures.md"
+        annotations:
+          summary: "High job failure rate detected"
+          description: "{{ $value | humanizePercentage }} of jobs failing due to platform errors (target: <1%)"
+          impact: "Multiple users affected, jobs not completing"
+
+      - alert: PlatformDown
+        expr: up{job="spark-platform"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          slo: availability
+          runbook: "https://docs/spark-k8s/runbooks/incident-response.md"
+        annotations:
+          summary: "Spark platform is down"
+          description: "Platform has been down for more than 5 minutes (target: 99.9% availability)"
+          impact: "All users affected, complete platform outage"
+
+      - alert: DriverOOM
+        expr: sum(rate(driver_pod_oom_killed_total[5m])) > 0
+        for: 5m
+        labels:
+          severity: critical
+          slo: job_success_rate
+          runbook: "https://docs/spark-k8s/troubleshooting.md#memory-issues"
+        annotations:
+          summary: "Driver pods being OOM killed"
+          description: "{{ $value }} driver pods killed due to OOM in last 5 minutes"
+          impact: "Jobs failing, users unable to submit work"
+
+      - alert: ErrorBudgetBurnRateCritical
+        expr: |
+          (
+            (1 - (sum_over_time(up{job="spark-platform"}[30d]) / 30 / 24 / 3600))
+            /
+            (1 - 0.999)
+          ) > 10
+        for: 1h
+        labels:
+          severity: critical
+          slo: availability
+          runbook: "https://docs/spark-k8s/runbooks/incident-response.md"
+        annotations:
+          summary: "Error budget burning rapidly (>10x)"
+          description: "Error budget burn rate is {{ $value | humanize }}x of allocation (target: <1x)"
+          impact: "At risk of missing SLO, stop all releases"
+
+      # Warning Alerts (P1)
+      - alert: ElevatedFailureRate
+        expr: |
+          (
+            sum(rate(spark_job_failed_total{error_type="platform"}[5m]))
+            /
+            sum(rate(spark_job_completed_total[5m]))
+          ) > 0.02 and < 0.05
+        for: 15m
+        labels:
+          severity: warning
+          slo: job_success_rate
+          runbook: "https://docs/spark-k8s/runbooks/job-failures.md"
+        annotations:
+          summary: "Elevated job failure rate"
+          description: "{{ $value | humanizePercentage }} of jobs failing due to platform errors (target: <1%)"
+
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(spark_job_submission_to_start_seconds_bucket[5m])) by (le)
+          ) > 10
+        for: 15m
+        labels:
+          severity: warning
+          slo: latency
+          runbook: "https://docs/spark-k8s/runbooks/performance.md"
+        annotations:
+          summary: "High job submission latency"
+          description: "p95 latency is {{ $value }}s (target: <5s)"
+
+      - alert: LowThroughput
+        expr: sum(rate(spark_job_completed_total[1h])) * 3600 < 50
+        for: 30m
+        labels:
+          severity: warning
+          slo: throughput
+        annotations:
+          summary: "Low job throughput"
+          description: "{{ $value }} jobs/hour (target: 100 jobs/hour)"
+
+      - alert: ErrorBudgetBurnRateElevated
+        expr: |
+          (
+            (1 - (sum_over_time(up{job="spark-platform"}[30d]) / 30 / 24 / 3600))
+            /
+            (1 - 0.999)
+          ) > 2 and <= 10
+        for: 2h
+        labels:
+          severity: warning
+          slo: availability
+          runbook: "https://docs/spark-k8s/runbooks/incident-response.md"
+        annotations:
+          summary: "Error budget burning fast (2-10x)"
+          description: "Error budget burn rate is {{ $value | humanize }}x of allocation (target: <1x)"
+          impact: "Monitor closely, consider pausing releases"
+
+      # Info Alerts (P2)
+      - alert: ExecutorLoss
+        expr: sum(rate(spark_executor_removed_total[5m])) > 0.1
+        for: 10m
+        labels:
+          severity: info
+          runbook: "https://docs/spark-k8s/troubleshooting.md#performance-issues"
+        annotations:
+          summary: "Executor pods being lost"
+          description: "{{ $value }} executors/second being removed"
+
+      - alert: HighGCTime
+        expr: |
+          sum(rate(spark_executor_gc_time_ms_total[5m])) /
+          sum(rate(spark_executor_task_time_ms_total[5m])) > 0.2
+        for: 15m
+        labels:
+          severity: info
+          runbook: "https://docs/spark-k8s/troubleshooting.md#memory-issues"
+        annotations:
+          summary: "High GC time detected"
+          description: "GC time is >20% of task time (possible memory pressure)"
+
+      - alert: StagingJobBacklog
+        expr: sum(spark_jobs_pending) > 10
+        for: 5m
+        labels:
+          severity: info
+        annotations:
+          summary: "Job backlog detected"
+          description: "{{ $value }} jobs waiting to start"
+
+  - name: spark_platform_infrastructure
+    interval: 30s
+    rules:
+      # Infrastructure Alerts
+      - alert: HighPodFailureRate
+        expr: |
+          (
+            sum(rate(kube_pod_status_phase{phase="Failed",namespace="spark"}[5m]))
+            /
+            sum(rate(kube_pod_status_phase{namespace="spark"}[5m]))
+          ) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High pod failure rate in Spark namespace"
+          description: "{{ $value | humanizePercentage }} of pods failing"
+
+      - alert: PVCCapacityNearLimit
+        expr: |
+          (
+            kubelet_volume_stats_used_bytes{namespace="spark"}
+            /
+            kubelet_volume_stats_capacity_bytes{namespace="spark"}
+          ) > 0.9
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PVC capacity near limit"
+          description: "PVC {{ $labels.persistentvolumeclaim }} is {{ $value | humanizePercentage }} full"
+
+      - alert: NodeResourcePressure
+        expr: |
+          kube_node_status_condition{condition="MemoryPressure",status="true"} > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Node under memory pressure"
+          description: "Node {{ $labels.node }} is experiencing memory pressure"
+
+  - name: spark_platform_slo_report
+    interval: 1h
+    rules:
+      # SLO Reporting Rules
+      - record: slo_availability_30d
+        expr: |
+          avg_over_time(up{job="spark-platform"}[30d])
+
+      - record: slo_job_success_rate_7d
+        expr: |
+          (
+            sum(rate(spark_job_completed_total{status="success"}[7d]))
+            /
+            sum(rate(spark_job_completed_total[7d]))
+          ) * 100
+
+      - record: slo_latency_p95_24h
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(spark_job_submission_to_start_seconds_bucket[24h])) by (le)
+          )
+
+      - record: slo_throughput_1h
+        expr: |
+          sum(rate(spark_job_completed_total[1h])) * 3600
+
+      - record: error_budget_burn_rate
+        expr: |
+          (
+            (1 - slo_availability_30d)
+            /
+            (1 - 0.999)
+          )
+
+      - record: error_budget_remaining
+        expr: |
+          (0.999 - (1 - slo_availability_30d)) / 0.001 * 100

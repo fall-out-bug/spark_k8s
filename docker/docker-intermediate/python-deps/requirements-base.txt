@@ -1,0 +1,9 @@
+# Core PySpark and data science libraries
+# Note: Custom Spark builds already include these
+# This file is for extending other base images
+
+pyspark>=3.5.0
+pandas>=2.0.0
+numpy>=1.24.0
+pyarrow>=14.0.0
+findspark

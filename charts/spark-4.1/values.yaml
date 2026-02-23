@@ -1,17 +1,150 @@
 global:
   imagePullSecrets: []
   s3:
+    enabled: true
     endpoint: "http://minio:9000"
     accessKey: "minioadmin"
     secretKey: "minioadmin"
     pathStyleAccess: true
     sslEnabled: false
-    existingSecret: "s3-credentials"
+    existingSecret: ""
   postgresql:
     host: "postgresql-metastore-41"
     port: 5432
     user: "hive"
     password: "hive123"
+
+# Secret Management
+# Choose one: externalSecrets, sealedSecrets, or vault
+secrets:
+  externalSecrets:
+    enabled: false
+    provider: "aws"  # aws, gcp, azure, ibm
+    region: "us-east-1"
+    prefix: "spark"
+    aws:
+      iamRole: ""
+    gcp:
+      project: ""
+      clusterLocation: ""
+      clusterName: ""
+      serviceAccountEmail: ""
+    azure:
+      tenantId: ""
+      clientId: ""
+      vaultName: ""
+      secretName: ""
+    ibm:
+      serviceUrl: ""
+
+  sealedSecrets:
+    enabled: false
+    data:
+      access-key: ""
+      secret-key: ""
+
+  vault:
+    enabled: false
+    address: "https://vault.example.com:8200"
+    role: "spark-connect"
+
+# Cost exporter CronJob (optional)
+costExporter:
+  enabled: false
+
+rbac:
+  create: true
+  serviceAccountName: "spark-41"
+
+# Core Infrastructure Components (anchor for spark-base)
+# Unified configuration for core infrastructure components (passed to spark-base)
+core: &core
+  minio:
+    enabled: false  # Set to true to enable MinIO S3-compatible storage
+    fullnameOverride: ""
+    image:
+      repository: quay.io/minio/minio
+      tag: "RELEASE.2024-01-01T16-36-33Z"
+      pullPolicy: IfNotPresent
+    service:
+      port: 9000
+      consolePort: 9001
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+    persistence:
+      enabled: true
+      size: "10Gi"
+      storageClass: ""
+    buckets:
+      - warehouse
+      - spark-logs
+      - spark-standalone-logs
+      - spark-jobs
+      - raw-data
+      - processed-data
+      - checkpoints
+
+  postgresql:
+    enabled: false  # Set to true to enable PostgreSQL database
+    fullnameOverride: ""
+    image:
+      repository: postgres
+      tag: "15-alpine"
+      pullPolicy: IfNotPresent
+    auth:
+      username: "spark"
+      password: "spark123"
+    service:
+      port: 5432
+    persistence:
+      enabled: true
+      size: "8Gi"
+      storageClass: ""
+    databases: []
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+
+  hiveMetastore:
+    enabled: true  # Hive Metastore for Spark SQL
+    fullnameOverride: ""
+    image:
+      repository: spark-k8s/hive
+      tag: "4.0.0-pg"
+      pullPolicy: IfNotPresent
+    service:
+      port: 9083
+    warehouseDir: "s3a://warehouse/spark-41"
+    metastoreWarehouseDir: "file:/tmp/hive-warehouse"
+    database:
+      name: "metastore_spark41"
+    postgresql:
+      enabled: true
+      host: "postgresql-metastore-41"
+      port: 5432
+      database: "metastore_spark41"
+      username: "hive"
+      password: "hive123"
+      persistence:
+        enabled: true
+        size: 5Gi
+        storageClass: ""
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "200m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
 
 spark-base:
   enabled: true
@@ -20,23 +153,101 @@ spark-base:
     name: spark
   rbac:
     create: false
+    serviceAccountName: "spark-41"
+  core: *core
   minio:
     enabled: false
   postgresql:
     enabled: false
   security:
-    podSecurityStandards: false
+    podSecurityStandards: true
+    runAsUser: 185
+    runAsGroup: 185
+    fsGroup: 185
+    readOnlyRootFilesystem: false
 
-rbac:
-  create: true
-  serviceAccountName: "spark-41"
+historyServer:
+  enabled: true  # Spark History Server for completed applications
+  fullnameOverride: ""
+  image:
+    repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
+    tag: "4.1.0"
+    pullPolicy: IfNotPresent
+  logDirectory: "s3a://spark-logs/events"
+  updateInterval: "10s"
+  provider: ""
+  s3aImpl: ""
+  credentialsProvider: ""
+  s3ConnectionMax: ""
+  s3ConnectionTimeout: ""
+  maxApplications: "1000"
+  service:
+    type: ClusterIP
+    port: 18080
+  podAnnotations: {}
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+  sparkConf:
+    spark.history.fs.cleaner.enabled: true
+    spark.history.fs.cleaner.interval: "1d"
+    spark.history.fs.cleaner.maxAge: "7d"
+
+# Feature flags and configuration
+features:
+  iceberg:
+    enabled: false
+    catalogType: "hadoop"  # hadoop, hive, rest
+    warehouse: "s3a://warehouse/iceberg"
+    ioImpl: "org.apache.iceberg.hadoop.HadoopFileIO"
+    restCatalogUri: ""  # Required when catalogType is "rest"
+    restCatalogToken: ""  # Optional token for REST catalog
+  gpu:
+    enabled: false  # Enable GPU support with RAPIDS
+    cudaVersion: ""  # Optional: e.g., "12.0"
+    nvidiaVisibleDevices: "all"  # GPU devices to use
+    taskResourceAmount: "0.25"  # GPU amount per task
+    # RAPIDS configuration
+    rapids:
+      plugins: "com.nvidia.spark.SQLPlugin"
+      sql:
+        enabled: true
+        python:
+          enabled: true
+        fallback:
+          enabled: true
+      memory:
+        allocFraction: "0.8"
+        maxAllocFraction: "0.9"
+        minAllocFraction: "0.3"
+      shuffle:
+        enabled: true
+      format:
+        parquet:
+          read: true
+          write: true
+        orc:
+          read: true
+        csv:
+          read: true
+        json:
+          read: true
+      jars:
+        enabled: false  # Set to true to enable custom RAPIDS jars
+        urls:
+          - "local:///opt/spark/rapids/jars/rapids-4-spark_2.12-24.02.0.jar"
+          - "local:///opt/spark/rapids/jars/cudf-24.02.0-cuda12.jar"
 
 # Spark Connect server (4.1.0)
 connect:
   enabled: true
   replicas: 1
   image:
-    repository: spark-custom
+    repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
     tag: "4.1.0"
     pullPolicy: IfNotPresent
   service:
@@ -66,21 +277,35 @@ connect:
     coresLimit: "2"
     memory: "1Gi"
     memoryLimit: "2Gi"
+    # GPU configuration for executors
+    gpu:
+      enabled: false  # Enable GPU resources for executors
+      count: "1"  # Number of GPUs per executor
+      vendor: "nvidia.com/gpu"  # GPU vendor: nvidia.com/gpu, amd.com/gpu
+      nodeSelector:
+        nvidia.com/gpu: "true"  # Node selector for GPU nodes
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
   dynamicAllocation:
     enabled: true
     minExecutors: 0
     maxExecutors: 10
   eventLog:
     enabled: true
-    dir: "s3a://spark-logs/4.1/events"
+    dir: "s3a://spark-logs/events"
   sparkConf: {}
+  extraJars:
+    enabled: false
+    configMap: ""
 
 # Hive Metastore 4.0.0 (separate instance for Spark 4.1.0)
 hiveMetastore:
-  enabled: true
+  enabled: false
   image:
-    repository: apache/hive
-    tag: "4.0.0"
+    repository: spark-k8s/hive
+    tag: "4.0.0-pg"
     pullPolicy: IfNotPresent
   service:
     port: 9083
@@ -107,25 +332,6 @@ hiveMetastore:
       memory: "2Gi"
       cpu: "1000m"
 
-# History Server 4.1.0
-historyServer:
-  enabled: true
-  image:
-    repository: spark-custom
-    tag: "4.1.0"
-    pullPolicy: IfNotPresent
-  logDirectory: "s3a://spark-logs/4.1/events"
-  service:
-    type: ClusterIP
-    port: 18080
-  resources:
-    requests:
-      memory: "512Mi"
-      cpu: "200m"
-    limits:
-      memory: "2Gi"
-      cpu: "1000m"
-
 # Ingress
 ingress:
   enabled: false
@@ -137,8 +343,8 @@ ingress:
 jupyter:
   enabled: true
   image:
-    repository: jupyter-spark
-    tag: "4.1.0"
+    repository: spark-k8s-jupyter
+    tag: "4.1-4.1.0"
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -195,8 +401,68 @@ sparkOperator:
 
 # Security settings
 security:
-  podSecurityStandards: false
+  podSecurityStandards: true
   runAsUser: 185
   runAsGroup: 185
   fsGroup: 185
   readOnlyRootFilesystem: false
+  # PSS profile for namespace labels (restricted/baseline/privileged)
+  pssProfile: restricted
+  # Create namespace with PSS labels
+  createNamespace: false
+  networkPolicies:
+    enabled: false
+  rbac:
+    create: true
+    pspEnabled: false
+# Monitoring settings
+monitoring:
+  serviceMonitor:
+    enabled: false
+    interval: "15s"
+    scrapeTimeout: "10s"
+    labels: {}
+    relabelings: []
+  podMonitor:
+    enabled: false
+    interval: "30s"
+    scrapeTimeout: "10s"
+    labels: {}
+    relabelings: []
+  grafanaDashboards:
+    enabled: false
+    namespace: ""  # Defaults to release namespace
+  podAnnotations: {}
+  prometheusAnnotations:
+    prometheus.io/scrape: "false"
+    prometheus.io/port: "4040"
+    prometheus.io/path: "/metrics/executors"
+  # OpenTelemetry integration
+  openTelemetry:
+    enabled: false
+    endpoint: "http://opentelemetry-collector:4317"
+    protocol: "grpc"  # grpc or http# Auto-scaling configuration
+autoscaling:
+  clusterAutoscaler:
+    enabled: false
+    scaleDown:
+      enabled: true
+      delayAfterAdd: 10m
+      unneededTime: 5m
+      unreadyTime: 20m
+      utilizationThreshold: 0.5
+    nodeGroups: []
+  keda:
+    enabled: false
+    pollingInterval: 30
+    cooldownPeriod: 300
+    minReplicaCount: 0
+    maxReplicaCount: 10
+    s3:
+      bucket: ""
+      prefix: "spark-jobs/"
+      targetObjectSize: "10"
+      region: "us-east-1"
+      accessKey: ""
+      secretKey: ""
+      existingSecret: ""

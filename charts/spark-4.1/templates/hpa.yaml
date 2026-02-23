@@ -1,0 +1,55 @@
+{{- if and .Values.hpa .Values.hpa.enabled }}
+{{- range $component, $config := .Values.hpa.components }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "spark-operator.fullname" $ }}-{{ $component }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "spark-operator.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $component }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: {{ $config.kind | default "Deployment" }}
+    name: {{ include "spark-operator.fullname" $ }}-{{ $component }}
+  minReplicas: {{ $config.minReplicas | default 2 }}
+  maxReplicas: {{ $config.maxReplicas | default 10 }}
+  metrics:
+  {{- range $config.metrics }}
+  - type: {{ .type }}
+    {{- if eq .type "Resource" }}
+    resource:
+      name: {{ .resource.name }}
+      target:
+        type: {{ .resource.target.type | default "Utilization" }}
+        {{- if eq .resource.target.type "Utilization" }}
+        averageUtilization: {{ .resource.target.averageUtilization }}
+        {{- else if eq .resource.target.type "AverageValue" }}
+        averageValue: {{ .resource.target.averageValue }}
+        {{- end }}
+    {{- else if eq .type "Pods" }}
+    pods:
+      metric:
+        name: {{ .pods.metric.name }}
+      target:
+        type: AverageValue
+        averageValue: {{ .pods.target.averageValue }}
+    {{- end }}
+  {{- end }}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: {{ $config.scaleUp.stabilizationWindowSeconds | default 60 }}
+      policies:
+      - type: {{ $config.scaleUp.policies.type | default "Percent" }}
+        value: {{ $config.scaleUp.policies.value | default 50 }}
+        periodSeconds: {{ $config.scaleUp.policies.periodSeconds | default 15 }}
+    scaleDown:
+      stabilizationWindowSeconds: {{ $config.scaleDown.stabilizationWindowSeconds | default 300 }}
+      policies:
+      - type: {{ $config.scaleDown.policies.type | default "Percent" }}
+        value: {{ $config.scaleDown.policies.value | default 10 }}
+        periodSeconds: {{ $config.scaleDown.policies.periodSeconds | default 60 }}
+---
+{{- end }}
+{{- end }}

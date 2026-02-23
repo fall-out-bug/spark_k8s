@@ -1,0 +1,141 @@
+name: Smoke Tests
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+
+env:
+  CLUSTER_NAME: spark-k8s-test
+  REGION: us-west-2
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  smoke-tests:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-test.txt
+          pip install pytest pytest-cov pytest-html
+
+      - name: Run unit tests
+        run: |
+          pytest tests/unit/ -v \
+            --cov=src \
+            --cov-report=xml \
+            --cov-report=html \
+            --cov-report=term \
+            --junitxml=test-results.xml
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-reports
+          path: |
+            htmlcov/
+            coverage.xml
+            test-results.xml
+
+      - name: Check coverage threshold
+        run: |
+          coverage report --fail-under=80
+
+      - name: Lint Python code
+        run: |
+          ./scripts/cicd/lint-python.sh --dir src/ --fix
+          ./scripts/cicd/lint-python.sh --dir tests/
+
+      - name: Lint Scala code
+        run: |
+          ./scripts/cicd/lint-scala.sh --dir src/main/scala
+
+      - name: Validate Kubernetes manifests
+        run: |
+          helm lint charts/spark-3.5/
+          helm lint charts/spark-4.1/
+
+      - name: Run operations tests
+        run: |
+          pytest tests/operations/test_runbooks.py -v
+
+      - name: Test runbook scripts
+        run: |
+          ./scripts/operations/test-all-runbooks.sh --syntax-only
+
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: test-results.xml
+          check_name: Smoke Test Results
+
+      - name: Comment PR with results
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const fs = require('fs');
+            const coverage = fs.readFileSync('coverage.xml', 'utf8');
+            // Parse coverage and comment
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '## Smoke Test Results\n\n✅ All tests passed\n\nCoverage: uploaded as artifact'
+            });
+
+  quick-integration:
+    name: Quick Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements-test.txt
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.8.0
+        with:
+          cluster_name: spark-test
+          version: v0.20.0
+
+      - name: Install Spark Operator
+        run: |
+          helm repo add spark-operator https://kubeflow.github.io/spark-operator
+          helm repo update
+          helm install spark-operator spark-operator/spark-operator \
+            --namespace spark-operator --create-namespace --wait
+
+      - name: Run quick integration tests
+        run: |
+          pytest tests/integration/ -v -k "not slow" --timeout=300
+
+      - name: Cleanup
+        if: always()
+        run: |
+          kubectl delete namespace spark-operator || true

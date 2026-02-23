@@ -1,0 +1,228 @@
+# Priority Test Matrix for Spark K8s Load Testing
+# Part of WS-013-07: Test Matrix Definition & Template System
+#
+# This matrix defines all 6 dimensions of the test space:
+# 1. Spark Version (2)
+# 2. Orchestrator (2)
+# 3. Deployment Mode (2)
+# 4. Extensions (4)
+# 5. Operation (5)
+# 6. Data Size (2)
+#
+# Total combinations: 2 × 2 × 2 × 4 × 5 × 2 = 320 × 4 = 1,280
+#
+# Priority Tiers:
+# - P0 (Smoke): 64 combinations - Quick PR gate (30 min)
+# - P1 (Core): 384 combinations - Nightly builds (4 hours)
+# - P2 (Full): 1,280 combinations - Weekly full matrix (48 hours)
+
+# Test matrix configuration
+matrix:
+  # Priority tier definitions
+  priority_tiers:
+    p0_smoke:
+      description: "Smoke tests for PR validation"
+      timeout_minutes: 30
+      spark_versions: ["3.5.0", "4.1.0"]
+      orchestrators: ["connect"]
+      modes: ["kubernetes"]
+      extensions: ["none"]
+      operations: ["read"]
+      data_sizes: ["1gb"]
+
+    p1_core:
+      description: "Core tests for nightly builds"
+      timeout_minutes: 240
+      spark_versions: ["3.5.0", "4.1.0"]
+      orchestrators: ["connect", "operator"]
+      modes: ["kubernetes", "standalone"]
+      extensions: ["none", "iceberg", "rapids"]
+      operations: ["read", "aggregate", "join"]
+      data_sizes: ["1gb", "11gb"]
+
+    p2_full:
+      description: "Full test matrix"
+      timeout_minutes: 2880
+      spark_versions: ["3.5.0", "4.1.0"]
+      orchestrators: ["connect", "operator"]
+      modes: ["kubernetes", "standalone"]
+      extensions: ["none", "iceberg", "rapids", "iceberg+rapids"]
+      operations: ["read", "aggregate", "join", "window", "write"]
+      data_sizes: ["1gb", "11gb"]
+
+  # Dimension definitions
+  dimensions:
+    spark_versions:
+      - version: "3.5.0"
+        chart: "spark-3.5"
+        image_tag: "3.5.0"
+      - version: "4.1.0"
+        chart: "spark-4.1"
+        image_tag: "4.1.0"
+
+    orchestrators:
+      - name: "connect"
+        description: "Spark Connect client mode"
+      - name: "operator"
+        description: "Spark Operator"
+
+    modes:
+      - name: "kubernetes"
+        description: "Classic Kubernetes cluster mode"
+      - name: "standalone"
+        description: "Standalone mode on Kubernetes"
+
+    extensions:
+      - name: "none"
+        description: "Core Spark only"
+        enabled: false
+
+      - name: "iceberg"
+        description: "Apache Iceberg support"
+        enabled: true
+        config:
+          spark.sql.catalog.spark_catalog: "org.apache.iceberg.spark.SparkSessionCatalog"
+          spark.sql.catalog.iceberg: "org.apache.iceberg.spark.SparkCatalog"
+          spark.sql.catalog.iceberg.type: "hadoop"
+          spark.sql.catalog.iceberg.warehouse: "s3a://iceberg-warehouse/"
+
+      - name: "rapids"
+        description: "NVIDIA RAPIDS Accelerator"
+        enabled: true
+        config:
+          spark.rapids.sql.enabled: "true"
+          spark.executor.resource.gpu.amount: "1"
+          spark.task.resource.gpu.amount: "0.25"
+
+      - name: "iceberg+rapids"
+        description: "Both Iceberg and RAPIDS"
+        enabled: true
+        combines: ["iceberg", "rapids"]
+
+    operations:
+      - name: "read"
+        description: "S3 read operation"
+        script: "read.py"
+        sql: "read.sql"
+        metrics:
+          - duration
+          - rows_read
+          - bytes_read
+          - throughput
+
+      - name: "aggregate"
+        description: "Aggregation workload"
+        script: "aggregate.py"
+        sql: "aggregate.sql"
+        metrics:
+          - duration
+          - shuffle_bytes
+          - spill_bytes
+
+      - name: "join"
+        description: "Self-join operation"
+        script: "join.py"
+        sql: "join.sql"
+        metrics:
+          - duration
+          - skew_ratio
+          - shuffle_bytes
+
+      - name: "window"
+        description: "Window function workload"
+        script: "window.py"
+        sql: "window.sql"
+        metrics:
+          - duration
+          - spill_rate
+          - partition_count
+
+      - name: "write"
+        description: "Postgres write operation"
+        script: "write.py"
+        sql: "write.sql"
+        metrics:
+          - duration
+          - rows_written
+          - batches_written
+
+    data_sizes:
+      - name: "1gb"
+        description: "NYC taxi 1GB dataset"
+        path: "s3a://test-data/nyc-taxi/year=*/month=*/*.parquet"
+        approx_rows: 2100000
+
+      - name: "11gb"
+        description: "NYC taxi 11GB dataset"
+        path: "s3a://test-data/nyc-taxi/year=*/month=*/*.parquet"
+        approx_rows: 23100000
+
+# Test naming convention
+naming_convention:
+  format: "{tier}_{spark_ver}_{orchestrator}_{mode}_{exts}_{op}_{data_size}"
+  example: "p1_3.5.0_connect_kubernetes_iceberg_read_1gb"
+
+# Resource scaling based on data size
+resource_scaling:
+  1gb:
+    driver:
+      memory: "2g"
+      cores: "1"
+    executor:
+      memory: "4g"
+      cores: "2"
+      instances: 2
+
+  11gb:
+    driver:
+      memory: "4g"
+      cores: "2"
+    executor:
+      memory: "8g"
+      cores: "4"
+      instances: 4
+
+# Baseline thresholds for regression detection
+baselines:
+  read:
+    max_duration_sec:
+      1gb: 60
+      11gb: 300
+    min_throughput_rows_sec:
+      1gb: 35000
+      11gb: 70000
+
+  aggregate:
+    max_duration_sec:
+      1gb: 120
+      11gb: 600
+    max_shuffle_bytes:
+      1gb: 1073741824  # 1GB
+      11gb: 10737418240  # 10GB
+
+  join:
+    max_duration_sec:
+      1gb: 180
+      11gb: 900
+    max_skew_ratio: 2.0
+
+  window:
+    max_duration_sec:
+      1gb: 150
+      11gb: 750
+    max_spill_rate_pct: 10
+
+  write:
+    max_duration_sec:
+      1gb: 90
+      11gb: 450
+    min_throughput_rows_sec:
+      1gb: 20000
+      11gb: 40000
+
+# Output directories
+output:
+  helm_values: "scripts/tests/output/helm-values/"
+  scenarios: "scripts/tests/output/scenarios/"
+  workflows: "scripts/tests/output/workflows/"
+  results: "scripts/tests/output/results/"

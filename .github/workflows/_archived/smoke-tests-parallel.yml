@@ -1,0 +1,407 @@
+name: Smoke Tests - Parallel Execution
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+  workflow_dispatch:
+    inputs:
+      max_parallel:
+        description: 'Maximum parallel jobs (1-10)'
+        required: false
+        type: number
+        default: 4
+      scenarios:
+        description: 'Comma-separated list of scenarios (empty = all)'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  # Discover available smoke test scenarios
+  discover-scenarios:
+    name: Discover Scenarios
+    runs-on: ubuntu-latest
+    outputs:
+      scenarios: ${{ steps.scenarios.outputs.matrix }}
+      count: ${{ steps.scenarios.outputs.count }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Discover smoke test scenarios
+        id: scenarios
+        run: |
+          # Find all scenario scripts
+          scenarios=$(find scripts/tests/smoke/scenarios -name "*.sh" -type f | sort | xargs -n1 basename | sed 's/\.sh$//' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+
+          # Filter by user input if provided
+          if [ -n "${{ github.event.inputs.scenarios }}" ]; then
+            filter=$(echo "${{ github.event.inputs.scenarios }}" | tr ',' '\n' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            scenarios=$(echo "$scenarios" | jq -r --argjson f "$filter" '[.[] | select(. as $s | $f | index($s))]')
+          fi
+
+          echo "matrix=$scenarios" >> $GITHUB_OUTPUT
+          echo "count=$(echo $scenarios | jq 'length')" >> $GITHUB_OUTPUT
+          echo "Found $(echo $scenarios | jq 'length') scenarios"
+
+  # Run smoke tests in parallel using matrix strategy
+  smoke-test:
+    name: Smoke ${{ matrix.scenario }}
+    needs: discover-scenarios
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: ${{ fromJson(needs.discover-scenarios.outputs.scenarios) }}
+        max-parallel: [4]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.9.0
+        with:
+          cluster_name: spark-smoke-${{ matrix.scenario }}
+          kubectl_version: v1.28.0
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          helm version
+
+      - name: Install dependencies
+        run: |
+          # Install GNU parallel for execution
+          sudo apt-get update && sudo apt-get install -y parallel
+
+          # Install Python dependencies
+          pip install pytest pyyaml kubernetes
+
+      - name: Run smoke test scenario
+        env:
+          SCENARIO: ${{ matrix.scenario }}
+          MAX_PARALLEL: ${{ github.event.inputs.max_parallel || 4 }}
+        run: |
+          set -euo pipefail
+
+          # Run scenario script directly
+          scenario_script="scripts/tests/smoke/scenarios/${SCENARIO}.sh"
+
+          if [ ! -f "$scenario_script" ]; then
+            echo "Error: Scenario script not found: $scenario_script"
+            exit 1
+          fi
+
+          echo "Running scenario: ${SCENARIO}"
+          chmod +x "$scenario_script"
+
+          # Create unique namespace and release for this test
+          namespace="spark-test-${SCENARIO}-${RANDOM}"
+          release="spark-${SCENARIO}-${RANDOM}"
+
+          export TEST_NAMESPACE="$namespace"
+          export TEST_RELEASE="$release"
+
+          # Create test results directory
+          mkdir -p test-results
+
+          # Track test start time
+          start_time=$(date +%s)
+
+          # Run scenario
+          if "$scenario_script" "$namespace" "$release"; then
+            end_time=$(date +%s)
+            duration=$((end_time - start_time))
+            echo "✅ Scenario ${SCENARIO} PASSED (duration: ${duration}s)"
+
+            # Create result JSON for aggregation
+            cat > "test-results/${SCENARIO}.json" <<EOF
+          {
+            "scenario": "${SCENARIO}",
+            "status": "passed",
+            "duration": ${duration},
+            "namespace": "${namespace}",
+            "release": "${release}",
+            "timestamp": "$(date -Iseconds)"
+          }
+          EOF
+          else
+            exit_code=${?}
+            end_time=$(date +%s)
+            duration=$((end_time - start_time))
+            echo "❌ Scenario ${SCENARIO} FAILED (duration: ${duration}s, exit code: ${exit_code})"
+
+            # Create result JSON for aggregation
+            cat > "test-results/${SCENARIO}.json" <<EOF
+          {
+            "scenario": "${SCENARIO}",
+            "status": "failed",
+            "exit_code": ${exit_code},
+            "duration": ${duration},
+            "namespace": "${namespace}",
+            "release": "${release}",
+            "timestamp": "$(date -Iseconds)",
+            "error": "Test failed with exit code ${exit_code}"
+          }
+          EOF
+            exit 1
+          fi
+
+      - name: Collect logs on failure
+        if: failure()
+        run: |
+          namespace="spark-test-${{ matrix.scenario }}"
+          echo "Collecting logs from namespace: $namespace"
+          kubectl logs -n "$namespace" --all-containers=true=true --max-log-requests=10 || true
+
+      - name: Cleanup namespace
+        if: always()
+        run: |
+          namespace="spark-test-${{ matrix.scenario }}"
+          kubectl delete namespace "$namespace" --ignore-not-found=true --wait=true || true
+
+      - name: Upload test result artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-result-${{ matrix.scenario }}
+          path: test-results/${{ matrix.scenario }}.json
+          retention-days: 1
+
+  # Aggregate test results
+  aggregate-results:
+    name: Aggregate Results
+    needs: [discover-scenarios, smoke-test]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-result-*
+          path: test-results
+          merge-multiple: true
+
+      - name: List downloaded results
+        run: |
+          ls -la test-results/
+          echo "---"
+          cat test-results/*.json || echo "No JSON files found"
+
+      - name: Aggregate JSON results
+        run: |
+          python scripts/aggregate/aggregate_json.py --results-dir test-results
+
+      - name: Generate JUnit report
+        run: |
+          python scripts/aggregate/aggregate_junit.py --results-dir test-results
+
+      - name: Generate HTML report
+        run: |
+          python scripts/aggregate/generate_html.py --results-dir test-results
+
+      - name: Upload aggregated test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-test-results
+          path: |
+            test-results/
+            logs/
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        run: |
+          # Read aggregated results
+          aggregated=$(cat test-results/aggregated.json)
+
+          # Extract metrics
+          total=$(echo "$aggregated" | jq -r '.total')
+          passed=$(echo "$aggregated" | jq -r '.passed')
+          failed=$(echo "$aggregated" | jq -r '.failed')
+          pass_rate=$(echo "$aggregated" | jq -r '.pass_rate')
+
+          # Generate comment
+          cat <<EOF > pr_comment.md
+          ## Smoke Test Results
+
+          | Metric | Value |
+          |---------|--------|
+          | Total | ${total} |
+          | Passed | ${passed} |
+          | Failed | ${failed} |
+          | Pass Rate | ${pass_rate}% |
+          | Timestamp | $(echo "$aggregated" | jq -r '.timestamp') |
+
+          **Workflow:** ${{ github.workflow }}
+          **Run ID:** ${{ github.run_id }}
+          EOF
+
+          echo "PR Comment:"
+          cat pr_comment.md
+
+      - name: Post PR comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const aggregated = JSON.parse(fs.readFileSync('test-results/aggregated.json', 'utf8'));
+
+            const comment = `## Smoke Test Results
+
+            | Metric | Value |
+            |---------|--------|
+            | Total | ${aggregated.total} |
+            | Passed | ${aggregated.passed} |
+            | Failed | ${aggregated.failed} |
+            | Skipped | ${aggregated.skipped} |
+            | Pass Rate | ${aggregated.pass_rate}% |
+            | Duration | ${aggregated.duration}s |
+            | Timestamp | ${aggregated.timestamp} |
+
+            **Workflow:** ${{ github.workflow }}
+            **Run ID:** ${{ github.run_id }}
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  # Fast-track: Run subset of critical tests on every PR
+  smoke-critical:
+    name: Smoke - Critical Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # Only run on PRs, not on push to main
+    if: github.event_name == 'pull_request'
+
+    strategy:
+      matrix:
+        scenario:
+          - jupyter-connect-standalone-357
+          - jupyter-connect-standalone-358
+          - jupyter-connect-standalone-411
+          - airflow-connect-k8s-410
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.9.0
+        with:
+          cluster_name: spark-smoke-critical
+          kubectl_version: v1.28.0
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Install dependencies
+        run: |
+          # Install Python dependencies
+          pip install pytest pyyaml kubernetes
+
+      - name: Run critical scenario
+        env:
+          SCENARIO: ${{ matrix.scenario }}
+        run: |
+          set -euo pipefail
+
+          # Run scenario script directly
+          scenario_script="scripts/tests/smoke/scenarios/${SCENARIO}.sh"
+
+          if [ ! -f "$scenario_script" ]; then
+            echo "Error: Scenario script not found: $scenario_script"
+            exit 1
+          fi
+
+          echo "Running scenario: ${SCENARIO}"
+          chmod +x "$scenario_script"
+
+          # Create unique namespace and release for this test
+          namespace="spark-test-critical-${SCENARIO}-${RANDOM}"
+          release="spark-critical-${SCENARIO}-${RANDOM}"
+
+          export TEST_NAMESPACE="$namespace"
+          export TEST_RELEASE="$release"
+
+          # Create test results directory
+          mkdir -p test-results
+
+          # Track test start time
+          start_time=$(date +%s)
+
+          # Run scenario
+          if "$scenario_script" "$namespace" "$release"; then
+            end_time=$(date +%s)
+            duration=$((end_time - start_time))
+            echo "✅ Critical scenario ${SCENARIO} PASSED (duration: ${duration}s)"
+
+            # Create result JSON for aggregation
+            cat > "test-results/${SCENARIO}.json" <<EOF
+          {
+            "scenario": "${SCENARIO}",
+            "status": "passed",
+            "duration": ${duration},
+            "namespace": "${namespace}",
+            "release": "${release}",
+            "timestamp": "$(date -Iseconds)"
+          }
+          EOF
+          else
+            exit_code=${?}
+            end_time=$(date +%s)
+            duration=$((end_time - start_time))
+            echo "❌ Critical scenario ${SCENARIO} FAILED (duration: ${duration}s, exit code: ${exit_code})"
+
+            # Create result JSON for aggregation
+            cat > "test-results/${SCENARIO}.json" <<EOF
+          {
+            "scenario": "${SCENARIO}",
+            "status": "failed",
+            "exit_code": ${exit_code},
+            "duration": ${duration},
+            "namespace": "${namespace}",
+            "release": "${release}",
+            "timestamp": "$(date -Iseconds)",
+            "error": "Test failed with exit code ${exit_code}"
+          }
+          EOF
+            exit 1
+          fi
+
+      - name: Collect logs on failure
+        if: failure()
+        run: |
+          namespace="spark-test-critical-${{ matrix.scenario }}"
+          echo "Collecting logs from namespace: $namespace"
+          kubectl logs -n "$namespace" --all-containers=true=true --max-log-requests=10 || true
+
+      - name: Cleanup namespace
+        if: always()
+        run: |
+          namespace="spark-test-critical-${{ matrix.scenario }}"
+          kubectl delete namespace "$namespace" --ignore-not-found=true --wait=true || true
+
+      - name: Upload test result artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: critical-result-${{ matrix.scenario }}
+          path: test-results/${{ matrix.scenario }}.json
+          retention-days: 1

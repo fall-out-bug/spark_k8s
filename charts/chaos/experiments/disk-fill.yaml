@@ -1,0 +1,18 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: IOChaos
+metadata:
+  name: spark-disk-fill
+  namespace: spark-chaos
+spec:
+  action: fill
+  mode: one
+  selector:
+    namespaces:
+      - spark-staging
+    labelSelectors:
+      app: spark-worker
+  fill:
+    percent: 90
+  path: /tmp
+  scheduler:
+    duration: "5m"

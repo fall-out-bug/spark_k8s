@@ -1,0 +1,11 @@
+# Development and testing dependencies
+pytest>=7.0
+pytest-cov>=4.0
+pytest-html>=3.0
+ruff>=0.1.0
+black>=23.0
+mypy>=1.0
+pre-commit>=3.0
+# Test runtime deps
+pyyaml>=6.0
+kubernetes>=28.0

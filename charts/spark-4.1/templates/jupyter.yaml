@@ -5,16 +5,19 @@ metadata:
   name: {{ include "spark-4.1.fullname" . }}-jupyter
   labels:
     app: jupyter
+    app.kubernetes.io/component: jupyter
     {{- include "spark-4.1.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: jupyter
+      app.kubernetes.io/component: jupyter
   template:
     metadata:
       labels:
         app: jupyter
+        app.kubernetes.io/component: jupyter
         {{- include "spark-4.1.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "spark-4.1.serviceAccountName" . }}
@@ -22,13 +25,23 @@ spec:
       securityContext:
         {{- include "spark-base.podSecurityContext" . | nindent 8 }}
       {{- end }}
+      {{- with .Values.jupyter.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.jupyter.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: jupyter
           image: "{{ .Values.jupyter.image.repository }}:{{ .Values.jupyter.image.tag }}"
           imagePullPolicy: {{ .Values.jupyter.image.pullPolicy }}
           env:
+            {{- if .Values.connect.enabled }}
             - name: SPARK_CONNECT_URL
               value: "sc://{{ include "spark-4.1.fullname" . }}-connect:15002"
+            {{- end }}
             - name: JUPYTER_ENABLE_LAB
               value: "yes"
             - name: PYARROW_IGNORE_TIMEZONE
@@ -37,18 +50,26 @@ spec:
               value: "/home/spark"
             - name: JUPYTER_RUNTIME_DIR
               value: "/tmp/jupyter-runtime"
+            {{- if .Values.global.s3.enabled }}
             - name: S3_ENDPOINT
               value: {{ .Values.global.s3.endpoint | quote }}
+            {{- if .Values.global.s3.existingSecret }}
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.global.s3.existingSecret | quote }}
+                  name: {{ .Values.global.s3.existingSecret }}
                   key: access-key
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.global.s3.existingSecret | quote }}
+                  name: {{ .Values.global.s3.existingSecret }}
                   key: secret-key
+            {{- end }}
+            {{- end }}
+            {{- range $key, $val := .Values.jupyter.env }}
+            - name: {{ $key }}
+              value: {{ $val | quote }}
+            {{- end }}
           {{- if .Values.security.podSecurityStandards }}
           securityContext:
             {{- include "spark-base.containerSecurityContext" . | nindent 12 }}
@@ -57,7 +78,17 @@ spec:
             - name: http
               containerPort: 8888
           resources:
+            {{- if and .Values.jupyter.gpu .Values.jupyter.gpu.enabled }}
+            limits:
+              memory: {{ .Values.jupyter.resources.limits.memory | default "4Gi" }}
+              cpu: {{ .Values.jupyter.resources.limits.cpu | default "2" }}
+              {{ .Values.jupyter.gpu.vendor }}: {{ .Values.jupyter.gpu.count | quote }}
+            requests:
+              memory: {{ .Values.jupyter.resources.requests.memory | default "1Gi" }}
+              cpu: {{ .Values.jupyter.resources.requests.cpu | default "500m" }}
+            {{- else }}
             {{- toYaml .Values.jupyter.resources | nindent 12 }}
+            {{- end }}
           readinessProbe:
             httpGet:
               path: /api

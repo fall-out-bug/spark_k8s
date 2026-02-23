@@ -1,0 +1,8 @@
+{
+  "feature": "F026",
+  "agent_id": "oneshot-20260213",
+  "status": "completed",
+  "completed_ws": ["WS-026-01", "WS-026-02", "WS-026-03"],
+  "execution_order": ["WS-026-01", "WS-026-02", "WS-026-03"],
+  "updated_at": "2026-02-13"
+}

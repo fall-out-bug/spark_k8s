@@ -1,0 +1,105 @@
+{{- if .Values.monitoring.grafanaDashboards.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-dashboard-nyc-taxi
+  namespace: {{ .Values.monitoring.grafanaDashboards.namespace | default .Release.Namespace }}
+  labels:
+    grafana_dashboard: "1"
+    app: spark-connect
+    app.kubernetes.io/name: spark-3.5
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  nyc-taxi-ml.json: |
+    {
+      "annotations": {"list": []},
+      "editable": true,
+      "gnetId": null,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "panels": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+          "id": 1,
+          "targets": [{"expr": "nyc_taxi_total_records", "refId": "A"}],
+          "title": "Total Records",
+          "type": "stat",
+          "fieldConfig": {"defaults": {"unit": "short", "decimals": 0}}
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
+          "id": 2,
+          "targets": [{"expr": "nyc_taxi_clean_records", "refId": "A"}],
+          "title": "Clean Records",
+          "type": "stat",
+          "fieldConfig": {"defaults": {"unit": "short", "decimals": 0}}
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+          "id": 3,
+          "targets": [{"expr": "nyc_taxi_avg_fare", "refId": "A"}],
+          "title": "Avg Fare ($)",
+          "type": "stat",
+          "fieldConfig": {"defaults": {"unit": "currencyUSD", "decimals": 2}}
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+          "id": 4,
+          "targets": [{"expr": "nyc_taxi_avg_distance", "refId": "A"}],
+          "title": "Avg Distance (miles)",
+          "type": "stat",
+          "fieldConfig": {"defaults": {"unit": "lengthmi", "decimals": 2}}
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"h": 4, "w": 6, "x": 0, "y": 4},
+          "id": 5,
+          "targets": [{"expr": "nyc_taxi_pipeline_duration_seconds", "refId": "A"}],
+          "title": "Pipeline Duration (s)",
+          "type": "stat",
+          "fieldConfig": {"defaults": {"unit": "s", "decimals": 1}}
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"h": 4, "w": 6, "x": 6, "y": 4},
+          "id": 6,
+          "targets": [{"expr": "ml_prediction_mape", "refId": "A"}],
+          "title": "ML MAPE",
+          "type": "stat",
+          "fieldConfig": {"defaults": {"unit": "percentunit", "decimals": 4}}
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"h": 4, "w": 6, "x": 12, "y": 4},
+          "id": 7,
+          "targets": [{"expr": "ml_test_rmse", "refId": "A"}],
+          "title": "ML RMSE",
+          "type": "stat",
+          "fieldConfig": {"defaults": {"unit": "short", "decimals": 2}}
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"h": 4, "w": 6, "x": 18, "y": 4},
+          "id": 8,
+          "targets": [{"expr": "spark_feature_raw_records", "refId": "A"}],
+          "title": "Features Processed",
+          "type": "stat",
+          "fieldConfig": {"defaults": {"unit": "short", "decimals": 0}}
+        }
+      ],
+      "refresh": "30s",
+      "schemaVersion": 38,
+      "style": "dark",
+      "tags": ["spark", "nyc-taxi", "ml"],
+      "templating": {"list": []},
+      "time": {"from": "now-6h", "to": "now"},
+      "title": "NYC Taxi ML Pipeline",
+      "uid": "nyc-taxi-ml",
+      "version": 1
+    }
+{{- end }}

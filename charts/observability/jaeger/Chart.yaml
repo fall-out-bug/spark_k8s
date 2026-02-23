@@ -1,0 +1,32 @@
+apiVersion: v2
+name: jaeger-spark
+description: Jaeger distributed tracing for Apache Spark on Kubernetes
+type: application
+version: 1.0.0
+
+keywords:
+  - spark
+  - tracing
+  - jaeger
+  - observability
+  - distributed-tracing
+
+maintainers:
+  - name: S7 Spark K8s Team
+    email: spark@s7.ru
+
+sources:
+  - https://www.jaegertracing.io
+  - https://spark.apache.org/docs/latest/monitoring.html#tracing
+
+# Deploys Jaeger for Spark OpenTelemetry traces
+# Spark OTLP endpoint sends traces to Jaeger collector
+
+dependencies:
+  - name: jaeger
+    version: ">=0.50.0"
+    repository: https://jaegertracing.io/helm-charts
+
+annotations:
+  artifacthub.io/category: tracing
+  artifacthub.io/license: Apache-2.0

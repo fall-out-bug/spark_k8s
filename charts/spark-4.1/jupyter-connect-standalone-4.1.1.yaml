@@ -1,0 +1,103 @@
+# Preset: Jupyter + Spark Connect + Standalone backend
+# Source: Spark 4.1.1 standalone mode
+# Components: Connect + Jupyter + MinIO + Standalone
+
+global:
+  s3:
+    endpoint: "http://minio:9000"
+    accessKey: "minioadmin"
+    secretKey: "minioadmin"
+    pathStyleAccess: true
+    sslEnabled: false
+
+spark-base:
+  enabled: false
+  minio:
+    enabled: false
+  postgresql:
+    enabled: false
+
+core:
+  enabled: false
+  minio:
+    enabled: false
+  postgresql:
+    enabled: false
+  hiveMetastore:
+    enabled: false
+
+minio:
+  enabled: false
+
+postgresql:
+  enabled: false
+
+rbac:
+  create: true
+  serviceAccountName: "spark-41"
+
+connect:
+  # DISABLED FOR SMOKE TESTS
+  replicas: 1
+  backendMode: local
+  image:
+    repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
+    tag: "4.1.0"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "0"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "2Gi"
+  driver:
+    host: ""
+    port: 7078
+  standalone:
+    enabled: false
+    masterService: ""
+    masterPort: 7077
+  eventLog:
+    enabled: false
+    logDir: "/spark-logs/events"
+  sparkConf: {}
+
+jupyter:
+  # DISABLED FOR SMOKE TESTS
+  image:
+    repository: ghcr.io/fall-out-bug/spark-k8s-jupyter-spark
+    tag: "4.1.0"
+    pullPolicy: Never
+  service:
+    type: ClusterIP
+    port: 8888
+  env:
+    SPARK_CONNECT_URL: "sc://spark-connect:15002"
+  resources:
+    requests:
+      cpu: "0"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+  persistence:
+    enabled: false
+
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false
+
+sparkOperator:
+  enabled: false
+
+celeborn:
+  enabled: false

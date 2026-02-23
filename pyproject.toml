@@ -1,0 +1,86 @@
+[project]
+name = "spark-k8s"
+version = "0.1.0"
+description = "Spark on Kubernetes Helm charts and tooling"
+readme = "README.md"
+requires-python = ">=3.9"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+minversion = "7.0"
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+    "--disable-warnings",
+    "--cov=tests",
+    "--cov-report=term-missing",
+    "--cov-fail-under=80",
+]
+# Override for quick runs: pytest --no-cov
+markers = [
+    "load: mark test as load test (long-running)",
+    "baseline: mark test as baseline load test",
+    "gpu: mark test as GPU load test",
+    "iceberg: mark test as Iceberg load test",
+    "comparison: mark test as version comparison test",
+    "security: mark test as security stability test",
+    "slow: mark test as slow running test",
+    "network: mark test as network policy test",
+    "rbac: mark test as RBAC test",
+    "secrets: mark test as secrets hardcoded test",
+    "compliance: mark test as compliance test",
+    "smoke: mark test as smoke test",
+    "e2e: mark test as end-to-end test",
+    "integration: mark test as integration test",
+    "observability: mark test as observability test",
+    "monitoring: mark test as monitoring test",
+    "tracing: mark test as distributed tracing test",
+    "logging: mark test as logging test",
+]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+[tool.ruff]
+# Known exclusions: tests/, scripts/, examples/ have legacy style (WS-027-02, WS-027-03)
+target-version = "py39"
+line-length = 120
+exclude = [
+    ".git", "__pycache__", ".venv", "venv", "build", "dist", "*.egg-info", ".sdp",
+    "tests/", "scripts/", "examples/", "docker/", "configs/", "k8s/", "hooks/",
+    "notebooks/",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "N"]
+ignore = ["E501"]
+
+[tool.black]
+line-length = 120
+target-version = ["py39", "py310", "py311"]
+include = '\\.pyi?$'
+exclude = '''
+/(
+    \\.git
+  | \\.venv
+  | venv
+  | build
+  | dist
+  | \\.sdp
+  | \\*\\.egg-info
+)/
+'''
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+strict = true
+ignore_missing_imports = true

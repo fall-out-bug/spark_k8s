@@ -1,0 +1,99 @@
+# Preset: Jupyter + Spark Connect + GPU (smoke test)
+# Source: Spark 4.1.0 local mode with GPU support
+# Components: Connect + Jupyter
+
+global:
+  s3:
+    enabled: false
+    endpoint: "http://minio:9000"
+    accessKey: "minioadmin"
+    secretKey: "minioadmin"
+    pathStyleAccess: true
+    sslEnabled: false
+
+spark-base:
+  minio:
+    enabled: false
+  postgresql:
+    enabled: false
+
+rbac:
+  create: true
+  serviceAccountName: "spark-41"
+
+core:
+  enabled: false
+  hiveMetastore:
+    enabled: false
+
+connect:
+  replicas: 1
+  backendMode: local
+  image:
+    repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
+    tag: "4.1.0"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "0"
+      memory: "512Mi"
+      nvidia.com/gpu: "1"
+    limits:
+      cpu: "2000m"
+      memory: "4Gi"
+      nvidia.com/gpu: "1"
+  sparkConf:
+    # GPU configuration
+    "spark.driver.resource.gpu.amount": "1"
+    "spark.executor.resource.gpu.amount": "1"
+    "spark.task.resource.gpu.amount": "1"
+    "spark.plugins": "com.nvidia.spark.SQLPlugin"
+    "spark.rapids.sql.enabled": "true"
+    "spark.rapids.sql.explain": "ALL"
+  driver:
+    host: ""
+    port: 7078
+  eventLog:
+    enabled: false
+
+jupyter:
+  enabled: true
+  image:
+    repository: ghcr.io/fall-out-bug/spark-k8s-jupyter-spark
+    tag: "4.1.0"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8888
+  resources:
+    requests:
+      cpu: "0"
+      memory: "256Mi"
+      nvidia.com/gpu: "1"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+      nvidia.com/gpu: "1"
+  env:
+    SPARK_CONNECT_URL: "sc://spark-connect:15002"
+  persistence:
+    enabled: false
+
+hiveMetastore:
+  enabled: false
+  initSchema: false
+
+historyServer:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false
+
+sparkOperator:
+  enabled: false
+
+celeborn:
+  enabled: false

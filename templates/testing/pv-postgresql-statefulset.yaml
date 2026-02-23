@@ -1,0 +1,18 @@
+# PersistentVolume for PostgreSQL StatefulSet
+# Created to match StatefulSet PVC requirements exactly
+# Key: Must match storageClassName, size, and accessModes with PVC
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-postgresql-metastore-41-0
+spec:
+  capacity:
+    storage: 8Gi  # Must match PVC request size
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+  storageClassName: standard  # Must match PVC's storageClass
+  hostPath:
+    path: /tmp/spark-testing/postgresql
+    type: DirectoryOrCreate

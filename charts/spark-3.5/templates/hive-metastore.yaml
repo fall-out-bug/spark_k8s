@@ -1,0 +1,284 @@
+{{- if .Values.hiveMetastore.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-hive-metastore-config
+  labels:
+    app: hive-metastore
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+data:
+  hive-site.xml.template: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+    <configuration>
+      <property>
+        <name>javax.jdo.option.ConnectionURL</name>
+        <value>jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}</value>
+      </property>
+      <property>
+        <name>javax.jdo.option.ConnectionDriverName</name>
+        <value>org.postgresql.Driver</value>
+      </property>
+      <property>
+        <name>javax.jdo.option.ConnectionUserName</name>
+        <value>${POSTGRES_USER}</value>
+      </property>
+      <property>
+        <name>javax.jdo.option.ConnectionPassword</name>
+        <value>${POSTGRES_PASSWORD}</value>
+      </property>
+      <property>
+        <name>hive.metastore.uris</name>
+        <value>thrift://{{ include "spark-3.5.fullname" . }}-metastore:{{ .Values.hiveMetastore.service.port }}</value>
+      </property>
+      <property>
+        <name>hive.metastore.thrift.port</name>
+        <value>{{ .Values.hiveMetastore.service.port }}</value>
+      </property>
+      <property>
+        <name>hive.metastore.schema.verification</name>
+        <value>false</value>
+      </property>
+      <property>
+        <name>hive.metastore.warehouse.dir</name>
+        <value>{{ .Values.hiveMetastore.warehouseDir }}</value>
+      </property>
+      {{- if .Values.global.s3.enabled }}
+      <property>
+        <name>fs.s3a.endpoint</name>
+        <value>{{ .Values.global.s3.endpoint }}</value>
+      </property>
+      <property>
+        <name>fs.s3a.access.key</name>
+        <value>{{ .Values.global.s3.accessKey }}</value>
+      </property>
+      <property>
+        <name>fs.s3a.secret.key</name>
+        <value>{{ .Values.global.s3.secretKey }}</value>
+      </property>
+      <property>
+        <name>fs.s3a.path.style.access</name>
+        <value>{{ .Values.global.s3.pathStyleAccess | quote }}</value>
+      </property>
+      {{- end }}
+    </configuration>
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-metastore-db
+  labels:
+    app: hive-metastore
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  POSTGRES_USER: {{ .Values.global.postgresql.user | quote }}
+  POSTGRES_PASSWORD: {{ .Values.global.postgresql.password | quote }}
+  POSTGRES_PORT: {{ .Values.global.postgresql.port | quote }}
+{{- end }}
+---
+{{- if and .Values.hiveMetastore.enabled .Values.hiveMetastore.initSchema }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-metastore-init
+  labels:
+    app: hive-metastore
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "2"
+spec:
+  template:
+    metadata:
+      labels:
+        app: hive-metastore
+        {{- include "spark-3.5.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ include "spark-3.5.serviceAccountName" . }}
+      {{- if .Values.security.podSecurityStandards }}
+      securityContext:
+        {{- include "spark-base.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: wait-for-postgresql
+          image: busybox:1.36
+          {{- if .Values.security.podSecurityStandards }}
+          securityContext:
+            {{- include "spark-base.containerSecurityContext" . | nindent 12 }}
+            runAsUser: 1000
+            runAsGroup: 1000
+          {{- end }}
+          command:
+            - sh
+            - -c
+            - >
+              until nc -z {{ .Values.global.postgresql.host }} {{ .Values.global.postgresql.port }};
+              do echo "Waiting for PostgreSQL..."; sleep 2; done; echo "PostgreSQL is ready!"
+      containers:
+        - name: schematool
+          image: "{{ .Values.hiveMetastore.image.repository }}:{{ .Values.hiveMetastore.image.tag }}"
+          imagePullPolicy: {{ .Values.hiveMetastore.image.pullPolicy }}
+          env:
+            - name: POSTGRES_HOST
+              value: {{ .Values.global.postgresql.host | quote }}
+            - name: POSTGRES_DB
+              value: {{ .Values.hiveMetastore.database.name | quote }}
+            - name: HIVE_CONF_DIR
+              value: "/tmp/hive-conf"
+          envFrom:
+            - secretRef:
+                name: {{ include "spark-3.5.fullname" . }}-metastore-db
+          {{- if .Values.security.podSecurityStandards }}
+          securityContext:
+            {{- include "spark-base.containerSecurityContext" . | nindent 12 }}
+          {{- end }}
+          command:
+            - /bin/bash
+            - -lc
+            - |
+              # Generate hive-site.xml by substituting environment variables
+              cat /opt/hive/conf/hive-site.xml.template | \
+              sed "s/\${POSTGRES_HOST}/${POSTGRES_HOST}/g" | \
+              sed "s/\${POSTGRES_PORT}/${POSTGRES_PORT}/g" | \
+              sed "s/\${POSTGRES_DB}/${POSTGRES_DB}/g" | \
+              sed "s/\${POSTGRES_USER}/${POSTGRES_USER}/g" | \
+              sed "s#\${POSTGRES_PASSWORD}#${POSTGRES_PASSWORD}#g" \
+              > /tmp/hive-conf/hive-site.xml
+              /opt/hive/bin/schematool -dbType postgres -initSchema
+          volumeMounts:
+            - name: hive-config
+              mountPath: /opt/hive/conf/hive-site.xml.template
+              subPath: hive-site.xml.template
+            - name: tmp
+              mountPath: /tmp
+            - name: hive-conf
+              mountPath: /tmp/hive-conf
+      volumes:
+        - name: hive-config
+          configMap:
+            name: {{ include "spark-3.5.fullname" . }}-hive-metastore-config
+        - name: tmp
+          emptyDir: {}
+        - name: hive-conf
+          emptyDir: {}
+{{- end }}
+---
+{{- if .Values.hiveMetastore.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-metastore
+  labels:
+    app: hive-metastore
+    app.kubernetes.io/component: hive-metastore
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hive-metastore
+      app.kubernetes.io/component: hive-metastore
+      {{- include "spark-3.5.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: hive-metastore
+        app.kubernetes.io/component: hive-metastore
+        {{- include "spark-3.5.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "spark-3.5.serviceAccountName" . }}
+      {{- if .Values.security.podSecurityStandards }}
+      securityContext:
+        {{- include "spark-base.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: wait-for-postgresql
+          image: busybox:1.36
+          {{- if .Values.security.podSecurityStandards }}
+          securityContext:
+            {{- include "spark-base.containerSecurityContext" . | nindent 12 }}
+            runAsUser: 1000
+            runAsGroup: 1000
+          {{- end }}
+          command:
+            - sh
+            - -c
+            - >
+              until nc -z {{ .Values.global.postgresql.host }} {{ .Values.global.postgresql.port }};
+              do echo "Waiting for PostgreSQL..."; sleep 2; done; echo "PostgreSQL is ready!"
+      containers:
+        - name: hive-metastore
+          image: "{{ .Values.hiveMetastore.image.repository }}:{{ .Values.hiveMetastore.image.tag }}"
+          imagePullPolicy: {{ .Values.hiveMetastore.image.pullPolicy }}
+          env:
+            - name: DB_DRIVER
+              value: "postgres"
+            - name: SERVICE_NAME
+              value: "metastore"
+            - name: POSTGRES_HOST
+              value: {{ .Values.global.postgresql.host | quote }}
+            - name: POSTGRES_DB
+              value: {{ .Values.hiveMetastore.database.name | quote }}
+            - name: HIVE_CONF_DIR
+              value: "/tmp/hive-conf"
+          envFrom:
+            - secretRef:
+                name: {{ include "spark-3.5.fullname" . }}-metastore-db
+          {{- if .Values.security.podSecurityStandards }}
+          securityContext:
+            {{- include "spark-base.containerSecurityContext" . | nindent 12 }}
+          {{- end }}
+          command:
+            - /bin/bash
+            - -lc
+            - |
+              # Generate hive-site.xml by substituting environment variables
+              cat /opt/hive/conf/hive-site.xml.template | \
+              sed "s/\${POSTGRES_HOST}/${POSTGRES_HOST}/g" | \
+              sed "s/\${POSTGRES_PORT}/${POSTGRES_PORT}/g" | \
+              sed "s/\${POSTGRES_DB}/${POSTGRES_DB}/g" | \
+              sed "s/\${POSTGRES_USER}/${POSTGRES_USER}/g" | \
+              sed "s#\${POSTGRES_PASSWORD}#${POSTGRES_PASSWORD}#g" \
+              > /tmp/hive-conf/hive-site.xml
+              exec /opt/hive/bin/hive --service metastore
+          ports:
+            - name: thrift
+              containerPort: {{ .Values.hiveMetastore.service.port }}
+          resources:
+            {{- toYaml .Values.hiveMetastore.resources | nindent 12 }}
+          volumeMounts:
+            - name: hive-config
+              mountPath: /opt/hive/conf/hive-site.xml.template
+              subPath: hive-site.xml.template
+            - name: tmp
+              mountPath: /tmp
+            - name: hive-conf
+              mountPath: /tmp/hive-conf
+      volumes:
+        - name: hive-config
+          configMap:
+            name: {{ include "spark-3.5.fullname" . }}-hive-metastore-config
+        - name: tmp
+          emptyDir: {}
+        - name: hive-conf
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-metastore
+  labels:
+    app: hive-metastore
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: hive-metastore
+    {{- include "spark-3.5.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: thrift
+      port: {{ .Values.hiveMetastore.service.port }}
+      targetPort: thrift
+{{- end }}

@@ -1,0 +1,29 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: spark-executor-pod-kill
+  namespace: spark-chaos
+spec:
+  action: pod-kill
+  mode: fixed-percent
+  value: "10"
+  selector:
+    namespaces:
+      - spark-staging
+    labelSelectors:
+      spark-role: executor
+  scheduler:
+    duration: "5m"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chaos-shuffle-failure
+  namespace: spark-chaos
+data:
+  experiment.sh: |
+    #!/bin/bash
+    # Shuffle failure chaos experiment
+    kubectl scale deployment celeborn --replicas=0 -n spark-staging
+    sleep 300
+    kubectl scale deployment celeborn --replicas=3 -n spark-staging

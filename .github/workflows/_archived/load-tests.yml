@@ -1,0 +1,181 @@
+name: Load Tests
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'  # Weekly on Sunday at 3 AM UTC
+  workflow_dispatch:
+    inputs:
+      duration:
+        description: 'Test duration in minutes'
+        required: false
+        default: '30'
+      users:
+        description: 'Number of concurrent users'
+        required: false
+        default: '100'
+
+env:
+  PYTHON_VERSION: "3.11"
+  LOAD_TEST_DURATION: ${{ github.event.inputs.duration || '30' }}
+  LOAD_TEST_USERS: ${{ github.event.inputs.users || '100' }}
+
+jobs:
+  load-tests:
+    name: Load Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install load testing tools
+        run: |
+          pip install locust pytest-locust k6
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.8.0
+        with:
+          cluster_name: spark-load-test
+          version: v0.20.0
+          config: tests/load/kind-config.yaml
+
+      - name: Install monitoring stack
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo update
+          helm install prometheus prometheus-community/kube-prometheus-stack \
+            --namespace monitoring --create-namespace --wait
+
+      - name: Deploy Spark test application
+        run: |
+          helm install spark-app charts/spark-3.5/ \
+            --namespace spark-test --create-namespace \
+            --set spark.executor.instances=10 \
+            --set spark.executor.cores=4 \
+            --set spark.executor.memory=8g \
+            --wait
+
+      - name: Run Locust load tests
+        run: |
+          locust -f tests/load/locustfile.py \
+            --headless \
+            --users ${{ env.LOAD_TEST_USERS }} \
+            --spawn-rate 10 \
+            --run-time ${{ env.LOAD_TEST_DURATION }}m \
+            --host http://spark-app.spark-test.svc.cluster.local:8080 \
+            --html load-test-report.html \
+            --csv load-test-results
+
+      - name: Run k6 load tests
+        run: |
+          k6 run \
+            --out json=k6-results.json \
+            --out influxdb=http://prometheus.monitoring.svc.cluster.local:8086/k6 \
+            tests/load/k6-test.js
+
+      - name: Collect performance metrics
+        run: |
+          python scripts/operations/collect-metrics.sh \
+            --namespace spark-test \
+            --duration ${{ env.LOAD_TEST_DURATION }} \
+            --output metrics.json
+
+      - name: Analyze results
+        run: |
+          python tests/load/analyze-results.py \
+            --locust-csv load-test-results_stats.csv \
+            --k6-json k6-results.json \
+            --metrics metrics.json \
+            --output analysis.json
+
+      - name: Check performance thresholds
+        run: |
+          python tests/load/check-thresholds.py \
+            --results analysis.json \
+            --threshold-p95 5000 \
+            --threshold-error-rate 0.01
+
+      - name: Upload load test reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: load-test-reports
+          path: |
+            load-test-report.html
+            load-test-results_*.csv
+            k6-results.json
+            analysis.json
+            metrics.json
+
+      - name: Comment PR with performance summary
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const fs = require('fs');
+            const analysis = JSON.parse(fs.readFileSync('analysis.json', 'utf8'));
+
+            const summary = `
+## Load Test Results
+
+**Duration:** ${analysis.duration} minutes
+**Users:** ${analysis.users}
+**Requests:** ${analysis.total_requests}
+
+### Performance
+- **Avg Response Time:** ${analysis.avg_response_time}ms
+- **P95 Response Time:** ${analysis.p95_response_time}ms
+- **P99 Response Time:** ${analysis.p99_response_time}ms
+- **Error Rate:** ${analysis.error_rate}%
+
+### Comparison to Baseline
+${analysis.comparison || 'No baseline available'}
+
+${analysis.threshold_met ? '✅ Performance thresholds met' : '⚠️ Performance thresholds exceeded'}
+            `.trim();
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+
+      - name: Cleanup
+        if: always()
+        run: |
+          helm uninstall spark-app -n spark-test || true
+          helm uninstall prometheus -n monitoring || true
+          kubectl delete namespace spark-test monitoring || true
+
+  update-baseline:
+    name: Update Performance Baseline
+    runs-on: ubuntu-latest
+    needs: load-tests
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download results
+        uses: actions/download-artifact@v3
+        with:
+          name: load-test-reports
+
+      - name: Update baseline
+        run: |
+          cp analysis.json tests/load/baseline.json
+
+      - name: Commit baseline
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add tests/load/baseline.json
+          git commit -m "chore: update performance baseline" || echo "No changes"
+          git push || echo "Already up to date"

@@ -1,0 +1,146 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-budget-rules
+  namespace: observability
+  labels:
+    prometheus: k8s
+    role: alert-rules
+data:
+  budget-alerts.yaml: |
+    groups:
+      - name: budget_alerts
+        interval: 1h
+        rules:
+          # 50% Budget Warning
+          - alert: SparkBudgetWarning50
+            expr: |
+              sum(rate(spark_cost_total{namespace=~"spark-.*"}[1h]) * 24 * 30)
+              / max(kube_budget_limit{type=~"spark-.*"}) > 0.5
+            for: 5m
+            labels:
+              severity: warning
+              threshold: "50%"
+              category: budget
+            annotations:
+              summary: "50% of Spark budget consumed for {{ $labels.namespace }}"
+              description: "Monthly spend is at {{ $value | humanizePercentage }} of budget"
+              runbook: "docs/operations/procedures/cost/budget-alerts.md"
+
+          # 80% Budget Critical
+          - alert: SparkBudgetCritical80
+            expr: |
+              sum(rate(spark_cost_total{namespace=~"spark-.*"}[1h]) * 24 * 30)
+              / max(kube_budget_limit{type=~"spark-.*"}) > 0.8
+            for: 5m
+            labels:
+              severity: critical
+              threshold: "80%"
+              category: budget
+            annotations:
+              summary: "80% of Spark budget consumed for {{ $labels.namespace }}"
+              description: "Monthly spend is at {{ $value | humanizePercentage }} of budget. Action required."
+              runbook: "docs/operations/procedures/cost/budget-alerts.md"
+
+          # 100% Budget Exceeded
+          - alert: SparkBudgetExceeded100
+            expr: |
+              sum(rate(spark_cost_total{namespace=~"spark-.*"}[1h]) * 24 * 30)
+              / max(kube_budget_limit{type=~"spark-.*"}) > 1.0
+            for: 5m
+            labels:
+              severity: emergency
+              threshold: "100%"
+              category: budget
+            annotations:
+              summary: "Spark budget exceeded for {{ $labels.namespace }}"
+              description: "Monthly spend has exceeded budget by {{ $value | humanizePercentage }}"
+              runbook: "docs/operations/procedures/cost/budget-alerts.md"
+
+          # Cost Anomaly Detection
+          - alert: SparkCostAnomalyDetected
+            expr: |
+              abs(
+                sum(rate(spark_cost_total{namespace=~"spark-.*"}[1h]))
+                - avg_over_time(sum(rate(spark_cost_total{namespace=~"spark-.*"}[1h]))[7d:])
+              ) / stddev_over_time(sum(rate(spark_cost_total{namespace=~"spark-.*"}[1h]))[7d:]) > 3
+            for: 15m
+            labels:
+              severity: warning
+              category: cost_anomaly
+            annotations:
+              summary: "Cost anomaly detected in {{ $labels.namespace }}"
+              description: "Current cost rate is >3σ from historical average"
+              runbook: "docs/operations/procedures/cost/budget-alerts.md"
+
+          # Idle Executors Alert
+          - alert: SparkIdleExecutors
+            expr: |
+              sum by (app_id) (spark_executor_active_tasks) == 0
+            for: 15m
+            labels:
+              severity: info
+              category: resource_optimization
+            annotations:
+              summary: "Idle executors detected for {{ $labels.app_id }}"
+              description: "Executors have been idle for 15+ minutes. Consider scaling down."
+              runbook: "docs/operations/procedures/cost/budget-alerts.md"
+
+          # High GC Time (Memory Pressure)
+          - alert: SparkHighGCTime
+            expr: |
+              avg(rate(jvm_gc_time_seconds{namespace=~"spark-.*"}[5m])) * 100 > 20
+            for: 10m
+            labels:
+              severity: warning
+              category: performance
+            annotations:
+              summary: "High GC time detected for {{ $labels.app_id }}"
+              description: "JVM is spending {{ $value | humanizePercentage }} of time in GC. Consider increasing memory."
+              runbook: "docs/operations/procedures/cost/budget-alerts.md"
+
+          # Data Skew Detection
+          - alert: SparkDataSkewDetected
+            expr: |
+              max(spark_task_duration_max{namespace=~"spark-.*"})
+              / avg(spark_task_duration_avg{namespace=~"spark-.*"}) > 5
+            for: 10m
+            labels:
+              severity: warning
+              category: performance
+            annotations:
+              summary: "Data skew detected for {{ $labels.app_id }}"
+              description: "Max/Avg task duration ratio is {{ $value }}x. Consider salting keys."
+              runbook: "docs/operations/procedures/cost/budget-alerts.md"
+
+          # Cost Spike Alert
+          - alert: SparkCostSpike
+            expr: |
+              rate(spark_cost_total{namespace=~"spark-.*"}[5m])
+              / rate(spark_cost_total{namespace=~"spark-.*"}[1h] offset 1h) > 2
+            for: 10m
+            labels:
+              severity: critical
+              category: cost_anomaly
+            annotations:
+              summary: "Cost spike detected in {{ $labels.namespace }}"
+              description: "Current spend rate is {{ $value | humanizePercentage }}x the hourly average"
+              runbook: "docs/operations/procedures/cost/budget-alerts.md"
+
+      - name: budget_forecast
+        interval: 6h
+        rules:
+          # Budget Runout Forecast
+          - alert: SparkBudgetRunoutForecast
+            expr: |
+              predict_linear(
+                sum(rate(spark_cost_total{namespace=~"spark-.*"}[1h]) * 24 * 30)[7d:1h],
+                30 * 24 * 3600
+              ) / max(kube_budget_limit{type=~"spark-.*"}) > 0.9
+            labels:
+              severity: warning
+              category: forecast
+            annotations:
+              summary: "Budget runout predicted within 30 days for {{ $labels.namespace }}"
+              description: "At current burn rate, budget will be exhausted"
+              runbook: "docs/operations/procedures/cost/budget-alerts.md"

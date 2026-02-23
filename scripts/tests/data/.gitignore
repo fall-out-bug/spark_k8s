@@ -1,0 +1,10 @@
+# Ignore generated datasets
+*.parquet
+*.csv
+*.json
+*.orc
+
+# Keep README.md and scripts
+!README.md
+!generate-dataset.sh
+!.gitignore

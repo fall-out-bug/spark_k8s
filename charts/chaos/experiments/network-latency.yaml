@@ -1,0 +1,17 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: spark-network-latency
+  namespace: spark-chaos
+spec:
+  action: delay
+  mode: all
+  selector:
+    namespaces:
+      - spark-staging
+  delay:
+    latency: "100ms"
+  direction: to
+  correlation: "true"
+  scheduler:
+    duration: "10m"

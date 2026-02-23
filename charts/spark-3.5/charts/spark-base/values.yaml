@@ -1,0 +1,79 @@
+global:
+  imagePullSecrets: []
+
+s3:
+  accessKey: "minioadmin"
+  secretKey: "minioadmin"
+  endpoint: ""
+  existingSecret: ""  # Set to use existing secret instead of creating one
+
+serviceAccount:
+  create: true
+  name: "spark"
+  annotations: {}
+
+rbac:
+  create: true
+
+minio:
+  enabled: false
+  image:
+    repository: quay.io/minio/minio
+    tag: "RELEASE.2024-01-01T16-36-33Z"
+    pullPolicy: IfNotPresent
+  service:
+    port: 9000
+    consolePort: 9001
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+  persistence:
+    enabled: true
+    size: "10Gi"
+    storageClass: ""
+  buckets:
+    - warehouse
+    - spark-logs
+    - spark-standalone-logs
+    - spark-jobs
+    - raw-data
+    - processed-data
+    - checkpoints
+
+postgresql:
+  enabled: false
+  image:
+    repository: postgres
+    tag: "15-alpine"
+    pullPolicy: IfNotPresent
+  auth:
+    username: "spark"
+    password: "spark123"
+  service:
+    port: 5432
+  persistence:
+    enabled: true
+    size: "8Gi"
+    storageClass: ""
+  databases: []
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+security:
+  podSecurityStandards: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  # PSS profile for namespace labels (restricted/baseline/privileged)
+  pssProfile: restricted
+  # Create namespace with PSS labels
+  createNamespace: false

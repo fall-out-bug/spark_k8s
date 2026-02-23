@@ -1,0 +1,99 @@
+# Preset: Airflow + Spark Connect + K8s backend + GPU
+# Components: Connect + GPU support
+
+global:
+  s3:
+    enabled: false
+    endpoint: "http://minio:9000"
+    accessKey: "minioadmin"
+    secretKey: "minioadmin"
+    pathStyleAccess: true
+    sslEnabled: false
+
+spark-base:
+  # DISABLED FOR SMOKE TESTS
+  minio:
+    # DISABLED FOR SMOKE TESTS
+    resources:
+      requests:
+        cpu: "0"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "512Mi"
+    persistence:
+      enabled: false
+  postgresql:
+    enabled: false
+
+rbac:
+  create: true
+  serviceAccountName: "spark-41"
+
+connect:
+  # DISABLED FOR SMOKE TESTS
+  replicas: 1
+  backendMode: k8s
+  image:
+    repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
+    tag: "4.1.1"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "2Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+  driver:
+    host: ""
+    port: 7078
+    memory: "512m"
+  executor:
+    cores: "2"
+    coresLimit: "4"
+    memory: "4Gi"
+    memoryLimit: "8G"
+    gpu:
+      enabled: true
+      count: "1"
+      vendor: "nvidia.com/gpu"
+  dynamicAllocation:
+    # DISABLED FOR SMOKE TESTS
+    enabled: false
+    minExecutors: 1
+    maxExecutors: 10
+    initialExecutors: 2
+  eventLog:
+    enabled: false
+  # GPU RAPIDS configuration for spark-custom image with GPU support
+  sparkConf:
+    spark.executor.resource.gpu.amount: "1"
+    spark.task.resource.gpu.amount: "0.25"
+    spark.plugins: "com.nvidia.spark.SQLPlugin"
+    spark.rapids.sql.enabled: "true"
+    spark.rapids.sql.mode: "execute"
+  extraJars:
+    enabled: true
+    configMap: spark-extra-jars
+
+jupyter:
+  enabled: false
+
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false
+
+sparkOperator:
+  enabled: false
+
+celeborn:
+  enabled: false

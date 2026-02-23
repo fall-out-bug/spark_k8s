@@ -1,0 +1,43 @@
+# WS-031-02: ROADMAP Auto-Update
+# Updates ROADMAP.md when docs/workstreams/ changes
+name: ROADMAP Auto-Update
+
+on:
+  push:
+    branches: [main, dev, master]
+    paths:
+      - 'docs/workstreams/INDEX.md'
+      - 'docs/workstreams/completed/**'
+      - 'docs/workstreams/backlog/**'
+  workflow_dispatch:
+
+jobs:
+  update-roadmap:
+    name: Update ROADMAP
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate ROADMAP
+        run: ./scripts/cicd/update-roadmap.sh
+
+      - name: Generate metrics
+        run: ./scripts/cicd/generate-metrics.sh
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          CHANGED=""
+          git add ROADMAP.md docs/metrics.json 2>/dev/null || true
+          if ! git diff --staged --quiet 2>/dev/null; then
+            git commit -m "docs: auto-update ROADMAP and metrics from INDEX"
+            git push
+          else
+            echo "No changes to ROADMAP or metrics"
+          fi

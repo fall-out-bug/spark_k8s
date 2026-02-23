@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: chaos-shuffle-failure
+  namespace: spark-chaos
+spec:
+  template:
+    spec:
+      serviceAccountName: chaos-experiments
+      restartPolicy: OnFailure
+      containers:
+      - name: chaos
+        image: bitnami/kubectl:latest
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #!/bin/bash
+          set -euo pipefail
+          echo "Starting shuffle failure experiment..."
+          echo "Stopping Celeborn..."
+          kubectl scale deployment celeborn --replicas=0 -n spark-staging
+          echo "Chaos will last for 5 minutes..."
+          sleep 300
+          echo "Recovering Celeborn..."
+          kubectl scale deployment celeborn --replicas=3 -n spark-staging
+          echo "Experiment complete"

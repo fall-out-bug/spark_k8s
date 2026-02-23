@@ -1,0 +1,126 @@
+#!/bin/bash
+# Smoke test: Jupyter + K8s submit mode + Iceberg (Spark 3.5.8)
+
+# @meta
+# name: "jupyter-k8s-iceberg-358"
+# type: "smoke"
+# description: "Smoke test for Jupyter + K8s submit mode + Iceberg (Spark 3.5.8)"
+# version: "3.5.8"
+# component: "jupyter"
+# mode: "k8s-submit"
+# features: ["iceberg"]
+# chart: "charts/spark-3.5"
+# preset: "charts/spark-3.5/presets/test-baseline-values.yaml"
+# estimated_time: "5 min"
+# depends_on: []
+# tags: [smoke, jupyter, k8s-submit, iceberg, 3.5.8]
+# @endmeta
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+
+source "${PROJECT_ROOT}/scripts/tests/lib/common.sh"
+source "${PROJECT_ROOT}/scripts/tests/lib/namespace.sh"
+source "${PROJECT_ROOT}/scripts/tests/lib/cleanup.sh"
+source "${PROJECT_ROOT}/scripts/tests/lib/helm.sh"
+source "${PROJECT_ROOT}/scripts/tests/lib/validation.sh"
+
+CHART_PATH="${PROJECT_ROOT}/charts/spark-3.5"
+PRESET_PATH="${PROJECT_ROOT}/charts/spark-3.5/presets/test-baseline-values.yaml"
+SPARK_VERSION="3.5.8"
+IMAGE_TAG="3.5.8"
+IMAGE_REPOSITORY="spark-custom"
+
+# Check for Iceberg availability
+check_iceberg_available() {
+    local ns="$1"
+    log_step "Checking Iceberg/Hive Metastore availability"
+
+    local hive_pods
+    hive_pods=$(kubectl get pods -n "$ns" -l app.kubernetes.io/component=hive-metastore --no-headers 2>/dev/null | wc -l)
+
+    if [[ "$hive_pods" -eq 0 ]]; then
+        log_warning "Hive Metastore not found. Skipping Iceberg test..."
+        return 1
+    fi
+    log_info "Hive Metastore available for Iceberg"
+    return 0
+}
+
+setup_test_environment() {
+    log_section "Setting up test environment"
+    check_required_commands kubectl helm
+
+
+    setup_cleanup_trap "$RELEASE_NAME" "$TEST_NAMESPACE"
+    export TEST_NAMESPACE RELEASE_NAME
+}
+
+deploy_spark() {
+    log_section "Deploying Jupyter with Iceberg support (K8s submit mode)"
+
+    helm_install "$RELEASE_NAME" "$CHART_PATH" "$TEST_NAMESPACE" "$PRESET_PATH" \
+        --set jupyter.image.tag="${IMAGE_TAG}" \
+        --set sparkOperator.enabled=false \
+        --set hiveMetastore.enabled=true \
+        --set global.minio.enabled=true
+
+    helm_wait_for_deployed "$RELEASE_NAME" "$TEST_NAMESPACE" 300
+}
+
+validate_deployment() {
+    log_section "Validating deployment"
+
+    wait_for_pods_by_label "app.kubernetes.io/component=jupyter" "$TEST_NAMESPACE" 1 300
+
+    if kubectl get deployments -n "$TEST_NAMESPACE" -l app.kubernetes.io/component=hive-metastore &>/dev/null; then
+        wait_for_pods_by_label "app.kubernetes.io/component=hive-metastore" "$TEST_NAMESPACE" 1 300
+    fi
+
+    local jupyter_pod
+    jupyter_pod=$(kubectl get pods -n "$TEST_NAMESPACE" -l app.kubernetes.io/component=jupyter -o jsonpath='{.items[0].metadata.name}')
+
+    log_success "Jupyter pod ready with Iceberg: $jupyter_pod"
+}
+
+run_smoke_test() {
+    log_section "Running smoke test"
+
+    if ! check_iceberg_available "$TEST_NAMESPACE"; then
+        log_info "Skipping Iceberg-specific test (no Hive Metastore)"
+        return 0
+    fi
+
+    local jupyter_pod
+    jupyter_pod=$(kubectl get pods -n "$TEST_NAMESPACE" -l app.kubernetes.io/component=jupyter -o jsonpath='{.items[0].metadata.name}')
+
+    kubectl exec -n "$TEST_NAMESPACE" "$jupyter_pod" -- /bin/sh -c '
+        /opt/spark/bin/spark-submit \
+            --master local[*] \
+            --conf spark.driver.memory=512m \
+            --conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions \
+            --conf spark.sql.catalog.spark_catalog=org.apache.iceberg.spark.SparkSessionCatalog \
+            /opt/spark/examples/src/main/python/pi.py 10
+    '
+
+    log_success "Iceberg Spark job completed successfully"
+}
+
+main() {
+    log_section "Smoke Test: Jupyter + K8s Submit + Iceberg (3.5.8)"
+    setup_test_environment
+    deploy_spark
+    validate_deployment
+    run_smoke_test
+    log_success "✅ Smoke test passed!"
+
+    unregister_release_cleanup "$RELEASE_NAME"
+    unregister_namespace_cleanup "$TEST_NAMESPACE"
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    setup_error_trap
+    main "$@"
+fi

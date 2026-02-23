@@ -4,8 +4,8 @@ Components:
 {{- if .Values.connect.enabled }}
 - Spark Connect: {{ include "spark-4.1.fullname" . }}-connect:15002
 {{- end }}
-{{- if .Values.hiveMetastore.enabled }}
-- Hive Metastore: {{ include "spark-4.1.fullname" . }}-metastore:9083
+{{- if or .Values.hiveMetastore.enabled .Values.core.hiveMetastore.enabled }}
+- Hive Metastore: {{ if .Values.core.hiveMetastore.enabled }}{{ include "spark.core.hiveMetastore.fullname" . }}{{ else }}{{ include "spark-4.1.fullname" . }}-metastore{{ end }}:{{ .Values.core.hiveMetastore.service.port | default .Values.hiveMetastore.service.port | default 9083 }}
 {{- end }}
 {{- if .Values.historyServer.enabled }}
 - History Server: {{ include "spark-4.1.fullname" . }}-history:18080

@@ -4,107 +4,64 @@ kind: Deployment
 metadata:
   name: {{ include "spark-standalone.fullname" . }}-airflow-scheduler
   labels:
-    app: airflow-scheduler
-    {{- include "spark-standalone.labels" . | nindent 4 }}
+    {{- include "spark-standalone.airflowSchedulerLabels" . | nindent 4 }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.airflow.scheduler.replicas }}
   selector:
     matchLabels:
-      app: airflow-scheduler
-      {{- include "spark-standalone.selectorLabels" . | nindent 6 }}
+      {{- include "spark-standalone.airflowSchedulerLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: airflow-scheduler
-        {{- include "spark-standalone.selectorLabels" . | nindent 8 }}
+        {{- include "spark-standalone.airflowSchedulerLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "spark-standalone.serviceAccountName" . }}
-      {{- if .Values.security.podSecurityStandards }}
-      securityContext:
-        {{- include "spark-standalone.podSecurityContext" . | nindent 8 }}
-      {{- end }}
       initContainers:
-      - name: wait-for-postgresql
-        image: busybox:1.36
-        {{- if .Values.security.podSecurityStandards }}
-        securityContext:
-          {{- include "spark-standalone.containerSecurityContext" . | nindent 10 }}
-          runAsUser: 1000
-          runAsGroup: 1000
-        {{- end }}
-        command:
-        - sh
-        - -c
-        - >
-          until nc -z {{ .Values.airflow.postgresql.host }} {{ .Values.airflow.postgresql.port }};
-          do echo "Waiting for PostgreSQL..."; sleep 2; done; echo "PostgreSQL is ready!"
-      - name: sync-dags
-        image: busybox:1.36
-        {{- if .Values.security.podSecurityStandards }}
-        securityContext:
-          {{- include "spark-standalone.containerSecurityContext" . | nindent 10 }}
-          runAsUser: 1000
-          runAsGroup: 1000
-        {{- end }}
-        command:
-        - sh
-        - -c
-        - >
-          rm -rf /dags/* &&
-          cp -LR /dags-src/* /dags/ &&
-          echo "DAGs synced."
-        volumeMounts:
-        - name: dags-src
-          mountPath: /dags-src
-          readOnly: true
-        - name: dags
-          mountPath: /dags
+        - name: wait-for-db
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z {{ include "spark-standalone.fullname" . }}-airflow-postgresql {{ .Values.airflow.postgresql.service.port }}; do echo waiting for db; sleep 2; done']
       containers:
-      - name: scheduler
-        {{- if .Values.security.podSecurityStandards }}
-        securityContext:
-          {{- include "spark-standalone.containerSecurityContext" . | nindent 10 }}
-        {{- end }}
-        image: "{{ .Values.airflow.image.repository }}:{{ .Values.airflow.image.tag }}"
-        imagePullPolicy: {{ .Values.airflow.image.pullPolicy }}
-        command:
-        - bash
-        - -lc
-        - |
-          airflow db migrate && exec airflow scheduler
-        envFrom:
-        - configMapRef:
-            name: {{ include "spark-standalone.fullname" . }}-airflow-config
-        {{- if .Values.airflow.fernetKey }}
-        - secretRef:
-            name: {{ include "spark-standalone.fullname" . }}-airflow-fernet-key
-        {{- end }}
-        resources:
-          {{- toYaml .Values.airflow.scheduler.resources | nindent 10 }}
-        volumeMounts:
-        - name: airflow-home
-          mountPath: /opt/airflow
-        - name: pod-template
-          mountPath: /opt/airflow/pod_templates
-        - name: dags
-          mountPath: /opt/airflow/dags
-        - name: tmp
-          mountPath: /tmp
-        - name: airflow-logs
-          mountPath: /opt/airflow/logs
+        - name: scheduler
+          image: "{{ .Values.airflow.image.repository }}:{{ .Values.airflow.image.tag }}"
+          imagePullPolicy: {{ .Values.airflow.image.pullPolicy }}
+          env:
+            - name: AIRFLOW__CORE__DAGS_FOLDER
+              value: /opt/airflow/dags
+            - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+              value: "postgresql://{{ .Values.airflow.postgresql.auth.username }}:{{ .Values.airflow.postgresql.auth.password }}@{{ include "spark-standalone.fullname" . }}-airflow-postgresql/{{ .Values.airflow.postgresql.auth.database }}"
+            - name: AIRFLOW__WEBSERVER__SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "spark-standalone.fullname" . }}-airflow-secret
+                  key: secret-key
+          command: ['airflow', 'scheduler']
+          resources:
+            {{- toYaml .Values.airflow.scheduler.resources | nindent 12 }}
+          livenessProbe:
+            exec:
+              command:
+                - airflow
+                - jobs
+                - check
+                - --job-type
+                - SchedulerJob
+            initialDelaySeconds: 60
+            periodSeconds: 60
+          volumeMounts:
+            - name: airflow-config
+              mountPath: /opt/airflow/airflow.cfg
+              subPath: airflow.cfg
+            - name: airflow-dags
+              mountPath: /opt/airflow/dags
+            - name: airflow-logs
+              mountPath: /opt/airflow/logs
       volumes:
-      - name: airflow-home
-        emptyDir: {}
-      - name: pod-template
-        configMap:
-          name: {{ include "spark-standalone.fullname" . }}-airflow-pod-template
-      - name: dags-src
-        configMap:
-          name: {{ include "spark-standalone.fullname" . }}-airflow-dags
-      - name: dags
-        emptyDir: {}
-      - name: tmp
-        emptyDir: {}
-      - name: airflow-logs
-        emptyDir: {}
+        - name: airflow-config
+          configMap:
+            name: {{ include "spark-standalone.fullname" . }}-airflow-config
+        - name: airflow-dags
+          configMap:
+            name: {{ include "spark-standalone.fullname" . }}-airflow-dags
+        - name: airflow-logs
+          emptyDir: {}
 {{- end }}

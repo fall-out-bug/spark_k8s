@@ -1,0 +1,136 @@
+# Detection rules for Spark autotuning pattern analyzer
+# Used by scripts/autotuning/analyzer.py
+
+detection_rules:
+  gc_pressure:
+    description: "High garbage collection time relative to task execution"
+    metric: "gc_ratio"
+    condition: "gt"  # greater than
+    thresholds:
+      warning: 0.10
+      critical: 0.20
+    recommendation: "increase_memory"
+    rationale: "GC time exceeds {{value}} of task time, indicating memory pressure"
+
+  memory_spill:
+    description: "Memory spilled to disk during execution"
+    metric: "memory_spill"
+    condition: "gt"
+    thresholds:
+      warning: 1
+      critical: 1073741824  # 1GB
+    recommendation: "increase_memory_or_reduce_storage_fraction"
+    rationale: "{{value}} bytes spilled to disk, indicating insufficient memory"
+
+  data_skew:
+    description: "Uneven task duration distribution"
+    metric: "task_skew_ratio"
+    condition: "gt"
+    thresholds:
+      warning: 3.0
+      critical: 5.0
+    recommendation: "enable_skew_join_or_salting"
+    rationale: "Task duration p99/p50 ratio is {{value}}, indicating data skew"
+
+  low_cpu_utilization:
+    description: "CPU underutilized"
+    metric: "cpu_utilization"
+    condition: "lt"  # less than
+    thresholds:
+      warning: 0.60
+      critical: 0.40
+    recommendation: "reduce_cores_or_increase_parallelism"
+    rationale: "CPU utilization is {{value}}, indicating over-provisioned cores"
+
+  high_cpu_utilization:
+    description: "CPU overutilized"
+    metric: "cpu_utilization"
+    condition: "gt"
+    thresholds:
+      warning: 0.95
+      critical: 0.99
+    recommendation: "add_executors_or_reduce_parallelism"
+    rationale: "CPU utilization is {{value}}, indicating CPU bottleneck"
+
+  high_shuffle_bytes:
+    description: "Excessive shuffle data"
+    metric: "shuffle_write"
+    condition: "gt"
+    thresholds:
+      warning: 1073741824  # 1GB
+      critical: 10737418240  # 10GB
+    recommendation: "increase_partitions_or_broadcast_join"
+    rationale: "{{value}} bytes shuffled, consider broadcast joins"
+
+  long_task_duration:
+    description: "Tasks taking too long"
+    metric: "task_duration_p99"
+    condition: "gt"
+    thresholds:
+      warning: 60  # 1 minute
+      critical: 300  # 5 minutes
+    recommendation: "increase_parallelism_or_optimize_query"
+    rationale: "P99 task duration is {{value}}s, indicating potential bottleneck"
+
+# Workload classification rules
+workload_classification:
+  etl_batch:
+    description: "Batch ETL processing"
+    indicators:
+      - metric: "shuffle_write"
+        condition: "gt"
+        value: 100000000  # 100MB
+      - metric: "task_duration_avg"
+        condition: "gt"
+        value: 1.0  # 1 second
+    typical_duration: "5m-1h"
+
+  interactive:
+    description: "Interactive analytics queries"
+    indicators:
+      - metric: "shuffle_write"
+        condition: "lt"
+        value: 10000000  # 10MB
+      - metric: "task_duration_avg"
+        condition: "lt"
+        value: 0.5  # 500ms
+    typical_duration: "<30s"
+
+  ml_training:
+    description: "ML model training"
+    indicators:
+      - metric: "executor_memory"
+        condition: "gt"
+        value: 8000000000  # 8GB
+      - metric: "task_duration_avg"
+        condition: "gt"
+        value: 10.0  # 10 seconds
+    typical_duration: ">10m"
+
+  streaming:
+    description: "Structured streaming"
+    indicators:
+      - metric: "duration_seconds"
+        condition: "eq"
+        value: -1  # Continuous
+    typical_duration: "continuous"
+
+# Severity levels for display
+severity_levels:
+  ok:
+    color: "green"
+    icon: "✓"
+    priority: 0
+  warning:
+    color: "yellow"
+    icon: "⚠"
+    priority: 1
+  critical:
+    color: "red"
+    icon: "✗"
+    priority: 2
+
+# Analysis settings
+analysis:
+  min_samples: 1  # Minimum metrics samples needed
+  confidence_threshold: 0.7  # Minimum confidence for classification

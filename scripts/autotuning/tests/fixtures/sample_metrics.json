@@ -1,0 +1,24 @@
+{
+  "app_id": "app-20260222120000-0001",
+  "timestamp": "2026-02-22T12:00:00",
+  "metrics": {
+    "gc_time": 5.2,
+    "memory_spill": 1500000000,
+    "task_duration_p50": 2.5,
+    "task_duration_p99": 12.5,
+    "task_duration_max": 45.0,
+    "task_duration_avg": 3.2,
+    "shuffle_read": 2100000000,
+    "shuffle_write": 1800000000,
+    "cpu_utilization": 0.55,
+    "executor_memory": 12000000000,
+    "executor_count": 2,
+    "input_bytes": 50000000000,
+    "output_bytes": 2000000000,
+    "open_fds": 350,
+    "gc_ratio": 0.08,
+    "task_skew_ratio": 5.0
+  },
+  "duration_seconds": 45.0,
+  "collected_at": "2026-02-22T12:00:45"
+}

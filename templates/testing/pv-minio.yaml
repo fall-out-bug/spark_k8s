@@ -1,0 +1,26 @@
+# PersistentVolume for Minio S3-compatible storage
+# Used for: Event logs, warehouse data, checkpoints
+# Size: 10Gi (sufficient for testing)
+#
+# This is a testing-only workaround for minikube (WSL2 + docker driver)
+# where dynamic provisioning doesn't work.
+#
+# Production: Use cloud-specific StorageClass (AWS EBS, Azure Disk, etc.)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: minio-pv
+  labels:
+    app.kubernetes.io/component: minio
+    app.kubernetes.io/part-of: spark
+    app.kubernetes.io/testing: "true"
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: standard
+  hostPath:
+    path: /tmp/spark-testing/minio
+    type: DirectoryOrCreate

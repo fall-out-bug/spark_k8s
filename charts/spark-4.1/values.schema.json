@@ -1,0 +1,154 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "connect": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "replicas": {"type": "integer", "minimum": 0},
+        "image": {
+          "type": "object",
+          "required": ["repository"],
+          "properties": {
+            "repository": {"type": "string", "minLength": 1},
+            "tag": {"type": "string"},
+            "pullPolicy": {"type": "string"}
+          }
+        },
+        "resources": {"type": "object"}
+      }
+    },
+    "rbac": {
+      "type": "object",
+      "properties": {
+        "create": {"type": "boolean"},
+        "serviceAccountName": {"type": "string"}
+      }
+    },
+    "core": {
+      "type": "object",
+      "properties": {
+        "minio": {
+          "type": "object",
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "fullnameOverride": {"type": "string"},
+            "image": {
+              "type": "object",
+              "properties": {
+                "repository": {"type": "string", "minLength": 1},
+                "tag": {"type": "string"},
+                "pullPolicy": {"type": "string"}
+              }
+            }
+          }
+        },
+        "postgresql": {
+          "type": "object",
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "fullnameOverride": {"type": "string"},
+            "image": {
+              "type": "object",
+              "properties": {
+                "repository": {"type": "string", "minLength": 1},
+                "tag": {"type": "string"},
+                "pullPolicy": {"type": "string"}
+              }
+            }
+          }
+        },
+        "hiveMetastore": {
+          "type": "object",
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "fullnameOverride": {"type": "string"},
+            "image": {
+              "type": "object",
+              "properties": {
+                "repository": {"type": "string", "minLength": 1},
+                "tag": {"type": "string"},
+                "pullPolicy": {"type": "string"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "properties": {
+        "podSecurityStandards": {"type": "boolean"},
+        "runAsUser": {"type": "integer"},
+        "runAsGroup": {"type": "integer"},
+        "fsGroup": {"type": "integer"}
+      }
+    },
+    "features": {
+      "type": "object",
+      "properties": {
+        "iceberg": {
+          "type": "object",
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "catalogType": {"type": "string"},
+            "warehouse": {"type": "string"}
+          }
+        },
+        "gpu": {
+          "type": "object",
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "taskResourceAmount": {"type": "string"}
+          }
+        }
+      }
+    },
+    "historyServer": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "fullnameOverride": {"type": "string"},
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": {"type": "string", "minLength": 1},
+            "tag": {"type": "string"},
+            "pullPolicy": {"type": "string"}
+          }
+        },
+        "logDirectory": {"type": "string"}
+      }
+    },
+    "hiveMetastore": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": {"type": "string", "minLength": 1},
+            "tag": {"type": "string"},
+            "pullPolicy": {"type": "string"}
+          }
+        }
+      }
+    },
+    "spark-base": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "core": {"type": "object"},
+        "security": {
+          "type": "object",
+          "properties": {
+            "podSecurityStandards": {"type": "boolean"},
+            "runAsUser": {"type": "integer"},
+            "runAsGroup": {"type": "integer"}
+          }
+        }
+      }
+    }
+  }
+}

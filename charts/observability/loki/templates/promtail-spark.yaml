@@ -1,0 +1,67 @@
+{{/*
+Promtail configuration for Spark pods
+
+This Promtail configuration scrapes Spark logs from pods and sends them to Loki.
+*/}}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-promtail-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: spark
+    chart: {{ .Chart.Name }}
+    release: {{ .Release.Name }}
+data:
+  promtail.yaml: |
+    server:
+      log_level: info
+      http_listen_port: 3101
+
+    clients:
+      - url: http://loki:3100/loki/api/v1/push
+        external_labels:
+          cluster: s7-spark-k8s
+          namespace: spark-operations
+
+        snippets:
+          # Driver logs
+          - job_name: spark-driver
+            kubernetes_sd_configs:
+              - role:
+                  value: pod
+                selector:
+                  app: spark
+                  spark-role: driver
+                relabel_configs:
+                  - source_labels:
+                      app: spark
+                      spark_role: driver
+                  - regex:
+                      source: __path__
+                    replacement: /var/log/spark/*
+
+          # Executor logs
+          - job_name: spark-executor
+            kubernetes_sd_configs:
+              - role:
+                  value: pod
+                selector:
+                  app: spark
+                  spark-role: executor
+                relabel_configs:
+                  - source_labels:
+                      app: spark
+                      spark_role: executor
+                  - regex:
+                      source: __path__
+                    replacement: /var/log/spark/*
+
+        pipeline_stages:
+          - json:
+              expressions:
+                - expression: "(?i<(level|LEVEL>)=(?P<INFO|D|E>W>)(?:\\s+(?P< TRACE|DEBUG|INFO>WARN>ERROR)?)(?:\\s+)"
+                  labels:
+                    level:
+---

@@ -1,0 +1,36 @@
+{{- if .Values.monitoring.grafana.dashboards.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-grafana-dashboards
+  labels:
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+    grafana_dashboard: "1"
+data:
+  job-phase-timeline.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Spark Job Phase Timeline",
+        "tags": ["spark", "connect", "tracing"],
+        "timezone": "UTC",
+        "schemaVersion": 38,
+        "version": 1,
+        "refresh": "30s",
+        "panels": [...]
+      }
+    }
+  spark-profiling.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Spark Profiling",
+        "tags": ["spark", "profiling", "monitoring"],
+        "timezone": "UTC",
+        "schemaVersion": 38,
+        "version": 1,
+        "refresh": "30s",
+        "panels": [...]
+      }
+    }
+{{- end }}

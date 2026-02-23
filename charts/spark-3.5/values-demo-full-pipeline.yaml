@@ -1,0 +1,253 @@
+# Full Pipeline Demo Configuration
+# Complete Spark + Airflow + Monitoring stack for batch ETL workloads
+#
+# Usage:
+#   helm dependency build charts/spark-3.5
+#   helm install full-demo charts/spark-3.5 -n demo --create-namespace -f charts/spark-3.5/values-demo-full-pipeline.yaml
+
+global:
+  imagePullSecrets: []
+  s3:
+    enabled: true
+    endpoint: "http://minio:9000"
+    accessKey: "minioadmin"
+    secretKey: "minioadmin"
+    pathStyleAccess: true
+    sslEnabled: false
+
+# ===========================================
+# Core Infrastructure
+# ===========================================
+
+core:
+  minio:
+    enabled: true
+    persistence:
+      enabled: false
+    buckets:
+      - warehouse
+      - spark-logs
+      - spark-jobs
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "50m"
+      limits:
+        memory: "256Mi"
+        cpu: "100m"
+
+  postgresql:
+    enabled: false
+
+  hiveMetastore:
+    enabled: false
+
+spark-base:
+  enabled: true
+
+# ===========================================
+# Spark Standalone Cluster (ETL Backend) - DISABLED
+# Using subchart instead (see 'standalone' section below)
+# ===========================================
+
+sparkStandalone:
+  enabled: false  # Use subchart instead for full Airflow integration
+
+# ===========================================
+# Spark Standalone Subchart with Airflow
+# ===========================================
+
+standalone:  # Alias for spark-standalone subchart
+  enabled: true
+  master:
+    enabled: true
+    image:
+      repository: spark-custom
+      tag: "3.5.7"
+    service:
+      type: ClusterIP
+      rpcPort: 7077
+      uiPort: 8080
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "50m"
+      limits:
+        memory: "512Mi"
+        cpu: "200m"
+  worker:
+    enabled: true
+    replicas: 1
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "50m"
+      limits:
+        memory: "1Gi"
+        cpu: "200m"
+    sparkConf:
+      spark.worker.memory: "512m"
+      spark.worker.cores: "1"
+  airflow:
+    enabled: true
+    image:
+      repository: spark-k8s/airflow
+      tag: "2.11.0"
+    webserver:
+      replicas: 1
+      service:
+        type: ClusterIP
+        port: 8080
+      resources:
+        requests:
+          memory: "256Mi"
+          cpu: "50m"
+        limits:
+          memory: "512Mi"
+          cpu: "200m"
+    scheduler:
+      replicas: 1
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "25m"
+        limits:
+          memory: "256Mi"
+          cpu: "100m"
+    postgresql:
+      enabled: true
+      auth:
+        database: "airflow"
+        username: "airflow"
+        password: "airflow123"
+      persistence:
+        enabled: false
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "25m"
+        limits:
+          memory: "128Mi"
+          cpu: "50m"
+    dags:
+      - spark_etl_example.py
+      - spark_streaming_example.py
+    variables:
+      spark_image: "spark-custom:3.5.7"
+      spark_namespace: "demo-full"
+      s3_endpoint: "http://demo-full-spark-35-minio:9000"
+      s3_access_key: "minioadmin"
+      s3_secret_key: "minioadmin"
+
+# ===========================================
+# Spark Connect (Interactive Analytics)
+# ===========================================
+
+connect:
+  enabled: true
+  replicas: 1
+  image:
+    repository: spark-custom
+    tag: "3.5.7"
+  service:
+    type: ClusterIP
+    port: 15002
+  backendMode: "standalone"
+  standalone:
+    masterService: "demo-full-standalone-master"
+    masterPort: 7077
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "50m"
+    limits:
+      memory: "512Mi"
+      cpu: "200m"
+  eventLog:
+    enabled: false
+
+# ===========================================
+# Jupyter (Interactive Development)
+# ===========================================
+
+jupyter:
+  enabled: true
+  image:
+    repository: spark-k8s-jupyter
+    tag: "3.5-3.5.7"
+  service:
+    type: ClusterIP
+    port: 8888
+  env:
+    SPARK_CONNECT_URL: "sc://demo-full-spark-35-connect:15002"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "50m"
+    limits:
+      memory: "512Mi"
+      cpu: "200m"
+  persistence:
+    enabled: false
+
+# ===========================================
+# History Server (Spark UI)
+# ===========================================
+
+historyServer:
+  enabled: true
+  image:
+    repository: spark-custom
+    tag: "3.5.7"
+  logDirectory: "file:///tmp/spark-events"
+  service:
+    type: ClusterIP
+    port: 18080
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "25m"
+    limits:
+      memory: "256Mi"
+      cpu: "100m"
+
+# ===========================================
+# Monitoring (Full Observability)
+# ===========================================
+
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: "15s"
+    scrapeTimeout: "10s"
+  podMonitor:
+    enabled: true
+    interval: "30s"
+  grafanaDashboards:
+    enabled: true
+  grafana:
+    dashboards:
+      enabled: true
+  prometheusAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "4040"
+  s3aMetrics:
+    enabled: true
+  jobPhaseTimeline:
+    enabled: true
+  sparkProfiling:
+    enabled: true
+
+# ===========================================
+# Security
+# ===========================================
+
+security:
+  podSecurityStandards: true
+  runAsUser: 185
+  runAsGroup: 185
+  fsGroup: 185
+
+rbac:
+  create: true
+  serviceAccountName: "spark-35"

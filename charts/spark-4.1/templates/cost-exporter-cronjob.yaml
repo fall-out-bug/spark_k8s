@@ -1,0 +1,50 @@
+{{- if .Values.costExporter.enabled -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: spark-cost-exporter
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: spark-cost-exporter
+    app.kubernetes.io/name: spark-cost-exporter
+spec:
+  schedule: {{ .Values.costExporter.schedule | default "0 * * * *" | quote }}
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    metadata:
+      labels:
+        app: spark-cost-exporter
+    spec:
+      backoffLimit: 3
+      template:
+        spec:
+          serviceAccountName: {{ .Values.costExporter.serviceAccount.create | ternary (include "spark-cost-exporter.fullname" .) "default" }}
+          restartPolicy: OnFailure
+          containers:
+          - name: cost-exporter
+            image: {{ .Values.costExporter.image.repository }}:{{ .Values.costExporter.image.tag | default .Chart.AppVersion }}
+            imagePullPolicy: {{ .Values.costExporter.image.pullPolicy }}
+            command:
+            - /scripts/operations/cost/calculate-job-cost.sh
+            args:
+            - --prometheus-url
+            - http://prometheus-operator:9090
+            - --output-format
+            - json
+            env:
+            - name: PROMETHEUS_URL
+              value: {{ .Values.costExporter.prometheusUrl | default "http://prometheus-operator:9090" }}
+            - name: COST_EXPORT_PERIOD
+              value: {{ .Values.costExporter.period | default "24h" | quote }}
+            resources:
+              {{- toYaml .Values.costExporter.resources | nindent 14 }}
+            volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+          volumes:
+          - name: scripts
+            configMap:
+              name: spark-scripts
+              defaultMode: 0755
+{{- end -}}

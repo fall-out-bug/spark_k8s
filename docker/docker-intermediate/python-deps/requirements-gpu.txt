@@ -1,0 +1,6 @@
+# NVIDIA RAPIDS GPU libraries for PySpark
+# Compatible with CUDA 12.x
+
+cudf-cu12>=24.10.0
+cuml-cu12>=24.10.0
+cupy-cuda12x>=13.0.0

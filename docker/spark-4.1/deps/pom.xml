@@ -20,5 +20,23 @@
       <artifactId>hadoop-aws</artifactId>
       <version>3.4.2</version>
     </dependency>
+    <!-- NVIDIA RAPIDS Accelerator for Spark -->
+    <dependency>
+      <groupId>com.nvidia</groupId>
+      <artifactId>rapids-4-spark_2.13</artifactId>
+      <version>24.12.0</version>
+    </dependency>
+    <!-- Apache Iceberg for Spark -->
+    <dependency>
+      <groupId>org.apache.iceberg</groupId>
+      <artifactId>iceberg-spark-runtime-4.0_2.13</artifactId>
+      <version>1.6.1</version>
+    </dependency>
+    <!-- AWS S3 filesystem for Iceberg -->
+    <dependency>
+      <groupId>org.apache.iceberg</groupId>
+      <artifactId>iceberg-aws-bundle</artifactId>
+      <version>1.6.1</version>
+    </dependency>
   </dependencies>
 </project>

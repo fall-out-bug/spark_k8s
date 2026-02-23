@@ -4,6 +4,28 @@ Quick reference for using this Spec-Driven Protocol (SDP) repository with Claude
 
 > **📝 Meta-note:** This guide was written with AI assistance (Claude Sonnet 4.5). The workflow is based on real development experience.
 
+## SDP Submodule
+
+This repository uses [SDP](https://github.com/fall-out-bug/sdp) as a git submodule:
+
+```bash
+# Initialize submodule (first time)
+git submodule update --init --recursive
+
+# Update submodule to latest
+git submodule update --remote .sdp
+
+# Check SDP version
+cd .sdp && git log --oneline -1 && cd ..
+```
+
+**SDP files (symlinks):**
+- `PROTOCOL.md` → `.sdp/PROTOCOL.md` (Full SDP specification)
+- `CODE_PATTERNS.md` → `.sdp/CODE_PATTERNS.md` (Code patterns)
+- `MODELS.md` → `.sdp/MODELS.md` (Model recommendations)
+
+**SDP Version:** v0.4.0
+
 ## TL;DR
 
 Use **skills** to execute SDP commands:

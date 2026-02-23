@@ -1,0 +1,101 @@
+# Grafana values for Spark dashboards on Kubernetes
+#
+# Grafana configuration for Spark monitoring dashboards
+# Data sources: Prometheus, Loki, Jaeger
+#
+grafana:
+  enabled: true
+  image:
+    repository: grafana/grafana
+    tag: 11.0.0
+
+  # Admin credentials
+  admin:
+    existingSecret: grafana-admin
+    usernameKey: admin
+    passwordKey: admin
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 3000
+    targetPort: 3000
+
+  # Data sources
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        # Prometheus datasource for metrics
+        - name: Prometheus
+          type: prometheus
+          access: proxy
+          url: http://prometheus-operator:9090
+          isDefault: true
+          editable: false
+          jsonData:
+            timeInterval: 30s
+            httpMethod: POST
+            exemplarTraceIdLink: true
+
+        # Loki datasource for logs
+        - name: Loki
+          type: loki
+          access: proxy
+          url: http://loki:3100
+          editable: false
+          jsonData:
+            maxLines: 1000
+            timeInterval: 30s
+            deriveField: true
+
+        # Jaeger datasource for traces
+        - name: Jaeger
+          type: jaeger
+          access: proxy
+          url: http://jaeger-query:16686
+          editable: false
+
+  # Dashboard providers
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - disableDeletion: false
+          folder: ""
+          name: spark
+          options:
+            path: /var/lib/grafana/dashboards/spark
+          type: file
+          allowUiUpdates: true
+
+  # Resource configuration
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+  # Persistence
+  persistence:
+    type: pvc
+    enabled: true
+    storageClassName: standard
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi
+
+# Environment variables
+env:
+  # Grafana environment
+  GF_SECURITY_ALLOW_EMBEDDING: "true"
+  GF_SERVER_ROOT_URL: "http://prometheus-operator:9090"
+  GF_INSTALL_PLUGINS: "grafana-piechart-panel,grafana-worldmap-panel"
+
+# Ingress configuration
+ingress:
+  enabled: false
+  hosts:
+    - grafana.s7.local

@@ -1,0 +1,20 @@
+{{- if .Values.core.postgresql.enabled }}
+{{- $chartName := .Chart.Name -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "spark.core.postgresql.fullname" . }}
+  labels:
+    helm.sh/chart: {{ $chartName }}-{{ .Chart.Version }}
+    app.kubernetes.io/component: "postgresql"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  selector:
+    app.kubernetes.io/name: {{ $chartName }}-postgresql
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - name: postgres
+      port: {{ .Values.core.postgresql.service.port }}
+      targetPort: postgres
+{{- end }}

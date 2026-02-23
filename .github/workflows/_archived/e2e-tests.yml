@@ -1,0 +1,152 @@
+name: E2E Tests with Real K8s Deployment
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+  workflow_dispatch:
+    inputs:
+      gpu:
+        description: 'Run GPU tests'
+        required: false
+        type: boolean
+        default: false
+      iceberg:
+        description: 'Run Iceberg tests'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  # Basic E2E tests - run on every PR
+  e2e-basic:
+    name: E2E - Basic Deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.9.0
+        with:
+          cluster_name: spark-e2e
+          kubectl_version: v1.28.0
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | get_helm-3
+          helm version
+
+      - name: Run E2E tests - Basic
+        run: |
+          ./scripts/run-e2e-tests.sh
+
+  # GPU E2E tests - require GPU runner
+  e2e-gpu:
+    name: E2E - GPU Workload
+    runs-on: [self-hosted, gpu]
+    if: github.event.inputs.gpu == 'true' || contains(github.event.pull_request.labels.*name, 'gpu')
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check kubectl
+        run: kubectl version
+
+      - name: Check Helm
+        run: helm version
+
+      - name: Check GPU nodes
+        run: |
+          echo "Checking for GPU nodes..."
+          kubectl get nodes -o jsonpath='{.items[*].status.allocatable.nvidia\.com/gpu}'
+
+      - name: Run E2E tests - GPU
+        run: |
+          ./scripts/run-e2e-tests.sh --gpu
+
+  # Iceberg E2E tests
+  e2e-iceberg:
+    name: E2E - Iceberg Workload
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.9.0
+        with:
+          cluster_name: spark-e2e
+          kubectl_version: v1.28.0
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | get_helm-3
+
+      - name: Deploy MinIO
+        run: |
+          helm repo add minio https://charts.min.io/
+          helm install minio minio/minio \
+            --set accessKey=minioadmin \
+            --set secretKey=minioadmin \
+            --set persistence.enabled=false
+
+      - name: Run E2E tests - Iceberg
+        run: |
+          ./scripts/run-e2e-tests.sh --iceberg
+
+  # Full E2E - run on merge to main
+  e2e-full:
+    name: E2E - Full Matrix
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.9.0
+        with:
+          cluster_name: spark-e2e
+          kubectl_version: v1.28.0
+          config: |
+            kind: Cluster
+            apiVersion: kind.x-k8s.io/v1alpha4
+            nodes:
+            - role: control-plane
+            - role: worker
+            - role: worker
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | get_helm-3
+
+      - name: Deploy MinIO for Iceberg
+        run: |
+          helm repo add minio https://charts.min.io/
+          helm install minio minio/minio \
+            --set accessKey=minioadmin \
+            --set secretKey=minioadmin \
+            --set persistence.enabled=false
+
+      - name: Run ALL E2E tests
+        run: |
+          ./scripts/run-e2e-tests.sh --all
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: |
+            tests/e2e/results/
+            logs/

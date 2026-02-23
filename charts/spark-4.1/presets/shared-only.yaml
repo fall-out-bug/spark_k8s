@@ -1,0 +1,78 @@
+# Shared Components Only Preset for Spark 4.1
+#
+# This preset deploys ONLY the shared infrastructure components:
+# - MinIO: S3-compatible object storage
+# - PostgreSQL: Database for both Hive Metastores
+# - History Server: UI for both Spark versions
+#
+# Usage:
+#   helm upgrade --install shared charts/spark-4.1 -f charts/spark-4.1/presets/shared-only.yaml
+
+# Disable ALL components by default
+core:
+  hiveMetastore:
+    enabled: false
+
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+connect:
+  enabled: false
+
+jupyter:
+  enabled: false
+
+airflow:
+  enabled: false
+
+# Shared Infrastructure Components (in spark-base subchart)
+spark-base:
+  enabled: true
+  # Tell spark-base to use existing secrets instead of creating new ones
+  s3:
+    existingSecret: "s3-credentials"
+  minio:
+    enabled: true
+    buckets:
+      - spark-logs
+      - warehouse
+  postgresql:
+    enabled: true
+    # Using shared PostgreSQL with superuser 'spark'
+    auth:
+      username: "spark"
+      password: "spark123"
+
+historyServer:
+  enabled: true
+  fullnameOverride: "history-server-shared"
+  logDirectory: "s3a://spark-logs/events"
+
+# S3 configuration (shared)
+global:
+  s3:
+    enabled: true
+    endpoint: "http://minio:9000"
+    pathStyleAccess: true
+    sslEnabled: false
+    accessKey: "minioadmin"
+    secretKey: "minioadmin"
+    existingSecret: "s3-credentials"
+
+  # PostgreSQL configuration (shared)
+  postgresql:
+    host: "shared-spark-base-postgresql"
+    port: 5432
+    user: "spark"
+    password: "spark123"
+    existingSecret: "postgresql-credentials"
+
+# Feature flags
+features:
+  iceberg:
+    enabled: false
+  gpu:
+    enabled: false

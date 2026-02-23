@@ -1,0 +1,174 @@
+{{- if .Values.jupyter.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-jupyter
+  labels:
+    app: jupyter
+    app.kubernetes.io/component: jupyter
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jupyter
+      app.kubernetes.io/component: jupyter
+  template:
+    metadata:
+      labels:
+        app: jupyter
+        app.kubernetes.io/component: jupyter
+        {{- include "spark-3.5.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "spark-3.5.serviceAccountName" . }}
+      {{- if .Values.security.podSecurityStandards }}
+      securityContext:
+        {{- include "spark-base.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.jupyter.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.jupyter.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: notebooks
+          {{- if .Values.jupyter.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "spark-3.5.fullname" . }}-jupyter-notebooks
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: jupyter-runtime
+          emptyDir: {}
+        {{- if .Values.connect.enabled }}
+        - name: python-packages
+          emptyDir: {}
+        {{- end }}
+      {{- if .Values.connect.enabled }}
+      initContainers:
+        - name: install-spark-connect-deps
+          image: "{{ .Values.jupyter.image.repository }}:{{ .Values.jupyter.image.tag }}"
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              # Install Spark Connect client dependencies to shared volume
+              # Using same image as main container to ensure Python version matches
+              pip install --no-cache-dir --prefix=/opt/pypackages \
+                'grpcio>=1.48.1,<2' \
+                'grpcio-status>=1.48.1,<2' \
+                'googleapis-common-protos>=1.56.0,<2'
+              echo "Dependencies installed successfully"
+          volumeMounts:
+            - name: python-packages
+              mountPath: /opt/pypackages
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      {{- end }}
+      containers:
+        - name: jupyter
+          image: "{{ .Values.jupyter.image.repository }}:{{ .Values.jupyter.image.tag }}"
+          imagePullPolicy: {{ .Values.jupyter.image.pullPolicy }}
+          command: ["jupyter-lab"]
+          args: ["--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=''", "--NotebookApp.password=''"]
+          env:
+            {{- if .Values.connect.enabled }}
+            - name: SPARK_CONNECT_URL
+              value: "sc://{{ include "spark-3.5.fullname" . }}-connect:15002"
+            - name: PYTHONPATH
+              value: "/opt/pypackages/local/lib/python3.10/dist-packages:$(PYTHONPATH)"
+            {{- end }}
+            - name: JUPYTER_ENABLE_LAB
+              value: "yes"
+            - name: PYARROW_IGNORE_TIMEZONE
+              value: "1"
+            - name: HOME
+              value: "/home/spark"
+            - name: JUPYTER_RUNTIME_DIR
+              value: "/tmp/jupyter-runtime"
+            {{- if .Values.global.s3.enabled }}
+            - name: S3_ENDPOINT
+              value: {{ .Values.global.s3.endpoint | quote }}
+            {{- if .Values.global.s3.existingSecret }}
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.s3.existingSecret }}
+                  key: access-key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.s3.existingSecret }}
+                  key: secret-key
+            {{- end }}
+            {{- end }}
+            {{- range $key, $val := .Values.jupyter.env }}
+            - name: {{ $key }}
+              value: {{ $val | quote }}
+            {{- end }}
+          {{- if .Values.security.podSecurityStandards }}
+          securityContext:
+            {{- include "spark-base.containerSecurityContext" . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: 8888
+          resources:
+            {{- if and .Values.jupyter.gpu .Values.jupyter.gpu.enabled }}
+            limits:
+              memory: {{ .Values.jupyter.resources.limits.memory | default "4Gi" }}
+              cpu: {{ .Values.jupyter.resources.limits.cpu | default "2" }}
+              {{ .Values.jupyter.gpu.vendor }}: {{ .Values.jupyter.gpu.count | quote }}
+            requests:
+              memory: {{ .Values.jupyter.resources.requests.memory | default "1Gi" }}
+              cpu: {{ .Values.jupyter.resources.requests.cpu | default "500m" }}
+            {{- else }}
+            {{- toYaml .Values.jupyter.resources | nindent 12 }}
+            {{- end }}
+          readinessProbe:
+            httpGet:
+              path: /api
+              port: 8888
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api
+              port: 8888
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          volumeMounts:
+            - name: notebooks
+              mountPath: /home/spark/notebooks
+            - name: jupyter-runtime
+              mountPath: /tmp/jupyter-runtime
+            {{- if .Values.connect.enabled }}
+            - name: python-packages
+              mountPath: /opt/pypackages
+            {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-jupyter
+  labels:
+    app: jupyter
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.jupyter.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.jupyter.service.port }}
+      targetPort: 8888
+  selector:
+    app: jupyter
+{{- end }}

@@ -1,0 +1,28 @@
+# PersistentVolume for PostgreSQL StatefulSet database
+# Used for: Hive Metastore backend
+# Size: 8Gi (matches StatefulSet PVC requirement)
+# Name: data-postgresql-metastore-41-0 (matches StatefulSet naming convention)
+#
+# This is a testing-only workaround for minikube (WSL2 + docker driver)
+# where dynamic provisioning doesn't work.
+#
+# Production: Use cloud-specific StorageClass (AWS EBS, Azure Disk, etc.)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-postgresql-metastore-41-0
+  labels:
+    app.kubernetes.io/component: postgresql
+    app.kubernetes.io/part-of: spark
+    app.kubernetes.io/testing: "true"
+spec:
+  capacity:
+    storage: 8Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: standard
+  volumeMode: Filesystem
+  hostPath:
+    path: /tmp/spark-testing/postgresql
+    type: DirectoryOrCreate

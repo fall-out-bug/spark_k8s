@@ -1,0 +1,117 @@
+# Preset: Airflow + Spark Connect + K8s backend + GPU
+# Components: Airflow + Connect + GPU support
+# Note: Airflow deployed separately, this preset only for Connect with GPU
+
+global:
+  s3:
+    endpoint: "http://minio:9000"
+    accessKey: "minioadmin"
+    secretKey: "minioadmin"
+    pathStyleAccess: true
+    sslEnabled: false
+
+spark-base:
+  enabled: true
+  minio:
+    enabled: false
+  postgresql:
+    enabled: false
+
+rbac:
+  create: false  # Shared with Airflow
+  serviceAccountName: "spark"
+
+connect:
+  enabled: true
+  replicas: 1
+  backendMode: k8s
+  image:
+    repository: spark-custom
+    tag: "3.5.7-gpu"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "2Gi"
+      nvidia.com/gpu: "0"  # Driver doesn't need GPU
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+      nvidia.com/gpu: "0"
+  # GPU node scheduling
+  nodeSelector:
+    nvidia.com/gpu.present: "true"
+  tolerations:
+    - key: "nvidia.com/gpu"
+      operator: "Exists"
+      effect: "NoSchedule"
+  driver:
+    host: ""
+    port: 7078
+    memory: "512m"
+  executor:
+    cores: "2"
+    coresLimit: "4"
+    memory: "4Gi"
+    memoryLimit: "8G"
+    # GPU per executor
+    gpu:
+      enabled: true
+      count: "1"
+      vendor: "nvidia.com/gpu"
+  dynamicAllocation:
+    enabled: true
+    minExecutors: 1
+    maxExecutors: 10
+    initialExecutors: 2
+  sparkConf:
+    # GPU Resources
+    spark.executor.resource.gpu.amount: "1"
+    spark.task.resource.gpu.amount: "0.25"
+    # RAPIDS Plugin
+    spark.plugins: "com.nvidia.spark.SQLPlugin"
+    spark.rapids.sql.enabled: "true"
+    spark.rapids.sql.python.gpu.enabled: "true"
+    spark.rapids.sql.castFloatToIntegralTypes.enabled: "true"
+    spark.rapids.sql.castStringToFloat.enabled: "true"
+    spark.rapids.sql.castStringToTimestamp.enabled: "true"
+    spark.rapids.sql.explain: "ALL"
+    spark.rapids.sql.hashOptimizeSort.enabled: "true"
+    spark.rapids.sql.improvedFloatOps.enabled: "true"
+    spark.rapids.sql.incompatibleDateFormats.enabled: "true"
+    spark.rapids.sql.incompatibleOps.enabled: "true"
+    spark.rapids.sql.mode: "execute"
+    spark.rapids.sql.variableFloatAgg.enabled: "true"
+    spark.rapids.aws.s3.enabled: "true"
+    spark.rapids.cpp.enabled: "true"
+    spark.rapids.jni.asHeapBuf: "true"
+    spark.executor.extraJavaOptions: "-XX:+UseG1GC"
+    spark.driver.extraJavaOptions: "-XX:+UseG1GC"
+    # Airflow trace parent propagation
+    "spark.extraListeners": "org.apache.spark.openTelemetry.OpenTelemetryListener"
+    "spark.openTelemetry.exporter.protocol": "grpc"
+    "spark.openTelemetry.exporter.endpoint": "http://otel-collector:4317"
+    "spark.openTelemetry.resource.attributes": "service.name=spark-connect-gpu"
+    "spark.openTelemetry.sampling.ratio": "1.0"
+
+jupyter:
+  enabled: false
+
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false
+
+# Disable optional components
+sparkOperator:
+  enabled: false
+
+celeborn:
+  enabled: false

@@ -1,0 +1,116 @@
+# Prometheus queries for Spark autotuning metrics collection
+# Used by scripts/autotuning/collector.py
+
+prometheus_queries:
+  gc_time:
+    description: "JVM garbage collection time rate"
+    query: 'rate(jvm_gc_time_seconds_sum{job="spark-connect"}[5m])'
+    aggregation: sum
+    unit: seconds
+
+  memory_spill:
+    description: "Bytes spilled to disk due to memory pressure"
+    query: 'spark_executor_memory_bytes_spilled_total'
+    aggregation: sum
+    unit: bytes
+
+  task_duration_p50:
+    description: "Task duration 50th percentile"
+    query: 'histogram_quantile(0.50, rate(spark_task_duration_seconds_bucket[5m]))'
+    aggregation: avg
+    unit: seconds
+
+  task_duration_p99:
+    description: "Task duration 99th percentile"
+    query: 'histogram_quantile(0.99, rate(spark_task_duration_seconds_bucket[5m]))'
+    aggregation: avg
+    unit: seconds
+
+  task_duration_max:
+    description: "Maximum task duration"
+    query: 'spark_task_duration_seconds_max'
+    aggregation: max
+    unit: seconds
+
+  task_duration_avg:
+    description: "Average task duration"
+    query: 'spark_task_duration_seconds_mean'
+    aggregation: avg
+    unit: seconds
+
+  shuffle_read:
+    description: "Total shuffle read bytes"
+    query: 'spark_shuffle_read_bytes_total'
+    aggregation: sum
+    unit: bytes
+
+  shuffle_write:
+    description: "Total shuffle write bytes"
+    query: 'spark_shuffle_write_bytes_total'
+    aggregation: sum
+    unit: bytes
+
+  cpu_utilization:
+    description: "CPU utilization rate"
+    query: 'rate(process_cpu_seconds_total{job="spark-connect"}[5m])'
+    aggregation: avg
+    unit: cores
+
+  executor_memory:
+    description: "Executor resident memory"
+    query: 'process_resident_memory_bytes{job="spark-connect"}'
+    aggregation: avg
+    unit: bytes
+
+  open_fds:
+    description: "Open file descriptors"
+    query: 'process_open_fds{job="spark-connect"}'
+    aggregation: avg
+    unit: count
+
+  executor_count:
+    description: "Number of active executors"
+    query: 'count(spark_executor_info)'
+    aggregation: value
+    unit: count
+
+  input_bytes:
+    description: "Input bytes read"
+    query: 'spark_input_bytes_read_total'
+    aggregation: sum
+    unit: bytes
+
+  output_bytes:
+    description: "Output bytes written"
+    query: 'spark_output_bytes_written_total'
+    aggregation: sum
+    unit: bytes
+
+# Derived metrics (computed from raw metrics)
+derived_metrics:
+  gc_ratio:
+    description: "GC time as ratio of total runtime"
+    formula: "gc_time / (task_duration_avg * task_count)"
+    unit: ratio
+
+  task_skew_ratio:
+    description: "Task duration skew (p99/p50)"
+    formula: "task_duration_p99 / task_duration_p50"
+    unit: ratio
+
+  shuffle_ratio:
+    description: "Shuffle read to write ratio"
+    formula: "shuffle_read / shuffle_write"
+    unit: ratio
+
+  cpu_efficiency:
+    description: "CPU utilization efficiency"
+    formula: "cpu_utilization / executor_count"
+    unit: cores_per_executor
+
+# Collection settings
+collection:
+  default_timeout: 30  # seconds
+  retry_count: 3
+  retry_delay: 1  # seconds
+  step: "15s"  # Prometheus query step

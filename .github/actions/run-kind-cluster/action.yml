@@ -1,0 +1,99 @@
+name: 'Run Kind Cluster'
+description: 'Create kind cluster with optional Spark operator and MinIO'
+
+author: 'spark-k8s team'
+
+inputs:
+  cluster-name:
+    description: 'Name for the kind cluster'
+    required: false
+    default: 'spark-test'
+  kind-version:
+    description: 'Kind version to use'
+    required: false
+    default: 'v0.20.0'
+  k8s-version:
+    description: 'Kubernetes version for kind nodes'
+    required: false
+    default: 'v1.28.0'
+  install-spark-operator:
+    description: 'Install Spark operator'
+    required: false
+    default: 'true'
+  install-minio:
+    description: 'Install MinIO for S3 compatibility'
+    required: false
+    default: 'false'
+  minio-access-key:
+    description: 'MinIO access key'
+    required: false
+    default: 'minioadmin'
+  minio-secret-key:
+    description: 'MinIO secret key'
+    required: false
+    default: 'minioadmin'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Create kind cluster
+      uses: helm/kind-action@v1.8.0
+      with:
+        cluster_name: ${{ inputs.cluster-name }}
+        version: ${{ inputs.kind-version }}
+        node_image: kindest/node:${{ inputs.k8s-version }}
+
+    - name: Wait for cluster ready
+      shell: bash
+      run: |
+        kubectl wait --for=condition=Ready nodes --all --timeout=120s
+        kubectl cluster-info
+
+    - name: Install Spark Operator
+      if: inputs.install-spark-operator == 'true'
+      shell: bash
+      run: |
+        helm repo add spark-operator https://kubeflow.github.io/spark-operator
+        helm repo update
+        helm install spark-operator spark-operator/spark-operator \
+          --namespace spark-operator \
+          --create-namespace \
+          --set replicaCount=1 \
+          --wait \
+          --timeout 5m
+
+    - name: Install MinIO
+      if: inputs.install-minio == 'true'
+      shell: bash
+      run: |
+        helm repo add minio https://charts.min.io/
+        helm repo update
+        helm install minio minio/minio \
+          --namespace minio \
+          --create-namespace \
+          --set mode=standalone \
+          --set replicas=1 \
+          --set persistence.enabled=false \
+          --set resources.requests.memory=512Mi \
+          --set resources.requests.cpu=100m \
+          --set accessKey=${{ inputs.minio-access-key }} \
+          --set secretKey=${{ inputs.minio-secret-key }} \
+          --wait \
+          --timeout 5m
+
+    - name: Verify cluster
+      shell: bash
+      run: |
+        echo "## Cluster Status" >> $GITHUB_STEP_SUMMARY
+        kubectl get nodes >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        kubectl get pods -A >> $GITHUB_STEP_SUMMARY
+
+outputs:
+  cluster-name:
+    description: 'Name of the created cluster'
+    value: ${{ inputs.cluster-name }}
+
+branding:
+  icon: 'box'
+  color: 'blue'

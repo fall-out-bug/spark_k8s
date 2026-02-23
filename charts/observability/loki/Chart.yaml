@@ -1,0 +1,32 @@
+apiVersion: v2
+name: loki-spark
+description: Loki log aggregation for Apache Spark on Kubernetes
+type: application
+version: 1.0.0
+
+keywords:
+  - spark
+  - logging
+  - loki
+  - observability
+  - logs
+
+maintainers:
+  - name: S7 Spark K8s Team
+    email: spark@s7.ru
+
+sources:
+  - https://github.com/grafana/loki
+  - https://grafana.com/docs/loki/latest/
+
+# Collects logs from Spark pods via Promtail
+# Configures Promtail to send Spark logs to Loki
+
+dependencies:
+  - name: loki
+    version: ">=2.0.0"
+    repository: https://grafana.github.io/helm-charts
+
+annotations:
+  artifacthub.io/category: logging
+  artifacthub.io/license: Apache-2.0

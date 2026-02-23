@@ -1,0 +1,6 @@
+# CI test dependencies (subset of requirements-dev)
+pytest>=7.0
+pytest-cov>=4.0
+pytest-html>=3.0
+pyyaml>=6.0
+kubernetes>=28.0

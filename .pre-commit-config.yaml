@@ -1,0 +1,45 @@
+# Pre-commit hooks for spark_k8s
+# Install: pre-commit install
+# Run: pre-commit run --all-files
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        args: [--config=pyproject.toml]
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-PyYAML]
+        args: [--config-file=pyproject.toml]
+        exclude: ^(tests/|scripts/|examples/|docker/)
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  # Helm lint (optional - requires helm installed)
+  # - repo: local
+  #   hooks:
+  #     - id: helm-lint
+  #       name: helm lint
+  #       entry: helm lint charts/spark-4.1 charts/spark-3.5
+  #       language: system
+  #       pass_filenames: false

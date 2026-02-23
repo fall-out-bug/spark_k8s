@@ -1,0 +1,30 @@
+{{/*
+ServiceMonitor for Spark Connect and Spark pods
+
+This ServiceMonitor allows Prometheus to scrape metrics from
+Spark ServiceMonitor endpoints created by Spark pods.
+*/}}
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}-spark-servicemonitor
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: spark
+    chart: {{ .Chart.Name }}
+    release: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      app: spark
+      spark-role: driver
+  endpoints:
+    - port: metrics
+      path: /metrics/prometheus
+      scheme: http
+  namespaceSelector:
+    matchNames:
+      - {{ .Values.prometheus.serviceMonitors.namespace | default .Release.Namespace }}
+  query: '{__name__="spark_driver_metrics"}'
+  interval: {{ .Values.prometheus.serviceMonitors.interval | default "30s" }}

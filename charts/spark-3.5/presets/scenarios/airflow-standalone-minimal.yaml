@@ -1,0 +1,128 @@
+# Scenario Preset: Airflow + Spark Standalone (Minimal Resources)
+#
+# Uses subchart (standalone) which includes Airflow templates
+# Parent chart sparkStandalone must be DISABLED to avoid conflict
+
+# Core Infrastructure (minimal - Airflow manages storage)
+spark-base:
+  enabled: true
+  minio:
+    enabled: false
+  postgresql:
+    enabled: false
+
+# RBAC for Spark pods
+rbac:
+  create: true
+  serviceAccountName: "spark"
+
+# DISABLE parent chart sparkStandalone - we use subchart instead
+sparkStandalone:
+  enabled: false
+
+# ENABLE subchart with Airflow
+standalone:
+  enabled: true
+  # Spark Master (minimal resources)
+  master:
+    enabled: true
+    image:
+      repository: spark-custom
+      tag: "3.5.7"
+      pullPolicy: IfNotPresent
+    service:
+      type: ClusterIP
+      rpcPort: 7077
+      uiPort: 8080
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "100m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+  # Spark Worker (minimal resources)
+  worker:
+    enabled: true
+    replicas: 1
+    image:
+      repository: spark-custom
+      tag: "3.5.7"
+      pullPolicy: IfNotPresent
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "100m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+    sparkConf:
+      spark.worker.memory: "512m"
+      spark.worker.cores: "1"
+  # Airflow (minimal resources)
+  airflow:
+    enabled: true
+    image:
+      repository: spark-k8s/airflow
+      tag: "2.11.0"
+      pullPolicy: IfNotPresent
+    webserver:
+      replicas: 1
+      service:
+        type: ClusterIP
+        port: 8080
+      resources:
+        requests:
+          memory: "512Mi"
+          cpu: "100m"
+        limits:
+          memory: "1Gi"
+          cpu: "500m"
+    scheduler:
+      replicas: 1
+      resources:
+        requests:
+          memory: "512Mi"
+          cpu: "100m"
+        limits:
+          memory: "1Gi"
+          cpu: "500m"
+    postgresql:
+      enabled: true
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "50m"
+        limits:
+          memory: "256Mi"
+          cpu: "200m"
+      persistence:
+        enabled: false
+  serviceAccount:
+    create: true
+    name: "spark-standalone"
+  rbac:
+    create: true
+  security:
+    podSecurityStandards: false
+
+# Disable Spark Connect (not needed for direct spark-submit)
+connect:
+  enabled: false
+
+# Disable Jupyter (not needed for Airflow scenario)
+jupyter:
+  enabled: false
+
+# Disable other components
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false

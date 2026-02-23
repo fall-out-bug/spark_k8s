@@ -14,6 +14,9 @@ data:
     spark.driver.host={{ default (printf "%s-connect" (include "spark-4.1.fullname" .)) .Values.connect.driver.host }}
     spark.driver.port={{ .Values.connect.driver.port }}
     spark.driver.blockManager.port={{ .Values.connect.driver.blockManagerPort }}
+    {{- else if eq .Values.connect.backendMode "local" }}
+    # Spark Master - Local mode (for smoke tests)
+    spark.master=local[*]
     {{- else }}
     # Spark Master - Kubernetes executors mode
     spark.master=k8s://https://kubernetes.default.svc.cluster.local:443
@@ -35,7 +38,16 @@ data:
     spark.dynamicAllocation.shuffleTracking.enabled=true
     spark.dynamicAllocation.minExecutors={{ .Values.connect.dynamicAllocation.minExecutors }}
     spark.dynamicAllocation.maxExecutors={{ .Values.connect.dynamicAllocation.maxExecutors }}
+
+    # AQE and executor observability
+    spark.kubernetes.executor.podNamePrefix={{ .Release.Name }}-exec
     {{- end }}
+
+    # AQE (Adaptive Query Execution) - enabled by default for +20-40% perf
+    spark.sql.adaptive.enabled=true
+    spark.sql.adaptive.coalescePartitions.enabled=true
+    spark.sql.adaptive.skewJoin.enabled=true
+
     spark.connect.grpc.binding.address=0.0.0.0
     spark.connect.grpc.binding.port=15002
 
@@ -63,9 +75,33 @@ data:
     spark.celeborn.client.spark.fetch.throwsFetchFailure=true
     {{- end }}
 
+    {{- if .Values.global.s3.enabled }}
     # S3 config
     spark.hadoop.fs.s3a.endpoint={{ .Values.global.s3.endpoint }}
     spark.hadoop.fs.s3a.access.key=${AWS_ACCESS_KEY_ID}
     spark.hadoop.fs.s3a.secret.key=${AWS_SECRET_ACCESS_KEY}
     spark.hadoop.fs.s3a.path.style.access={{ .Values.global.s3.pathStyleAccess }}
+    {{- end }}
+
+    {{- if and .Values.features .Values.features.iceberg .Values.features.iceberg.enabled }}
+    # Iceberg configuration
+    spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions
+    spark.sql.catalog.spark_catalog=org.apache.iceberg.spark.SparkSessionCatalog
+    spark.sql.catalog.spark_catalog.type={{ .Values.features.iceberg.catalogType | default "hadoop" }}
+    spark.sql.catalog.iceberg=org.apache.iceberg.spark.SparkCatalog
+    spark.sql.catalog.iceberg.type={{ .Values.features.iceberg.catalogType | default "hadoop" }}
+    spark.sql.catalog.iceberg.warehouse={{ .Values.features.iceberg.warehouse | default "s3a://warehouse/iceberg" }}
+    spark.sql.catalog.iceberg.io-impl={{ .Values.features.iceberg.ioImpl | default "org.apache.iceberg.hadoop.HadoopFileIO" }}
+    {{- if eq .Values.features.iceberg.catalogType "hive" }}
+    spark.sql.catalog.iceberg.uri={{ .Values.hiveMetastore.service.host | default "hive-metastore" }}:9083
+    {{- end }}
+    {{- if eq .Values.features.iceberg.catalogType "rest" }}
+    spark.sql.catalog.iceberg.uri={{ .Values.features.iceberg.restCatalogUri | required "restCatalogUri required when catalogType is 'rest'" }}
+    spark.sql.catalog.iceberg.token={{ .Values.features.iceberg.restCatalogToken | default "" }}
+    {{- end }}
+    spark.sql.iceberg.vectorization.enabled=true
+    spark.sql.iceberg.v2.enabled=true
+    spark.sql.iceberg.delete-planning.enabled=true
+    spark.sql.iceberg.deletes.enabled=true
+    {{- end }}
 {{- end }}

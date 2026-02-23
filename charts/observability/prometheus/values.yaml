@@ -1,0 +1,97 @@
+# Prometheus values for Spark monitoring on Kubernetes
+
+# This chart deploys Prometheus ServiceMonitors and PodMonitors
+# to scrape metrics from Spark pods' existing ServiceMonitor endpoints
+
+# Global namespace configuration for Spark metrics
+targetNamespace: spark-operations
+
+prometheus:
+  # Enable Prometheus deployment
+  enabled: true
+
+  # Namespace where Spark pods are running
+  serviceMonitors:
+    namespace: spark-operations
+    interval: 30s
+    # List of ServiceMonitor definitions (used by templates if iterating)
+    items:
+      - name: spark-driver
+        namespace: spark-operations
+        selector:
+          app: spark
+          spark-role: driver
+        endpoints:
+          - port: metrics
+            path: /metrics/prometheus
+        interval: 30s
+      - name: spark-executor
+        namespace: spark-operations
+        selector:
+          app: spark
+          spark-role: executor
+        endpoints:
+          - port: metrics
+            path: /metrics/prometheus
+        interval: 30s
+
+  # PodMonitor for Spark driver pods
+  podMonitors:
+    - name: spark-driver-pods
+      namespace: spark-operations
+      selector:
+        app: spark
+        spark-role: driver
+      podMetricsEndpoints:
+        - port: metrics
+          path: /metrics/prometheus
+      interval: 30s
+
+    - name: spark-executor-pods
+      namespace: spark-operations
+      selector:
+        app: spark
+        spark-role: executor
+      podMetricsEndpoints:
+        - port: metrics
+          path: /metrics/prometheus
+      interval: 30s
+
+  # Additional scrape configs
+  scrapeInterval: 30s
+  scrapeTimeout: 10s
+  evaluationInterval: 30s
+
+# Prometheus server configuration
+server:
+  global:
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    evaluation_interval: 30s
+
+  # Service for prometheus-operator
+  service:
+    port: 9090
+    targetPort: 9090
+
+# Resource configuration
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+# Storage configuration
+storage:
+  volumeClaimTemplate:
+    spec:
+      storageClassName: standard
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 10Gi
+  retention:
+    size: 10Gi

@@ -1,0 +1,206 @@
+{{- if .Values.routes.enabled }}
+{{- if .Values.historyServer.enabled }}
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-history
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: spark-history-server
+    app.kubernetes.io/name: spark-3.5
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- with .Values.routes.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.routes.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  host: {{ .Values.routes.hosts.historyServer | default (printf "%s-history" (include "spark-3.5.fullname" .)) }}
+  to:
+    kind: Service
+    name: {{ include "spark-3.5.fullname" . }}-history
+  port:
+    targetPort: http
+  wildcardPolicy: {{ .Values.routes.wildcardPolicy | default "None" }}
+  {{- if eq .Values.routes.tlsTerminationType "edge" }}
+  tls:
+    termination: edge
+    {{- with .Values.routes.tls }}
+    {{- if .key }}
+    key: {{ .key }}
+    {{- end }}
+    {{- if .certificate }}
+    certificate: {{ .certificate }}
+    {{- end }}
+    {{- if .caCertificate }}
+    caCertificate: {{ .caCertificate }}
+    {{- end }}
+    {{- if .insecureEdgeTerminationPolicy }}
+    insecureEdgeTerminationPolicy: {{ .insecureEdgeTerminationPolicy }}
+    {{- end }}
+    {{- end }}
+  {{- else if eq .Values.routes.tlsTerminationType "passthrough" }}
+  tls:
+    termination: passthrough
+  {{- else if eq .Values.routes.tlsTerminationType "reencrypt" }}
+  tls:
+    termination: reencrypt
+    {{- with .Values.routes.tls }}
+    {{- if .key }}
+    key: {{ .key }}
+    {{- end }}
+    {{- if .certificate }}
+    certificate: {{ .certificate }}
+    {{- end }}
+    {{- if .caCertificate }}
+    caCertificate: {{ .caCertificate }}
+    {{- end }}
+    {{- if .destinationCACertificate }}
+    destinationCACertificate: {{ .destinationCACertificate }}
+    {{- end }}
+    {{- if .insecureEdgeTerminationPolicy }}
+    insecureEdgeTerminationPolicy: {{ .insecureEdgeTerminationPolicy }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- if .Values.jupyter.enabled }}
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-jupyter
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: jupyter
+    app.kubernetes.io/name: spark-3.5
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- with .Values.routes.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.routes.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  host: {{ .Values.routes.hosts.jupyter | default (printf "%s-jupyter" (include "spark-3.5.fullname" .)) }}
+  to:
+    kind: Service
+    name: {{ include "spark-3.5.fullname" . }}-jupyter
+  port:
+    targetPort: http
+  wildcardPolicy: {{ .Values.routes.wildcardPolicy | default "None" }}
+  {{- if eq .Values.routes.tlsTerminationType "edge" }}
+  tls:
+    termination: edge
+    {{- with .Values.routes.tls }}
+    {{- if .key }}
+    key: {{ .key }}
+    {{- end }}
+    {{- if .certificate }}
+    certificate: {{ .certificate }}
+    {{- end }}
+    {{- if .caCertificate }}
+    caCertificate: {{ .caCertificate }}
+    {{- end }}
+    {{- if .insecureEdgeTerminationPolicy }}
+    insecureEdgeTerminationPolicy: {{ .insecureEdgeTerminationPolicy }}
+    {{- end }}
+    {{- end }}
+  {{- else if eq .Values.routes.tlsTerminationType "passthrough" }}
+  tls:
+    termination: passthrough
+  {{- else if eq .Values.routes.tlsTerminationType "reencrypt" }}
+  tls:
+    termination: reencrypt
+    {{- with .Values.routes.tls }}
+    {{- if .key }}
+    key: {{ .key }}
+    {{- end }}
+    {{- if .certificate }}
+    certificate: {{ .certificate }}
+    {{- end }}
+    {{- if .caCertificate }}
+    caCertificate: {{ .caCertificate }}
+    {{- end }}
+    {{- if .destinationCACertificate }}
+    destinationCACertificate: {{ .destinationCACertificate }}
+    {{- end }}
+    {{- if .insecureEdgeTerminationPolicy }}
+    insecureEdgeTerminationPolicy: {{ .insecureEdgeTerminationPolicy }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- if .Values.connect.enabled }}
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-connect
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: spark-connect
+    app.kubernetes.io/name: spark-3.5
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- with .Values.routes.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.routes.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  host: {{ .Values.routes.hosts.sparkConnect | default (printf "%s-connect" (include "spark-3.5.fullname" .)) }}
+  to:
+    kind: Service
+    name: {{ include "spark-3.5.fullname" . }}-connect
+  port:
+    targetPort: grpc
+  wildcardPolicy: {{ .Values.routes.wildcardPolicy | default "None" }}
+  {{- if eq .Values.routes.tlsTerminationType "edge" }}
+  tls:
+    termination: edge
+    {{- with .Values.routes.tls }}
+    {{- if .key }}
+    key: {{ .key }}
+    {{- end }}
+    {{- if .certificate }}
+    certificate: {{ .certificate }}
+    {{- end }}
+    {{- if .caCertificate }}
+    caCertificate: {{ .caCertificate }}
+    {{- end }}
+    {{- if .insecureEdgeTerminationPolicy }}
+    insecureEdgeTerminationPolicy: {{ .insecureEdgeTerminationPolicy }}
+    {{- end }}
+    {{- end }}
+  {{- else if eq .Values.routes.tlsTerminationType "passthrough" }}
+  tls:
+    termination: passthrough
+  {{- else if eq .Values.routes.tlsTerminationType "reencrypt" }}
+  tls:
+    termination: reencrypt
+    {{- with .Values.routes.tls }}
+    {{- if .key }}
+    key: {{ .key }}
+    {{- end }}
+    {{- if .certificate }}
+    certificate: {{ .certificate }}
+    {{- end }}
+    {{- if .caCertificate }}
+    caCertificate: {{ .caCertificate }}
+    {{- end }}
+    {{- if .destinationCACertificate }}
+    destinationCACertificate: {{ .destinationCACertificate }}
+    {{- end }}
+    {{- if .insecureEdgeTerminationPolicy }}
+    insecureEdgeTerminationPolicy: {{ .insecureEdgeTerminationPolicy }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}

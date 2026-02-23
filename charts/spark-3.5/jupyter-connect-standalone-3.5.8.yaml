@@ -1,0 +1,122 @@
+# Preset: Jupyter + Spark Connect + Standalone backend
+# Source: Spark 3.5.8 standalone mode
+# Components: Jupyter + Connect + Spark Standalone (master + workers)
+
+global:
+  s3:
+    endpoint: "http://minio:9000"
+    accessKey: "minioadmin"
+    secretKey: "minioadmin"
+    pathStyleAccess: true
+    sslEnabled: false
+
+spark-base:
+  enabled: false
+  minio:
+    enabled: false
+  postgresql:
+    enabled: false
+
+rbac:
+  create: true
+  serviceAccountName: "spark-35"
+
+connect:
+  enabled: true
+  replicas: 1
+  backendMode: standalone
+  image:
+    repository: spark-custom
+    tag: "3.5.8"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "0"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "2Gi"
+  driver:
+    host: ""
+    port: 7078
+  standalone:
+    enabled: true
+    masterService: "spark-3.5-spark-35-standalone-master"
+    masterPort: 7077
+  eventLog:
+    enabled: false
+    dir: "/spark-logs/events"
+  sparkConf: {}
+
+sparkStandalone:
+  enabled: true
+  image:
+    repository: spark-custom
+    tag: "3.5.8"
+    pullPolicy: IfNotPresent
+  master:
+    enabled: true
+    service:
+      type: ClusterIP
+      rpcPort: 7077
+      uiPort: 8080
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "1"
+    nodeSelector: {}
+    tolerations: []
+  worker:
+    enabled: true
+    replicas: 1
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "500m"
+      limits:
+        memory: "4Gi"
+        cpu: "2"
+    nodeSelector: {}
+    tolerations: []
+
+jupyter:
+  enabled: true
+  image:
+    repository: spark-k8s-jupyter
+    tag: "3.5-3.5.7"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8888
+  env:
+    SPARK_CONNECT_URL: "sc://spark-3.5-spark-35-connect:15002"
+  resources:
+    requests:
+      cpu: "0"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+  persistence:
+    enabled: false
+
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false
+
+sparkOperator:
+  enabled: false
+
+celeborn:
+  enabled: false

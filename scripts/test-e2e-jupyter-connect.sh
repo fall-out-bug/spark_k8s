@@ -30,7 +30,7 @@ EVENTLOG_PREFIX="spark-logs/events"
 CONNECT_CHART="charts/spark-3.5/charts/spark-connect"
 CONNECT_SERVICE_NAME="spark-connect"
 if [[ "${SPARK_VERSION}" == "4.1"* ]]; then
-  EVENTLOG_PREFIX="spark-logs/4.1/events"
+  EVENTLOG_PREFIX="spark-logs/events"
   CONNECT_CHART="charts/spark-4.1"
   CONNECT_SERVICE_NAME="${RELEASE}-spark-41-connect"
 fi

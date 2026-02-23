@@ -36,7 +36,7 @@ connect:
   replicas: 1
   backendMode: standalone
   image:
-    repository: spark-custom
+    repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
     tag: "4.1.0"
     pullPolicy: IfNotPresent
   resources:
@@ -54,7 +54,7 @@ connect:
     masterPort: 7077
   eventLog:
     enabled: true
-    dir: "s3a://spark-logs/4.1/events"
+    dir: "s3a://spark-logs/events"
   # Fixed executor instances for standalone backend
   sparkConf:
     spark.executor.instances: "1"
@@ -65,7 +65,7 @@ connect:
 jupyter:
   enabled: true
   image:
-    repository: jupyter-spark
+    repository: ghcr.io/fall-out-bug/spark-k8s-jupyter-spark
     tag: "4.1.0"
     pullPolicy: IfNotPresent
   service:

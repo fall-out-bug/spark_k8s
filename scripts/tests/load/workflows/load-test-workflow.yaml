@@ -1,0 +1,363 @@
+# Load Test Workflow Definition
+# Part of WS-013-09: Argo Workflows Integration
+#
+# Defines Argo Workflow for parallel load test execution.
+
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  name: load-test-matrix
+  namespace: argo
+  labels:
+    app: spark-load-test
+    workflow-type: matrix
+spec:
+  # Entry point
+  entrypoint: load-test-matrix
+
+  # Service account
+  serviceAccountName: workflow-runner
+
+  # Timeouts
+  timeouts:
+    workflow: 2880m  # 48 hours for full matrix
+    activeDeadlineSeconds: 172800  # 48 hours hard limit
+
+  # Resource synchronization
+  synchronization:
+    mutex:
+      name: minikube-load-test-mutex
+
+  # Artifact repository
+  artifactRepositoryRef:
+    configMap:
+      name: artifact-repositories
+      key: minio
+
+  # Retry strategy
+  retryStrategy:
+    limit: 2
+    retryPolicy: "OnFailure"
+    backoff:
+      duration: "1m"
+      factor: 2.0
+      maxDuration: "5m"
+
+  # Volume templates
+  volumeClaimTemplates:
+    - metadata:
+        name: workdir
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 10Gi
+
+  # Parameters
+  arguments:
+    parameters:
+      - name: tier
+        value: "p2_full"
+      - name: parallelism
+        value: "4"
+      - name: spark_versions
+        value: "3.5.0,4.1.0"
+      - name: orchestrators
+        value: "connect,operator"
+      - name: modes
+        value: "kubernetes,standalone"
+      - name: extensions
+        value: "none,iceberg,rapids,iceberg+rapids"
+      - name: operations
+        value: "read,aggregate,join,window,write"
+      - name: data_sizes
+        value: "1gb,11gb"
+
+  # Templates
+  templates:
+    # Main matrix template
+    - name: load-test-matrix
+      steps:
+        # Setup: Initialize test environment
+        - - name: setup
+            template: setup-environment
+
+        # Generate: Create test combinations
+        - - name: generate-combinations
+            template: generate-test-combinations
+            arguments:
+              parameters:
+                - name: tier
+                  value: "{{workflow.parameters.tier}}"
+                - name: spark_versions
+                  value: "{{workflow.parameters.spark_versions}}"
+                - name: orchestrators
+                  value: "{{workflow.parameters.orchestrators}}"
+                - name: modes
+                  value: "{{workflow.parameters.modes}}"
+                - name: extensions
+                  value: "{{workflow.parameters.extensions}}"
+                - name: operations
+                  value: "{{workflow.parameters.operations}}"
+                - name: data_sizes
+                  value: "{{workflow.parameters.data_sizes}}"
+
+        # Execute: Run tests in parallel
+        - - name: run-tests
+            template: run-single-test
+            arguments:
+              parameters:
+                - name: test-name
+                  value: "{{item.test_name}}"
+                - name: spark-version
+                  value: "{{item.spark_version}}"
+                - name: orchestrator
+                  value: "{{item.orchestrator}}"
+                - name: mode
+                  value: "{{item.mode}}"
+                - name: extensions
+                  value: "{{item.extensions}}"
+                - name: operation
+                  value: "{{item.operation}}"
+                - name: data-size
+                  value: "{{item.data_size}}"
+            withParam: "{{steps.generate-combinations.outputs.parameters.combinations}}"
+            withSequence:
+              count: "{{workflow.parameters.parallelism}}"
+
+        # Collect: Aggregate results
+        - - name: collect-results
+            template: aggregate-results
+            arguments:
+              artifacts:
+                - name: test-results
+                  from: "{{steps.run-tests.outputs.artifacts.results}}"
+
+        # Report: Generate report
+        - - name: generate-report
+            template: generate-report
+            arguments:
+              artifacts:
+                - name: aggregated-results
+                  from: "{{steps.collect-results.outputs.artifacts.results}}"
+
+    # Setup environment
+    - name: setup-environment
+      container:
+        name: setup
+        image: bitnami/kubectl:latest
+        command:
+          - /bin/bash
+          - -c
+          - |
+            set -e
+            # Create namespace
+            kubectl create namespace load-tests --dry-run=client -o yaml | kubectl apply -f -
+            echo "Setup complete"
+        volumeMounts:
+          - name: workdir
+            mountPath: /work
+
+    # Generate test combinations
+    - name: generate-test-combinations
+      inputs:
+        parameters:
+          - name: tier
+          - name: spark_versions
+          - name: orchestrators
+          - name: modes
+          - name: extensions
+          - name: operations
+          - name: data_sizes
+      outputs:
+        parameters:
+          - name: combinations
+            valueFrom:
+              jsonPath: '$.combinations'
+      container:
+        name: generate
+        image: python:3.11-slim
+        command:
+          - python3
+          - -c
+          - |
+            import itertools
+            import json
+            import sys
+
+            # Parse parameters
+            spark_versions = "{{inputs.parameters.spark_versions}}".split(',')
+            orchestrators = "{{inputs.parameters.orchestrators}}".split(',')
+            modes = "{{inputs.parameters.modes}}".split(',')
+            extensions = "{{inputs.parameters.extensions}}".split(',')
+            operations = "{{inputs.parameters.operations}}".split(',')
+            data_sizes = "{{inputs.parameters.data_sizes}}".split(',')
+
+            # Generate combinations
+            combinations = []
+            for sv, orch, mode, ext, op, ds in itertools.product(
+                spark_versions, orchestrators, modes, extensions, operations, data_sizes
+            ):
+                # Clean up version and extension names
+                sv_clean = sv.replace('.', '')
+                ext_clean = ext.replace('+', '-plus-')
+                test_name = "{{inputs.parameters.tier}}_{}_{}_{}_{}_{}_{}".format(
+                    sv_clean, orch, mode, ext_clean, op, ds
+                )
+                combinations.append({
+                    'test_name': test_name,
+                    'spark_version': sv,
+                    'orchestrator': orch,
+                    'mode': mode,
+                    'extensions': ext,
+                    'operation': op,
+                    'data_size': ds
+                })
+
+            result = {'combinations': combinations}
+            print(json.dumps(result))
+            with open('/tmp/combinations.json', 'w') as f:
+                json.dump(result, f)
+        volumeMounts:
+          - name: workdir
+            mountPath: /work
+
+    # Run single test
+    - name: run-single-test
+      inputs:
+        parameters:
+          - name: test-name
+          - name: spark-version
+          - name: orchestrator
+          - name: mode
+          - name: extensions
+          - name: operation
+          - name: data-size
+      outputs:
+        artifacts:
+          - name: results
+            path: /results
+      container:
+        name: test
+        image: python:3.11-slim
+        command:
+          - python3
+          - /scripts/tests/load/workloads/{{inputs.parameters.operation}}.py
+          - --operation
+          - "{{inputs.parameters.operation}}"
+          - --data_size
+          - "{{inputs.parameters.data-size}}"
+          - --output
+          - /results/metrics.jsonl
+        env:
+          - name: TEST_NAME
+            value: "{{inputs.parameters.test-name}}"
+          - name: SPARK_VERSION
+            value: "{{inputs.parameters.spark-version}}"
+        volumeMounts:
+          - name: workdir
+            mountPath: /work
+          - name: results
+            mountPath: /results
+      volumes:
+        - name: results
+          emptyDir: {}
+
+    # Aggregate results
+    - name: aggregate-results
+      inputs:
+        artifacts:
+          - name: test-results
+            path: /input-results
+      outputs:
+        artifacts:
+          - name: results
+            path: /output-results
+      container:
+        name: aggregate
+        image: python:3.11-slim
+        command:
+          - python3
+          - -c
+          - |
+            import json
+            import glob
+
+            # Collect all results
+            all_results = []
+            for file in glob.glob('/input-results/**/*.jsonl', recursive=True):
+                with open(file) as f:
+                    for line in f:
+                        all_results.append(json.loads(line))
+
+            # Write aggregated results
+            with open('/output-results/aggregated.jsonl', 'w') as f:
+                for result in all_results:
+                    f.write(json.dumps(result) + '\n')
+
+            print(f"Aggregated {len(all_results)} results")
+        volumeMounts:
+          - name: workdir
+            mountPath: /work
+
+    # Generate report
+    - name: generate-report
+      inputs:
+        artifacts:
+          - name: aggregated-results
+            path: /input
+      outputs:
+        artifacts:
+          - name: report
+            path: /output
+      container:
+        name: report
+        image: python:3.11-slim
+        command:
+          - python3
+          - -c
+          - |
+            import json
+            from datetime import datetime
+
+            # Read aggregated results
+            results = []
+            with open('/input/aggregated.jsonl') as f:
+                for line in f:
+                    results.append(json.loads(line))
+
+            # Generate summary
+            summary = {
+                'total_tests': len(results),
+                'successful': sum(1 for r in results if r.get('exit_code', 0) == 0),
+                'failed': sum(1 for r in results if r.get('exit_code', 0) != 0),
+                'timestamp': datetime.utcnow().isoformat()
+            }
+
+            # Write report
+            with open('/output/summary.json', 'w') as f:
+                json.dump(summary, f, indent=2)
+
+            print(json.dumps(summary, indent=2))
+        volumeMounts:
+          - name: workdir
+            mountPath: /work
+
+  # Cleanup handler
+  finally:
+    - name: cleanup
+      template: cleanup-resources
+
+  # Cleanup template
+  - name: cleanup-resources
+      container:
+        name: cleanup
+        image: bitnami/kubectl:latest
+        command:
+          - /bin/bash
+          - -c
+          - |
+            set -e
+            # Delete test namespaces
+            kubectl delete namespace -l spark-load-test={{workflow.uid}} --ignore-not-found=true
+            echo "Cleanup complete"

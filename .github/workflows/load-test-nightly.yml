@@ -1,0 +1,153 @@
+# Load Test Nightly Tests
+# Part of WS-013-11: CI/CD Integration & Documentation
+#
+# Runs P1 core tests (384 combinations) on nightly schedule.
+# Creates GitHub issue on failure.
+
+name: Load Test - Nightly
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # 2 AM UTC
+  workflow_dispatch:
+    inputs:
+      tier:
+        description: 'Test tier'
+        required: false
+        default: 'p1_core'
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+env:
+  TIER: ${{ github.event.inputs.tier || 'p1_core' }}
+  TIMEOUT_MINUTES: 240
+
+jobs:
+  nightly-tests:
+    name: P1 Core Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ env.TIMEOUT_MINUTES }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pyyaml jinja2 scipy numpy requests
+
+      - name: Generate test matrix
+        run: |
+          python scripts/tests/load/matrix/generators/generate-matrix.py \
+            --tier ${{ env.TIER }} \
+            --output-dir scripts/tests/output
+
+      - name: Start Minikube
+        run: |
+          minikube start \
+            --cpus=8 \
+            --memory=16384 \
+            --driver=docker
+
+      - name: Setup load test environment
+        run: |
+          ./scripts/local-dev/setup-minikube-load-tests.sh --recreate
+
+      - name: Verify environment
+        run: |
+          ./scripts/local-dev/verify-load-test-env.sh
+
+      - name: Run nightly tests
+        run: |
+          ./scripts/tests/load/orchestrator/submit-workflow.sh ${{ env.TIER }}
+
+      - name: Collect results
+        if: always()
+        run: |
+          python scripts/tests/load/metrics/collector.py aggregate \
+            --input-dir scripts/tests/output/results \
+            --output scripts/tests/output/aggregated-results.jsonl
+
+      - name: Check for regressions
+        if: always()
+        id: regression-check
+        continue-on-error: true
+        run: |
+          python scripts/tests/load/metrics/regression_detector.py analyze \
+            --results-dir scripts/tests/output/results \
+            > regression-report.json
+
+      - name: Generate report
+        if: always()
+        run: |
+          python scripts/tests/load/metrics/report_generator.py \
+            --results-dir scripts/tests/output/results \
+            --output-dir scripts/tests/output/reports \
+            --layers all
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: nightly-test-results-${{ github.run_number }}
+          path: |
+            scripts/tests/output/aggregated-results.jsonl
+            scripts/tests/output/reports/
+            regression-report.json
+
+      - name: Create GitHub issue on failure
+        if: failure() && steps.regression-check.outcome == 'failure'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Nightly Load Test Failed - Run #${{ github.run_number }}`,
+              body: `## Nightly Load Test Failure
+
+              **Workflow:** ${{ github.run_number }}
+              **Date:** ${{ github.event.head_commit.timestamp }}
+              **Commit:** ${{ github.sha }}
+
+              The nightly load test suite failed. Please investigate the regression.
+
+              ### Regression Report
+              \`\`\`
+              ${{ steps.regression-check.outputs }}
+              \`\`\`
+
+              ### Logs
+              [View workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+              `,
+              labels: ['bug', 'load-test', 'regression']
+            });
+            console.log(`Created issue #${issue.data.number}`);
+
+      - name: Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "Load Test Nightly - ${{ job.status }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Nightly Load Test ${{ job.status }}*\n\n*Workflow:* ${{ github.workflow }} #${{ github.run_number }}\n*Branch:* ${{ github.ref_name }}\n*Commit:* ${{ github.sha }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

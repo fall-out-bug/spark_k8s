@@ -1,0 +1,14 @@
+{
+  "feature": "F023",
+  "feature_alias": "F23",
+  "feature_title": "Project Origins Documentation",
+  "agent_id": "agent-20260213-oneshot-f023",
+  "status": "completed",
+  "completed_ws": ["WS-032-01", "WS-032-02", "WS-032-03", "WS-032-04", "WS-032-05"],
+  "execution_order": ["WS-032-01", "WS-032-02", "WS-032-03", "WS-032-04", "WS-032-05"],
+  "blocked": {},
+  "started_at": "2026-02-13T00:00:00Z",
+  "updated_at": "2026-02-13T00:00:00Z",
+  "last_completed": ["WS-032-01", "WS-032-02", "WS-032-03", "WS-032-04", "WS-032-05"],
+  "note": "All 5 WS completed. Deliverables: docs/about/origin-story.md, docs/about/ru/origin-story.md, README link. F023 (F23) feature complete."
+}

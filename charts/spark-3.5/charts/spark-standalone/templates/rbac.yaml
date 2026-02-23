@@ -1,68 +1,35 @@
-{{- if .Values.serviceAccount.create }}
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: {{ include "spark-standalone.serviceAccountName" . }}
-  labels:
-    {{- include "spark-standalone.labels" . | nindent 4 }}
-  {{- with .Values.serviceAccount.annotations }}
-  annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-{{- end }}
-
 {{- if .Values.rbac.create }}
----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "spark-standalone.fullname" . }}-role
+  name: {{ include "spark-standalone.fullname" . }}
   labels:
     {{- include "spark-standalone.labels" . | nindent 4 }}
 rules:
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["create", "get", "list", "watch", "delete", "deletecollection", "patch"]
-- apiGroups: [""]
-  resources: ["pods/log"]
-  verbs: ["get", "list"]
-- apiGroups: [""]
-  resources: ["pods/exec"]
-  verbs: ["create"]
-- apiGroups: [""]
-  resources: ["configmaps"]
-  verbs: ["create", "get", "list", "watch", "delete", "deletecollection", "update", "patch"]
-- apiGroups: [""]
-  resources: ["services"]
-  verbs: ["create", "get", "list", "watch", "delete", "deletecollection", "update", "patch"]
-- apiGroups: [""]
-  resources: ["persistentvolumeclaims"]
-  verbs: ["create", "get", "list", "watch", "delete", "deletecollection"]
-- apiGroups: [""]
-  resources: ["secrets"]
-  verbs: ["get", "list"]
-- apiGroups: [""]
-  resources: ["events"]
-  verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources: ["endpoints"]
-  verbs: ["get", "list"]
-- apiGroups: ["sparkoperator.k8s.io"]
-  resources: ["sparkapplications", "scheduledsparkapplications"]
-  verbs: ["create", "get", "list", "watch", "delete", "update", "patch"]
+  # Spark pods management
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "pods/status", "services", "configmaps", "secrets"]
+    verbs: ["create", "get", "list", "watch", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "get", "list", "watch"]
+  # Spark Operator resources (if used)
+  - apiGroups: ["sparkoperator.k8s.io"]
+    resources: ["sparkapplications", "sparkapplications/status", "scheduledsparkapplications", "scheduledsparkapplications/status"]
+    verbs: ["create", "get", "list", "watch", "update", "patch", "delete"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "spark-standalone.fullname" . }}-rolebinding
+  name: {{ include "spark-standalone.fullname" . }}
   labels:
     {{- include "spark-standalone.labels" . | nindent 4 }}
-subjects:
-- kind: ServiceAccount
-  name: {{ include "spark-standalone.serviceAccountName" . }}
-  namespace: {{ .Release.Namespace }}
 roleRef:
-  kind: Role
-  name: {{ include "spark-standalone.fullname" . }}-role
   apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "spark-standalone.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "spark-standalone.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
 {{- end }}

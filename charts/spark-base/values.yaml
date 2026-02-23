@@ -14,6 +14,61 @@ serviceAccount:
 
 rbac:
   create: true
+  serviceAccountName: "spark"
+
+# Core infrastructure (core.*) - used when spark-base is subchart of spark-3.5/spark-4.1.
+# Parent charts pass core via spark-base.core to avoid duplication.
+core:
+  postgresql:
+    enabled: false
+    fullnameOverride: ""
+    image:
+      repository: postgres
+      tag: "15-alpine"
+      pullPolicy: IfNotPresent
+    auth:
+      username: "spark"
+      password: ""  # Set password or use existingSecret (recommended for production)
+      existingSecret: ""  # Name of existing secret with POSTGRES_USER, POSTGRES_PASSWORD keys
+    service:
+      port: 5432
+    persistence:
+      enabled: true
+      size: "8Gi"
+      storageClass: ""
+    databases: []
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+  hiveMetastore:
+    enabled: false
+    fullnameOverride: ""
+    image:
+      repository: spark-k8s/hive
+      tag: "4.0.0-pg"
+      pullPolicy: IfNotPresent
+    service:
+      port: 9083
+    warehouseDir: "s3a://warehouse/spark"
+    database:
+      name: "metastore"
+    postgresql:
+      host: ""
+      port: 5432
+      database: "metastore"
+      username: "hive"
+      password: ""  # Set password or rely on auto-generated (recommended for production)
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "200m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
 
 minio:
   enabled: false
@@ -69,7 +124,17 @@ postgresql:
       cpu: "500m"
 
 security:
-  podSecurityStandards: false
-  runAsUser: 1000
-  runAsGroup: 1000
-  fsGroup: 1000
+  # Pod Security Standards enforcement (changed to true in v1.0 for OpenShift compatibility)
+  # Set to false in scenario presets for backward compatibility with dev environments
+  podSecurityStandards: true
+  runAsUser: 185
+  runAsGroup: 185
+  fsGroup: 185
+  # PSS profile for namespace labels (restricted/baseline/privileged)
+  pssProfile: restricted
+  # Create namespace with PSS labels
+  createNamespace: false
+
+backup:
+  enabled: false
+  components: {}

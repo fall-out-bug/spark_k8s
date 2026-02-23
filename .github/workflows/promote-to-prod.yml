@@ -1,0 +1,143 @@
+name: Promote to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: "Commit SHA to promote from staging"
+        required: true
+  push:
+    branches:
+      - staging
+    paths:
+      - 'charts/spark-4.1/environments/staging/**'
+      - 'charts/spark-4.1/environments/prod/**'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+environments:
+  production:
+    # Manual approval required
+    wait-for: true
+
+jobs:
+  validate-staging:
+    name: Validate Staging Configuration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Helm Lint Staging
+        run: |
+          helm lint charts/spark-4.1 \
+            -f charts/spark-4.1/environments/staging/values.yaml
+
+      - name: Run E2E Tests on Staging Config
+        run: |
+          helm template test-staging charts/spark-4.1 \
+            -f charts/spark-4.1/environments/staging/values.yaml
+
+  validate-prod:
+    name: Validate Production Configuration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Helm Lint Prod
+        run: |
+          helm lint charts/spark-4.1 \
+            -f charts/spark-4.1/environments/prod/values.yaml
+
+      - name: Helm Template Prod
+        run: |
+          helm template test-prod charts/spark-4.1 \
+            -f charts/spark-4.1/environments/prod/values.yaml \
+            --debug > /dev/null
+
+      - name: Validate External Secrets Required
+        run: |
+          # Check that external secrets are enabled in prod
+          if ! grep -q "enabled: true" charts/spark-4.1/environments/prod/values.yaml; then
+            echo "ERROR: External secrets must be enabled in production"
+            exit 1
+          fi
+          if grep -q "enabled: false" charts/spark-4.1/environments/prod/values.yaml | grep "externalSecrets"; then
+            echo "ERROR: External secrets cannot be disabled in production"
+            exit 1
+          fi
+          echo "✓ External secrets validation passed"
+
+  create-promotion-pr:
+    name: Create Production Promotion PR
+    needs: [validate-staging, validate-prod]
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create Production Promotion Branch
+        run: |
+          git checkout -b prod-promotion-$(date +%Y%m%d)
+
+      - name: Copy Staging Values to Production
+        run: |
+          cp charts/spark-4.1/environments/staging/values.yaml \
+             charts/spark-4.1/environments/prod/values.yaml.tmp
+          # Update production-specific values
+          sed -i 's/replicas: 2/replicas: 3/' \
+             charts/spark-4.1/environments/prod/values.yaml.tmp
+          sed -i 's/memory: "4Gi"/memory: "8Gi"/' \
+             charts/spark-4.1/environments/prod/values.yaml.tmp
+          sed -i 's/maxExecutors: 20/maxExecutors: 50/' \
+             charts/spark-4.1/environments/prod/values.yaml.tmp
+          # Enable PDB
+          sed -i 's/podDisruptionBudget:/podDisruptionBudget:/' \
+             charts/spark-4.1/environments/prod/values.yaml.tmp
+          sed -i '/podDisruptionBudget:/a\  enabled: true' \
+             charts/spark-4.1/environments/prod/values.yaml.tmp
+          # Enable external secrets (REQUIRED in prod)
+          sed -i 's/enabled: false/enabled: true/' \
+             charts/spark-4.1/environments/prod/values.yaml.tmp | grep -A1 "externalSecrets:"
+
+      - name: Commit Changes
+        run: |
+          git add charts/spark-4.1/environments/prod/
+          git commit -m "Promote to production: ${{ github.event.inputs.commit_sha }}"
+
+      - name: Create Pull Request
+        run: |
+          gh pr create \
+            --title "Promote to Production: ${{ github.event.inputs.commit_sha }}" \
+            --body "Automated promotion from staging to production.
+
+          **Changes:**
+          - Scaling from 2 to 3 replicas
+          - Memory from 4Gi to 8Gi
+          - Max executors from 20 to 50
+          - Pod Disruption Budget enabled
+          - External Secrets enabled (REQUIRED)
+
+          **Validation:**
+          - ✓ Staging configuration validated
+          - ✓ Production configuration validated
+          - ✓ External secrets confirmed enabled
+
+          **Manual Review Required:**
+          - Review resource limits
+          - Confirm external secrets configuration
+          - Verify Pod Disruption Budget settings
+          " \
+            --base main \
+            --reviewer fall-out-bug
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

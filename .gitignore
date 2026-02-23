@@ -12,3 +12,13 @@
 tmp/
 .pytest_cache/
 __pycache__/
+
+# SDP local backups
+*.local.bak
+
+# SDP artifacts (local-only, from submodule)
+/.claude/
+.env.template
+docs/workstreams/TEMPLATE.md
+quality-gate.toml
+hooks/

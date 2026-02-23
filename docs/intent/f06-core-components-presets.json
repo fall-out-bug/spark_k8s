@@ -1,0 +1,118 @@
+{
+  "feature_id": "F06",
+  "title": "Phase 0: Core Components + Feature Presets",
+  "status": "completed",
+  "created": "2026-02-02",
+  "problem": "Spark K8s Constructor has completed features F01-F05, but Phase 0 foundation work is needed. Updated PRODUCT_VISION.md emphasizes Core Components (Hive Metastore, Minio, History Server) as mandatory for any build. DevOps Engineers need production-ready configurations with Core Components as foundation.",
+  "users": [
+    {
+      "role": "DevOps Engineers",
+      "type": "primary",
+      "needs": [
+        "Production-ready infrastructure with mandatory Core Components",
+        "Clear documentation on component interaction",
+        "Validated Helm templates"
+      ]
+    },
+    {
+      "role": "Data Engineers/Leads",
+      "type": "secondary",
+      "needs": [
+        "Preset configurations for different scenarios",
+        "k8s/standalone/operator backend modes"
+      ]
+    },
+    {
+      "role": "Data Scientists/Analysts",
+      "type": "tertiary",
+      "needs": [
+        "Spark Connect + Jupyter with working backends",
+        "Pre-configured storage and metadata"
+      ]
+    }
+  ],
+  "success_criteria": [
+    {
+      "metric": "Helm Template Validation",
+      "type": "primary",
+      "threshold": "100% of preset combinations pass helm template --validate",
+      "scenarios": [
+        "Core Components only (baseline)",
+        "Core + GPU",
+        "Core + Iceberg",
+        "Core + GPU + Iceberg"
+      ]
+    },
+    {
+      "metric": "Time to First Spark",
+      "type": "secondary",
+      "threshold": "< 5 minutes from git clone to working Spark Connect with Core Components"
+    },
+    {
+      "metric": "Documentation Coverage",
+      "type": "secondary",
+      "threshold": "100% of Core Components scenarios documented with examples"
+    },
+    {
+      "metric": "Backward Compatibility",
+      "type": "secondary",
+      "threshold": "Existing values.yaml files continue to work"
+    }
+  ],
+  "goals": {
+    "primary": [
+      "Core Components as Foundation — Hive Metastore, Minio, History Server mandatory in all presets",
+      "GPU/Iceberg as Optional Features — Add via feature flags, not separate charts",
+      "Hybrid Presets — Core base + feature/scenario combinations",
+      "Template Validation — All combinations validated with helm template --validate"
+    ],
+    "secondary": [
+      "Documentation — README for each chart with Core Components first",
+      "Backward Compatibility — Existing deployments continue to work",
+      "OpenShift Ready — PSS restricted / SCC restricted compatible"
+    ]
+  },
+  "non_goals": [
+    "Spark Education — Not teaching how to write Spark jobs or tune queries",
+    "Managed Service — Operations (patching, updates) are user responsibility",
+    "All Integrations — Only typical scenarios: Jupyter, Airflow, MLflow",
+    "Custom Presets — Users create custom values based on documented patterns"
+  ],
+  "technical_approach": {
+    "architecture": "Single Chart with Conditional Logic",
+    "rationale": "Reduces chart duplication between 3.5 and 4.1, Core Components always enabled, features optional via flags, simpler for DevOps to understand",
+    "values_structure": {
+      "core": {
+        "hiveMetastore": {"enabled": true},
+        "minio": {"enabled": true},
+        "historyServer": {"enabled": true}
+      },
+      "features": {
+        "gpu": {"enabled": false},
+        "iceberg": {"enabled": false}
+      },
+      "connect": {"enabled": false, "backendMode": "k8s"},
+      "jupyter": {"enabled": false},
+      "airflow": {"enabled": false}
+    },
+    "preset_structure": {
+      "base": [
+        "core-baseline.yaml",
+        "core-gpu.yaml",
+        "core-iceberg.yaml",
+        "core-gpu-iceberg.yaml"
+      ],
+      "scenarios": [
+        "jupyter-connect-k8s.yaml",
+        "airflow-connect-k8s.yaml",
+        "airflow-connect-standalone.yaml"
+      ]
+    }
+  },
+  "dependencies": [],
+  "related_docs": [
+    "PRODUCT_VISION.md",
+    "docs/phases/phase-00-summary.md",
+    "docs/architecture/spark-k8s-charts.md"
+  ]
+}

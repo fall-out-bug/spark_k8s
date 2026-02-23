@@ -1,13 +1,15 @@
 apiVersion: v2
 name: spark-standalone
-description: Apache Spark Standalone cluster with optional Airflow and MLflow
-type: application
 version: 0.1.0
 appVersion: "3.5.7"
+description: Spark Standalone cluster with Airflow orchestration for batch ETL workloads
+type: application
 keywords:
   - spark
-  - spark-standalone
+  - standalone
   - airflow
-  - mlflow
+  - etl
+  - batch-processing
 maintainers:
-  - name: Data Platform Team
+  - name: spark-k8s
+    email: spark-k8s@example.com

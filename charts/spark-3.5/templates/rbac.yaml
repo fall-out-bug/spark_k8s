@@ -1,0 +1,89 @@
+{{- if .Values.rbac.create }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "spark-3.5.serviceAccountName" . }}
+  labels:
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+---
+# Role for namespace-scoped resources
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-spark-role
+  labels:
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection"]
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["create", "get", "list", "delete", "deletecollection"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-spark-rolebinding
+  labels:
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include "spark-3.5.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "spark-3.5.fullname" . }}-spark-role
+{{- if or .Values.connect.enabled .Values.sparkStandalone.enabled }}
+---
+# ClusterRole for Spark Connect/Standalone k8s backend mode
+# Required for executor pod management across the namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-spark-cluster-role
+  labels:
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection", "update"]
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["get"]
+- apiGroups: [""]
+  resources: ["pods/status"]
+  verbs: ["get"]
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["create", "get", "list", "delete", "deletecollection"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection", "update"]
+- apiGroups: [""]
+  resources: ["persistentvolumeclaims"]
+  verbs: ["create", "get", "list", "delete", "deletecollection"]
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["create", "get", "list", "watch", "delete", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-spark-cluster-rolebinding
+  labels:
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include "spark-3.5.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "spark-3.5.fullname" . }}-spark-cluster-role
+{{- end }}
+{{- end }}
