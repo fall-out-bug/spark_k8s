@@ -1,0 +1,51 @@
+# Dockerignore for Spark 3.5 image
+
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+docs/
+LICENSE
+
+# Tests
+tests/
+
+# IDE
+.idea/
+.vscode/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+.eggs/
+dist/
+build/
+
+# SDP
+.sdp/
+
+# CI/CD
+.github/
+
+# Charts
+charts/
+
+# Scripts
+scripts/
+
+# Examples
+examples/
+
+# Environment
+.env
+.venv/
+venv/
+
+# Cache
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage

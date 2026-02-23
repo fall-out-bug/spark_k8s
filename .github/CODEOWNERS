@@ -1,0 +1,45 @@
+# CODEOWNERS - Define code ownership for PR reviews
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything
+* @fall-out-bug
+
+# Helm Charts - chart maintainers
+/charts/ @fall-out-bug
+/charts/spark-3.5/ @fall-out-bug
+/charts/spark-4.1/ @fall-out-bug
+/charts/spark-base/ @fall-out-bug
+/charts/observability/ @fall-out-bug
+
+# Docker - docker maintainers
+/docker/ @fall-out-bug
+/docker/spark/ @fall-out-bug
+/docker/spark-4.1/ @fall-out-bug
+/docker/jupyter/ @fall-out-bug
+/docker/jupyterhub/ @fall-out-bug
+/docker/optional/ @fall-out-bug
+
+# Tests - QA team
+/tests/ @fall-out-bug
+/tests/unit/ @fall-out-bug
+/tests/integration/ @fall-out-bug
+/tests/e2e/ @fall-out-bug
+
+# CI/CD workflows
+/.github/workflows/ @fall-out-bug
+/.github/actions/ @fall-out-bug
+
+# Documentation
+/docs/ @fall-out-bug
+/README.md @fall-out-bug
+
+# Scripts
+/scripts/ @fall-out-bug
+
+# Examples
+/examples/ @fall-out-bug
+
+# Configuration files
+/pyproject.toml @fall-out-bug
+/.pre-commit-config.yaml @fall-out-bug
+/requirements*.txt @fall-out-bug

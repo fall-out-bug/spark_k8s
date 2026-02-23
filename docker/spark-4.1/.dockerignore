@@ -1,0 +1,58 @@
+# Dockerignore for Spark 4.1 image
+# Reduces build context to essentials only
+
+# Parent directory (only include what's needed)
+!deps/
+
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+docs/
+LICENSE
+
+# Tests
+tests/
+
+# IDE
+.idea/
+.vscode/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+.eggs/
+dist/
+build/
+
+# SDP
+.sdp/
+
+# CI/CD
+.github/
+
+# Charts
+charts/
+
+# Scripts
+scripts/
+
+# Examples
+examples/
+
+# Environment
+.env
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Cache
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage

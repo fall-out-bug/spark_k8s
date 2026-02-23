@@ -1,0 +1,82 @@
+# Root .dockerignore for docker/ directory
+# Reduces build context size
+
+# Git
+.git
+.gitignore
+.gitmodules
+
+# Documentation
+*.md
+docs/
+LICENSE
+
+# Tests
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# SDP submodule
+.sdp/
+
+# CI/CD
+.github/
+
+# Charts (not needed in docker context)
+charts/
+
+# Scripts (not needed in docker context)
+scripts/
+
+# Examples (not needed in docker context)
+examples/
+
+# Temporary files
+*.log
+*.tmp
+*.temp
+.tmp/
+.tmp/**
+
+# Build artifacts
+*.jar
+*.war
+*.ear
+
+# Environment
+.env
+.env.*
+.venv/
+venv/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# MyPy
+.mypy_cache/
+
+# Ruff
+.ruff_cache/
