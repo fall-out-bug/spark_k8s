@@ -29,12 +29,13 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up kubectl
-        uses: azure/setup-kubectl@v3
+        uses: azure/setup-kubectl@v4
 
       - name: Deploy to staging
+        id: deploy
         run: |
           scripts/cicd/promote-job.sh \
             --environment staging \
@@ -42,8 +43,37 @@ jobs:
             --version ${{ inputs.version }}
 
       - name: Run integration tests
+        id: integration-tests
         run: |
           scripts/tests/integration/run-integration-tests.sh --environment staging
+
+      - name: Rollback on failure
+        if: failure() && steps.deploy.outcome == 'success'
+        run: |
+          echo "::warning::Integration tests failed, initiating rollback..."
+
+          scripts/cicd/rollback-job.sh \
+            --environment staging \
+            --previous \
+            --wait || true
+
+          # Alert team
+          if [ -n "${{ secrets.SLACK_WEBHOOK }}" ]; then
+            curl -X POST ${{ secrets.SLACK_WEBHOOK }} \
+              -H 'Content-type: application/json' \
+              -d '{
+                "text": "🚨 Auto-rollback triggered in staging",
+                "blocks": [
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*Deployment Rollback*\n\n• Environment: staging\n• Version: ${{ inputs.version }}\n• Reason: Integration tests failed"
+                    }
+                  }
+                ]
+              }' || true
+          fi
 
   promote-production:
     name: Promote to Production
@@ -51,12 +81,13 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up kubectl
-        uses: azure/setup-kubectl@v3
+        uses: azure/setup-kubectl@v4
 
       - name: Deploy to production
+        id: deploy
         run: |
           scripts/cicd/promote-job.sh \
             --environment production \
@@ -64,13 +95,46 @@ jobs:
             --version ${{ inputs.version }}
 
       - name: Wait for deployment
+        id: wait
         run: |
           kubectl wait --for=condition=ready pod -l app=spark-job,version=${{ inputs.version }} -n spark-production --timeout=10m
 
       - name: Run production smoke tests
+        id: smoke-tests
         run: |
           scripts/cicd/smoke-test-job.sh --environment production
+
+      - name: Rollback on smoke test failure
+        if: failure() && steps.deploy.outcome == 'success'
+        run: |
+          echo "::error::Smoke tests failed, initiating automatic rollback..."
+
+          scripts/cicd/rollback-job.sh \
+            --environment production \
+            --previous \
+            --wait || true
+
+          # Alert team (always attempt)
+          if [ -n "${{ secrets.SLACK_WEBHOOK }}" ]; then
+            curl -X POST ${{ secrets.SLACK_WEBHOOK }} \
+              -H 'Content-type: application/json' \
+              -d '{
+                "text": "🚨 CRITICAL: Auto-rollback triggered in production",
+                "blocks": [
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*🚨 Production Deployment Rollback*\n\n• Environment: **production**\n• Version: ${{ inputs.version }}\n• Reason: Smoke tests failed\n• Action: Automatic rollback initiated\n\n@channel Please investigate immediately."
+                    }
+                  }
+                ]
+              }' || true
+          fi
+
+          exit 1
 
       - name: Monitor for 30 minutes
         run: |
           scripts/cicd/monitor-deployment.sh --duration 30m
+
