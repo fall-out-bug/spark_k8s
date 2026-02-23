@@ -8,12 +8,14 @@ repos:
     hooks:
       - id: ruff
         args: [--fix]
+        exclude: ^(dags/|docker/|notebooks/|\.sdp/)
 
   - repo: https://github.com/psf/black
     rev: 24.10.0
     hooks:
       - id: black
         args: [--config=pyproject.toml]
+        exclude: ^(dags/|docker/|notebooks/|\.sdp/)
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.13.0
@@ -35,11 +37,19 @@ repos:
       - id: check-merge-conflict
       - id: detect-private-key
 
+  # ShellCheck for shell scripts
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        args: [--severity=warning]
+
   # Helm lint (optional - requires helm installed)
-  # - repo: local
-  #   hooks:
-  #     - id: helm-lint
-  #       name: helm lint
-  #       entry: helm lint charts/spark-4.1 charts/spark-3.5
-  #       language: system
-  #       pass_filenames: false
+  - repo: local
+    hooks:
+      - id: helm-lint
+        name: helm lint
+        entry: helm lint charts/spark-4.1 charts/spark-3.5 charts/spark-base
+        language: system
+        pass_filenames: false
+        stages: [manual]  # Run manually, not on every commit
