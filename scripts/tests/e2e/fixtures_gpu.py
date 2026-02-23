@@ -60,6 +60,7 @@ def _get_gpu_stats() -> Dict[str, Any]:
     except (FileNotFoundError, subprocess.TimeoutExpired, ValueError) as e:
         # Log the exception and return default metrics
         # GPU metrics not available, using defaults
+        pass
 
     return {
         "gpu_utilization": 0,
