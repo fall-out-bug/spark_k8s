@@ -31,7 +31,17 @@ jobs:
         run: |
           docker pull ${{ matrix.image }} || echo "Image not found, skipping..."
 
-      - name: Scan with Trivy
+      - name: Scan with Trivy (SARIF)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ matrix.image }}
+          severity: HIGH,CRITICAL
+          exit-code: '0'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+        continue-on-error: true
+
+      - name: Scan with Trivy (Table)
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ matrix.image }}
@@ -42,7 +52,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
@@ -57,7 +67,7 @@ jobs:
             echo "### Trivy Scan Results 🔍" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             cat trivy-report.txt >> $GITHUB_STEP_SUMMARY || echo "No vulnerabilities found" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -72,7 +82,7 @@ jobs:
 
   scan-secrets:
     name: Scan for Hardcoded Secrets
-    runs-on: ubuntu-litted
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
