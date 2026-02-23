@@ -88,6 +88,24 @@ helm install spark-connect charts/spark-3.5/charts/spark-connect \
   -f charts/spark-3.5/charts/spark-connect/values-scenario-jupyter-connect-k8s.yaml
 ```
 
+### OCI Registry Install (Alternative)
+
+Charts are also published to GitHub Container Registry:
+
+```bash
+# Login to GHCR (one-time)
+echo $GITHUB_TOKEN | helm registry login ghcr.io -u USERNAME --password-stdin
+
+# Pull and install from OCI
+helm pull oci://ghcr.io/fall-out-bug/spark_k8s/charts/spark-4.1 --version 0.1.0
+helm install spark ./spark-4.1-0.1.0.tgz
+
+# Or install directly (Helm 3.8+)
+helm install spark oci://ghcr.io/fall-out-bug/spark_k8s/charts/spark-4.1 --version 0.1.0
+```
+
+Available charts: `spark-4.1`, `spark-3.5`, `spark-base`
+
 ---
 
 ## Components

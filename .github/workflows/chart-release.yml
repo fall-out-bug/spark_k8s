@@ -1,0 +1,140 @@
+name: Chart Release (OCI)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      charts:
+        description: 'Charts to release (comma-separated: spark-4.1,spark-3.5,spark-base or "all")'
+        required: false
+        default: 'all'
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  detect-charts:
+    runs-on: ubuntu-latest
+    outputs:
+      charts: ${{ steps.detect.outputs.charts }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect charts to release
+        id: detect
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            CHARTS="${{ github.event.inputs.charts }}"
+            if [ "$CHARTS" == "all" ]; then
+              CHARTS='["spark-4.1","spark-3.5","spark-base"]'
+            else
+              # Convert comma-separated to JSON array
+              CHARTS=$(echo "$CHARTS" | jq -R 'split(",")' | jq -c '.')
+            fi
+          else
+            # On tag, release all charts
+            CHARTS='["spark-4.1","spark-3.5","spark-base"]'
+          fi
+          echo "charts=$CHARTS" >> $GITHUB_OUTPUT
+          echo "Charts to release: $CHARTS"
+
+  release-charts:
+    needs: detect-charts
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        chart: ${{ fromJson(needs.detect-charts.outputs.charts) }}
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.14.0'
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get chart version
+        id: version
+        run: |
+          CHART_DIR="charts/${{ matrix.chart }}"
+          if [ -d "$CHART_DIR" ]; then
+            VERSION=$(yq '.version' "$CHART_DIR/Chart.yaml")
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "Chart version: $VERSION"
+          else
+            echo "Chart directory not found: $CHART_DIR"
+            exit 1
+          fi
+
+      - name: Package chart
+        run: |
+          CHART_DIR="charts/${{ matrix.chart }}"
+          helm package "$CHART_DIR" \
+            --version=${{ steps.version.outputs.version }} \
+            --app-version=${{ github.ref_name }} \
+            --destination=./packaged
+
+      - name: Push to OCI registry
+        run: |
+          CHART_NAME="${{ matrix.chart }}"
+          VERSION="${{ steps.version.outputs.version }}"
+          CHART_FILE="./packaged/${CHART_NAME}-${VERSION}.tgz"
+
+          echo "Pushing $CHART_NAME:$VERSION to OCI registry..."
+
+          helm push "$CHART_FILE" oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/charts
+
+      - name: Verify push
+        run: |
+          CHART_NAME="${{ matrix.chart }}"
+          VERSION="${{ steps.version.outputs.version }}"
+
+          echo "Verifying chart in registry..."
+          helm pull oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/charts/${CHART_NAME} \
+            --version "$VERSION" \
+            --destination ./verified
+
+          echo "✅ Chart ${CHART_NAME}:${VERSION} successfully published"
+          ls -la ./verified/
+
+      - name: Generate release notes
+        run: |
+          CHART_NAME="${{ matrix.chart }}"
+          VERSION="${{ steps.version.outputs.version }}"
+
+          echo "## 📦 ${CHART_NAME} ${VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Published to: \`oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/charts/${CHART_NAME}:${VERSION}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Install" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "helm pull oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/charts/${CHART_NAME} --version ${VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "helm install my-release ./${CHART_NAME}-${VERSION}.tgz" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  update-readme:
+    needs: release-charts
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update README with OCI instructions
+        run: |
+          echo "README OCI instructions should be updated manually if needed"
+          echo "Charts released: ${{ join(fromJson(needs.detect-charts.outputs.charts), ', ') }}"
