@@ -104,4 +104,26 @@ data:
     spark.sql.iceberg.delete-planning.enabled=true
     spark.sql.iceberg.deletes.enabled=true
     {{- end }}
+
+    {{- if and .Values.features .Values.features.openLineage .Values.features.openLineage.enabled }}
+    # OpenLineage configuration
+    spark.extraListeners=io.openlineage.spark.OpenLineageSparkListener
+    spark.openlineage.host={{ .Values.features.openLineage.endpoint | default "http://marquez:5000" }}
+    spark.openlineage.namespace={{ .Values.features.openLineage.namespace | default "spark-k8s" }}
+    {{- if .Values.features.openLineage.jobPrefix }}
+    spark.openlineage.jobPrefix={{ .Values.features.openLineage.jobPrefix }}
+    {{- end }}
+    {{- if .Values.features.openLineage.facets }}
+    spark.openlineage.facets.spark.version.enabled={{ .Values.features.openLineage.facets.sparkVersion | default true }}
+    spark.openlineage.facets.source.code.enabled={{ .Values.features.openLineage.facets.sourceCode | default false }}
+    {{- end }}
+    {{- if eq .Values.features.openLineage.transport.type "kafka" }}
+    spark.openlineage.transport.type=kafka
+    spark.openlineage.transport.topic={{ .Values.features.openLineage.transport.kafka.topic }}
+    spark.openlineage.transport.brokers={{ .Values.features.openLineage.transport.kafka.brokers }}
+    {{- else if eq .Values.features.openLineage.transport.type "file" }}
+    spark.openlineage.transport.type=file
+    spark.openlineage.transport.path={{ .Values.features.openLineage.transport.file.path }}
+    {{- end }}
+    {{- end }}
 {{- end }}

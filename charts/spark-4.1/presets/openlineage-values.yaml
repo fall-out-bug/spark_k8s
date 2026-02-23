@@ -1,0 +1,36 @@
+# OpenLineage Integration Preset
+# Enables lineage tracking with Marquez backend
+#
+# Usage:
+#   helm install spark charts/spark-4.1 -f charts/spark-4.1/presets/openlineage-values.yaml
+#
+# Prerequisites:
+#   - Marquez deployed in cluster (see docs/recipes/integration/openlineage-setup.md)
+#   - openlineage-spark JAR available in Spark image
+
+features:
+  openLineage:
+    enabled: true
+    endpoint: "http://marquez:5000"
+    namespace: "spark-k8s-production"
+    jobPrefix: "spark-"
+    facets:
+      enabled: true
+      sparkVersion: true
+      sourceCode: false
+    transport:
+      type: "http"
+
+# Enable Spark Connect with lineage
+connect:
+  enabled: true
+  backendMode: "k8s"
+
+# S3 storage for data
+global:
+  s3:
+    enabled: true
+    endpoint: "http://minio:9000"
+    # REQUIRED: Set via --set or ExternalSecrets
+    accessKey: ""
+    secretKey: ""

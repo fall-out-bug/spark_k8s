@@ -245,6 +245,22 @@ features:
         urls:
           - "local:///opt/spark/rapids/jars/rapids-4-spark_2.12-24.02.0.jar"
           - "local:///opt/spark/rapids/jars/cudf-24.02.0-cuda12.jar"
+  openLineage:
+    enabled: false
+    endpoint: "http://marquez:5000"
+    namespace: "spark-k8s"
+    jobPrefix: ""
+    facets:
+      enabled: true
+      sparkVersion: true
+      sourceCode: false
+    transport:
+      type: "http"
+      kafka:
+        topic: "openlineage.events"
+        brokers: "kafka:9092"
+      file:
+        path: "/tmp/openlineage/events.json"
 
 # Spark Standalone master/worker (3.5.3)
 # Alternative to Spark Connect for Spark 3.5

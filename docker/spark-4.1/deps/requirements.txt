@@ -4,3 +4,5 @@ pyarrow>=10.0.0
 numpy>=1.24.0
 grpcio>=1.56.0
 grpcio-status>=1.56.0
+# OpenLineage (optional - for lineage tracking)
+openlineage-python>=1.0.0

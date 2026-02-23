@@ -38,5 +38,11 @@
       <artifactId>iceberg-aws-bundle</artifactId>
       <version>1.6.1</version>
     </dependency>
+    <!-- OpenLineage Spark integration (optional) -->
+    <dependency>
+      <groupId>io.openlineage</groupId>
+      <artifactId>openlineage-spark_2.13</artifactId>
+      <version>1.24.0</version>
+    </dependency>
   </dependencies>
 </project>

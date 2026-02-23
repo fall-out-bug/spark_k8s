@@ -245,6 +245,29 @@ features:
         urls:
           - "local:///opt/spark/rapids/jars/rapids-4-spark_2.12-24.02.0.jar"
           - "local:///opt/spark/rapids/jars/cudf-24.02.0-cuda12.jar"
+  openLineage:
+    enabled: false
+    # OpenLineage backend endpoint (Marquez, Datakin, etc.)
+    endpoint: "http://marquez:5000"
+    # Namespace for lineage events (e.g., team, environment)
+    namespace: "spark-k8s"
+    # Job name prefix (optional)
+    jobPrefix: ""
+    # Custom facets (optional)
+    facets:
+      enabled: true
+      sparkVersion: true
+      sourceCode: false
+    # Transport configuration
+    transport:
+      type: "http"  # http, kafka, file
+      # Kafka config (if type=kafka)
+      kafka:
+        topic: "openlineage.events"
+        brokers: "kafka:9092"
+      # File config (if type=file)
+      file:
+        path: "/tmp/openlineage/events.json"
 
 # Spark Connect server (4.1.0)
 connect:
