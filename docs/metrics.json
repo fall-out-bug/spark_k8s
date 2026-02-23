@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-02-23T11:28:20Z",
+  "generated_at": "2026-02-23T11:47:29Z",
   "total_ws": 153,
-  "completed_ws": 116,
-  "completion_pct": 75,
+  "completed_ws": 117,
+  "completion_pct": 76,
   "features": [
     {"id": "F01: Spark Standalone", "total": 12, "completed": 12, "pct": 100},
     {"id": "F02: Repo Documentation", "total": 4, "completed": 4, "pct": 100},
