@@ -29,36 +29,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup environment
+        uses: ./.github/actions/setup-spark-env
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements-test.txt
-          pip install pytest pytest-cov pytest-timeout pytest-html
-
-      - name: Create kind cluster
-        uses: helm/kind-action@v1.8.0
+      - name: Create kind cluster with Spark Operator
+        uses: ./.github/actions/run-kind-cluster
         with:
-          cluster_name: ${{ env.CLUSTER_NAME }}
-          version: v0.20.0
-
-      - name: Install Helm
-        uses: azure/setup-helm@v4
-        with:
-          version: v3.14.0
-
-      - name: Install Spark Operator
-        run: |
-          helm repo add spark-operator https://kubeflow.github.io/spark-operator
-          helm repo update
-          helm install spark-operator spark-operator/spark-operator \
-            --namespace spark-operator \
-            --create-namespace \
-            --wait \
-            --timeout 5m || true
+          cluster-name: ${{ env.CLUSTER_NAME }}
 
       - name: Run smoke tests
         run: |

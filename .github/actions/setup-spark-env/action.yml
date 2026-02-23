@@ -1,0 +1,64 @@
+name: 'Setup Spark Environment'
+description: 'Install Python, Helm, kubectl for Spark K8s CI'
+
+author: 'spark-k8s team'
+
+inputs:
+  python-version:
+    description: 'Python version to install'
+    required: false
+    default: '3.11'
+  helm-version:
+    description: 'Helm version to install'
+    required: false
+    default: 'v3.14.0'
+  kubectl-version:
+    description: 'kubectl version to install'
+    required: false
+    default: 'v1.28.0'
+  install-deps:
+    description: 'Install Python dependencies from requirements-test.txt'
+    required: false
+    default: 'true'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: 'pip'
+        cache-dependency-path: |
+          requirements.txt
+          requirements-test.txt
+
+    - name: Setup Helm
+      uses: azure/setup-helm@v4
+      with:
+        version: ${{ inputs.helm-version }}
+
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v4
+      with:
+        version: ${{ inputs.kubectl-version }}
+
+    - name: Install Python dependencies
+      if: inputs.install-deps == 'true'
+      shell: bash
+      run: |
+        if [ -f requirements-test.txt ]; then
+          pip install -r requirements-test.txt
+        fi
+        pip install pytest pytest-cov pytest-timeout
+
+    - name: Verify installations
+      shell: bash
+      run: |
+        python --version
+        helm version --short
+        kubectl version --client --short || kubectl version --client
+
+branding:
+  icon: 'cpu'
+  color: 'orange'

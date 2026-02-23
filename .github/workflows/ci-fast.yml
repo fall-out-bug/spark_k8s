@@ -102,15 +102,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - name: Setup environment
+        uses: ./.github/actions/setup-spark-env
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-
-      - name: Install dependencies
-        run: |
-          pip install -r requirements-test.txt
-          pip install pytest pytest-cov pytest-timeout
 
       - name: Run unit tests
         run: |
