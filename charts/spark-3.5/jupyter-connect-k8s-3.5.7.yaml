@@ -6,8 +6,8 @@ global:
   s3:
     enabled: true
     endpoint: "http://minio.spark-infra.svc.cluster.local:9000"
-    accessKey: "minioadmin"
-    secretKey: "minioadmin"
+    accessKey: ""  # REQUIRED: set via --set or ExternalSecrets
+    secretKey: ""  # REQUIRED: set via --set or ExternalSecrets
     pathStyleAccess: true
     sslEnabled: false
 

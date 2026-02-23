@@ -6,15 +6,15 @@
 global:
   s3:
     endpoint: "http://minio.spark-infra.svc.cluster.local:9000"
-    accessKey: "minioadmin"
-    secretKey: "minioadmin"
+    accessKey: ""  # REQUIRED: set via --set or ExternalSecrets
+    secretKey: ""  # REQUIRED: set via --set or ExternalSecrets
     pathStyleAccess: true
     sslEnabled: false
   postgresql:
     host: "spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local"
     port: 5432
     user: "postgres"
-    password: "spark123"
+    password: ""  # REQUIRED: set via --set or ExternalSecrets
 
 # Enable base infrastructure components
 spark-base:
@@ -46,7 +46,7 @@ spark-base:
     enabled: true
     auth:
       username: postgres
-      password: spark123
+      password: ""  # REQUIRED
       database: spark_db
     databases:
       - spark_db
@@ -105,7 +105,7 @@ hiveMetastore:
     port: 5432
     database: "spark_db"
     username: "postgres"
-    password: "spark123"
+    password: ""  # REQUIRED: set via --set or ExternalSecrets
   resources:
     requests:
       memory: "512Mi"

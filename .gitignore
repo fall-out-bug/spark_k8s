@@ -22,3 +22,15 @@ __pycache__/
 docs/workstreams/TEMPLATE.md
 quality-gate.toml
 hooks/
+
+# Secrets and credentials (NEVER commit these)
+.env
+.env.local
+.env.*.local
+values-secrets.yaml
+*-secrets.yaml
+secrets.yaml
+.secrets/
+*.pem
+*.key
+credentials.yaml

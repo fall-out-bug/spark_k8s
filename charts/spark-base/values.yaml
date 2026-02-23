@@ -2,8 +2,8 @@ global:
   imagePullSecrets: []
 
 s3:
-  accessKey: "minioadmin"
-  secretKey: "minioadmin"
+  accessKey: ""  # REQUIRED: set via --set or ExternalSecrets
+  secretKey: ""  # REQUIRED: set via --set or ExternalSecrets
   endpoint: ""
   existingSecret: ""  # Set to use existing secret instead of creating one
 
@@ -107,7 +107,7 @@ postgresql:
     pullPolicy: IfNotPresent
   auth:
     username: "spark"
-    password: "spark123"
+    password: ""  # REQUIRED: set via --set or ExternalSecrets
   service:
     port: 5432
   persistence:

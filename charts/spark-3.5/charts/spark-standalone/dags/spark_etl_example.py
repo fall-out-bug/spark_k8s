@@ -4,12 +4,12 @@ Demonstrates both Spark Operator and spark-submit approaches
 """
 
 from datetime import datetime, timedelta
+
 from airflow import DAG
+from airflow.models import Variable
+from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
 from airflow.providers.cncf.kubernetes.operators.spark_kubernetes import SparkKubernetesOperator
 from airflow.providers.cncf.kubernetes.sensors.spark_kubernetes import SparkKubernetesSensor
-from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
-from airflow.operators.python import PythonOperator
-from airflow.models import Variable
 
 default_args = {
     'owner': 'data-team',

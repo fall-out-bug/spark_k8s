@@ -1,0 +1,38 @@
+# Spark 4.1 Production Preset
+# Production-like settings: HA, resource limits, security
+# Usage: helm template test charts/spark-4.1 -f charts/spark-4.1/presets/prod.yaml
+
+connect:
+  enabled: true
+  replicas: 3
+  resources:
+    requests:
+      memory: "4Gi"
+      cpu: "2"
+    limits:
+      memory: "8Gi"
+      cpu: "4"
+
+hiveMetastore:
+  enabled: true
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "2"
+
+historyServer:
+  enabled: true
+
+jupyter:
+  enabled: false  # Typically disabled in prod; use separate Jupyter deployment
+
+core:
+  minio:
+    enabled: false  # Use external S3 in prod
+  postgresql:
+    enabled: false  # Use managed PostgreSQL in prod
+  hiveMetastore:
+    enabled: true

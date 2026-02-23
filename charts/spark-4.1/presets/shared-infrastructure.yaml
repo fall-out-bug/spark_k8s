@@ -40,7 +40,7 @@ hiveMetastore:
     port: 5432
     database: "metastore_spark41"
     username: "hive"
-    password: "hive123"
+    password: ""  # REQUIRED: set via --set or ExternalSecrets
 
 # S3 configuration (points to shared MinIO)
 global:
@@ -49,8 +49,8 @@ global:
     endpoint: "http://minio:9000"
     pathStyleAccess: true
     sslEnabled: false
-    accessKey: "minioadmin"
-    secretKey: "minioadmin"
+    accessKey: ""  # REQUIRED: set via --set or ExternalSecrets
+    secretKey: ""  # REQUIRED: set via --set or ExternalSecrets
     existingSecret: "s3-credentials"
 
 # Feature flags

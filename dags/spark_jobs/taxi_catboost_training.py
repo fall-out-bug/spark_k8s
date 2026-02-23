@@ -16,21 +16,18 @@ Environment variables:
 """
 
 import os
-import sys
-import socket
 import pickle
-import json
+import socket
+import sys
 from datetime import datetime
-from io import BytesIO
 
+import numpy as np
+
+# ML imports - pandas/numpy available in spark-custom image
 # Spark imports
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql.types import *
-
-# ML imports - pandas/numpy available in spark-custom image
-import pandas as pd
-import numpy as np
 
 # CatBoost imported inside functions to allow runtime installation
 
@@ -124,8 +121,8 @@ def train_catboost_models(pdf, feature_cols, borough):
     # Import inside function to allow runtime installation
     try:
         from sklearn.ensemble import GradientBoostingRegressor
-        from sklearn.model_selection import train_test_split
         from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error
+        from sklearn.model_selection import train_test_split
     except ImportError as e:
         print(f"ERROR: Missing ML dependencies: {e}")
         print("Please install: pip install scikit-learn")

@@ -1,0 +1,15 @@
+{
+  "feature": "F020",
+  "feature_alias": "F04",
+  "feature_title": "Apache Spark 4.1.0 Charts",
+  "agent_id": "agent-20260213-oneshot-f020",
+  "status": "completed",
+  "completed_ws": ["WS-020-01", "WS-020-02", "WS-020-03", "WS-020-04", "WS-020-05", "WS-020-06", "WS-020-07", "WS-020-08", "WS-020-09", "WS-020-10", "WS-020-11", "WS-020-12", "WS-020-13", "WS-020-14", "WS-020-15", "WS-020-16", "WS-020-17", "WS-020-18", "WS-020-19", "WS-020-20", "WS-020-21", "WS-020-22", "WS-020-23", "WS-020-24"],
+  "execution_order": [],
+  "blocked": {},
+  "started_at": "2026-02-13T00:00:00Z",
+  "updated_at": "2026-02-13T00:00:00Z",
+  "status": "completed",
+  "last_completed": ["WS-020-02", "WS-020-06", "WS-020-07", "WS-020-08", "WS-020-09", "WS-020-10", "WS-020-13", "WS-020-14", "WS-020-15", "WS-020-16", "WS-020-17", "WS-020-18", "WS-020-19", "WS-020-20", "WS-020-21", "WS-020-22", "WS-020-23"],
+  "note": "All 24 WS verified complete. Deliverables exist: charts, docker, scripts, docs/guides. F020 (F04) feature complete."
+}

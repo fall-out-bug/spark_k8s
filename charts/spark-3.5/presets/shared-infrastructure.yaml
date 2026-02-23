@@ -53,7 +53,7 @@ global:
     host: "shared-spark-base-postgresql"
     port: 5432
     user: "hive"
-    password: "hive123"
+    password: ""  # REQUIRED: set via --set or ExternalSecrets
     database: "metastore_spark35"
     existingSecret: "hive-credentials"
 

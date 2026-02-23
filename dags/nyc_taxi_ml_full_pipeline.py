@@ -12,15 +12,12 @@ Complete ML pipeline with:
 All tasks push metrics to Prometheus Pushgateway.
 """
 
+import logging
 from datetime import datetime, timedelta
+
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from airflow.providers.cncf.kubernetes.operators.spark_kubernetes import SparkKubernetesOperator
-from airflow.providers.cncf.kubernetes.hooks.kubernetes import KubernetesHook
 from airflow.utils.task_group import TaskGroup
-import os
-import json
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -140,16 +137,14 @@ def run_feature_engineering(**context):
 
 def train_borough_model(borough: str, **context):
     """Train model for a specific borough with metrics."""
-    import pandas as pd
-    import numpy as np
+    import time
+
     import boto3
     import joblib
-    from io import BytesIO
+    import numpy as np
     from sklearn.ensemble import GradientBoostingRegressor
-    from sklearn.model_selection import train_test_split, cross_val_score
-    from sklearn.preprocessing import StandardScaler
     from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, r2_score
-    import time
+    from sklearn.preprocessing import StandardScaler
 
     start_time = time.time()
 
@@ -165,8 +160,8 @@ def train_borough_model(borough: str, **context):
 
     # Read features (parquet via pandas)
     # In production, would use PyArrow to read directly from S3
-    import pyarrow.parquet as pq
     import pyarrow as pa
+    import pyarrow.parquet as pq
 
     fs = pa.fs.S3FileSystem(
         endpoint_override=CONFIG['minio_endpoint'].replace('http://', ''),
@@ -345,12 +340,13 @@ def validate_models(**context):
 
 def generate_predictions(**context):
     """Generate 7-day forecast using trained models."""
+    import time
+    from datetime import datetime, timedelta
+
     import boto3
     import joblib
-    import pandas as pd
     import numpy as np
-    from datetime import datetime, timedelta
-    import time
+    import pandas as pd
 
     start_time = time.time()
 

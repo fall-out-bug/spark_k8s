@@ -44,7 +44,7 @@ spark-base:
     # Using shared PostgreSQL with superuser 'spark'
     auth:
       username: "spark"
-      password: "spark123"
+      password: ""  # REQUIRED: set via --set or ExternalSecrets
 
 historyServer:
   enabled: true
@@ -58,8 +58,8 @@ global:
     endpoint: "http://minio:9000"
     pathStyleAccess: true
     sslEnabled: false
-    accessKey: "minioadmin"
-    secretKey: "minioadmin"
+    accessKey: ""  # REQUIRED: set via --set or ExternalSecrets
+    secretKey: ""  # REQUIRED: set via --set or ExternalSecrets
     existingSecret: "s3-credentials"
 
   # PostgreSQL configuration (shared)
@@ -67,7 +67,7 @@ global:
     host: "shared-spark-base-postgresql"
     port: 5432
     user: "spark"
-    password: "spark123"
+    password: ""  # REQUIRED: set via --set or ExternalSecrets
     existingSecret: "postgresql-credentials"
 
 # Feature flags

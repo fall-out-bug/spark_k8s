@@ -32,7 +32,7 @@ jobs:
           docker pull ${{ matrix.image }} || echo "Image not found, skipping..."
 
       - name: Scan with Trivy (SARIF)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: ${{ matrix.image }}
           severity: HIGH,CRITICAL
@@ -42,7 +42,7 @@ jobs:
         continue-on-error: true
 
       - name: Scan with Trivy (Table)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: ${{ matrix.image }}
           severity: HIGH,CRITICAL

@@ -25,8 +25,8 @@ global:
   s3:
     enabled: true
     # MinIO S3 credentials
-    accessKey: minioadmin
-    secretKey: minioadmin
+    accessKey: ""  # REQUIRED
+    secretKey: ""  # REQUIRED
     endpoint: http://spark-infra-minio:9000
 
 # MinIO (S3-compatible storage)

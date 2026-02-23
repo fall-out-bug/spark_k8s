@@ -99,7 +99,7 @@ airflow:
     auth:
       database: "airflow"
       username: "airflow"
-      password: "airflow123"
+      password: ""  # REQUIRED
     service:
       port: 5432
     persistence:

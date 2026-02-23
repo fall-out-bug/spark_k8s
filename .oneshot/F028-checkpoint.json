@@ -1,0 +1,11 @@
+{
+  "feature": "F028",
+  "agent_id": "agent-20260213-oneshot",
+  "status": "completed",
+  "completed_ws": ["WS-028-03"],
+  "cancelled_ws": ["WS-028-01", "WS-028-02"],
+  "execution_order": ["WS-028-01", "WS-028-02", "WS-028-03"],
+  "started_at": "2026-02-13T00:00:00Z",
+  "completed_at": "2026-02-13T00:00:00Z",
+  "notes": "F028: WS-028-03 done (schema + Helm tests). WS-028-01/02 cancelled: values layout mismatch, RBAC/KEDA serve different features."
+}

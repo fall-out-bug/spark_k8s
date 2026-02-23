@@ -15,15 +15,16 @@ Environment variables:
 """
 
 import os
-import sys
 import socket
+import sys
 import time
+from datetime import datetime
+
 import requests
-from datetime import datetime, timedelta
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
-from pyspark.sql.window import Window
 from pyspark.sql.types import *
+from pyspark.sql.window import Window
 
 # Configuration
 MINIO_ENDPOINT = os.environ.get("MINIO_ENDPOINT", "http://minio.spark-infra.svc.cluster.local:9000")

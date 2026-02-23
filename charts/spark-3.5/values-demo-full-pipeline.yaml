@@ -10,8 +10,8 @@ global:
   s3:
     enabled: true
     endpoint: "http://minio:9000"
-    accessKey: "minioadmin"
-    secretKey: "minioadmin"
+    accessKey: ""  # REQUIRED: set via --set or ExternalSecrets
+    secretKey: ""  # REQUIRED: set via --set or ExternalSecrets
     pathStyleAccess: true
     sslEnabled: false
 
@@ -119,7 +119,7 @@ standalone:  # Alias for spark-standalone subchart
       auth:
         database: "airflow"
         username: "airflow"
-        password: "airflow123"
+        password: ""  # REQUIRED
       persistence:
         enabled: false
       resources:

@@ -1,0 +1,572 @@
+# spark-3.5 — Default Values
+
+Generated from chart `/home/fall_out_bug/work/s7/spark_k8s/charts/spark-3.5` (version 0.2.0, appVersion 3.5.7).
+Run `scripts/docs/generate-values-reference.sh [chart-path]` to regenerate.
+
+## Full default values (helm show values)
+
+```yaml
+global:
+  imagePullSecrets: []
+  s3:
+    enabled: true
+    endpoint: "http://minio:9000"
+    accessKey: "minioadmin"
+    secretKey: "minioadmin"
+    pathStyleAccess: true
+    sslEnabled: false
+    existingSecret: ""
+  postgresql:
+    host: "postgresql-metastore-35"
+    port: 5432
+    user: "hive"
+    password: "hive123"
+  monitoring:
+    openTelemetry:
+      enabled: false
+      # endpoint: "http://otel-collector:4317"
+      # protocol: "grpc"
+      # samplingRatio: "1.0"
+      # serviceName: "spark-connect-35"
+    s3aMetrics:
+      enabled: true
+    jobPhaseTimeline:
+      enabled: true
+    sparkProfiling:
+      enabled: true
+    grafana:
+      dashboards:
+        ConfigMap: "spark-3.5-grafana-dashboards"
+
+# Secret Management
+# Choose one: externalSecrets, sealedSecrets, or vault
+secrets:
+  externalSecrets:
+    enabled: false
+    provider: "aws"  # aws, gcp, azure, ibm
+    region: "us-east-1"
+    prefix: "spark"
+    aws:
+      iamRole: ""
+    gcp:
+      project: ""
+      clusterLocation: ""
+      clusterName: ""
+      serviceAccountEmail: ""
+    azure:
+      tenantId: ""
+      clientId: ""
+      vaultName: ""
+      secretName: ""
+    ibm:
+      serviceUrl: ""
+
+  sealedSecrets:
+    enabled: false
+    data:
+      access-key: ""
+      secret-key: ""
+
+  vault:
+    enabled: false
+    address: "https://vault.example.com:8200"
+    role: "spark-connect"
+
+# Budget limits and alert thresholds (optional)
+budget:
+  enabled: false
+  overrideEnabled: false
+
+spark-base:
+  enabled: true
+  serviceAccount:
+    create: false
+    name: spark
+  rbac:
+    create: false
+  minio:
+    enabled: false
+  postgresql:
+    enabled: false
+  security:
+    podSecurityStandards: false
+
+rbac:
+  create: true
+  serviceAccountName: "spark-35"
+
+# Core Infrastructure Components
+# Unified configuration for core infrastructure components
+core:
+  minio:
+    enabled: false  # Set to true to enable MinIO S3-compatible storage
+    fullnameOverride: ""
+    image:
+      repository: quay.io/minio/minio
+      tag: "RELEASE.2024-01-01T16-36-33Z"
+      pullPolicy: IfNotPresent
+    service:
+      port: 9000
+      consolePort: 9001
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+    persistence:
+      enabled: true
+      size: "10Gi"
+      storageClass: ""
+    buckets:
+      - warehouse
+      - spark-logs
+      - spark-standalone-logs
+      - spark-jobs
+      - raw-data
+      - processed-data
+      - checkpoints
+
+  postgresql:
+    enabled: false  # Set to true to enable PostgreSQL database
+    fullnameOverride: ""
+    image:
+      repository: postgres
+      tag: "15-alpine"
+      pullPolicy: IfNotPresent
+    auth:
+      username: "spark"
+      password: "spark123"
+    service:
+      port: 5432
+    persistence:
+      enabled: true
+      size: "8Gi"
+      storageClass: ""
+    databases: []
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+
+  hiveMetastore:
+    enabled: true  # Hive Metastore for Spark SQL
+    fullnameOverride: ""
+    image:
+      repository: spark-k8s/hive
+      tag: "3.1.3-pg"
+      pullPolicy: IfNotPresent
+    service:
+      port: 9083
+    warehouseDir: "s3a://warehouse/spark-35"
+    metastoreWarehouseDir: "file:/tmp/hive-warehouse"
+    database:
+      name: "metastore_spark35"
+    postgresql:
+      enabled: true
+      host: "postgresql-metastore-35"
+      port: 5432
+      database: "metastore_spark35"
+      username: "hive"
+      password: "hive123"
+      persistence:
+        enabled: true
+        size: 5Gi
+        storageClass: ""
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+
+historyServer:
+    enabled: true  # Spark History Server for completed applications
+    fullnameOverride: ""
+    image:
+      repository: spark-custom
+      tag: "3.5.x"
+      pullPolicy: IfNotPresent
+    logDirectory: "s3a://spark-logs/events"
+    service:
+      type: ClusterIP
+      port: 18080
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "200m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
+
+# Feature flags and configuration
+features:
+  iceberg:
+    enabled: false
+    catalogType: "hadoop"  # hadoop, hive, rest
+    warehouse: "s3a://warehouse/iceberg"
+    ioImpl: "org.apache.iceberg.hadoop.HadoopFileIO"
+    restCatalogUri: ""  # Required when catalogType is "rest"
+    restCatalogToken: ""  # Optional token for REST catalog
+  gpu:
+    enabled: false  # Enable GPU support with RAPIDS
+    cudaVersion: ""  # Optional: e.g., "12.0"
+    nvidiaVisibleDevices: "all"  # GPU devices to use
+    taskResourceAmount: "0.25"  # GPU amount per task
+    # RAPIDS configuration
+    rapids:
+      plugins: "com.nvidia.spark.SQLPlugin"
+      sql:
+        enabled: true
+        python:
+          enabled: true
+        fallback:
+          enabled: true
+      memory:
+        allocFraction: "0.8"
+        maxAllocFraction: "0.9"
+        minAllocFraction: "0.3"
+      shuffle:
+        enabled: true
+      format:
+        parquet:
+          read: true
+          write: true
+        orc:
+          read: true
+        csv:
+          read: true
+        json:
+          read: true
+      jars:
+        enabled: false  # Set to true to enable custom RAPIDS jars
+        urls:
+          - "local:///opt/spark/rapids/jars/rapids-4-spark_2.12-24.02.0.jar"
+          - "local:///opt/spark/rapids/jars/cudf-24.02.0-cuda12.jar"
+
+# Spark Standalone master/worker (3.5.3)
+# Alternative to Spark Connect for Spark 3.5
+sparkStandalone:
+  enabled: false
+  serviceAccountName: "spark-35"
+  image:
+    repository: spark-custom
+    tag: "3.5.x"
+    pullPolicy: IfNotPresent
+  master:
+    enabled: true
+    service:
+      type: ClusterIP
+      rpcPort: 7077
+      uiPort: 8080
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "1"
+    nodeSelector: {}
+    tolerations: []
+  worker:
+    enabled: true
+    replicas: 1
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "500m"
+      limits:
+        memory: "4Gi"
+        cpu: "2"
+    nodeSelector: {}
+    tolerations: []
+    sparkConf: {}
+    # spark.worker.memory: "2g"
+    # spark.worker.cores: "2"
+
+# Spark Connect server (3.5.7)
+connect:
+  enabled: true
+  replicas: 1
+  image:
+    repository: spark-custom
+    tag: "3.5.x"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 15002
+    metricsPort: 4040
+  metrics:
+    enabled: false
+    port: 4040
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "1"
+    limits:
+      memory: "4Gi"
+      cpu: "2"
+  driver:
+    host: ""
+    port: 7078
+    blockManagerPort: 7079
+  # Backend mode: "k8s" or "standalone"
+  # k8s: dynamic executor pods created on demand (recommended)
+  # standalone: submit to existing Spark Standalone master/workers
+  backendMode: "k8s"
+  # Standalone backend configuration (used when backendMode=standalone)
+  standalone:
+    masterService: "spark-sa-spark-standalone-master"
+    masterPort: 7077
+  executor:
+    cores: "1"
+    coresLimit: "2"
+    memory: "1Gi"
+    memoryLimit: "2Gi"
+    # GPU configuration for executors
+    gpu:
+      enabled: false  # Enable GPU resources for executors
+      count: "1"  # Number of GPUs per executor
+      vendor: "nvidia.com/gpu"  # GPU vendor: nvidia.com/gpu, amd.com/gpu
+      nodeSelector:
+        nvidia.com/gpu: "true"  # Node selector for GPU nodes
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+  dynamicAllocation:
+    enabled: true
+    minExecutors: 0
+    maxExecutors: 10
+  eventLog:
+    enabled: true
+    dir: "s3a://spark-logs/events"
+  sparkConf: {}
+  openTelemetry:
+    enabled: false
+    protocol: "grpc"
+    endpoint: "http://otel-collector:4317"
+    serviceName: "spark-connect-35"
+    samplingRatio: "1.0"
+  extraLibraries:
+    resource-wait-tracker:
+      enabled: false
+      jar: "local:///opt/spark/jars/resource-wait-tracker.jar"
+      className: "org.apache.spark.scheduler.ResourceWaitTracker"
+
+# Hive Metastore 3.1.3 (separate instance for Spark 3.5.7)
+hiveMetastore:
+  enabled: false
+  image:
+    repository: spark-k8s/hive
+    tag: "3.1.3-pg"
+    pullPolicy: IfNotPresent
+  service:
+    port: 9083
+  warehouseDir: "s3a://warehouse/spark-35"
+  metastoreWarehouseDir: "file:/tmp/hive-warehouse"
+  database:
+    name: "metastore_spark35"
+  postgresql:
+    enabled: true
+    host: "postgresql-metastore-35"
+    port: 5432
+    database: "metastore_spark35"
+    username: "hive"
+    password: "hive123"
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClass: ""
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+
+# Ingress
+ingress:
+  enabled: false
+  hosts:
+    historyServer: "history-35.local"
+    jupyter: "jupyter-35.local"
+
+# OpenShift Routes (alternative to Ingress for OpenShift clusters)
+routes:
+  enabled: false
+  # TLS termination mode: edge, passthrough, or reencrypt
+  tlsTerminationType: "edge"
+  # Common TLS configuration for all routes
+  tls:
+    # For edge and reencrypt termination
+    key: ""
+    certificate: ""
+    caCertificate: ""
+    # For reencrypt termination (certificate of the target service)
+    destinationCACertificate: ""
+  # Wildcard policy for routes: IngressValue, WildcardCaptive, WildcardInfra
+  wildcardPolicy: "None"
+  # Route hosts (leave empty for auto-generation based on release name)
+  hosts:
+    historyServer: ""
+    jupyter: ""
+    sparkConnect: ""
+  # Route annotations
+  annotations: {}
+  # Route labels
+  labels: {}
+
+# Jupyter (Spark Connect client)
+jupyter:
+  enabled: true
+  image:
+    repository: jupyter/all-spark-notebook
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8888
+  env:
+    SPARK_CONNECT_URL: "sc://spark-connect:15002"
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "4Gi"
+      cpu: "2"
+  persistence:
+    enabled: false
+    size: "10Gi"
+    storageClass: ""
+
+# Celeborn integration (optional)
+# Requires separate Celeborn deployment:
+#   helm install celeborn charts/celeborn
+#
+# For Spark Operator integration, see:
+#   docs/examples/spark-application-celeborn.yaml
+celeborn:
+  enabled: false
+  masterEndpoints: "celeborn-master-0.celeborn-master:9097,celeborn-master-1.celeborn-master:9097,celeborn-master-2.celeborn-master:9097"
+  image:
+    repository: apache/celeborn
+    tag: "0.6.1"
+    pullPolicy: IfNotPresent
+  masters:
+    replicas: 3
+  workers:
+    replicas: 3
+    storage:
+      size: "100Gi"
+      storageClass: ""
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+
+# Spark Operator (optional)
+sparkOperator:
+  enabled: false
+  image:
+    repository: ghcr.io/googlecloudplatform/spark-operator
+    tag: "v1beta2-1.3.8-3.5.0"
+    pullPolicy: IfNotPresent
+
+# Security settings
+security:
+  podSecurityStandards: true
+  runAsUser: 185
+  runAsGroup: 185
+  fsGroup: 185
+  readOnlyRootFilesystem: false
+  # PSS profile for namespace labels (restricted/baseline/privileged)
+  pssProfile: restricted
+  # Create namespace with PSS labels
+  createNamespace: false
+  networkPolicies:
+    enabled: false
+  rbac:
+    create: true
+    pspEnabled: false
+
+# Monitoring settings
+monitoring:
+  serviceMonitor:
+    enabled: false
+    interval: "15s"
+    scrapeTimeout: "10s"
+    labels: {}
+    relabelings: []
+  podMonitor:
+    enabled: false
+    interval: "30s"
+    scrapeTimeout: "10s"
+    labels: {}
+    relabelings: []
+  grafanaDashboards:
+    enabled: false
+    namespace: ""  # Defaults to release namespace
+  grafana:
+    dashboards:
+      ConfigMap: ""  # Name of ConfigMap with dashboard JSONs
+      enabled: false
+  podAnnotations: {}
+  prometheusAnnotations:
+    prometheus.io/scrape: "false"
+    prometheus.io/port: "4040"
+    prometheus.io/path: "/metrics/executors"
+  # OpenTelemetry integration
+  openTelemetry:
+    enabled: false
+    endpoint: "http://opentelemetry-collector:4317"
+    protocol: "grpc"  # grpc or http
+    samplingRatio: "1.0"  # 0.0-1.0
+    serviceName: "spark-connect-35"  # Service name for traces
+  s3aMetrics:
+    enabled: false
+  jobPhaseTimeline:
+    enabled: false
+  sparkProfiling:
+    enabled: false
+  prometheus:
+    datasourceUid: "prometheus"
+
+# Auto-scaling configuration
+autoscaling:
+  clusterAutoscaler:
+    enabled: false
+    scaleDown:
+      enabled: true
+      delayAfterAdd: 10m
+      unneededTime: 5m
+      unreadyTime: 20m
+      utilizationThreshold: 0.5
+    nodeGroups: []
+  keda:
+    enabled: false
+    pollingInterval: 30
+    cooldownPeriod: 300
+    minReplicaCount: 0
+    maxReplicaCount: 10
+    s3:
+      bucket: ""
+      prefix: "spark-jobs/"
+      targetObjectSize: "10"
+      region: "us-east-1"
+      accessKey: ""
+      secretKey: ""
+      existingSecret: ""
+
+
+```
