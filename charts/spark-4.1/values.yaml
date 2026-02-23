@@ -3,8 +3,9 @@ global:
   s3:
     enabled: true
     endpoint: "http://minio:9000"
-    accessKey: "minioadmin"
-    secretKey: "minioadmin"
+    # REQUIRED: Set via --set or ExternalSecrets (see docs/recipes/security/credential-management.md)
+    accessKey: ""
+    secretKey: ""
     pathStyleAccess: true
     sslEnabled: false
     existingSecret: ""
@@ -12,7 +13,8 @@ global:
     host: "postgresql-metastore-41"
     port: 5432
     user: "hive"
-    password: "hive123"
+    # REQUIRED: Set via --set or ExternalSecrets
+    password: ""
 
 # Secret Management
 # Choose one: externalSecrets, sealedSecrets, or vault
@@ -98,7 +100,8 @@ core: &core
       pullPolicy: IfNotPresent
     auth:
       username: "spark"
-      password: "spark123"
+      # REQUIRED: Set via --set or ExternalSecrets
+      password: ""
     service:
       port: 5432
     persistence:
@@ -133,7 +136,8 @@ core: &core
       port: 5432
       database: "metastore_spark41"
       username: "hive"
-      password: "hive123"
+      # REQUIRED: Set via --set or ExternalSecrets
+      password: ""
       persistence:
         enabled: true
         size: 5Gi
@@ -319,7 +323,8 @@ hiveMetastore:
     port: 5432
     database: "metastore_spark41"
     username: "hive"
-    password: "hive123"
+    # REQUIRED: Set via --set or ExternalSecrets
+    password: ""
     persistence:
       enabled: true
       size: 5Gi
