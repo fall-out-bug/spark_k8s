@@ -47,8 +47,8 @@ def create_spark_session() -> SparkSession:
         .config("spark.hadoop.fs.s3a.secret.key", "minioadmin") \
         .config("spark.hadoop.fs.s3a.path.style.access", "true") \
         .config("spark.sql.shuffle.partitions", "200") \
-        .config("spark.eventLog.enabled", "true")
-        .config("spark.eventLog.dir", "s3a://spark-logs/")
+        .config("spark.eventLog.enabled", "true") \
+        .config("spark.eventLog.dir", "s3a://spark-logs/") \
         .config("spark.sql.execution.arrow.pyspark.enabled", "true") \
         .getOrCreate()
 

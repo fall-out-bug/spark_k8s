@@ -47,8 +47,10 @@ def get_create_table_sql(table_name: str = "nyc_taxi") -> str:
         sql_type = get_sql_type(col_type)
         columns.append(f"    {col_name} {sql_type}")
 
+    newline = ",\n"
+    columns_str = newline.join(columns)
     return f"""CREATE TABLE IF NOT EXISTS {table_name} (
-{',\n'.join(columns)}
+{columns_str}
 ) USING PARQUET"""
 
 
