@@ -77,7 +77,7 @@ spec:
             runAsUser: {{ .Values.security.runAsUser }}
             runAsGroup: {{ .Values.security.runAsGroup }}
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
+            readOnlyRootFilesystem: {{ .Values.security.readOnlyRootFilesystem | default false }}
           {{- end }}
       volumes:
         - name: work-dir

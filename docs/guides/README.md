@@ -35,6 +35,7 @@ Operator guides for deploying and validating Spark charts in Kubernetes.
 
 - **[Валидация](ru/validation.md)** — Smoke-скрипты и ожидаемые результаты
 - **[Заметки по OpenShift](ru/openshift-notes.md)** — Совместимость с PSS/SCC и ограничения
+- **[Демо и OpenShift внедрение](ru/demo-and-openshift.md)** — Пошаговый запуск NYC Taxi demo и перенос в OpenShift
 
 ---
 

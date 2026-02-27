@@ -58,7 +58,11 @@ data:
       </property>
       <property>
         <name>fs.s3a.path.style.access</name>
-        <value>{{ .Values.global.s3.pathStyleAccess | quote }}</value>
+        <value>{{ .Values.global.s3.pathStyleAccess }}</value>
+      </property>
+      <property>
+        <name>fs.s3a.impl</name>
+        <value>org.apache.hadoop.fs.s3a.S3AFileSystem</value>
       </property>
       {{- end }}
     </configuration>
@@ -128,6 +132,10 @@ spec:
               value: {{ .Values.hiveMetastore.database.name | quote }}
             - name: HIVE_CONF_DIR
               value: "/tmp/hive-conf"
+            - name: HADOOP_CLASSPATH
+              value: "/opt/hadoop/share/hadoop/tools/lib/*:/opt/hadoop/share/hadoop/common/lib/*"
+            - name: HIVE_AUX_JARS_PATH
+              value: "/opt/hadoop/share/hadoop/tools/lib/*:/opt/hadoop/share/hadoop/common/lib/*"
           envFrom:
             - secretRef:
                 name: {{ include "spark-3.5.fullname" . }}-metastore-db
@@ -224,6 +232,10 @@ spec:
               value: {{ .Values.hiveMetastore.database.name | quote }}
             - name: HIVE_CONF_DIR
               value: "/tmp/hive-conf"
+            - name: HADOOP_CLASSPATH
+              value: "/opt/hadoop/share/hadoop/tools/lib/*:/opt/hadoop/share/hadoop/common/lib/*"
+            - name: HIVE_AUX_JARS_PATH
+              value: "/opt/hadoop/share/hadoop/tools/lib/*:/opt/hadoop/share/hadoop/common/lib/*"
           envFrom:
             - secretRef:
                 name: {{ include "spark-3.5.fullname" . }}-metastore-db

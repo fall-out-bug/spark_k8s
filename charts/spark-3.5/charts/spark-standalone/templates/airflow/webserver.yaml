@@ -20,6 +20,19 @@ spec:
         - name: wait-for-db
           image: busybox:1.36
           command: ['sh', '-c', 'until nc -z {{ include "spark-standalone.fullname" . }}-airflow-postgresql {{ .Values.airflow.postgresql.service.port }}; do echo waiting for db; sleep 2; done']
+        - name: prepare-dags
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /opt/airflow/dags
+              cp -L /opt/airflow/dags-src/*.py /opt/airflow/dags/ 2>/dev/null || true
+          volumeMounts:
+            - name: airflow-dags-src
+              mountPath: /opt/airflow/dags-src
+            - name: airflow-dags
+              mountPath: /opt/airflow/dags
         - name: init-db
           image: "{{ .Values.airflow.image.repository }}:{{ .Values.airflow.image.tag }}"
           imagePullPolicy: {{ .Values.airflow.image.pullPolicy }}
@@ -81,9 +94,11 @@ spec:
         - name: airflow-config
           configMap:
             name: {{ include "spark-standalone.fullname" . }}-airflow-config
-        - name: airflow-dags
+        - name: airflow-dags-src
           configMap:
             name: {{ include "spark-standalone.fullname" . }}-airflow-dags
+        - name: airflow-dags
+          emptyDir: {}
         - name: airflow-logs
           emptyDir: {}
 ---

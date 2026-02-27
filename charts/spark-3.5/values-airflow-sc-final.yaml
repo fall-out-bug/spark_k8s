@@ -1,0 +1,138 @@
+# Finalized values for the airflow-sc release in spark-airflow.
+# Usage:
+#   helm upgrade --install airflow-sc charts/spark-3.5 \
+#     -n spark-airflow -f charts/spark-3.5/values-airflow-sc-final.yaml
+
+connect:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+hiveMetastore:
+  enabled: false
+
+ingress:
+  enabled: false
+
+jupyter:
+  enabled: false
+
+observability:
+  grafana:
+    enabled: false
+  loki:
+    enabled: false
+  prometheus:
+    enabled: false
+
+rbac:
+  create: true
+  serviceAccountName: spark
+
+security:
+  podSecurityStandards: false
+
+spark-base:
+  enabled: true
+  minio:
+    enabled: false
+  postgresql:
+    enabled: false
+
+sparkStandalone:
+  enabled: false
+
+standalone:
+  enabled: true
+
+  serviceAccount:
+    create: true
+    name: spark-standalone
+
+  rbac:
+    create: true
+
+  security:
+    podSecurityStandards: false
+
+  master:
+    enabled: true
+    image:
+      repository: spark-custom
+      tag: "3.5.7"
+      pullPolicy: IfNotPresent
+    service:
+      type: ClusterIP
+      rpcPort: 7077
+      uiPort: 8080
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "100m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+
+  worker:
+    enabled: true
+    image:
+      repository: spark-custom
+      tag: "3.5.7"
+      pullPolicy: IfNotPresent
+    replicas: 1
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "200m"
+      limits:
+        memory: "2Gi"
+        cpu: "1"
+    sparkConf:
+      spark.worker.memory: "1g"
+      spark.worker.cores: "1"
+
+  airflow:
+    enabled: true
+    image:
+      repository: spark-k8s/airflow
+      tag: "2.11.0"
+      pullPolicy: IfNotPresent
+    dags:
+      - nyc_taxi_ml_full_pipeline.py
+    webserver:
+      replicas: 1
+      service:
+        type: ClusterIP
+        port: 8080
+      resources:
+        requests:
+          memory: "1Gi"
+          cpu: "500m"
+        limits:
+          memory: "2Gi"
+          cpu: "1"
+    scheduler:
+      replicas: 1
+      resources:
+        requests:
+          memory: "1Gi"
+          cpu: "200m"
+        limits:
+          memory: "2Gi"
+          cpu: "1"
+    postgresql:
+      enabled: true
+      auth:
+        database: airflow
+        username: airflow
+        password: airflow123
+      persistence:
+        enabled: false
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "50m"
+        limits:
+          memory: "256Mi"
+          cpu: "200m"

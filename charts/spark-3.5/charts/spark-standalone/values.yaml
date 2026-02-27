@@ -30,25 +30,25 @@ master:
 # Spark Worker Configuration
 worker:
   enabled: true
-  replicas: 2
+  replicas: 1
   image:
     repository: spark-custom
     tag: "3.5.7"
     pullPolicy: IfNotPresent
   resources:
     requests:
-      memory: "2Gi"
-      cpu: "500m"
+      memory: "1Gi"
+      cpu: "200m"
     limits:
-      memory: "4Gi"
-      cpu: "2"
+      memory: "2Gi"
+      cpu: "1"
   nodeSelector: {}
   tolerations: []
   affinity: {}
   # Spark Worker configuration options
   sparkConf:
-    spark.worker.memory: "2g"
-    spark.worker.cores: "2"
+    spark.worker.memory: "1g"
+    spark.worker.cores: "1"
   # Worker directories
   workDir: "/tmp/spark-worker"
 
@@ -81,11 +81,11 @@ airflow:
     replicas: 1
     resources:
       requests:
-        memory: "512Mi"
-        cpu: "250m"
-      limits:
         memory: "1Gi"
-        cpu: "500m"
+        cpu: "200m"
+      limits:
+        memory: "2Gi"
+        cpu: "1"
     nodeSelector: {}
     tolerations: []
 
@@ -128,8 +128,7 @@ airflow:
 
   # DAG files to include
   dags:
-    - spark_etl_example.py
-    - spark_streaming_example.py
+    - nyc_taxi_ml_full_pipeline.py
 
   # Airflow Variables (set at startup)
   variables:
@@ -160,3 +159,4 @@ security:
   runAsUser: 185
   runAsGroup: 185
   fsGroup: 185
+  readOnlyRootFilesystem: false

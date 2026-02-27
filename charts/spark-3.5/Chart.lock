@@ -5,5 +5,14 @@ dependencies:
 - name: spark-standalone
   repository: file://./charts/spark-standalone
   version: 0.1.0
-digest: sha256:3c09081fd76aeeb91a2edf1400ccbd8bb8b1a35dd835da49885e6fffb0d737cb
-generated: "2026-02-22T00:02:14.335227501+03:00"
+- name: prometheus
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 25.30.2
+- name: grafana
+  repository: https://grafana.github.io/helm-charts
+  version: 8.15.0
+- name: loki
+  repository: https://grafana.github.io/helm-charts
+  version: 6.53.0
+digest: sha256:ac37e140924ee32182b19870b2f89e5fc28bcacd9970ce419d46ef6d97aa032e
+generated: "2026-02-23T23:18:13.681894612+03:00"

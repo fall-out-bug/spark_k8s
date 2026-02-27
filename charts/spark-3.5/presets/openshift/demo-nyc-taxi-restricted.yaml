@@ -1,0 +1,54 @@
+# NYC Taxi demo overlay for OpenShift restricted profile.
+#
+# Use together with base demo values:
+#   -f charts/spark-3.5/values-airflow-sc-final.yaml
+#   -f charts/spark-3.5/presets/openshift/demo-nyc-taxi-restricted.yaml
+
+security:
+  podSecurityStandards: true
+  createNamespace: false
+  pssProfile: restricted
+  # Keep 185 by default because spark-custom/airflow images in this repo run as 185.
+  # For strict OpenShift UID ranges, rebuild images with platform-approved UID and override here.
+  runAsUser: 185
+  runAsGroup: 185
+  fsGroup: 185
+
+rbac:
+  create: true
+  serviceAccountName: spark
+
+standalone:
+  serviceAccount:
+    create: true
+    name: spark-standalone
+
+  security:
+    podSecurityStandards: true
+    runAsUser: 185
+    runAsGroup: 185
+    fsGroup: 185
+    # Spark worker executors need writable local paths.
+    # Keep root filesystem writable for this demo profile.
+    readOnlyRootFilesystem: false
+
+  rbac:
+    create: true
+
+  master:
+    service:
+      type: ClusterIP
+
+  worker:
+    service:
+      type: ClusterIP
+
+  airflow:
+    webserver:
+      service:
+        type: ClusterIP
+
+routes:
+  enabled: true
+  tlsTerminationType: edge
+  wildcardPolicy: None

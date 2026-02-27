@@ -4,6 +4,32 @@ This directory contains OpenShift-specific configuration presets for deploying S
 
 ## Presets
 
+### NYC Taxi demo overlays
+
+These overlays are intended for the Airflow + Spark Standalone NYC Taxi demo and are applied on top of `charts/spark-3.5/values-airflow-sc-final.yaml`.
+
+#### demo-nyc-taxi-restricted.yaml
+
+Recommended for OpenShift clusters that enforce `restricted` SCC/PSS.
+
+```bash
+helm upgrade --install airflow-sc charts/spark-3.5 \
+  -n spark-airflow --create-namespace \
+  -f charts/spark-3.5/values-airflow-sc-final.yaml \
+  -f charts/spark-3.5/presets/openshift/demo-nyc-taxi-restricted.yaml
+```
+
+#### demo-nyc-taxi-anyuid.yaml
+
+Fallback for environments where workloads cannot run under restricted constraints.
+
+```bash
+helm upgrade --install airflow-sc charts/spark-3.5 \
+  -n spark-airflow --create-namespace \
+  -f charts/spark-3.5/values-airflow-sc-final.yaml \
+  -f charts/spark-3.5/presets/openshift/demo-nyc-taxi-anyuid.yaml
+```
+
 ### restricted.yaml
 
 **Recommended for production use**

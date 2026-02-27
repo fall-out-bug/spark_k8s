@@ -1,0 +1,45 @@
+# NYC Taxi demo overlay for OpenShift anyuid profile.
+#
+# Use together with base demo values:
+#   -f charts/spark-3.5/values-airflow-sc-final.yaml
+#   -f charts/spark-3.5/presets/openshift/demo-nyc-taxi-anyuid.yaml
+
+security:
+  podSecurityStandards: false
+  createNamespace: false
+  runAsUser: 1000000000
+  runAsGroup: 1000000000
+  fsGroup: 1000000000
+
+rbac:
+  create: true
+  serviceAccountName: spark
+
+standalone:
+  serviceAccount:
+    create: true
+    name: spark-standalone
+
+  security:
+    podSecurityStandards: false
+
+  rbac:
+    create: true
+
+  master:
+    service:
+      type: ClusterIP
+
+  worker:
+    service:
+      type: ClusterIP
+
+  airflow:
+    webserver:
+      service:
+        type: ClusterIP
+
+routes:
+  enabled: true
+  tlsTerminationType: edge
+  wildcardPolicy: None
