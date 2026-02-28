@@ -1,0 +1,84 @@
+# ===================================================================
+# Production Tuning Preset: Small Cluster / Resource-Constrained
+# ===================================================================
+# Use case: Development, testing, CI/CD pipelines, resource-limited environments
+# Characteristics: Minimal resource usage, quick startup, cost-effective
+# Recommended cluster: 1-3 nodes, 8-16GB RAM total
+# Constraints: Low memory, limited CPU cores
+
+core:
+  sparkConf:
+    # Minimal executor count
+    spark.executor.instances: "1"
+    spark.executor.cores: "1"
+    spark.executor.memory: "2g"
+    spark.executor.memoryOverhead: "512m"
+    
+    # Small shuffle partitions
+    spark.sql.shuffle.partitions: "50"
+    spark.sql.files.maxPartitionBytes: "134217728"  # 128MB
+    
+    # Dynamic allocation for flexibility
+    spark.dynamicAllocation.enabled: "true"
+    spark.dynamicAllocation.minExecutors: "1"
+    spark.dynamicAllocation.maxExecutors: "3"
+    spark.dynamicAllocation.initialExecutors: "1"
+    
+    # Aggressive memory management
+    spark.memory.fraction: "0.6"
+    spark.memory.storageFraction: "0.5"
+    spark.memory.offHeap.enabled: "false"
+    
+    # Fast scheduler for quick tasks
+    spark.scheduler.mode: "FIFO"
+    
+    # Minimal UI for resource saving
+    spark.ui.enabled: "true"
+    spark.ui.port: "4040"
+    
+    # Reduced parallelism
+    spark.default.parallelism: "10"
+    
+    # Compression to save memory
+    spark.sql.inMemoryColumnarStorage.compressed: "true"
+    
+    # Disable speculation to save resources
+    spark.speculation: "false"
+    
+    # Quick timeout for faster failures
+    spark.network.timeout: "120s"
+    spark.executor.heartbeatInterval: "30s"
+
+standalone:
+  worker:
+    replicas: 1
+    cores: "1"
+    memory: "2g"
+  master:
+    cores: "1"
+    memory: "2g"
+
+# Monitoring adjustments
+monitoring:
+  podMonitor:
+    enabled: true
+    interval: "30s"  # Less frequent for small clusters
+  grafanaDashboards:
+    enabled: false  # Disable to save resources
+
+# Resource limits
+resources:
+  executor:
+    limits:
+      memory: "2g"
+      cpu: "1"
+    requests:
+      memory: "1.5g"
+      cpu: "0.5"
+  driver:
+    limits:
+      memory: "2g"
+      cpu: "1"
+    requests:
+      memory: "1.5g"
+      cpu: "0.5"

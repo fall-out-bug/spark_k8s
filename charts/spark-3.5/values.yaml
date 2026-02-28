@@ -559,8 +559,22 @@ monitoring:
     enabled: false
   sparkProfiling:
     enabled: false
-  prometheus:
     datasourceUid: "prometheus"
+    
+    # Alerting configuration (Phase 2: Monitoring & Tuning)
+    alerts:
+      enabled: true
+      namespace: ""  # Defaults to release namespace
+      severity: ["critical", "warning"]  # Which severity levels to enable
+      
+      # Pre-configured alert rules (see templates/monitoring/prometheus-rules.yaml)
+      # Categories: executor_health, streaming_health, performance, ml_training
+    
+    # Alerting configuration
+    alerts:
+      enabled: true
+      namespace: ""  # Defaults to release namespace
+      severity: ["critical", "warning"]  # Which severity levels to enable
 
 # Auto-scaling configuration
 autoscaling:

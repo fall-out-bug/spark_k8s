@@ -1,0 +1,123 @@
+# ===================================================================
+# Production Tuning Preset: Batch ETL Workloads
+# ===================================================================
+# Use case: Large-scale batch processing, data transformation, ETL pipelines
+# Characteristics: High throughput, shuffle-heavy, memory-intensive
+# Recommended cluster: 10+ nodes, 64GB+ RAM per node
+
+core:
+  spark:
+    # Executor configuration for ETL
+    executor:
+      instances: 5
+      cores: 4
+      memory: "16g"
+      memoryOverhead: "2g"
+      dynamicAllocation:
+        enabled: true
+        minExecutors: 2
+        maxExecutors: 20
+        initialExecutors: 5
+        shuffleTracking:
+          enabled: true
+          timeout: "30m"
+    
+    # Driver configuration
+    driver:
+      cores: 2
+      memory: "8g"
+      memoryOverhead: "1g"
+    
+    # Shuffle optimization for ETL
+    conf:
+      # Memory management
+      spark.memory.fraction: "0.6"
+      spark.memory.storageFraction: "0.5"
+      spark.sql.shuffle.partitions: "200"
+      
+      # Shuffle performance
+      spark.shuffle.compress: "true"
+      spark.shuffle.file.buffer: "1m"
+      spark.reducer.maxSizeInFlight: "96m"
+      spark.shuffle.io.maxRetries: "10"
+      spark.shuffle.io.retryWait: "60s"
+      
+      # Parallelism
+      spark.default.parallelism: "100"
+      spark.sql.adaptive.enabled: "true"
+      spark.sql.adaptive.coalescePartitions.enabled: "true"
+      spark.sql.adaptive.localShuffleReader.enabled: "true"
+      
+      # Serialization
+      spark.serializer: "org.apache.spark.serializer.KryoSerializer"
+      spark.kryoserializer.buffer.max: "512m"
+      
+      # Speculative execution for stragglers
+      spark.speculation: "true"
+      spark.speculation.multiplier: "2"
+      spark.speculation.quantile: "0.75"
+      
+      # GC tuning (G1GC recommended)
+      spark.executor.extraJavaOptions: >
+        -XX:+UseG1GC 
+        -XX:MaxGCPauseMillis=200 
+        -XX:InitiatingHeapOccupancyPercent=35 
+        -XX:G1HeapRegionSize=32M
+        -XX:+PrintGCDetails
+        -XX:+PrintGCDateStamps
+      spark.driver.extraJavaOptions: >
+        -XX:+UseG1GC 
+        -XX:MaxGCPauseMillis=200
+      
+      # S3 optimization (if using MinIO/S3)
+      spark.hadoop.fs.s3a.connection.timeout: "1200000"
+      spark.hadoop.fs.s3a.path.style.access: "true"
+      spark.hadoop.fs.s3a.fast.upload: "true"
+      spark.hadoop.fs.s3a.multipart.size: "256M"
+      spark.hadoop.fs.s3a.threads.max: "20"
+      
+      # Event log for debugging (optional)
+      spark.eventLog.enabled: "true"
+      spark.eventLog.dir: "s3a://spark-events/logs"
+      spark.eventLog.rolling.enabled: "true"
+      spark.eventLog.rolling.maxFileSize: "128m"
+
+# Monitoring configuration
+monitoring:
+  podMonitor:
+    enabled: true
+    interval: "15s"
+  
+  # Alert thresholds for ETL workloads
+  alerts:
+    executorGC:
+      enabled: true
+      threshold: "15"  # Alert if GC time > 15% of total time
+    taskFailure:
+      enabled: true
+      threshold: "5"   # Alert if task failure rate > 5%
+    executorOOM:
+      enabled: true
+      threshold: "0.85"  # Alert if memory used > 85%
+
+# Resource limits
+resources:
+  executor:
+    limits:
+      memory: "20g"
+      cpu: "4"
+    requests:
+      memory: "16g"
+      cpu: "3"
+  driver:
+    limits:
+      memory: "10g"
+      cpu: "2"
+    requests:
+      memory: "8g"
+      cpu: "1.5"
+
+# Node selector (optional)
+nodeSelector: {}
+tolerations: []
+affinity: {}

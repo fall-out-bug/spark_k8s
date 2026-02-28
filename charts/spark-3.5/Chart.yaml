@@ -28,8 +28,3 @@ dependencies:
     condition: observability.grafana.enabled
     alias: grafana
 
-  - name: loki
-    version: "6.x.x"
-    repository: "https://grafana.github.io/helm-charts"
-    condition: observability.loki.enabled
-    alias: loki

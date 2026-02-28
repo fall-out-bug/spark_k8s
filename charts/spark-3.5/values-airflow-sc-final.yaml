@@ -26,6 +26,11 @@ observability:
   prometheus:
     enabled: false
 
+monitoring:
+  grafanaDashboards:
+    enabled: true
+  alerts:
+    enabled: true
 rbac:
   create: true
   serviceAccountName: spark

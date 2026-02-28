@@ -1,0 +1,258 @@
+{{- if .Values.monitoring.grafanaDashboards.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-dashboard-streaming
+  namespace: {{ .Values.monitoring.grafanaDashboards.namespace | default .Release.Namespace }}
+  labels:
+    grafana_dashboard: "1"
+    app: spark-connect
+    app.kubernetes.io/name: spark-3.5
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  streaming-metrics.json: |
+    {
+      "annotations": {"list": []},
+      "editable": true,
+      "gnetId": null,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "panels": [
+        {
+          "datasource": {"type": "prometheus", "uid": "{{ index .Values.monitoring "prometheus" | default (dict "datasourceUid" "prometheus") | dig "datasourceUid" "prometheus" }}"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "palette-classic"},
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {"tooltip": false, "viz": false, "legend": false},
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {"type": "linear"},
+                "showPoints": "never",
+                "spanNulls": true
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [{"color": "green", "value": null}]
+              },
+              "unit": "short"
+            }
+          },
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+          "id": 1,
+          "options": {
+            "legend": {"calcs": [], "displayMode": "list", "placement": "bottom"},
+            "tooltip": {"mode": "single"}
+          },
+          "pluginVersion": "8.0.0",
+          "targets": [
+            {
+              "expr": "spark_streaming_lastCompletedBatch_processingTime{namespace=\"$namespace\", app=\"$app\"}",
+              "legendFormat": "Processing Time",
+              "refId": "A"
+            }
+          ],
+          "title": "Batch Processing Time (ms)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "{{ index .Values.monitoring "prometheus" | default (dict "datasourceUid" "prometheus") | dig "datasourceUid" "prometheus" }}"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "palette-classic"},
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {"tooltip": false, "viz": false, "legend": false},
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {"type": "linear"},
+                "showPoints": "never",
+                "spanNulls": true
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {"color": "green", "value": null},
+                  {"color": "yellow", "value": 5000},
+                  {"color": "red", "value": 10000}
+                ]
+              },
+              "unit": "short"
+            }
+          },
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+          "id": 2,
+          "options": {
+            "legend": {"calcs": [], "displayMode": "list", "placement": "bottom"},
+            "tooltip": {"mode": "single"}
+          },
+          "pluginVersion": "8.0.0",
+          "targets": [
+            {
+              "expr": "kafka_consumer_group_lag{namespace=\"$namespace\", group=\"$consumer_group\"}",
+              "legendFormat": "Consumer Lag",
+              "refId": "A"
+            }
+          ],
+          "title": "Kafka Consumer Lag (messages)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "{{ index .Values.monitoring "prometheus" | default (dict "datasourceUid" "prometheus") | dig "datasourceUid" "prometheus" }}"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "palette-classic"},
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {"tooltip": false, "viz": false, "legend": false},
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {"type": "linear"},
+                "showPoints": "never",
+                "spanNulls": true
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [{"color": "green", "value": null}]
+              },
+              "unit": "short"
+            }
+          },
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+          "id": 3,
+          "options": {
+            "legend": {"calcs": ["mean"], "displayMode": "table", "placement": "bottom"},
+            "tooltip": {"mode": "multi"}
+          },
+          "pluginVersion": "8.0.0",
+          "targets": [
+            {
+              "expr": "rate(spark_streaming_inputRate{namespace=\"$namespace\", app=\"$app\"}[5m])",
+              "legendFormat": "Input Rate",
+              "refId": "A"
+            },
+            {
+              "expr": "rate(spark_streaming_processRate{namespace=\"$namespace\", app=\"$app\"}[5m])",
+              "legendFormat": "Processing Rate",
+              "refId": "B"
+            }
+          ],
+          "title": "Input vs Processing Rate (rows/sec)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "{{ index .Values.monitoring "prometheus" | default (dict "datasourceUid" "prometheus") | dig "datasourceUid" "prometheus" }}"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "palette-classic"},
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {"tooltip": false, "viz": false, "legend": false},
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {"type": "linear"},
+                "showPoints": "never",
+                "spanNulls": true
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {"color": "green", "value": null},
+                  {"color": "yellow", "value": 5000}
+                ]
+              },
+              "unit": "ms"
+            }
+          },
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+          "id": 4,
+          "options": {
+            "legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom"},
+            "tooltip": {"mode": "multi"}
+          },
+          "pluginVersion": "8.0.0",
+          "targets": [
+            {
+              "expr": "spark_streaming_lastCompletedBatch_schedulingDelay{namespace=\"$namespace\", app=\"$app\"}",
+              "legendFormat": "Scheduling Delay",
+              "refId": "A"
+            }
+          ],
+          "title": "Scheduling Delay (ms)",
+          "type": "timeseries"
+        }
+      ],
+      "refresh": "10s",
+      "schemaVersion": 38,
+      "style": "dark",
+      "tags": ["spark", "streaming", "structured-streaming", "kafka"],
+      "templating": {
+        "list": [
+          {
+            "current": {"selected": false, "text": "default", "value": "default"},
+            "hide": 0,
+            "label": "Namespace",
+            "name": "namespace",
+            "options": [],
+            "query": "label_values(namespace)",
+            "skipUrlSync": false,
+            "type": "datasource"
+          },
+          {
+            "current": {"selected": false, "text": "default", "value": "default"},
+            "hide": 0,
+            "label": "App",
+            "name": "app",
+            "options": [],
+            "query": "label_values(app)",
+            "skipUrlSync": false,
+            "type": "datasource"
+          },
+          {
+            "current": {"selected": false, "text": "default", "value": "default"},
+            "hide": 0,
+            "label": "Consumer Group",
+            "name": "consumer_group",
+            "options": [],
+            "query": "label_values(kafka_consumer_group_lag, group)",
+            "skipUrlSync": false,
+            "type": "datasource"
+          }
+        ]
+      },
+      "time": {"from": "now-1h", "to": "now"},
+      "title": "Spark Structured Streaming Metrics",
+      "uid": "spark-streaming",
+      "version": 1
+    }
+{{- end }}

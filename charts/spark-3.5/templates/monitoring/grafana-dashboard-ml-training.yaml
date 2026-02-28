@@ -1,0 +1,234 @@
+{{- if .Values.monitoring.grafanaDashboards.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-dashboard-ml-training
+  namespace: {{ .Values.monitoring.grafanaDashboards.namespace | default .Release.Namespace }}
+  labels:
+    grafana_dashboard: "1"
+    app: spark-connect
+    app.kubernetes.io/name: spark-3.5
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  ml-training-metrics.json: |
+    {
+      "annotations": {"list": []},
+      "editable": true,
+      "gnetId": null,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "panels": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "palette-classic"},
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {"tooltip": false, "viz": false, "legend": false},
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "scaleDistribution": {"type": "linear"},
+                "showPoints": "never",
+                "spanNulls": true
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [{"color": "green", "value": null}]
+              },
+              "unit": "percent"
+            },
+            "max": 1,
+            "min": 0
+          },
+          "gridPos": {"h": 8, "w": 8, "x": 0, "y": 0},
+          "id": 1,
+          "options": {
+            "legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom"},
+            "tooltip": {"mode": "multi"}
+          },
+          "pluginVersion": "8.0.0",
+          "targets": [
+            {
+              "expr": "ml_training_accuracy{namespace=\"$namespace\", app=\"$app\"}",
+              "legendFormat": "Accuracy",
+              "refId": "A"
+            },
+            {
+              "expr": "ml_validation_accuracy{namespace=\"$namespace\", app=\"$app\"}",
+              "legendFormat": "Validation Accuracy",
+              "refId": "B"
+            }
+          ],
+          "title": "Model Accuracy (%)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "palette-classic"},
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {"tooltip": false, "viz": false, "legend": false},
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "scaleDistribution": {"type": "linear"},
+                "showPoints": "never",
+                "spanNulls": true
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [{"color": "green", "value": null}]
+              },
+              "unit": "short"
+            }
+          },
+          "gridPos": {"h": 8, "w": 8, "x": 8, "y": 0},
+          "id": 2,
+          "options": {
+            "legend": {"calcs": ["mean"], "displayMode": "table", "placement": "bottom"},
+            "tooltip": {"mode": "multi"}
+          },
+          "pluginVersion": "8.0.0",
+          "targets": [
+            {
+              "expr": "ml_training_loss{namespace=\"$namespace\", app=\"$app\"}",
+              "legendFormat": "Loss",
+              "refId": "A"
+            }
+          ],
+          "title": "Training Loss",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "palette-classic"},
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {"tooltip": false, "viz": false, "legend": false},
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "scaleDistribution": {"type": "linear"},
+                "showPoints": "never",
+                "spanNulls": true
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [{"color": "green", "value": null}]
+              },
+              "unit": "s"
+            }
+          },
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+          "id": 3,
+          "options": {
+            "legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom"},
+            "tooltip": {"mode": "multi"}
+          },
+          "pluginVersion": "8.0.0",
+          "targets": [
+            {
+              "expr": "ml_training_time_seconds{namespace=\"$namespace\", app=\"$app\"}",
+              "legendFormat": "Training Time",
+              "refId": "A"
+            }
+          ],
+          "title": "Training Time (seconds)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "thresholds"},
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {"color": "green", "value": null},
+                  {"color": "yellow", "value": 0.7},
+                  {"color": "red", "value": 0.8}
+                ]
+              },
+              "unit": "short"
+            },
+            "max": 1,
+            "min": 0
+          },
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+          "id": 4,
+          "options": {
+            "orientation": "auto",
+            "reduceOptions": {"calcs": [], "fields": {}, "values": false},
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true
+          },
+          "pluginVersion": "8.0.0",
+          "targets": [
+            {
+              "expr": "spark_executor_memory_used_bytes{namespace=\"$namespace\", app=\"$app\"} / spark_executor_memory_max_bytes{namespace=\"$namespace\", app=\"$app\"}",
+              "legendFormat": "Memory Usage %",
+              "refId": "A"
+            }
+          ],
+          "title": "Executor Memory Usage (%)",
+          "type": "gauge"
+        }
+      ],
+      "refresh": "10s",
+      "schemaVersion": 38,
+      "style": "dark",
+      "tags": ["spark", "ml", "training", "mllib"],
+      "templating": {
+        "list": [
+          {
+            "current": {"selected": false, "text": "default", "value": "default"},
+            "hide": 0,
+            "label": "Namespace",
+            "name": "namespace",
+            "options": [],
+            "query": "label_values(namespace)",
+            "type": "datasource"
+          },
+          {
+            "current": {"selected": false, "text": "default", "value": "default"},
+            "hide": 0,
+            "label": "App",
+            "name": "app",
+            "options": [],
+            "query": "label_values(app)",
+            "type": "datasource"
+          }
+        ]
+      },
+      "time": {"from": "now-1h", "to": "now"},
+      "title": "Spark ML Training Metrics",
+      "uid": "spark-ml-training",
+      "version": 1
+    }
+{{- end }}

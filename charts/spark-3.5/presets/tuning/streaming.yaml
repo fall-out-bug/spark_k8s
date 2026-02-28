@@ -1,0 +1,140 @@
+# ===================================================================
+# Production Tuning Preset: Structured Streaming Workloads
+# ===================================================================
+# Use case: Real-time streaming, event-driven pipelines, Kafka/Kinesis sources
+# Characteristics: Low latency, continuous processing, backpressure-sensitive
+# Recommended cluster: 5+ nodes, 32GB+ RAM per node
+
+core:
+  spark:
+    # Executor configuration for streaming
+    executor:
+      instances: 3
+      cores: 2
+      memory: "8g"
+      memoryOverhead: "2g"
+      # Disable dynamic allocation for streaming (recommended)
+      dynamicAllocation:
+        enabled: false
+    
+    # Driver configuration
+    driver:
+      cores: 2
+      memory: "4g"
+      memoryOverhead: "1g"
+    
+    # Streaming-specific optimization
+    conf:
+      # Memory management
+      spark.memory.fraction: "0.4"
+      spark.memory.storageFraction: "0.3"
+      
+      # Backpressure and rate limiting
+      spark.streaming.backpressure.enabled: "true"
+      spark.streaming.backpressure.initialRate: "1000"
+      spark.streaming.kafka.maxRatePerPartition: "2000"
+      spark.streaming.stopGracefullyOnShutdown: "true"
+      spark.streaming.concurrentJobs: "1"
+      
+      # Checkpointing (CRITICAL for exactly-once)
+      spark.sql.streaming.checkpointLocation: "s3a://spark-streaming/checkpoints/"
+      spark.sql.streaming.forceDeleteTempCheckpointLocation: "true"
+      
+      # Kafka optimization
+      spark.kafka.pollTimeoutMs: "512"
+      spark.kafka.maxPartitionBytes: "134217728"  # 128MB
+      spark.kafka.fetchMaxBytes: "52428800"  # 50MB
+      
+      # Streaming query optimization
+      spark.sql.streaming.stateStore.providerClass: "org.apache.spark.sql.execution.streaming.state.RocksDBStateStoreProvider"
+      spark.sql.streaming.fileSource.log.compactDeletes: "true"
+      
+      # Watermark and late data
+      spark.sql.streaming.stateStore.maintenanceInterval: "60s"
+      spark.sql.shuffle.partitions: "50"
+      
+      # Serialization
+      spark.serializer: "org.apache.spark.serializer.KryoSerializer"
+      spark.kryoserializer.buffer.max: "256m"
+      
+      # GC tuning for streaming (low pause)
+      spark.executor.extraJavaOptions: >
+        -XX:+UseG1GC 
+        -XX:MaxGCPauseMillis=100 
+        -XX:InitiatingHeapOccupancyPercent=30 
+        -XX:+PrintGCDetails
+        -XX:+PrintGCApplicationStoppedTime
+      spark.driver.extraJavaOptions: >
+        -XX:+UseG1GC 
+        -XX:MaxGCPauseMillis=100
+      
+      # S3 optimization
+      spark.hadoop.fs.s3a.connection.timeout: "1200000"
+      spark.hadoop.fs.s3a.path.style.access: "true"
+      spark.hadoop.fs.s3a.fast.upload: "true"
+      
+      # Fault tolerance
+      spark.task.maxFailures: "4"
+      spark.stage.maxConsecutiveAttempts: "4"
+
+# Kafka configuration (external)
+kafka:
+  # External Kafka bootstrap servers
+  bootstrapServers: "kafka-broker-0.kafka:9092,kafka-broker-1.kafka:9092,kafka-broker-2.kafka:9092"
+  security:
+    protocol: "PLAINTEXT"  # PLAINTEXT, SASL_PLAIN, SASL_SSL, SSL
+    sasl:
+      mechanism: "PLAIN"
+      username: ""
+      password: ""
+    ssl:
+      truststore: ""
+      truststorePassword: ""
+      keystore: ""
+      keystorePassword: ""
+  
+  # Topic configuration
+  topics:
+    input: "spark-input-topic"
+    output: "spark-output-topic"
+    consumerGroupId: "spark-streaming-consumer"
+  
+  # Consumer configuration
+  consumer:
+    autoOffsetReset: "latest"  # earliest, latest
+    enableAutoCommit: "false"
+    maxPollRecords: "500"
+    sessionTimeoutMs: "30000"
+
+# Monitoring configuration
+monitoring:
+  podMonitor:
+    enabled: true
+    interval: "10s"  # More frequent for streaming
+  
+  # Streaming-specific alerts
+  grafanaDashboards:
+    enabled: true
+  
+  alerts:
+    enabled: true
+# Resource limits
+resources:
+  executor:
+    limits:
+      memory: "10g"
+      cpu: "2"
+    requests:
+      memory: "8g"
+      cpu: "1.5"
+  driver:
+    limits:
+      memory: "5g"
+      cpu: "2"
+    requests:
+      memory: "4g"
+      cpu: "1.5"
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

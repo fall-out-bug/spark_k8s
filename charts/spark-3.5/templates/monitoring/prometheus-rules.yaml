@@ -1,0 +1,47 @@
+{{- if and .Values.monitoring .Values.monitoring.alerts .Values.monitoring.alerts.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-alerts
+  namespace: {{ .Values.monitoring.alerts.namespace | default .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: spark-3.5
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    prometheus: kube-prometheus
+    role: alert-rules
+spec:
+  groups:
+    - name: spark-executor-health
+      rules:
+        - alert: SparkExecutorOOMRisk
+          annotations:
+            description: "Executor memory usage is above 80%"
+            summary: "Executor memory critically high"
+          expr: |
+            (spark_executor_memory_used_bytes / spark_executor_memory_max_bytes) > 0.8
+          for: 5m
+          labels:
+            severity: critical
+
+        - alert: SparkHighGCTime
+          annotations:
+            description: "GC time is above 15% of total execution time"
+            summary: "Excessive garbage collection"
+          expr: |
+            (rate(spark_executor_jvm_gc_time_seconds_sum[5m]) / rate(spark_executor_run_time_seconds_sum[5m])) > 0.15
+          for: 10m
+          labels:
+            severity: warning
+
+    - name: spark-streaming-health
+      rules:
+        - alert: SparkKafkaConsumerLagCritical
+          annotations:
+            description: "Kafka consumer group lag is above 10000 messages"
+            summary: "Critical consumer lag detected"
+          expr: |
+            kafka_consumer_group_lag > 10000
+          for: 5m
+          labels:
+            severity: critical
+{{- end }}

@@ -1,0 +1,149 @@
+# ===================================================================
+# Production Tuning Preset: Large Cluster / Production
+# ===================================================================
+# Use case: Production workloads, high-throughput pipelines, enterprise deployments
+# Characteristics: Maximum throughput, high availability, enterprise-grade performance
+# Recommended cluster: 10+ nodes, 64-256GB RAM per node
+# Constraints: Budget available, high SLA requirements
+
+core:
+  sparkConf:
+    # Large-scale executor pool
+    spark.executor.instances: "10"
+    spark.executor.cores: "4"
+    spark.executor.memory: "16g"
+    spark.executor.memoryOverhead: "4g"
+    
+    # High shuffle parallelism
+    spark.sql.shuffle.partitions: "400"
+    spark.sql.files.maxPartitionBytes: "268435456"  # 256MB
+    
+    # Dynamic allocation for efficiency
+    spark.dynamicAllocation.enabled: "true"
+    spark.dynamicAllocation.minExecutors: "5"
+    spark.dynamicAllocation.maxExecutors: "20"
+    spark.dynamicAllocation.initialExecutors: "10"
+    spark.dynamicAllocation.executorIdleTimeout: "120s"
+    spark.dynamicAllocation.cachedExecutorIdleTimeout: "600s"
+    spark.dynamicAllocation.schedulerBacklogTimeout: "30s"
+    spark.dynamicAllocation.sustainedSchedulerBacklogTimeout: "60s"
+    
+    # Enterprise memory management
+    spark.memory.fraction: "0.7"
+    spark.memory.storageFraction: "0.4"
+    spark.memory.offHeap.enabled: "true"
+    spark.memory.offHeap.size: "4g"
+    
+    # FAIR scheduler for multi-tenant
+    spark.scheduler.mode: "FAIR"
+    
+    # Full UI and history
+    spark.ui.enabled: "true"
+    spark.ui.port: "4040"
+    spark.ui.retainedJobs: "100"
+    spark.ui.retainedStages: "100"
+    spark.eventLog.enabled: "true"
+    spark.eventLog.dir: "s3a://spark-events/"
+    spark.eventLog.rolling.enabled: "true"
+    spark.eventLog.rolling.maxFilesToRetain: "10"
+    
+    # High parallelism
+    spark.default.parallelism: "100"
+    
+    # Compression enabled
+    spark.sql.inMemoryColumnarStorage.compressed: "true"
+    spark.sql.parquet.compression.codec: "snappy"
+    spark.sql.orc.compression.codec: "snappy"
+    
+    # Speculation for slow tasks
+    spark.speculation: "true"
+    spark.speculation.multiplier: "2"
+    spark.speculation.quantile: "0.75"
+    spark.speculation.interval: "100ms"
+    
+    # Network timeouts for reliability
+    spark.network.timeout: "600s"
+    spark.executor.heartbeatInterval: "60s"
+    
+    # IO optimization
+    spark.sql.files.openCostInBytes: "134217728"  # 128MB
+    spark.sql.files.maxPartitionBytes: "268435456"  # 256MB
+    spark.sql.autoBroadcastJoinThreshold: "10485760"  # 10MB
+    
+    # RAPIDS acceleration (if GPUs available)
+    spark.rapids.sql.enabled: "true"
+    spark.rapids.memory.pinnedPool.size: "2g"
+    spark.rapids.sql.concurrentGpuTasks: "2"
+    spark.task.resource.gpu.amount: "1"
+    spark.executor.resource.gpu.amount: "1"
+    
+    # ML-specific tuning
+    spark.sql.execution.arrow.pyspark.enabled: "true"
+    spark.sql.execution.arrow.maxRecordsPerBatch: "10000"
+    
+    # Fault tolerance
+    spark.task.maxFailures: "4"
+    spark.stage.maxConsecutiveAttempts: "4"
+    spark.worker.timeout: "600s"
+
+standalone:
+  worker:
+    replicas: 10
+    cores: "4"
+    memory: "16g"
+  master:
+    replicas: 2  # HA mode
+    cores: "4"
+    memory: "8g"
+
+# Full monitoring stack
+monitoring:
+  podMonitor:
+    enabled: true
+    interval: "10s"
+  serviceMonitor:
+    enabled: true
+    interval: "10s"
+  grafanaDashboards:
+    enabled: true
+    namespace: "monitoring"
+  alerts:
+    enabled: true
+    namespace: "monitoring"
+
+# Production resource limits
+resources:
+  executor:
+    limits:
+      memory: "16g"
+      cpu: "4"
+      nvidia.com/gpu: "1"  # GPU support
+    requests:
+      memory: "12g"
+      cpu: "3"
+      nvidia.com/gpu: "1"
+  driver:
+    limits:
+      memory: "8g"
+      cpu: "4"
+    requests:
+      memory: "6g"
+      cpu: "2"
+
+# HA configuration
+highAvailability:
+  enabled: true
+  zookeeper:
+    namespace: "/spark-ha"
+    quorum: "zk-0:2181,zk-1:2181,zk-2:2181"
+
+# Security
+security:
+  authentication:
+    enabled: true
+    kerberos:
+      enabled: false  # Can be enabled for enterprise
+  encryption:
+    enabled: true
+    ssl:
+      enabled: true
