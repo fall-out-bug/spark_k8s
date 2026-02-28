@@ -1,0 +1,69 @@
+# ML-enhanced Spark 3.5.7 image with CatBoost, MLlib, and RAPIDS support
+# Based on spark-custom:3.5.7
+#
+# Build:
+#   docker build -f Dockerfile.ml-full -t spark-ml:3.5.7 .
+#
+# Note: CatBoost for Spark uses CPU only (GPU not supported in Spark integration)
+# For GPU-accelerated DataFrame operations, use Spark RAPIDS
+
+FROM spark-custom:3.5.7
+
+LABEL maintainer="spark-k8s"
+LABEL description="Spark 3.5.7 with CatBoost, MLlib, scikit-learn, and ML dependencies"
+
+# Switch to root for installation
+USER root
+
+# Install ML Python packages
+RUN pip3 install --no-cache-dir \
+    # Core ML libraries
+    scikit-learn==1.5.2 \
+    catboost==1.2.7 \
+    lightgbm==4.5.0 \
+    xgboost==2.1.3 \
+    # Data processing
+    pandas==2.2.3 \
+    numpy==1.26.4 \
+    pyarrow==18.1.0 \
+    # Visualization
+    matplotlib==3.9.3 \
+    seaborn==0.13.2 \
+    plotly==5.24.1 \
+    # AWS integration
+    boto3==1.35.86 \
+    # Experiment tracking
+    mlflow==2.18.0 \
+    # Hyperparameter optimization
+    optuna==4.1.0 \
+    # Feature engineering
+    feature-engine==1.8.3 \
+    # Model interpretability
+    shap==0.46.0 \
+    # Spark ML integration
+    synapseml==1.0.10
+
+# Download additional ML JARs for Spark
+# Spark MLlib is included in Spark distribution
+# Add synapseml for advanced ML features
+RUN cd /opt/spark/jars && \
+    wget -q https://repo1.maven.org/maven2/com/microsoft/azure/synapseml/lightgbm_2.12/1.0.10/lightgbm_2.12-1.0.10.jar && \
+    wget -q https://repo1.maven.org/maven2/com/microsoft/azure/synapseml/core_2.12/1.0.10/core_2.12-1.0.10.jar && \
+    wget -q https://repo1.maven.org/maven2/com/microsoft/azure/synapseml/opencv_2.12/1.0.10/opencv_2.12-1.0.10.jar
+
+# Create ML-specific directories
+RUN mkdir -p /opt/spark/ml/models \
+    /opt/spark/ml/checkpoints \
+    /opt/spark/ml/features && \
+    chmod -R 755 /opt/spark/ml
+
+# Switch back to spark user
+USER spark
+
+# Set ML environment variables
+ENV MLFLOW_TRACKING_URI="" \
+    MLFLOW_S3_ENDPOINT_URL="" \
+    CATBOOST_CACHE_DIR=/tmp/catboost_cache
+
+WORKDIR /opt/spark
+CMD ["/bin/bash"]

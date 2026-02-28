@@ -1,0 +1,81 @@
+# ===================================================================
+# ML Training Preset: Regression Workloads
+# ===================================================================
+# Use case: Regression with Spark MLlib (Linear, GBT, RandomForest)
+# Characteristics: CPU-bound, moderate memory
+# Recommended cluster: 2+ nodes, 16GB+ RAM per node
+# ===================================================================
+
+core:
+  spark:
+    executor:
+      instances: 2
+      cores: 2
+      memory: "8g"
+      memoryOverhead: "2g"
+      dynamicAllocation:
+        enabled: false
+    
+    driver:
+      cores: 2
+      memory: "4g"
+      memoryOverhead: "1g"
+    
+    conf:
+      # Memory management
+      spark.memory.fraction: "0.5"
+      spark.memory.storageFraction: "0.4"
+      
+      # Adaptive query execution
+      spark.sql.adaptive.enabled: "true"
+      spark.sql.adaptive.coalescePartitions.enabled: "true"
+      
+      # Parallelism
+      spark.sql.shuffle.partitions: "16"
+      spark.default.parallelism: "16"
+      
+      # Event log
+      spark.eventLog.enabled: "true"
+      spark.eventLog.dir: "s3a://spark-events/"
+
+# ML-specific configuration
+ml:
+  framework: "spark-ml"
+  task: "regression"
+  
+  crossValidation:
+    enabled: true
+    numFolds: 3
+    
+  hyperparameters:
+    maxIter: 100
+    regParam: 0.1
+    elasticNetParam: 0.5
+
+# Resource limits
+resources:
+  executor:
+    limits:
+      memory: "10g"
+      cpu: "2"
+    requests:
+      memory: "8g"
+      cpu: "1.5"
+  driver:
+    limits:
+      memory: "5g"
+      cpu: "2"
+    requests:
+      memory: "4g"
+      cpu: "1"
+
+# Monitoring
+monitoring:
+  grafanaDashboards:
+    enabled: true
+  alerts:
+    enabled: true
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

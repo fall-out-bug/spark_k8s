@@ -1,0 +1,99 @@
+# ===================================================================
+# ML Training Preset: Classification Workloads
+# ===================================================================
+# Use case: Binary/multi-class classification with CatBoost or MLlib
+# Characteristics: Memory-intensive, CPU-bound for gradient boosting
+# Recommended cluster: 3+ nodes, 32GB+ RAM per node
+# ===================================================================
+
+core:
+  spark:
+    executor:
+      instances: 2
+      cores: 2
+      memory: "16g"
+      memoryOverhead: "4g"
+      dynamicAllocation:
+        enabled: false
+    
+    driver:
+      cores: 2
+      memory: "8g"
+      memoryOverhead: "2g"
+    
+    conf:
+      # Memory management for ML
+      spark.memory.fraction: "0.6"
+      spark.memory.storageFraction: "0.5"
+      spark.memory.offHeap.enabled: "true"
+      spark.memory.offHeap.size: "4g"
+      
+      # Arrow for Pandas conversion (CatBoost requires)
+      spark.sql.execution.arrow.pyspark.enabled: "true"
+      spark.sql.execution.arrow.maxRecordsPerBatch: "10000"
+      
+      # Parallelism
+      spark.sql.shuffle.partitions: "20"
+      spark.default.parallelism: "20"
+      
+      # Speculation for slow tasks
+      spark.speculation: "true"
+      spark.speculation.multiplier: "2"
+      spark.speculation.quantile: "0.75"
+      
+      # Event log for monitoring
+      spark.eventLog.enabled: "true"
+      spark.eventLog.dir: "s3a://spark-events/"
+      
+      # Kryo serialization
+      spark.serializer: "org.apache.spark.serializer.KryoSerializer"
+      spark.kryoserializer.buffer.max: "256m"
+
+# ML-specific configuration
+ml:
+  framework: "catboost"
+  task: "classification"
+  
+  catboost:
+    iterations: 500
+    learning_rate: 0.1
+    depth: 6
+    loss_function: "Logloss"
+    task_type: "CPU"
+    early_stopping_rounds: 50
+    
+  crossValidation:
+    enabled: true
+    numFolds: 5
+    
+  featureStore:
+    enabled: false
+    path: ""
+
+# Resource limits
+resources:
+  executor:
+    limits:
+      memory: "20g"
+      cpu: "2"
+    requests:
+      memory: "16g"
+      cpu: "1.5"
+  driver:
+    limits:
+      memory: "10g"
+      cpu: "2"
+    requests:
+      memory: "8g"
+      cpu: "1.5"
+
+# Monitoring
+monitoring:
+  grafanaDashboards:
+    enabled: true
+  alerts:
+    enabled: true
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
