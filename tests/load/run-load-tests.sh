@@ -35,7 +35,7 @@ log_fail() {
 }
 
 get_master_pod() {
-    kubectl get pods -n $NAMESPACE -l app=spark-standalone-master -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo ""
+    kubectl get pods -n $NAMESPACE -l app.kubernetes.io/component=spark-master -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo ""
 }
 
 run_load_test() {
@@ -59,11 +59,14 @@ run_load_test() {
     local start_time=$(date +%s%3N)
     
     local output
-    output=$(kubectl exec -n $NAMESPACE $MASTER_POD -- timeout $timeout spark-submit \
-        --master spark://localhost:7077 \
-        --conf spark.sql.shuffle.partitions=$partitions \
-        /tmp/load-test.py 2>&1) || true
-    
+    # Fix: Set spark.driver.host to pod IP for worker connectivity
+    # Fix: Use service name instead of localhost for master URL
+    output=$(kubectl exec -n $NAMESPACE $MASTER_POD -- bash -c 'DRIVER_HOST=$(hostname -i) && timeout $0 spark-submit \
+        --master spark://airflow-sc-standalone-master:7077 \
+        --conf spark.driver.host=$DRIVER_HOST \
+        --conf spark.driver.bindAddress=0.0.0.0 \
+        --conf spark.sql.shuffle.partitions=$1 \
+        /tmp/load-test.py' $timeout $partitions 2>&1) || true
     local end_time=$(date +%s%3N)
     local duration=$((end_time - start_time))
     
@@ -112,7 +115,7 @@ partitions = int(sys.argv[2]) if len(sys.argv) > 2 else 10
 
 spark = SparkSession.builder \
     .appName("Load-Throughput") \
-    .master("spark://localhost:7077") \
+    .master("spark://airflow-sc-standalone-master:7077") \
     .config("spark.sql.shuffle.partitions", str(partitions)) \
     .getOrCreate()
 
@@ -152,7 +155,7 @@ partitions = int(sys.argv[2]) if len(sys.argv) > 2 else 20
 
 spark = SparkSession.builder \
     .appName("Load-Shuffle") \
-    .master("spark://localhost:7077") \
+    .master("spark://airflow-sc-standalone-master:7077") \
     .config("spark.sql.shuffle.partitions", str(partitions)) \
     .getOrCreate()
 
@@ -188,7 +191,7 @@ partitions = int(sys.argv[2]) if len(sys.argv) > 2 else 10
 
 spark = SparkSession.builder \
     .appName("Load-Sort") \
-    .master("spark://localhost:7077") \
+    .master("spark://airflow-sc-standalone-master:7077") \
     .config("spark.sql.shuffle.partitions", str(partitions)) \
     .getOrCreate()
 
@@ -224,7 +227,7 @@ iterations = int(sys.argv[2]) if len(sys.argv) > 2 else 5
 
 spark = SparkSession.builder \
     .appName("Load-Cache") \
-    .master("spark://localhost:7077") \
+    .master("spark://airflow-sc-standalone-master:7077") \
     .getOrCreate()
 
 import time
@@ -259,7 +262,7 @@ partitions = int(sys.argv[2]) if len(sys.argv) > 2 else 10
 
 spark = SparkSession.builder \
     .appName("Load-Write") \
-    .master("spark://localhost:7077") \
+    .master("spark://airflow-sc-standalone-master:7077") \
     .config("spark.sql.shuffle.partitions", str(partitions)) \
     .getOrCreate()
 
@@ -298,7 +301,7 @@ data_size = int(sys.argv[1]) if len(sys.argv) > 1 else 10000
 
 spark = SparkSession.builder \
     .appName("Load-ML") \
-    .master("spark://localhost:7077") \
+    .master("spark://airflow-sc-standalone-master:7077") \
     .getOrCreate()
 
 import time

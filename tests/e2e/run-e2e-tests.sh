@@ -43,7 +43,7 @@ log_section() {
 }
 
 get_master_pod() {
-    kubectl get pods -n $NAMESPACE -l app=spark-standalone-master -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo ""
+    kubectl get pods -n $NAMESPACE -l app.kubernetes.io/component=spark-master -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo ""
 }
 
 run_spark_job() {
@@ -64,7 +64,8 @@ run_spark_job() {
     kubectl cp "$script" $NAMESPACE/$MASTER_POD:/tmp/test.py 2>/dev/null
     
     local output
-    output=$(kubectl exec -n $NAMESPACE $MASTER_POD -- timeout $timeout spark-submit --master spark://localhost:7077 /tmp/test.py 2>&1) || true
+    # Fix: Set spark.driver.host to pod IP for worker connectivity
+    output=$(kubectl exec -n $NAMESPACE $MASTER_POD -- bash -c 'DRIVER_HOST=$(hostname -i) && timeout '$timeout' spark-submit --master spark://airflow-sc-standalone-master:7077 --conf spark.driver.host=$DRIVER_HOST --conf spark.driver.bindAddress=0.0.0.0 /tmp/test.py' 2>&1) || true
     
     if echo "$output" | grep -q "$expected"; then
         log_pass "$name"
@@ -147,7 +148,7 @@ from pyspark.sql.functions import col, count, sum as spark_sum
 
 spark = SparkSession.builder \
     .appName("E2E-SQL-Test") \
-    .master("spark://localhost:7077") \
+    .master("spark://airflow-sc-standalone-master:7077") \
     .config("spark.sql.shuffle.partitions", "4") \
     .getOrCreate()
 
@@ -173,7 +174,7 @@ from pyspark.sql.functions import col, when, rand
 
 spark = SparkSession.builder \
     .appName("E2E-DF-Test") \
-    .master("spark://localhost:7077") \
+    .master("spark://airflow-sc-standalone-master:7077") \
     .getOrCreate()
 
 df1 = spark.range(1000).withColumn("key", col("id"))
@@ -200,7 +201,7 @@ from pyspark.ml.evaluation import BinaryClassificationEvaluator
 
 spark = SparkSession.builder \
     .appName("E2E-ML-Test") \
-    .master("spark://localhost:7077") \
+    .master("spark://airflow-sc-standalone-master:7077") \
     .getOrCreate()
 
 df = spark.range(1000).select(
@@ -236,7 +237,7 @@ from pyspark.sql.functions import col, count
 
 spark = SparkSession.builder \
     .appName("E2E-Stream-Test") \
-    .master("spark://localhost:7077") \
+    .master("spark://airflow-sc-standalone-master:7077") \
     .config("spark.sql.shuffle.partitions", "2") \
     .getOrCreate()
 
@@ -275,7 +276,7 @@ from pyspark.sql import SparkSession
 
 spark = SparkSession.builder \\
     .appName("E2E-S3-Test") \\
-    .master("spark://localhost:7077") \\
+    .master("spark://airflow-sc-standalone-master:7077") \\
     .config("spark.hadoop.fs.s3a.endpoint", "http://${MINIO_SVC}:9000") \\
     .config("spark.hadoop.fs.s3a.access.key", "minioadmin") \\
     .config("spark.hadoop.fs.s3a.secret.key", "minioadmin") \\

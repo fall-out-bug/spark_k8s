@@ -39,6 +39,14 @@ PRESET_CONFIGS[ml-classification]="--conf spark.memory.fraction=0.6 --conf spark
 PRESET_CONFIGS[small]="--executor-memory 2g --conf spark.sql.shuffle.partitions=10"
 PRESET_CONFIGS[large]="--executor-memory 8g --conf spark.sql.shuffle.partitions=100"
 
+# Standalone mode requires driver.host to be set to pod IP for worker connectivity
+DRIVER_HOST_CONFIG=""
+if [[ "$MASTER" == spark://* ]]; then
+    DRIVER_HOST=$(hostname -i 2>/dev/null || echo "")
+    if [[ -n "$DRIVER_HOST" ]]; then
+        DRIVER_HOST_CONFIG="--conf spark.driver.host=$DRIVER_HOST --conf spark.driver.bindAddress=0.0.0.0"
+    fi
+fi
 if [[ -z "$JOB_FILE" ]]; then
     echo "Usage: $0 <job-file> [preset] [options]"
     echo ""
@@ -67,6 +75,7 @@ echo ""
 
 CMD="$SPARK_SUBMIT \
     --master $MASTER \
+    $DRIVER_HOST_CONFIG \
     $PRESET_OPTS \
     $EXTRA_OPTS \
     $JOB_FILE"

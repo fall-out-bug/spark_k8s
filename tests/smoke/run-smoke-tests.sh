@@ -110,14 +110,14 @@ run_test "helm-release" "helm status $RELEASE -n $NAMESPACE"
 echo ""
 echo "=== 3. Pod Health ==="
 
-MASTER_POD=$(kubectl get pods -n $NAMESPACE -l app=spark-standalone-master -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+MASTER_POD=$(kubectl get pods -n $NAMESPACE -l 'app.kubernetes.io/component=spark-master' -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
 if [[ -n "$MASTER_POD" ]]; then
     run_test "master-pod-running" "kubectl get pod $MASTER_POD -n $NAMESPACE -o jsonpath='{.status.phase}' | grep -q Running"
 else
     log_skip "master-pod-running (pod not found)"
 fi
 
-WORKER_COUNT=$(kubectl get pods -n $NAMESPACE -l app=spark-standalone-worker --no-headers 2>/dev/null | grep Running | wc -l || echo "0")
+WORKER_COUNT=$(kubectl get pods -n $NAMESPACE -l 'app.kubernetes.io/component=spark-worker' --no-headers 2>/dev/null | grep Running | wc -l || echo "0")
 if [[ $WORKER_COUNT -gt 0 ]]; then
     run_test "worker-pods-running" "[[ $WORKER_COUNT -gt 0 ]]"
 else
@@ -135,7 +135,7 @@ cat > /tmp/smoke-test.py << 'PYEOF'
 from pyspark.sql import SparkSession
 spark = SparkSession.builder \
     .appName("SmokeTest") \
-    .master("spark://localhost:7077") \
+    .master("spark://${SPARK_MASTER_SERVICE:-airflow-sc-standalone-master}:7077") \
     .getOrCreate()
 df = spark.range(100)
 count = df.count()
@@ -145,7 +145,9 @@ PYEOF
 
 if [[ -n "$MASTER_POD" ]]; then
     kubectl cp /tmp/smoke-test.py $NAMESPACE/$MASTER_POD:/tmp/smoke-test.py 2>/dev/null
-    OUTPUT=$(kubectl exec -n $NAMESPACE $MASTER_POD -- timeout 60 spark-submit --master spark://localhost:7077 /tmp/smoke-test.py 2>&1 || true)
+    # Fix: Set spark.driver.host to pod IP for worker connectivity
+    # Fix: Use service name instead of localhost for master URL
+    OUTPUT=$(kubectl exec -n $NAMESPACE $MASTER_POD -- bash -c 'DRIVER_HOST=$(hostname -i) && timeout 60 spark-submit --master spark://airflow-sc-standalone-master:7077 --conf spark.driver.host=$DRIVER_HOST --conf spark.driver.bindAddress=0.0.0.0 /tmp/smoke-test.py' 2>&1 || true)
     
     if echo "$OUTPUT" | grep -q "SMOKE_TEST_RESULT: 100"; then
         log_pass "spark-submit-basic"
