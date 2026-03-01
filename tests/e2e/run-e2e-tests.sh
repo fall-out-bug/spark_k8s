@@ -9,8 +9,8 @@ RESULTS_DIR="$TESTS_DIR/results"
 
 NAMESPACE="${K8S_NAMESPACE:-spark-airflow}"
 RELEASE="${HELM_RELEASE:-airflow-sc}"
+MASTER_SERVICE="${RELEASE}-spark-standalone-master"
 
-mkdir -p "$RESULTS_DIR"
 
 # Colors
 RED='\033[0;31m'
@@ -67,7 +67,7 @@ run_spark_job() {
     kubectl cp "$script" $NAMESPACE/$MASTER_POD:/tmp/test.py 2>/dev/null
     
     local output
-    output=$(kubectl exec -n $NAMESPACE $MASTER_POD -- bash -c 'DRIVER_HOST=$(hostname -i) && timeout '$timeout' spark-submit --master spark://airflow-sc-standalone-master:7077 --conf spark.driver.host=$DRIVER_HOST --conf spark.driver.bindAddress=0.0.0.0 /tmp/test.py' 2>&1) || true
+    output=$(kubectl exec -n $NAMESPACE $MASTER_POD -- bash -c 'DRIVER_HOST=$(hostname -i) && timeout '$timeout' spark-submit --master spark://$MASTER_SERVICE:7077 --conf spark.driver.host=$DRIVER_HOST --conf spark.driver.bindAddress=0.0.0.0 /tmp/test.py' 2>&1) || true
     
     if echo "$output" | grep -q "$expected"; then
         log_pass "$name"
@@ -135,13 +135,13 @@ fi
 # === 3. SPARK SQL E2E ===
 log_section "3. SPARK SQL E2E"
 
-cat > /tmp/e2e-sql-test.py << 'PYEOF'
+cat > /tmp/e2e-sql-test.py << PYEOF
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, count, sum as spark_sum
 
 spark = SparkSession.builder \
     .appName("E2E-SQL-Test") \
-    .master("spark://airflow-sc-standalone-master:7077") \
+    .master("spark://$MASTER_SERVICE:7077") \
     .config("spark.sql.shuffle.partitions", "4") \
     .getOrCreate()
 
@@ -162,13 +162,13 @@ run_spark_job /tmp/e2e-sql-test.py "spark-sql-e2e" 120 "E2E_SQL_RESULT: 10"
 # === 4. DATAFRAME OPERATIONS E2E ===
 log_section "4. DATAFRAME OPERATIONS E2E"
 
-cat > /tmp/e2e-df-test.py << 'PYEOF'
+cat > /tmp/e2e-df-test.py << PYEOF
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, when, rand
 
 spark = SparkSession.builder \
     .appName("E2E-DF-Test") \
-    .master("spark://airflow-sc-standalone-master:7077") \
+    .master("spark://$MASTER_SERVICE:7077") \
     .getOrCreate()
 
 # Create DataFrames with explicit column names to avoid ambiguity
@@ -190,7 +190,7 @@ run_spark_job /tmp/e2e-df-test.py "dataframe-e2e" 120 "E2E_DF_RESULT:"
 # === 5. ML PIPELINE E2E ===
 log_section "5. ML PIPELINE E2E"
 
-cat > /tmp/e2e-ml-test.py << 'PYEOF'
+cat > /tmp/e2e-ml-test.py << PYEOF
 from pyspark.sql import SparkSession
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.classification import LogisticRegression
@@ -198,7 +198,7 @@ from pyspark.ml.evaluation import BinaryClassificationEvaluator
 
 spark = SparkSession.builder \
     .appName("E2E-ML-Test") \
-    .master("spark://airflow-sc-standalone-master:7077") \
+    .master("spark://$MASTER_SERVICE:7077") \
     .getOrCreate()
 
 from pyspark.sql.functions import col
@@ -230,13 +230,13 @@ run_spark_job /tmp/e2e-ml-test.py "ml-pipeline-e2e" 180 "E2E_ML_RESULT:"
 # === 6. STREAMING (RATE SOURCE) E2E ===
 log_section "6. STREAMING (RATE SOURCE) E2E"
 
-cat > /tmp/e2e-stream-test.py << 'PYEOF'
+cat > /tmp/e2e-stream-test.py << PYEOF
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, count
 
 spark = SparkSession.builder \
     .appName("E2E-Stream-Test") \
-    .master("spark://airflow-sc-standalone-master:7077") \
+    .master("spark://$MASTER_SERVICE:7077") \
     .config("spark.sql.shuffle.partitions", "2") \
     .getOrCreate()
 
@@ -276,7 +276,7 @@ from pyspark.sql import SparkSession
 
 spark = SparkSession.builder \\
     .appName("E2E-S3-Test") \\
-    .master("spark://airflow-sc-standalone-master:7077") \\
+    .master("spark://$MASTER_SERVICE:7077") \\
     .config("spark.hadoop.fs.s3a.endpoint", "http://${MINIO_SVC}:9000") \\
     .config("spark.hadoop.fs.s3a.access.key", "minioadmin") \\
     .config("spark.hadoop.fs.s3a.secret.key", "minioadmin") \\

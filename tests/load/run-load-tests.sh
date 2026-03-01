@@ -9,6 +9,8 @@ RESULTS_DIR="$TESTS_DIR/results"
 
 NAMESPACE="${K8S_NAMESPACE:-spark-airflow}"
 RELEASE="${HELM_RELEASE:-airflow-sc}"
+MASTER_SERVICE="${RELEASE}-spark-standalone-master"
+RELEASE="${HELM_RELEASE:-airflow-sc}"
 
 mkdir -p "$RESULTS_DIR"
 
@@ -84,7 +86,7 @@ run_load_test() {
     local output
     # Fix: Set spark.driver.host to pod IP for worker connectivity
     # Fix: Use service name instead of localhost for master URL
-    output=$(kubectl exec -n $NAMESPACE $MASTER_POD -- bash -c 'DRIVER_HOST=$(hostname -i) && timeout '$timeout' spark-submit --master spark://airflow-sc-standalone-master:7077 --conf spark.driver.host=$DRIVER_HOST --conf spark.driver.bindAddress=0.0.0.0 --conf spark.sql.shuffle.partitions='$partitions' /tmp/load-test.py' $timeout $partitions 2>&1) || true
+    output=$(kubectl exec -n $NAMESPACE $MASTER_POD -- bash -c 'DRIVER_HOST=$(hostname -i) && timeout '$timeout' spark-submit --master spark://$MASTER_SERVICE:7077 --conf spark.driver.host=$DRIVER_HOST --conf spark.driver.bindAddress=0.0.0.0 --conf spark.sql.shuffle.partitions='$partitions' /tmp/load-test.py' $timeout $partitions 2>&1) || true
     
     local end_time=$(date +%s%3N)
     local duration=$((end_time - start_time))
@@ -108,7 +110,7 @@ run_load_test() {
 # === 1. THROUGHPUT TEST ===
 log_info "=== 1. THROUGHPUT TEST ==="
 
-cat > /tmp/load-throughput.py << 'PYEOF'
+cat > /tmp/load-throughput.py << PYEOF
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, count, sum as spark_sum, avg, rand
 import sys
@@ -118,7 +120,7 @@ partitions = int(sys.argv[2]) if len(sys.argv) > 2 else 10
 
 spark = SparkSession.builder \
     .appName("Load-Throughput") \
-    .master("spark://airflow-sc-standalone-master:7077") \
+    .master("spark://$MASTER_SERVICE:7077") \
     .config("spark.sql.shuffle.partitions", str(partitions)) \
     .getOrCreate()
 
@@ -142,14 +144,13 @@ print(f"LOAD_TEST_SUCCESS: {data_size} rows in {duration:.2f}s ({throughput:.0f}
 PYEOF
 
 run_load_test "throughput-simple" /tmp/load-throughput.py 100000 10 120
- &
-run_load_test "throughput-medium" /tmp/load-throughput.py 500000 20 180 || \
-run_load_test "throughput-large" /tmp/load-throughput.py 1000000 50 300 ||
+run_load_test "throughput-medium" /tmp/load-throughput.py 500000 20 180
+run_load_test "throughput-large" /tmp/load-throughput.py 1000000 50 300
 
 # === 2. SHUFFLE TEST ===
 log_info "=== 2. SHUFFLE TEST ==="
 
-cat > /tmp/load-shuffle.py << 'PYEOF'
+cat > /tmp/load-shuffle.py << PYEOF
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
 import sys
@@ -159,7 +160,7 @@ partitions = int(sys.argv[2]) if len(sys.argv) > 2 else 20
 
 spark = SparkSession.builder \
     .appName("Load-Shuffle") \
-    .master("spark://airflow-sc-standalone-master:7077") \
+    .master("spark://$MASTER_SERVICE:7077") \
     .config("spark.sql.shuffle.partitions", str(partitions)) \
     .getOrCreate()
 
@@ -178,14 +179,11 @@ spark.stop()
 print(f"LOAD_TEST_SUCCESS: {data_size} rows shuffled in {duration:.2f}s ({throughput:.0f} rows/s)")
 PYEOF
 
-run_load_test "shuffle-small" /tmp/load-shuffle.py 10000 10 120 || \
-run_load_test "shuffle-medium" /tmp/load-shuffle.py 50000 20 180 || \
-run_load_test "shuffle-large" /tmp/load-shuffle.py 100000 50 300 ||
-
+run_load_test "shuffle-small" /tmp/load-shuffle.py 10000 10 120
 # === 3. SORT TEST ===
 log_info "=== 3. SORT TEST ==="
 
-cat > /tmp/load-sort.py << 'PYEOF'
+cat > /tmp/load-sort.py << PYEOF
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, rand
 import sys
@@ -195,7 +193,7 @@ partitions = int(sys.argv[2]) if len(sys.argv) > 2 else 10
 
 spark = SparkSession.builder \
     .appName("Load-Sort") \
-    .master("spark://airflow-sc-standalone-master:7077") \
+    .master("spark://$MASTER_SERVICE:7077") \
     .config("spark.sql.shuffle.partitions", str(partitions)) \
     .getOrCreate()
 
@@ -214,14 +212,11 @@ spark.stop()
 print(f"LOAD_TEST_SUCCESS: {data_size} rows sorted in {duration:.2f}s ({throughput:.0f} rows/s)")
 PYEOF
 
-run_load_test "sort-small" /tmp/load-sort.py 10000 10 60 || \
-run_load_test "sort-medium" /tmp/load-sort.py 50000 20 120 || \
-run_load_test "sort-large" /tmp/load-sort.py 100000 50 180 ||
-
+run_load_test "sort-small" /tmp/load-sort.py 10000 10 60
 # === 4. CACHE TEST ===
 log_info "=== 4. CACHE TEST ==="
 
-cat > /tmp/load-cache.py << 'PYEOF'
+cat > /tmp/load-cache.py << PYEOF
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
 import sys
@@ -231,7 +226,7 @@ iterations = int(sys.argv[2]) if len(sys.argv) > 2 else 5
 
 spark = SparkSession.builder \
     .appName("Load-Cache") \
-    .master("spark://airflow-sc-standalone-master:7077") \
+    .master("spark://$MASTER_SERVICE:7077") \
     .getOrCreate()
 
 import time
@@ -250,12 +245,12 @@ spark.stop()
 print(f"LOAD_TEST_SUCCESS: {data_size} rows x {iterations} iterations in {duration:.2f}s")
 PYEOF
 
-run_load_test "cache-test" /tmp/load-cache.py 100000 5 120 ||
+run_load_test "cache-test" /tmp/load-cache.py 100000 5 120
 
 # === 5. WRITE TEST ===
 log_info "=== 5. WRITE TEST ==="
 
-cat > /tmp/load-write.py << 'PYEOF'
+cat > /tmp/load-write.py << PYEOF
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, rand
 import sys
@@ -265,7 +260,7 @@ partitions = int(sys.argv[2]) if len(sys.argv) > 2 else 10
 
 spark = SparkSession.builder \
     .appName("Load-Write") \
-    .master("spark://airflow-sc-standalone-master:7077") \
+    .master("spark://$MASTER_SERVICE:7077") \
     .config("spark.sql.shuffle.partitions", str(partitions)) \
     .getOrCreate()
 
@@ -289,13 +284,14 @@ spark.stop()
 print(f"LOAD_TEST_SUCCESS: {data_size} rows written in {duration:.2f}s ({throughput:.0f} rows/s)")
 PYEOF
 
-run_load_test "write-parquet" /tmp/load-write.py 50000 10 120 ||
+run_load_test "write-parquet" /tmp/load-write.py 50000 10 120
 
 # === 6. ML TRAINING TEST ===
 log_info "=== 6. ML TRAINING TEST ==="
 
-cat > /tmp/load-ml.py << 'PYEOF'
+cat > /tmp/load-ml.py << PYEOF
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.classification import LogisticRegression
 import sys
@@ -304,7 +300,7 @@ data_size = int(sys.argv[1]) if len(sys.argv) > 1 else 10000
 
 spark = SparkSession.builder \
     .appName("Load-ML") \
-    .master("spark://airflow-sc-standalone-master:7077") \
+    .master("spark://$MASTER_SERVICE:7077") \
     .getOrCreate()
 
 import time
@@ -333,7 +329,7 @@ spark.stop()
 print(f"LOAD_TEST_SUCCESS: {data_size} rows trained in {duration:.2f}s")
 PYEOF
 
-run_load_test "ml-training" /tmp/load-ml.py 10000 10 180 ||
+run_load_test "ml-training" /tmp/load-ml.py 10000 10 180
 
 # === Summary ===
 echo ""
