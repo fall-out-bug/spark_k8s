@@ -9,7 +9,7 @@ RESULTS_DIR="$TESTS_DIR/results"
 
 NAMESPACE="${K8S_NAMESPACE:-spark-airflow}"
 RELEASE="${HELM_RELEASE:-airflow-sc}"
-MASTER_SERVICE="${RELEASE}-standalone-master"
+MASTER_SERVICE="${RELEASE}-spark-standalone-master"
 RELEASE="${HELM_RELEASE:-airflow-sc}"
 
 mkdir -p "$RESULTS_DIR"
