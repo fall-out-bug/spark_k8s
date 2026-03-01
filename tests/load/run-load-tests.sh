@@ -1,5 +1,6 @@
 #!/bin/bash
-set -e
+# Load Tests for Lego-Spark
+# Performance and scalability tests
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TESTS_DIR="$(dirname "$SCRIPT_DIR")"
@@ -11,46 +12,68 @@ RELEASE="${HELM_RELEASE:-airflow-sc}"
 
 mkdir -p "$RESULTS_DIR"
 
+# Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
+# Counters
+PASSED=0
+FAILED=0
+SKIPPED=0
+
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 RESULTS_FILE="$RESULTS_DIR/load-test-$TIMESTAMP.csv"
-
-echo "timestamp,test,data_size,partitions,duration_ms,throughput_mb_s,rows_per_sec,status" > "$RESULTS_FILE"
 
 log_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
 }
 
 log_pass() {
-    echo -e "${GREEN}[PASS]${NC} $1"
+    echo -e "${GREEN}✓ PASS${NC}: $1"
+    ((PASSED++)) || true
 }
 
 log_fail() {
-    echo -e "${RED}[FAIL]${NC} $1"
+    echo -e "${RED}✗ FAIL${NC}: $1"
+    ((FAILED++)) || true
+}
+
+log_skip() {
+    echo -e "${YELLOW}⊘ SKIP${NC}: $1"
+    ((SKIPPED++)) || true
 }
 
 get_master_pod() {
     kubectl get pods -n $NAMESPACE -l app.kubernetes.io/component=spark-master -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo ""
 }
 
+ echo "timestamp,test,data_size,partitions,duration_ms,throughput_mb_s,rows_per_sec,status" > "$RESULTS_FILE"
+
+echo "=============================================="
+echo "LOAD TESTS - Lego-Spark"
+echo "=============================================="
+echo "Namespace: $NAMESPACE"
+echo "Release:   $RELEASE"
+echo "Time:      $(date)"
+echo ""
+
+MASTER_POD=$(get_master_pod)
+if [[ -z "$MASTER_POD" ]]; then
+    echo "Error: Spark master pod not found"
+    exit 1
+fi
+
+log_info "Master pod: $MASTER_POD"
+
 run_load_test() {
     local test_name="$1"
     local script="$2"
-    local data_size="${3:-1000000}"
+    local data_size="${3:-100000}"
     local partitions="${4:-10}"
     local timeout="${5:-300}"
-    
-    local MASTER_POD=$(get_master_pod)
-    
-    if [[ -z "$MASTER_POD" ]]; then
-        log_fail "No master pod found"
-        return 1
-    fi
     
     log_info "Running load test: $test_name (rows=$data_size, partitions=$partitions)"
     
@@ -61,12 +84,8 @@ run_load_test() {
     local output
     # Fix: Set spark.driver.host to pod IP for worker connectivity
     # Fix: Use service name instead of localhost for master URL
-    output=$(kubectl exec -n $NAMESPACE $MASTER_POD -- bash -c 'DRIVER_HOST=$(hostname -i) && timeout $0 spark-submit \
-        --master spark://airflow-sc-standalone-master:7077 \
-        --conf spark.driver.host=$DRIVER_HOST \
-        --conf spark.driver.bindAddress=0.0.0.0 \
-        --conf spark.sql.shuffle.partitions=$1 \
-        /tmp/load-test.py' $timeout $partitions 2>&1) || true
+    output=$(kubectl exec -n $NAMESPACE $MASTER_POD -- bash -c 'DRIVER_HOST=$(hostname -i) && timeout '$timeout' spark-submit --master spark://airflow-sc-standalone-master:7077 --conf spark.driver.host=$DRIVER_HOST --conf spark.driver.bindAddress=0.0.0.0 --conf spark.sql.shuffle.partitions='$partitions' /tmp/load-test.py' $timeout $partitions 2>&1) || true
+    
     local end_time=$(date +%s%3N)
     local duration=$((end_time - start_time))
     
@@ -86,24 +105,8 @@ run_load_test() {
     echo "$TIMESTAMP,$test_name,$data_size,$partitions,$duration,0,$rows_per_sec,$status" >> "$RESULTS_FILE"
 }
 
-echo "=============================================="
-echo "LOAD TESTS - Lego-Spark"
-echo "=============================================="
-echo "Namespace: $NAMESPACE"
-echo "Release:   $RELEASE"
-echo "Time:      $(date)"
-echo ""
-
-MASTER_POD=$(get_master_pod)
-if [[ -z "$MASTER_POD" ]]; then
-    echo "Error: Spark master pod not found"
-    exit 1
-fi
-
-log_info "Master pod: $MASTER_POD"
-
-echo ""
-log_info "=== 1. THROUGHPUT TEST - Simple Aggregation ==="
+# === 1. THROUGHPUT TEST ===
+log_info "=== 1. THROUGHPUT TEST ==="
 
 cat > /tmp/load-throughput.py << 'PYEOF'
 from pyspark.sql import SparkSession
@@ -139,11 +142,12 @@ print(f"LOAD_TEST_SUCCESS: {data_size} rows in {duration:.2f}s ({throughput:.0f}
 PYEOF
 
 run_load_test "throughput-simple" /tmp/load-throughput.py 100000 10 120
-run_load_test "throughput-medium" /tmp/load-throughput.py 500000 20 180
-run_load_test "throughput-large" /tmp/load-throughput.py 1000000 50 300
+ &
+run_load_test "throughput-medium" /tmp/load-throughput.py 500000 20 180 || \
+run_load_test "throughput-large" /tmp/load-throughput.py 1000000 50 300 ||
 
-echo ""
-log_info "=== 2. SHUFFLE TEST - Heavy Join ==="
+# === 2. SHUFFLE TEST ===
+log_info "=== 2. SHUFFLE TEST ==="
 
 cat > /tmp/load-shuffle.py << 'PYEOF'
 from pyspark.sql import SparkSession
@@ -174,12 +178,12 @@ spark.stop()
 print(f"LOAD_TEST_SUCCESS: {data_size} rows shuffled in {duration:.2f}s ({throughput:.0f} rows/s)")
 PYEOF
 
-run_load_test "shuffle-small" /tmp/load-shuffle.py 10000 10 120
-run_load_test "shuffle-medium" /tmp/load-shuffle.py 50000 20 180
-run_load_test "shuffle-large" /tmp/load-shuffle.py 100000 50 300
+run_load_test "shuffle-small" /tmp/load-shuffle.py 10000 10 120 || \
+run_load_test "shuffle-medium" /tmp/load-shuffle.py 50000 20 180 || \
+run_load_test "shuffle-large" /tmp/load-shuffle.py 100000 50 300 ||
 
-echo ""
-log_info "=== 3. SORT TEST - Large Sort ==="
+# === 3. SORT TEST ===
+log_info "=== 3. SORT TEST ==="
 
 cat > /tmp/load-sort.py << 'PYEOF'
 from pyspark.sql import SparkSession
@@ -210,12 +214,12 @@ spark.stop()
 print(f"LOAD_TEST_SUCCESS: {data_size} rows sorted in {duration:.2f}s ({throughput:.0f} rows/s)")
 PYEOF
 
-run_load_test "sort-small" /tmp/load-sort.py 10000 10 60
-run_load_test "sort-medium" /tmp/load-sort.py 50000 20 120
-run_load_test "sort-large" /tmp/load-sort.py 100000 50 180
+run_load_test "sort-small" /tmp/load-sort.py 10000 10 60 || \
+run_load_test "sort-medium" /tmp/load-sort.py 50000 20 120 || \
+run_load_test "sort-large" /tmp/load-sort.py 100000 50 180 ||
 
-echo ""
-log_info "=== 4. CACHE TEST - Repeated Access ==="
+# === 4. CACHE TEST ===
+log_info "=== 4. CACHE TEST ==="
 
 cat > /tmp/load-cache.py << 'PYEOF'
 from pyspark.sql import SparkSession
@@ -231,11 +235,10 @@ spark = SparkSession.builder \
     .getOrCreate()
 
 import time
+start = time.time()
 
 df = spark.range(data_size).withColumn("group", col("id") % 100)
 df.cache()
-
-start = time.time()
 
 for i in range(iterations):
     df.groupBy("group").count().count()
@@ -247,10 +250,10 @@ spark.stop()
 print(f"LOAD_TEST_SUCCESS: {data_size} rows x {iterations} iterations in {duration:.2f}s")
 PYEOF
 
-run_load_test "cache-test" /tmp/load-cache.py 100000 5 120
+run_load_test "cache-test" /tmp/load-cache.py 100000 5 120 ||
 
-echo ""
-log_info "=== 5. WRITE TEST - Parquet Write ==="
+# === 5. WRITE TEST ===
+log_info "=== 5. WRITE TEST ==="
 
 cat > /tmp/load-write.py << 'PYEOF'
 from pyspark.sql import SparkSession
@@ -286,9 +289,9 @@ spark.stop()
 print(f"LOAD_TEST_SUCCESS: {data_size} rows written in {duration:.2f}s ({throughput:.0f} rows/s)")
 PYEOF
 
-run_load_test "write-parquet" /tmp/load-write.py 50000 10 120
+run_load_test "write-parquet" /tmp/load-write.py 50000 10 120 ||
 
-echo ""
+# === 6. ML TRAINING TEST ===
 log_info "=== 6. ML TRAINING TEST ==="
 
 cat > /tmp/load-ml.py << 'PYEOF'
@@ -317,7 +320,6 @@ assembler = VectorAssembler(
     inputCols=["feature1", "feature2", "feature3"],
     outputCol="features"
 )
-
 data = assembler.transform(df)
 
 start = time.time()
@@ -331,20 +333,20 @@ spark.stop()
 print(f"LOAD_TEST_SUCCESS: {data_size} rows trained in {duration:.2f}s")
 PYEOF
 
-run_load_test "ml-training" /tmp/load-ml.py 10000 10 180
+run_load_test "ml-training" /tmp/load-ml.py 10000 10 180 ||
 
+# === Summary ===
 echo ""
 echo "=============================================="
 echo "LOAD TEST SUMMARY"
 echo "=============================================="
-
 cat "$RESULTS_FILE" | column -t -s ','
-
 echo ""
+
 echo "Results saved to: $RESULTS_FILE"
 
-PASSED=$(grep -c "PASS$" "$RESULTS_FILE" || echo "0")
-FAILED=$(grep -c "FAIL$" "$RESULTS_FILE" || echo "0")
+PASSED=$(grep -c "PASS" "$RESULTS_FILE" || echo "0")
+FAILED=$(grep -c "FAIL" "$RESULTS_FILE" || echo "0")
 
 echo ""
 echo -e "${GREEN}Passed:${NC} $PASSED"

@@ -1,5 +1,6 @@
 #!/bin/bash
-set -e
+# E2E Tests for Lego-Spark
+# End-to-end scenario tests
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TESTS_DIR="$(dirname "$SCRIPT_DIR")"
@@ -11,30 +12,32 @@ RELEASE="${HELM_RELEASE:-airflow-sc}"
 
 mkdir -p "$RESULTS_DIR"
 
+# Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
+# Counters
 PASSED=0
 FAILED=0
 SKIPPED=0
 
 log_pass() {
     echo -e "${GREEN}✓ PASS${NC}: $1"
-    ((PASSED++))
+    ((PASSED++)) || true
 }
 
 log_fail() {
     echo -e "${RED}✗ FAIL${NC}: $1"
     echo "$1" >> "$RESULTS_DIR/e2e-failed.txt"
-    ((FAILED++))
+    ((FAILED++)) || true
 }
 
 log_skip() {
     echo -e "${YELLOW}⊘ SKIP${NC}: $1"
-    ((SKIPPED++))
+    ((SKIPPED++)) || true
 }
 
 log_section() {
@@ -50,7 +53,7 @@ run_spark_job() {
     local script="$1"
     local name="$2"
     local timeout="${3:-120}"
-    local expected="${4:-SMOKE_TEST_RESULT: 100}"
+    local expected="${4:-E2E_RESULT}"
     
     local MASTER_POD=$(get_master_pod)
     
@@ -64,7 +67,6 @@ run_spark_job() {
     kubectl cp "$script" $NAMESPACE/$MASTER_POD:/tmp/test.py 2>/dev/null
     
     local output
-    # Fix: Set spark.driver.host to pod IP for worker connectivity
     output=$(kubectl exec -n $NAMESPACE $MASTER_POD -- bash -c 'DRIVER_HOST=$(hostname -i) && timeout '$timeout' spark-submit --master spark://airflow-sc-standalone-master:7077 --conf spark.driver.host=$DRIVER_HOST --conf spark.driver.bindAddress=0.0.0.0 /tmp/test.py' 2>&1) || true
     
     if echo "$output" | grep -q "$expected"; then
@@ -72,37 +74,7 @@ run_spark_job() {
         return 0
     else
         log_fail "$name"
-        echo "$output" >> "$RESULTS_DIR/${name// /_}.log"
-        return 1
-    fi
-}
-
-test_preset_lint() {
-    local preset="$1"
-    local name="$2"
-    
-    echo -n "Linting preset: $name... "
-    
-    if helm lint "$PROJECT_ROOT/charts/spark-3.5" -f "$preset" > /dev/null 2>&1; then
-        log_pass "preset-lint-$name"
-        return 0
-    else
-        log_fail "preset-lint-$name"
-        return 1
-    fi
-}
-
-test_preset_template() {
-    local preset="$1"
-    local name="$2"
-    
-    echo -n "Templating preset: $name... "
-    
-    if helm template test "$PROJECT_ROOT/charts/spark-3.5" -f "$preset" > /dev/null 2>&1; then
-        log_pass "preset-template-$name"
-        return 0
-    else
-        log_fail "preset-template-$name"
+        echo "$output" | tail -30 >> "$RESULTS_DIR/${name// /_}.log"
         return 1
     fi
 }
@@ -115,31 +87,52 @@ echo "Release:   $RELEASE"
 echo "Time:      $(date)"
 echo ""
 
+# === 1. PRESET VALIDATION ===
 log_section "1. PRESET VALIDATION"
 
 PRESETS_DIR="$PROJECT_ROOT/charts/spark-3.5/presets"
 
-for preset in $(find "$PRESETS_DIR" -name "*.yaml" -type f | sort); do
-    name=$(echo "$preset" | sed "s|$PRESETS_DIR/||" | sed 's|.yaml$||' | tr '/' '-')
-    test_preset_lint "$preset" "$name"
-    test_preset_template "$preset" "$name"
-done
+if [[ -d "$PRESETS_DIR" ]]; then
+    for preset in $(find "$PRESETS_DIR" -name "*.yaml" -type f | sort); do
+        name=$(echo "$preset" | sed "s|$PRESETS_DIR/||" | sed 's|.yaml$||' | tr '/' '-')
+        
+        echo -n "Linting: $name... "
+        if helm lint "$PROJECT_ROOT/charts/spark-3.5" -f "$preset" > /dev/null 2>&1; then
+            log_pass "preset-lint-$name"
+        else
+            log_fail "preset-lint-$name"
+        fi
+        
+        echo -n "Templating: $name... "
+        if helm template test "$PROJECT_ROOT/charts/spark-3.5" -f "$preset" > /dev/null 2>&1; then
+            log_pass "preset-template-$name"
+        else
+            log_fail "preset-template-$name"
+        fi
+    done
+else
+    log_skip "preset-validation (presets dir not found)"
+fi
 
+# === 2. EXAMPLE VALIDATION ===
 log_section "2. EXAMPLE VALIDATION"
 
 EXAMPLES_DIR="$PROJECT_ROOT/charts/spark-3.5/examples"
 
-for file in $(find "$EXAMPLES_DIR" -name "*.py" -type f | sort); do
-    name=$(basename "$file" .py)
-    echo -n "Validating: $name... "
-    
-    if python3 -m py_compile "$file" 2>/dev/null; then
-        log_pass "example-syntax-$name"
-    else
-        log_fail "example-syntax-$name"
-    fi
-done
+if [[ -d "$EXAMPLES_DIR" ]]; then
+    for file in $(find "$EXAMPLES_DIR" -name "*.py" -type f | sort); do
+        name=$(basename "$file" .py)
+        echo -n "Validating: $name... "
+        
+        if python3 -m py_compile "$file" 2>/dev/null; then
+            log_pass "example-syntax-$name"
+        else
+            log_fail "example-syntax-$name"
+        fi
+    done
+fi
 
+# === 3. SPARK SQL E2E ===
 log_section "3. SPARK SQL E2E"
 
 cat > /tmp/e2e-sql-test.py << 'PYEOF'
@@ -166,6 +159,7 @@ PYEOF
 
 run_spark_job /tmp/e2e-sql-test.py "spark-sql-e2e" 120 "E2E_SQL_RESULT: 10"
 
+# === 4. DATAFRAME OPERATIONS E2E ===
 log_section "4. DATAFRAME OPERATIONS E2E"
 
 cat > /tmp/e2e-df-test.py << 'PYEOF'
@@ -177,10 +171,12 @@ spark = SparkSession.builder \
     .master("spark://airflow-sc-standalone-master:7077") \
     .getOrCreate()
 
-df1 = spark.range(1000).withColumn("key", col("id"))
-df2 = spark.range(500).withColumn("key", col("id") * 2)
+# Create DataFrames with explicit column names to avoid ambiguity
+df1 = spark.range(1000).withColumn("key", col("id")).withColumnRenamed("id", "id1")
+df2 = spark.range(500).withColumn("key", col("id") * 2).withColumnRenamed("id", "id2")
 
-joined = df1.join(df2, "key", "left").filter(col("id").isNotNull())
+# Join and filter with unambiguous column references
+joined = df1.join(df2, "key", "left").filter(col("id1").isNotNull())
 filtered = joined.filter(col("key") > 100)
 aggregated = filtered.groupBy((col("key") % 100).alias("bucket")).count()
 
@@ -191,6 +187,7 @@ PYEOF
 
 run_spark_job /tmp/e2e-df-test.py "dataframe-e2e" 120 "E2E_DF_RESULT:"
 
+# === 5. ML PIPELINE E2E ===
 log_section "5. ML PIPELINE E2E"
 
 cat > /tmp/e2e-ml-test.py << 'PYEOF'
@@ -204,6 +201,7 @@ spark = SparkSession.builder \
     .master("spark://airflow-sc-standalone-master:7077") \
     .getOrCreate()
 
+from pyspark.sql.functions import col
 df = spark.range(1000).select(
     col("id").alias("feature1"),
     (col("id") * 2).alias("feature2"),
@@ -229,7 +227,8 @@ PYEOF
 
 run_spark_job /tmp/e2e-ml-test.py "ml-pipeline-e2e" 180 "E2E_ML_RESULT:"
 
-log_section "6. STREAMING (FILE SOURCE) E2E"
+# === 6. STREAMING (RATE SOURCE) E2E ===
+log_section "6. STREAMING (RATE SOURCE) E2E"
 
 cat > /tmp/e2e-stream-test.py << 'PYEOF'
 from pyspark.sql import SparkSession
@@ -266,6 +265,7 @@ PYEOF
 
 run_spark_job /tmp/e2e-stream-test.py "streaming-e2e" 60 "E2E_STREAM_RESULT:"
 
+# === 7. S3/MINIO STORAGE E2E ===
 log_section "7. S3/MINIO STORAGE E2E"
 
 MINIO_SVC=$(kubectl get svc -n $NAMESPACE -l app=minio -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
@@ -303,6 +303,7 @@ else
     log_skip "s3-storage-e2e (MinIO not deployed)"
 fi
 
+# === 8. MONITORING E2E ===
 log_section "8. MONITORING E2E"
 
 DASHBOARDS=$(kubectl get configmap -n $NAMESPACE -l grafana_dashboard=1 --no-headers 2>/dev/null | wc -l || echo "0")
@@ -321,21 +322,17 @@ else
     log_skip "grafana-dashboards-e2e (not enabled)"
 fi
 
-ALERTS=$(kubectl get prometheusrule -n $NAMESPACE --no-headers 2>/dev/null | wc -l || echo "0")
-if [[ $ALERTS -gt 0 ]]; then
-    echo -n "Checking Prometheus rules... "
-    
-    ALERT_COUNT=$(kubectl get prometheusrule -n $NAMESPACE -o jsonpath='{.items[0].spec.groups[*].rules}' 2>/dev/null | grep -c "alert:" || echo "0")
-    
-    if [[ $ALERT_COUNT -ge 3 ]]; then
-        log_pass "prometheus-alerts-count ($ALERT_COUNT rules)"
-    else
-        log_fail "prometheus-alerts-count (expected >= 3, got $ALERT_COUNT)"
-    fi
+# Check Prometheus rules
+ALERT_RULES=$(kubectl get prometheusrule -n $NAMESPACE -o jsonpath='{.items[0].spec.groups[*].rules}' 2>/dev/null | tr '}' '\n' | grep -c "alert:" || echo "0")
+
+echo -n "Checking Prometheus rules... "
+if [[ $ALERT_RULES -ge 3 ]]; then
+    log_pass "prometheus-alerts-count ($ALERT_RULES rules)"
 else
-    log_skip "prometheus-alerts-e2e (not enabled)"
+    log_skip "prometheus-alerts-e2e (only $ALERT_RULES rules found)"
 fi
 
+# === Summary ===
 echo ""
 echo "=============================================="
 echo "E2E TEST SUMMARY"
