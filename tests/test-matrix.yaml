@@ -1,0 +1,315 @@
+# Lego-Spark Test Matrix
+# Comprehensive test coverage for all supported configurations
+
+# ============================================
+# DIMENSIONS
+# ============================================
+
+# Spark Versions (3 supported)
+spark_versions:
+  - version: "3.5.7"
+    chart: "spark-3.5"
+    status: "stable"
+  - version: "3.5.8"
+    chart: "spark-3.5"
+    status: "stable"
+  - version: "4.1.1"
+    chart: "spark-4.1"
+    status: "stable"
+  # - version: "4.0.2"  # NOT SUPPORTED - no chart exists
+
+# Connection Modes (2)
+connection_modes:
+  - name: "connect"
+    description: "Spark Connect server (thin client)"
+    value: "connect.enabled=true"
+  - name: "standalone"
+    description: "Classic Spark Standalone cluster"
+    value: "sparkStandalone.enabled=true"
+
+# Kubernetes Scheduling (2)
+k8s_modes:
+  - name: "native"
+    description: "Native Kubernetes scheduler (dynamic allocation)"
+    value: "connect.backendMode=k8s"
+  - name: "sa-on-k8s"
+    description: "Standalone pods with K8s ServiceAccount"
+    value: "sparkStandalone.enabled=true"
+
+# GPU Support (2)
+gpu_modes:
+  - name: "with-gpu"
+    description: "NVIDIA GPU with RAPIDS acceleration"
+    value: "features.gpu.enabled=true"
+  - name: "without-gpu"
+    description: "CPU only"
+    value: "features.gpu.enabled=false"
+
+# Iceberg Support (2)
+iceberg_modes:
+  - name: "with-iceberg"
+    description: "Apache Iceberg table format"
+    value: "features.iceberg.enabled=true"
+  - name: "without-iceberg"
+    description: "Standard Parquet/CSV/JSON"
+    value: "features.iceberg.enabled=false"
+
+# Always-On Components (mandatory for ALL tests)
+always_on:
+  - name: "metrics"
+    description: "Prometheus metrics + Grafana dashboards"
+    value: "monitoring.prometheus.enabled=true,monitoring.grafana.enabled=true"
+  - name: "history-server"
+    description: "Spark History Server for job debugging"
+    value: "historyServer.enabled=true"
+  - name: "hive-metastore"
+    description: "Hive Metastore for table catalog"
+    value: "core.hiveMetastore.enabled=true"
+  - name: "minio-s3"
+    description: "MinIO S3-compatible storage"
+    value: "core.minio.enabled=true"
+
+# ============================================
+# TEST SCENARIOS
+# ============================================
+
+# Valid combinations matrix:
+# - Spark 3.5.x: All combinations valid
+# - Spark 4.1.x: Connect mode preferred, Standalone via separate chart
+
+scenarios:
+  # P0 - Core scenarios (must pass for every release)
+  p0_core:
+    - id: "CORE-001"
+      name: "Connect + Native K8s + CPU + No Iceberg"
+      priority: "P0"
+      spark: "3.5.7"
+      connect: true
+      k8s: "native"
+      gpu: false
+      iceberg: false
+      
+    - id: "CORE-002"
+      name: "Connect + Native K8s + CPU + Iceberg"
+      priority: "P0"
+      spark: "3.5.7"
+      connect: true
+      k8s: "native"
+      gpu: false
+      iceberg: true
+      
+    - id: "CORE-003"
+      name: "Connect + Native K8s + CPU + No Iceberg"
+      priority: "P0"
+      spark: "3.5.8"
+      connect: true
+      k8s: "native"
+      gpu: false
+      iceberg: false
+      
+    - id: "CORE-004"
+      name: "Connect + Native K8s + CPU + Iceberg"
+      priority: "P0"
+      spark: "3.5.8"
+      connect: true
+      k8s: "native"
+      gpu: false
+      iceberg: true
+      
+    - id: "CORE-005"
+      name: "Connect + Native K8s + CPU + No Iceberg"
+      priority: "P0"
+      spark: "4.1.1"
+      connect: true
+      k8s: "native"
+      gpu: false
+      iceberg: false
+      
+    - id: "CORE-006"
+      name: "Connect + Native K8s + CPU + Iceberg"
+      priority: "P0"
+      spark: "4.1.1"
+      connect: true
+      k8s: "native"
+      gpu: false
+      iceberg: true
+
+  # P1 - GPU and Standalone coverage
+  p1_gpu_standalone:
+    - id: "GPU-001"
+      name: "Connect + Native K8s + GPU + No Iceberg"
+      priority: "P1"
+      spark: "3.5.7"
+      connect: true
+      k8s: "native"
+      gpu: true
+      iceberg: false
+      
+    - id: "GPU-002"
+      name: "Connect + Native K8s + GPU + Iceberg"
+      priority: "P1"
+      spark: "3.5.7"
+      connect: true
+      k8s: "native"
+      gpu: true
+      iceberg: true
+      
+    - id: "GPU-003"
+      name: "Connect + Native K8s + GPU + No Iceberg"
+      priority: "P1"
+      spark: "4.1.1"
+      connect: true
+      k8s: "native"
+      gpu: true
+      iceberg: false
+      
+    - id: "GPU-004"
+      name: "Connect + Native K8s + GPU + Iceberg"
+      priority: "P1"
+      spark: "4.1.1"
+      connect: true
+      k8s: "native"
+      gpu: true
+      iceberg: true
+      
+    - id: "SA-001"
+      name: "Standalone + SA on K8s + CPU + No Iceberg"
+      priority: "P1"
+      spark: "3.5.7"
+      connect: false
+      k8s: "sa-on-k8s"
+      gpu: false
+      iceberg: false
+      
+    - id: "SA-002"
+      name: "Standalone + SA on K8s + CPU + No Iceberg"
+      priority: "P1"
+      spark: "3.5.8"
+      connect: false
+      k8s: "sa-on-k8s"
+      gpu: false
+      iceberg: false
+      
+    - id: "SA-003"
+      name: "Standalone + SA on K8s + CPU + No Iceberg"
+      priority: "P1"
+      spark: "4.1.1"
+      connect: false
+      k8s: "sa-on-k8s"
+      gpu: false
+      iceberg: false
+
+  # P2 - Extended coverage
+  p2_extended:
+    - id: "EXT-001"
+      name: "Connect + SA on K8s + CPU + Iceberg"
+      priority: "P2"
+      spark: "3.5.7"
+      connect: true
+      k8s: "sa-on-k8s"
+      gpu: false
+      iceberg: true
+      
+    - id: "EXT-002"
+      name: "Connect + SA on K8s + CPU + Iceberg"
+      priority: "P2"
+      spark: "3.5.8"
+      connect: true
+      k8s: "sa-on-k8s"
+      gpu: false
+      iceberg: true
+      
+    - id: "EXT-003"
+      name: "Connect + SA on K8s + CPU + Iceberg"
+      priority: "P2"
+      spark: "4.1.1"
+      connect: true
+      k8s: "sa-on-k8s"
+      gpu: false
+      iceberg: true
+      
+    - id: "EXT-004"
+      name: "Standalone + SA on K8s + CPU + Iceberg"
+      priority: "P2"
+      spark: "3.5.7"
+      connect: false
+      k8s: "sa-on-k8s"
+      gpu: false
+      iceberg: true
+      
+    - id: "EXT-005"
+      name: "Standalone + SA on K8s + CPU + Iceberg"
+      priority: "P2"
+      spark: "3.5.8"
+      connect: false
+      k8s: "sa-on-k8s"
+      gpu: false
+      iceberg: true
+
+# ============================================
+# TEST TYPES PER SCENARIO
+# ============================================
+
+test_types:
+  smoke:
+    description: "Quick validation (5-10 min)"
+    tests:
+      - "Helm install/uninstall"
+      - "Pod startup"
+      - "Service endpoints"
+      - "Simple Spark job (range(100).count())"
+      - "Connect server accepts connections (if connect mode)"
+      
+  e2e:
+    description: "End-to-end scenarios (15-30 min)"
+    tests:
+      - "Spark SQL queries"
+      - "DataFrame operations"
+      - "ML pipeline (LogisticRegression)"
+      - "Streaming (rate source)"
+      - "S3/MinIO read/write"
+      - "Iceberg CRUD operations (if enabled)"
+      - "GPU detection (if enabled)"
+      
+  load:
+    description: "Performance tests (30-60 min)"
+    tests:
+      - "Throughput: 100K, 500K, 1M rows"
+      - "Shuffle: 50K rows join"
+      - "Sort: 100K rows"
+      - "Cache: 100K rows x 5 iterations"
+      - "Write: Parquet to S3"
+      - "ML training: 10K rows"
+
+# ============================================
+# SUMMARY
+# ============================================
+
+summary:
+  total_dimensions:
+    spark_versions: 3      # 3.5.7, 3.5.8, 4.1.1
+    connection_modes: 2    # connect, standalone
+    k8s_modes: 2           # native, sa-on-k8s
+    gpu_modes: 2           # with-gpu, without-gpu
+    iceberg_modes: 2       # with-iceberg, without-iceberg
+    
+  raw_combinations: 48     # 3 x 2 x 2 x 2 x 2
+  
+  practical_scenarios:
+    p0_core: 6             # Must pass every release
+    p1_gpu_standalone: 7   # GPU and standalone coverage
+    p2_extended: 5         # Full coverage
+    total: 18              # Practical test scenarios
+    
+  test_types_per_scenario: 3  # smoke, e2e, load
+  
+  total_test_runs: 54      # 18 scenarios x 3 test types
+  
+  estimated_time:
+    smoke_per_scenario: "10 min"
+    e2e_per_scenario: "25 min"
+    load_per_scenario: "45 min"
+    total_p0: "4 hours"       # 6 scenarios x 40 min avg
+    total_p1: "5 hours"       # 7 scenarios x 40 min avg
+    total_p2: "3.5 hours"     # 5 scenarios x 40 min avg
+    full_matrix: "12.5 hours" # All scenarios
