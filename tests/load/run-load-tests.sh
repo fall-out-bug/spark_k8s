@@ -9,7 +9,7 @@ RESULTS_DIR="$TESTS_DIR/results"
 
 NAMESPACE="${K8S_NAMESPACE:-spark-airflow}"
 RELEASE="${HELM_RELEASE:-airflow-sc}"
-MASTER_SERVICE="${RELEASE}-spark-standalone-master"
+MASTER_SERVICE="${RELEASE}-standalone-master"
 RELEASE="${HELM_RELEASE:-airflow-sc}"
 
 mkdir -p "$RESULTS_DIR"
@@ -342,7 +342,9 @@ echo ""
 echo "Results saved to: $RESULTS_FILE"
 
 PASSED=$(grep -c "PASS" "$RESULTS_FILE" || echo "0")
-FAILED=$(grep -c "FAIL" "$RESULTS_FILE" || echo "0")
+FAILED=$(grep -c "FAIL" "$RESULTS_FILE" 2>/dev/null || echo "0")
+
+PASSED=$(grep -c "PASS" "$RESULTS_FILE" 2>/dev/null || echo "0")
 
 echo ""
 echo -e "${GREEN}Passed:${NC} $PASSED"

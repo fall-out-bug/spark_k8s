@@ -117,7 +117,7 @@ fi
 echo ""
 echo "=== 5. Spark Submit Test ==="
 
-MASTER_SERVICE="${RELEASE}-spark-standalone-master"
+MASTER_SERVICE="${RELEASE}-standalone-master"
 
 cat > /tmp/smoke-test.py << PYEOF
 from pyspark.sql import SparkSession

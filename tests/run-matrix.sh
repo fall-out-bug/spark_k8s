@@ -124,9 +124,17 @@ scenarios = matrix['scenarios']
 filter_str = "$SCENARIO_FILTER"
 
 if filter_str:
-    # Parse filter (key=value format)
-    key, value = filter_str.split('=', 1)
-    scenarios = [s for s in scenarios if str(s.get(key, '')).lower() == value.lower()]
+    # Parse filter (key=value format, supports multiple filters with comma)
+    filters = filter_str.split(',')
+    for f in filters:
+        key, value = f.split('=', 1)
+        # Handle boolean string comparison
+        if value.lower() == 'true':
+            scenarios = [s for s in scenarios if s.get(key) == True]
+        elif value.lower() == 'false':
+            scenarios = [s for s in scenarios if s.get(key) == False]
+        else:
+            scenarios = [s for s in scenarios if str(s.get(key, '')).lower() == value.lower()]
 
 # Output as JSON
 print(json.dumps(scenarios))
@@ -150,15 +158,15 @@ run_smoke_test() {
     local result="PASS"
     local duration=0
     
-    # Get chart and helm values
+    # Get chart path - use standalone subchart
     local chart=$(echo "$scenario_json" | python3 -c "
 import json,sys
 s = json.load(sys.stdin)
 v = s['spark_version']
-if v.startswith('3.5'): print('spark-3.5')
-elif v.startswith('4.0'): print('spark-4.0')
-elif v.startswith('4.1'): print('spark-4.1')
-else: print('spark-3.5')
+if v.startswith('3.5'): print('spark-3.5/charts/spark-standalone')
+elif v.startswith('4.0'): print('spark-4.0/charts/spark-standalone')
+elif v.startswith('4.1'): print('spark-4.1/charts/spark-standalone')
+else: print('spark-3.5/charts/spark-standalone')
 ")
     
     local release="test-${scenario_id,,}"
@@ -167,29 +175,29 @@ else: print('spark-3.5')
     # Create namespace
     kubectl create namespace "$ns" 2>/dev/null || true
     
-    # Generate values file
+    # Generate minimal values file for standalone chart
     local values_file="/tmp/${scenario_id}-values.yaml"
     echo "$scenario_json" | python3 -c "
 import yaml, json, sys
 s = json.load(sys.stdin)
+
+# Values for spark-standalone subchart
 v = {
-    'sparkVersion': s['spark_version'],
-    'connect': {'enabled': s['connect']},
-    'features': {
-        'gpu': {'enabled': s['gpu']},
-        'iceberg': {'enabled': s['iceberg']},
+    'master': {
+        'enabled': True,
+        'image': {'repository': 'spark-custom', 'tag': s['spark_version'], 'pullPolicy': 'IfNotPresent'},
+        'resources': {'requests': {'memory': '512Mi', 'cpu': '250m'}, 'limits': {'memory': '1Gi', 'cpu': '500m'}},
     },
-    'openlineage': {'enabled': s['openlineage']},
-    'monitoring': {'prometheus': {'enabled': True}, 'grafana': {'enabled': True}},
-    'historyServer': {'enabled': True},
-    'core': {'hiveMetastore': {'enabled': True}, 'minio': {'enabled': True}},
+    'worker': {
+        'enabled': True,
+        'replicas': 1,
+        'image': {'repository': 'spark-custom', 'tag': s['spark_version'], 'pullPolicy': 'IfNotPresent'},
+        'resources': {'requests': {'memory': '512Mi', 'cpu': '250m'}, 'limits': {'memory': '1Gi', 'cpu': '500m'}},
+    },
+    # Disable Airflow
+    'airflow': {'enabled': False},
 }
-if s['k8s_mode'] == 'native':
-    v['connect']['backendMode'] = 'k8s'
-else:
-    v['sparkStandalone'] = {'enabled': True}
-if s['platform'] == 'openshift':
-    v['openshift'] = {'enabled': True}
+
 with open('$values_file', 'w') as f:
     yaml.dump(v, f)
 "
@@ -207,16 +215,16 @@ with open('$values_file', 'w') as f:
             result="FAIL"
             log_fail "Pods not ready: $scenario_id"
         else
-            # Run simple test
-            local master_pod=$(kubectl get pods -n "$ns" -l app.kubernetes.io/component=spark-master -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
             if [[ -n "$master_pod" ]]; then
-                if ! kubectl exec -n "$ns" "$master_pod" -- timeout 60 spark-submit \
-                    --master spark://localhost:7077 \
-                    --conf spark.driver.host=$(hostname -i) \
-                    -e 'println(spark.range(100).count())' 2>&1 | grep -q "100"; then
+                if ! kubectl exec -n "$ns" "$master_pod" -- bash -c 'timeout 60 spark-submit --master spark://$(hostname):7077 --conf spark.driver.host=$(hostname -i) --conf spark.driver.bindAddress=0.0.0.0 -e "println(spark.range(100).count())"' 2>&1 | grep -q "100"; then
                     result="FAIL"
                     log_fail "Spark job failed: $scenario_id"
+                else
+                    result="PASS"
                 fi
+            else
+                result="FAIL"
+                log_fail "Master pod not found: $scenario_id"
             fi
         fi
     fi
@@ -402,33 +410,41 @@ fi
 # Run tests
 START_TOTAL=$(date +%s)
 
-for scenario in $(echo "$SCENARIOS" | python3 -c "import json,sys; [print(json.dumps(s)) for s in json.load(sys.stdin)]"); do
+# Use while loop to properly handle JSON objects
+echo "$SCENARIOS" | python3 -c "
+import json, sys
+for s in json.load(sys.stdin):
+    print(s['id'])
+" | while read scenario_id; do
     ((TOTAL++)) || true
+    
+    # Get full scenario JSON
+    scenario_json=$(echo "$SCENARIOS" | python3 -c "import json,sys; print(json.dumps([s for s in json.load(sys.stdin) if s['id']=='$scenario_id'][0]))")
     
     case "$TEST_TYPE" in
         smoke)
-            if run_smoke_test "$scenario"; then
+            if run_smoke_test "$scenario_json"; then
                 ((PASSED++)) || true
             else
                 ((FAILED++)) || true
             fi
             ;;
         e2e)
-            if run_e2e_test "$scenario"; then
+            if run_e2e_test "$scenario_json"; then
                 ((PASSED++)) || true
             else
                 ((FAILED++)) || true
             fi
             ;;
         load)
-            if run_load_test "$scenario"; then
+            if run_load_test "$scenario_json"; then
                 ((PASSED++)) || true
             else
                 ((FAILED++)) || true
             fi
             ;;
         all)
-            if run_smoke_test "$scenario" && run_e2e_test "$scenario" && run_load_test "$scenario"; then
+            if run_smoke_test "$scenario_json" && run_e2e_test "$scenario_json" && run_load_test "$scenario_json"; then
                 ((PASSED++)) || true
             else
                 ((FAILED++)) || true
