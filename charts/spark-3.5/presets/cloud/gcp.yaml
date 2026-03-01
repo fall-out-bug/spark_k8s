@@ -1,0 +1,92 @@
+# ===================================================================
+# GCP Cloud Integration
+# ===================================================================
+# Configure Spark for Google GKE with Google Cloud Storage (GCS)
+#
+# Usage:
+#   helm install spark charts/spark-3.5 \
+#     -f charts/spark-3.5/presets/cloud/gcp.yaml \
+#     --set gcp.projectId="my-project" \
+#     --set gcp.gcs.bucket="spark-bucket"
+#
+# Workload Identity (Recommended):
+#   1. Create GCP service account with GCS permissions
+#   2. Enable Workload Identity on GKE cluster
+#   3. Create Kubernetes service account
+#   4. Bind K8s SA to GCP SA
+#   5. Set gcp.useWorkloadIdentity=true
+# ===================================================================
+
+gcp:
+  enabled: true
+  
+  # GCP project
+  projectId: ""
+  
+  # GCS configuration
+  gcs:
+    bucket: "spark-bucket"
+    
+    # Use Workload Identity (recommended)
+    useWorkloadIdentity: true
+    
+    # Service account configuration
+    serviceAccount:
+      # GCP service account email
+      gcpServiceAccount: "spark-sa@{{ .Values.gcp.projectId }}.iam.gserviceaccount.com"
+      # Kubernetes service account
+      k8sServiceAccount: "spark-gcp"
+    
+    # Alternative: Service account key (not recommended for production)
+    existingSecret: ""  # Secret with key.json
+
+# Spark GCS configuration
+core:
+  spark:
+    conf:
+      # GCS connector configuration
+      spark.hadoop.fs.gs.impl: "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem"
+      spark.hadoop.fs.gs.project.id: "{{ .Values.gcp.projectId }}"
+      
+      # Authentication via Workload Identity
+      spark.hadoop.google.cloud.auth.service.account.enable: "true"
+      
+      # GCS performance
+      spark.hadoop.fs.gs.storage.root.url: "https://storage.googleapis.com"
+      spark.hadoop.fs.gs.http.max.retry: "10"
+      
+      # Event log to GCS
+      spark.eventLog.enabled: "true"
+      spark.eventLog.dir: "gs://{{ .Values.gcp.gcs.bucket }}/spark-events/"
+      
+      # Warehouse directory
+      spark.sql.warehouse.dir: "gs://{{ .Values.gcp.gcs.bucket }}/warehouse/"
+
+# Service account for Workload Identity
+rbac:
+  create: true
+  serviceAccountName: "spark-gcp"
+
+# GCP-specific resource recommendations
+resources:
+  executor:
+    limits:
+      memory: "8g"
+      cpu: "2"
+    requests:
+      memory: "6g"
+      cpu: "1.5"
+  driver:
+    limits:
+      memory: "4g"
+      cpu: "2"
+    requests:
+      memory: "3g"
+      cpu: "1"
+
+# Monitoring
+monitoring:
+  grafanaDashboards:
+    enabled: true
+  alerts:
+    enabled: true

@@ -1,0 +1,97 @@
+# ===================================================================
+# AWS Cloud Integration
+# ===================================================================
+# Configure Spark for AWS EKS with S3 (via MinIO gateway or native S3)
+#
+# Usage:
+#   helm install spark charts/spark-3.5 \
+#     -f charts/spark-3.5/presets/cloud/aws.yaml \
+#     --set s3.endpoint="s3.amazonaws.com" \
+#     --set s3.accessKey="AKIA..." \
+#     --set s3.secretKey="..."
+#
+# IAM Roles for Service Accounts (IRSA) - Recommended:
+#   1. Create IAM role with S3 permissions
+#   2. Create OIDC provider for EKS cluster
+#   3. Associate role with Kubernetes service account
+#   4. Set s3.useIRSA=true
+# ===================================================================
+
+s3:
+  enabled: true
+  
+  # S3 endpoint (use s3.amazonaws.com for native S3)
+  endpoint: "s3.amazonaws.com"
+  
+  # Region
+  region: "us-east-1"
+  
+  # Authentication
+  # Option 1: Static credentials (set via --set or secret)
+  accessKey: ""
+  secretKey: ""
+  
+  # Option 2: Use IAM Roles for Service Accounts (IRSA)
+  useIRSA: true
+  irsa:
+    # IAM role ARN (if not using automatic annotation)
+    roleArn: ""
+    # Service account to annotate
+    serviceAccount: "spark-s3"
+  
+  # Option 3: Reference existing secret
+  existingSecret: ""  # Secret with access-key and secret-key
+  
+  # S3 configuration
+  pathStyleAccess: false
+  sslEnabled: true
+
+# Spark S3 configuration
+core:
+  spark:
+    conf:
+      # Hadoop S3A configuration
+      spark.hadoop.fs.s3a.impl: "org.apache.hadoop.fs.s3a.S3AFileSystem"
+      spark.hadoop.fs.s3a.endpoint: "{{ .Values.s3.endpoint }}"
+      spark.hadoop.fs.s3a.region: "{{ .Values.s3.region }}"
+      spark.hadoop.fs.s3a.path.style.access: "{{ .Values.s3.pathStyleAccess }}"
+      
+      # Performance optimization
+      spark.hadoop.fs.s3a.fast.upload: "true"
+      spark.hadoop.fs.s3a.fast.upload.buffer: "disk"
+      spark.hadoop.fs.s3a.multipart.size: "134217728"  # 128MB
+      spark.hadoop.fs.s3a.connection.maximum: "100"
+      spark.hadoop.fs.s3a.connection.timeout: "1200000"
+      
+      # Event log to S3
+      spark.eventLog.enabled: "true"
+      spark.eventLog.dir: "s3a://spark-events/"
+
+# Service account for IRSA
+rbac:
+  create: true
+  serviceAccountName: "spark-s3"
+
+# AWS-specific resource recommendations
+resources:
+  executor:
+    limits:
+      memory: "8g"
+      cpu: "2"
+    requests:
+      memory: "6g"
+      cpu: "1.5"
+  driver:
+    limits:
+      memory: "4g"
+      cpu: "2"
+    requests:
+      memory: "3g"
+      cpu: "1"
+
+# Monitoring
+monitoring:
+  grafanaDashboards:
+    enabled: true
+  alerts:
+    enabled: true

@@ -1,0 +1,95 @@
+# ===================================================================
+# External Kafka Integration
+# ===================================================================
+# Use this preset to connect to an existing Kafka cluster.
+# No operators required - works with any Kafka deployment.
+#
+# Usage:
+#   helm install spark charts/spark-3.5 \
+#     -f charts/spark-3.5/presets/integration/kafka-external.yaml \
+#     --set kafka.bootstrapServers="kafka-1.example.com:9092,kafka-2.example.com:9092"
+#
+# Security:
+#   For SASL/SSL, create a secret with credentials and reference it:
+#   kubectl create secret generic kafka-credentials \
+#     --from-literal=sasl-username='user' \
+#     --from-literal=sasl-password='password'
+# ===================================================================
+
+kafka:
+  enabled: true
+  
+  # External Kafka bootstrap servers (comma-separated)
+  # Override with: --set kafka.bootstrapServers="..."
+  bootstrapServers: "kafka-broker-0.kafka:9092,kafka-broker-1.kafka:9092,kafka-broker-2.kafka:9092"
+  
+  # Security configuration
+  security:
+    # Options: PLAINTEXT, SASL_PLAIN, SASL_SSL, SSL
+    protocol: "PLAINTEXT"
+    
+    # SASL configuration (if protocol starts with SASL_)
+    sasl:
+      mechanism: "PLAIN"
+      # Reference existing secret or set directly
+      existingSecret: ""  # Name of secret with sasl-username and sasl-password
+      username: ""
+      password: ""
+    
+    # SSL configuration (if protocol contains SSL)
+    ssl:
+      existingSecret: ""  # Name of secret with truststore, truststore-password, etc.
+      truststore: ""
+      truststorePassword: ""
+      keystore: ""
+      keystorePassword: ""
+  
+  # Default topic configuration
+  topics:
+    input: "spark-input-topic"
+    output: "spark-output-topic"
+    consumerGroupId: "spark-streaming-consumer"
+  
+  # Consumer defaults
+  consumer:
+    autoOffsetReset: "latest"  # earliest, latest
+    enableAutoCommit: "false"
+    maxPollRecords: "500"
+    sessionTimeoutMs: "30000"
+    heartbeatIntervalMs: "10000"
+
+# Spark configuration for Kafka streaming
+core:
+  spark:
+    conf:
+      # Kafka source configuration
+      spark.kafka.bootstrap.servers: "{{ .Values.kafka.bootstrapServers }}"
+      
+      # Rate limiting (backpressure)
+      spark.streaming.backpressure.enabled: "true"
+      spark.streaming.backpressure.initialRate: "1000"
+      spark.streaming.kafka.maxRatePerPartition: "2000"
+      
+      # Structured Streaming settings
+      spark.sql.streaming.checkpointLocation: "s3a://spark-streaming/checkpoints/"
+      spark.sql.streaming.forceDeleteTempCheckpointLocation: "true"
+      spark.sql.streaming.stateStore.providerClass: "org.apache.spark.sql.execution.streaming.state.RocksDBStateStoreProvider"
+      
+      # Kafka consumer defaults
+      spark.kafka.pollTimeoutMs: "512"
+      spark.kafka.maxPartitionBytes: "134217728"
+      spark.kafka.fetchMaxBytes: "52428800"
+      
+      # Fault tolerance
+      spark.streaming.stopGracefullyOnShutdown: "true"
+      spark.task.maxFailures: "4"
+
+# Streaming tuning preset (from tuning/streaming.yaml)
+monitoring:
+  grafanaDashboards:
+    enabled: true
+  alerts:
+    enabled: true
+    consumerLag:
+      enabled: true
+      threshold: "10000"

@@ -1,0 +1,82 @@
+# ===================================================================
+# Azure Cloud Integration
+# ===================================================================
+# Configure Spark for Azure AKS with Azure Blob Storage / ADLS Gen2
+#
+# Usage:
+#   helm install spark charts/spark-3.5 \
+#     -f charts/spark-3.5/presets/cloud/azure.yaml \
+#     --set azure.storage.accountName="mystorageaccount" \
+#     --set azure.storage.accountKey="..."
+#
+# Managed Identity (Recommended):
+#   1. Enable managed identity on AKS cluster
+#   2. Assign Storage Blob Data Contributor role to identity
+#   3. Set azure.useManagedIdentity=true
+# ===================================================================
+
+azure:
+  enabled: true
+  
+  # Storage account configuration
+  storage:
+    accountName: ""
+    accountKey: ""
+    container: "spark-data"
+    
+    # Use managed identity instead of account key
+    useManagedIdentity: true
+    
+    # Reference existing secret
+    existingSecret: ""
+  
+  # ADLS Gen2 configuration (hierarchical namespace)
+  adls:
+    enabled: true
+    filesystem: "spark-filesystem"
+
+# Spark Azure configuration
+core:
+  spark:
+    conf:
+      # Azure Blob Storage (WASB)
+      spark.hadoop.fs.azure.account.key.{{ .Values.azure.storage.accountName }}.blob.core.windows.net: "{{ .Values.azure.storage.accountKey }}"
+      
+      # ADLS Gen2 (ABFS)
+      spark.hadoop.fs.azure.account.auth.type.{{ .Values.azure.storage.accountName }}.dfs.core.windows.net: "OAuth"
+      spark.hadoop.fs.azure.account.oauth.provider.type.{{ .Values.azure.storage.accountName }}.dfs.core.windows.net: "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider"
+      
+      # For managed identity
+      spark.hadoop.fs.azure.account.oauth2.msi.endpoint: "http://169.254.169.254/metadata/identity/oauth2/token"
+      spark.hadoop.fs.azure.account.oauth2.msi.tenant: ""
+      
+      # Event log to Azure Blob
+      spark.eventLog.enabled: "true"
+      spark.eventLog.dir: "abfss://spark-events@{{ .Values.azure.storage.accountName }}.dfs.core.windows.net/"
+      
+      # Warehouse directory
+      spark.sql.warehouse.dir: "abfss://warehouse@{{ .Values.azure.storage.accountName }}.dfs.core.windows.net/"
+
+# Azure-specific resource recommendations
+resources:
+  executor:
+    limits:
+      memory: "8g"
+      cpu: "2"
+    requests:
+      memory: "6g"
+      cpu: "1.5"
+  driver:
+    limits:
+      memory: "4g"
+      cpu: "2"
+    requests:
+      memory: "3g"
+      cpu: "1"
+
+# Monitoring
+monitoring:
+  grafanaDashboards:
+    enabled: true
+  alerts:
+    enabled: true
