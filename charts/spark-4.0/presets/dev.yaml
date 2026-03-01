@@ -1,0 +1,31 @@
+# Spark 4.0 Dev Preset
+# Minimal setup for local development (Minikube/Kind)
+# Usage: helm template test charts/spark-4.0 -f charts/spark-4.0/presets/dev.yaml
+
+connect:
+  enabled: true
+  replicas: 1
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "2"
+
+hiveMetastore:
+  enabled: true
+
+historyServer:
+  enabled: true
+
+jupyter:
+  enabled: true
+
+core:
+  minio:
+    enabled: true
+  postgresql:
+    enabled: true
+  hiveMetastore:
+    enabled: true

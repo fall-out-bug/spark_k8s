@@ -1,0 +1,39 @@
+# Airflow GPU Spark Connect K8s scenario for Spark 4.0.2
+# Usage: helm install spark-40 charts/spark-4.0 -f charts/spark-4.0/airflow-gpu-connect-k8s-4.0.2.yaml
+
+sparkVersion: "4.0.2"
+
+connect:
+  enabled: true
+  backendMode: k8s
+  replicas: 1
+
+features:
+  gpu:
+    enabled: true
+    vendor: "nvidia.com/gpu"
+    
+spark:
+  version: "4.0.2"
+  executor:
+    instances: 2
+    cores: 2
+    memory: "8g"
+    gpu:
+      enabled: true
+      count: 1
+
+core:
+  minio:
+    enabled: true
+  postgresql:
+    enabled: true
+
+monitoring:
+  prometheus:
+    enabled: true
+  grafana:
+    enabled: true
+
+historyServer:
+  enabled: true

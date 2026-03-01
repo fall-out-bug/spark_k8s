@@ -1,0 +1,36 @@
+# Jupyter Spark Connect Standalone scenario for Spark 4.0.2
+# Usage: helm install spark-40 charts/spark-4.0 -f charts/spark-4.0/jupyter-connect-standalone-4.0.2.yaml
+
+sparkVersion: "4.0.2"
+
+connect:
+  enabled: true
+  backendMode: standalone
+  replicas: 1
+
+sparkStandalone:
+  enabled: true
+  worker:
+    replicas: 2
+
+jupyter:
+  enabled: true
+  image: "jupyter/pyspark-notebook:spark-4.0.2"
+
+spark:
+  version: "4.0.2"
+
+core:
+  minio:
+    enabled: true
+  postgresql:
+    enabled: true
+
+monitoring:
+  prometheus:
+    enabled: true
+  grafana:
+    enabled: true
+
+historyServer:
+  enabled: true

@@ -1,0 +1,70 @@
+# Preset: Airflow + Spark K8s submit
+# Source: scripts/test-e2e-airflow-k8s-submit.sh (Spark 4.0)
+# Components: Airflow + MinIO
+# Note: Spark Connect is NOT used; jobs submitted directly to K8s via spark-submit
+
+# This preset is for the spark-standalone chart which contains Airflow
+# For Spark 4.0, use charts/spark-3.5/charts/spark-standalone
+
+# K8s submit scenario uses Airflow variables for Spark configuration:
+# - spark_image: spark-custom:4.0.2
+# - spark_namespace: <namespace>
+# - spark_k8s_serviceaccount: spark
+# - spark_eventlog_dir: s3a://spark-logs/events
+# - s3_endpoint: http://minio.<namespace>.svc.cluster.local:9000
+# - s3_access_key: <from secret>
+# - s3_secret_key: <from secret>
+
+airflow:
+  enabled: true
+  fernetKey: "9_jzOiAmnzfASdT81H2Epx6R56z3XQP9N8vr3W76wro="
+  kubernetesExecutor:
+    deleteWorkerPods: false  # Keep pods for log collection
+  scheduler:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
+  webserver:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
+
+minio:
+  enabled: true
+  persistence:
+    enabled: false
+
+mlflow:
+  enabled: false
+
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+sparkMaster:
+  enabled: false
+
+sparkWorker:
+  enabled: false
+
+shuffleService:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false
+
+# DAG files for Spark K8s submit
+# See: charts/spark-3.5/charts/spark-standalone/files/airflow/dags/spark_k8s_submit_e2e.py

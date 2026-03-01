@@ -1,0 +1,100 @@
+# Core + GPU + Iceberg Preset for Spark 4.0
+#
+# This is the full Lakehouse stack preset with GPU acceleration:
+# - Core Components: MinIO, PostgreSQL, Hive Metastore, History Server
+# - GPU Support: RAPIDS accelerator for GPU-accelerated processing
+# - Iceberg: Modern table format for ACID transactions and time travel
+#
+# Features:
+# - GPU: enabled (RAPIDS plugin)
+# - Iceberg: enabled (Hadoop catalog with S3 warehouse)
+#
+# This configuration is ideal for high-performance Lakehouse deployments combining
+# GPU acceleration with modern table format capabilities.
+#
+# Usage:
+#   helm install my-spark charts/spark-4.0 -f charts/spark-4.0/presets/core-gpu-iceberg.yaml
+
+# Core Infrastructure Components
+core:
+  minio:
+    enabled: true
+    fullnameOverride: "minio-spark-40"
+    # Additional buckets for Iceberg warehouse and GPU workloads
+    buckets:
+      - warehouse
+      - spark-logs
+      - spark-standalone-logs
+      - spark-jobs
+      - raw-data
+      - processed-data
+      - checkpoints
+      - iceberg-metadata
+      - gpu-data
+
+  postgresql:
+    enabled: true
+    fullnameOverride: "postgresql-metastore-40"
+
+  hiveMetastore:
+    enabled: true
+    fullnameOverride: "hive-metastore-41"
+    # Configure for Iceberg compatibility
+    warehouseDir: "s3a://warehouse/spark-40"
+
+  historyServer:
+    enabled: true
+    fullnameOverride: "history-server-41"
+
+# Feature flags
+features:
+  gpu:
+    enabled: true
+    cudaVersion: "12.0"
+    nvidiaVisibleDevices: "all"
+    taskResourceAmount: "0.25"
+    # RAPIDS configuration optimized for Iceberg workloads
+    rapids:
+      plugins: "com.nvidia.spark.SQLPlugin"
+      sql:
+        enabled: true
+        python:
+          enabled: true
+        fallback:
+          enabled: true
+      memory:
+        allocFraction: "0.8"
+        maxAllocFraction: "0.9"
+        minAllocFraction: "0.3"
+      shuffle:
+        enabled: true
+      format:
+        parquet:
+          read: true
+          write: true
+        orc:
+          read: true
+        csv:
+          read: true
+        json:
+          read: true
+  iceberg:
+    enabled: true
+    catalogType: "hadoop"
+    warehouse: "s3a://warehouse/iceberg"
+    ioImpl: "org.apache.iceberg.hadoop.HadoopFileIO"
+
+# Spark Connect with GPU support
+connect:
+  enabled: true
+  executor:
+    gpu:
+      enabled: true
+      count: "1"
+
+# Optional components (disabled for core preset)
+jupyter:
+  enabled: false
+
+airflow:
+  enabled: false

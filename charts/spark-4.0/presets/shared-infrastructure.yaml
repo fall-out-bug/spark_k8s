@@ -1,0 +1,61 @@
+# Shared Infrastructure Preset for Spark 4.0
+#
+# This preset deploys ONLY Hive Metastore for Spark 4.0,
+# assuming MinIO, PostgreSQL, and History Server are already deployed.
+#
+# Usage:
+#   helm upgrade --install spark-40 charts/spark-4.0 -f charts/spark-4.0/presets/shared-infrastructure.yaml
+
+# Disable top-level components (except Hive Metastore)
+core:
+  hiveMetastore:
+    enabled: false
+
+spark-base:
+  enabled: true
+  minio:
+    enabled: false
+  postgresql:
+    enabled: false
+
+historyServer:
+  enabled: false
+
+connect:
+  enabled: false
+
+jupyter:
+  enabled: false
+
+airflow:
+  enabled: false
+
+# Enable only Hive Metastore
+hiveMetastore:
+  enabled: true
+  fullnameOverride: "hive-metastore-41"
+  # PostgreSQL connection to shared PostgreSQL
+  postgresql:
+    host: "shared-spark-base-postgresql"
+    port: 5432
+    database: "metastore_spark41"
+    username: "hive"
+    password: ""  # REQUIRED: set via --set or ExternalSecrets
+
+# S3 configuration (points to shared MinIO)
+global:
+  s3:
+    enabled: true
+    endpoint: "http://minio:9000"
+    pathStyleAccess: true
+    sslEnabled: false
+    accessKey: ""  # REQUIRED: set via --set or ExternalSecrets
+    secretKey: ""  # REQUIRED: set via --set or ExternalSecrets
+    existingSecret: "s3-credentials"
+
+# Feature flags
+features:
+  iceberg:
+    enabled: false
+  gpu:
+    enabled: false

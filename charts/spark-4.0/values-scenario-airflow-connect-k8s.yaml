@@ -1,0 +1,87 @@
+# Preset: Airflow + Spark Connect + K8s backend
+# Source: scripts/test-e2e-airflow-connect.sh (Spark 4.0, BACKEND_MODE=k8s)
+# Components: Airflow + Connect + MinIO
+# Note: Airflow deployed separately, this preset only for Connect
+
+global:
+  s3:
+    endpoint: "http://minio:9000"
+    accessKey: ""  # REQUIRED: set via --set or ExternalSecrets
+    secretKey: ""  # REQUIRED: set via --set or ExternalSecrets
+    pathStyleAccess: true
+    sslEnabled: false
+
+spark-base:
+  enabled: true
+  minio:
+    enabled: false
+  postgresql:
+    enabled: false
+
+rbac:
+  create: false  # Shared with Airflow
+  serviceAccountName: "spark"
+
+connect:
+  enabled: true
+  replicas: 1
+  backendMode: k8s
+  image:
+    repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
+    tag: "4.0.2"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1"
+      memory: "2Gi"
+  driver:
+    host: ""  # Set to "<release>-spark-40-connect.<namespace>.svc.cluster.local"
+    port: 7078
+    memory: "512m"
+  executor:
+    cores: "0.1"
+    coresLimit: "0.5"
+    memory: "512Mi"
+    memoryLimit: "1Gi"
+  standalone:
+    masterService: ""
+    masterPort: 7077
+  eventLog:
+    enabled: true
+    dir: "s3a://spark-logs/events"
+  dynamicAllocation:
+    enabled: false
+    minExecutors: 1
+    maxExecutors: 1
+  sparkConf:
+    spark.driver.memory: "512m"
+    spark.executor.memory: "512m"
+    spark.executor.instances: "1"
+    spark.sql.shuffle.partitions: "2"
+    spark.kubernetes.executor.request.cores: "0.1"
+    spark.kubernetes.executor.limit.cores: "0.5"
+
+jupyter:
+  enabled: false
+
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false
+
+# Disable optional components
+sparkOperator:
+  enabled: false
+
+celeborn:
+  enabled: false

@@ -1,0 +1,16 @@
+{{- if and .Values.rbac.create .Values.connect.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "spark-4.0.fullname" . }}-spark-cluster-rolebinding
+  labels:
+    {{- include "spark-4.0.labels" . | nindent 4 }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include "spark-4.0.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "spark-4.0.fullname" . }}-spark-cluster-role
+{{- end }}

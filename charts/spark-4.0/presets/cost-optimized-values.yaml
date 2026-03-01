@@ -1,0 +1,117 @@
+# Cost-Optimized Preset for Spark K8s
+# This preset uses spot/preemptible instances to reduce costs
+# Usage: helm install spark charts/spark-4.0 -f presets/cost-optimized-values.yaml
+
+# WARNING: Spot instances can be preempted. Use for fault-tolerant workloads only.
+
+connect:
+  enabled: true
+  replicas: 1
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1"
+  executor:
+    cores: "1"
+    coresLimit: "1"
+    memory: "512Mi"
+    memoryLimit: "1Gi"
+  dynamicAllocation:
+    enabled: true
+    minExecutors: 0
+    maxExecutors: 20
+    initialExecutors: 0
+  # Use spot instances for executors
+  nodeSelector:
+    cloud.google.com/gke-preemptible: "true"
+    # AWS spot instance label
+    # eks.amazonaws.com/capacityType: "SPOT"
+    # Azure spot instance label
+    # kubernetes.azure.com/scale-set-priority: "spot"
+  tolerations:
+    - key: "cloud.google.com/gke-preemptible"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
+    - key: "spot-instance"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
+  # Spark config for fault tolerance with spot instances
+  sparkConf:
+    # Enable dynamic allocation for better spot utilization
+    "spark.dynamicAllocation.enabled": "true"
+    "spark.dynamicAllocation.shuffleTracking.enabled": "true"
+    # Increase shuffle service timeout for spot preemption
+    "spark.shuffle.service.enabled": "true"
+    "spark.shuffle.service.port": "7337"
+    # Retry on executor loss (spot preemption)
+    "spark.task.maxFailures": "8"
+    "spark.stage.maxConsecutiveAttempts": "4"
+    # Speculation for fault tolerance
+    "spark.speculation": "true"
+    "spark.speculation.multiplier": "1.5"
+    "spark.speculation.quantile": "0.95"
+    # Adaptive query execution for better resource usage
+    "spark.sql.adaptive.enabled": "true"
+    "spark.sql.adaptive.coalescePartitions.enabled": "true"
+    # Reduce overhead for smaller executors
+    "spark.executor.memoryOverhead": "256m"
+    "spark.memory.fraction": "0.8"
+    "spark.memory.storageFraction": "0.3"
+
+# Auto-scaling configuration
+autoscaling:
+  clusterAutoscaler:
+    enabled: true
+    scaleDown:
+      enabled: true
+      delayAfterAdd: 10m
+      unneededTime: 5m
+      unreadyTime: 20m
+      utilizationThreshold: 0.5
+    nodeGroups:
+      - name: spark-spot-pool
+        minSize: 0
+        maxSize: 50
+  keda:
+    enabled: false
+    pollingInterval: 30
+    cooldownPeriod: 300
+    minReplicaCount: 0
+    maxReplicaCount: 20
+    s3:
+      bucket: "spark-jobs"
+      prefix: "pending/"
+      targetObjectSize: "5"
+
+# History Server on spot
+historyServer:
+  enabled: true
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+  nodeSelector:
+    cloud.google.com/gke-preemptible: "true"
+  tolerations:
+    - key: "cloud.google.com/gke-preemptible"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
+
+# Monitoring for spot instance monitoring
+monitoring:
+  serviceMonitor:
+    enabled: true
+  podMonitor:
+    enabled: true
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "4040"

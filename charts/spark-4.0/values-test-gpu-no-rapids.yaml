@@ -1,0 +1,56 @@
+# GPU test values WITHOUT RAPIDS plugin
+# For testing GPU resource allocation without RAPIDS runtime
+
+global:
+  s3:
+    enabled: false
+
+rbac:
+  create: false
+  serviceAccountName: "spark"
+
+connect:
+  enabled: true
+  replicas: 1
+  backendMode: k8s
+  image:
+    repository: apache/spark
+    tag: "4.0.2"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "2Gi"
+      nvidia.com/gpu: "1"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+      nvidia.com/gpu: "1"
+  # NO nodeSelector - run on any node with GPU
+  # NO tolerations - not needed for minikube
+  dynamicAllocation:
+    enabled: true
+    minExecutors: 1
+    maxExecutors: 10
+    initialExecutors: 2
+
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+jupyter:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false
+
+sparkOperator:
+  enabled: false
+
+celeborn:
+  enabled: false

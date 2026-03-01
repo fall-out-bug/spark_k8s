@@ -1,0 +1,105 @@
+# Load Testing Infrastructure Preset
+# Deploys Minio, Postgres, Hive Metastore, and History Server
+# Usage: helm install spark-load-test charts/spark-4.0 -f presets/load-testing-infra.yaml -n load-testing --create-namespace
+
+# Enable core infrastructure components
+core:
+  minio:
+    enabled: true
+    persistence:
+      enabled: true
+      size: "20Gi"  # Larger for load testing data
+    buckets:
+      - iceberg-warehouse
+      - spark-logs
+      - nyc-taxi-data
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "200m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
+
+  postgresql:
+    enabled: true
+    # Use StatefulSet for better data persistence
+    auth:
+      username: postgres
+      password: sparktest
+      database: spark_db
+    primary:
+      resources:
+        requests:
+          memory: "256Mi"
+          cpu: "100m"
+        limits:
+          memory: "1Gi"
+          cpu: "500m"
+
+# S3 configuration for Spark
+s3:
+  endpoint: "http://minio.load-testing.svc.cluster.local:9000"
+  accessKey: ""  # REQUIRED: set via --set or ExternalSecrets
+  secretKey: ""  # REQUIRED: set via --set or ExternalSecrets
+
+# Hive Metastore with S3 warehouse
+hiveMetastore:
+  enabled: true
+  service:
+    port: 9083
+  warehouseDir: "s3a://iceberg-warehouse/"
+  database:
+    name: "spark_db"
+  postgresql:
+    enabled: false  # Use core Postgres instead
+    host: "postgresql.load-testing.svc.cluster.local"
+    port: 5432
+    database: "spark_db"
+    username: "postgres"
+    password: ""  # REQUIRED: set via --set or ExternalSecrets
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+
+# History Server
+historyServer:
+  enabled: true
+  sparkVersion: "4.0.2"
+  service:
+    type: ClusterIP
+    port: 18080
+  # Use local filesystem for logs (S3 requires hadoop-aws)
+  logDirectory: "file:///tmp/spark-logs"
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+
+# Disable unnecessary components
+connect:
+  enabled: false
+
+jupyter:
+  enabled: false
+
+airflow:
+  enabled: false
+
+sparkOperator:
+  enabled: false
+
+# Security settings for Minikube (relaxed)
+security:
+  podSecurityStandards: false
+
+# Monitoring
+monitoring:
+  enabled: false

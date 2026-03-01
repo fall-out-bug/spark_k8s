@@ -1,0 +1,55 @@
+{{- if .Values.connect.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spark-4.0.fullname" . }}-executor-pod-template
+  labels:
+    {{- include "spark-4.0.labels" . | nindent 4 }}
+data:
+  executor-pod-template.yaml.template: |-
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      labels:
+        app: spark-executor
+        spark-version: "4.0.2"
+    spec:
+      {{- if .Values.security.podSecurityStandards }}
+      securityContext:
+        {{- include "spark-base.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "spark-4.0.serviceAccountName" . }}
+      containers:
+      - name: executor
+        {{- if .Values.security.podSecurityStandards }}
+        securityContext:
+          {{- include "spark-base.containerSecurityContext" . | nindent 10 }}
+        {{- end }}
+        resources:
+          {{- if and .Values.connect.executor.gpu .Values.connect.executor.gpu.enabled }}
+          limits:
+            memory: {{ .Values.connect.executor.memoryLimit }}
+            cpu: {{ .Values.connect.executor.coresLimit }}
+            {{ .Values.connect.executor.gpu.vendor }}: {{ .Values.connect.executor.gpu.count | quote }}
+          requests:
+            memory: {{ .Values.connect.executor.memory }}
+            cpu: {{ .Values.connect.executor.cores }}
+          {{- else }}
+          requests:
+            memory: {{ .Values.connect.executor.memory }}
+            cpu: {{ .Values.connect.executor.cores }}
+          limits:
+            memory: {{ .Values.connect.executor.memoryLimit }}
+            cpu: {{ .Values.connect.executor.coresLimit }}
+          {{- end }}
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: spark-local
+          mountPath: /opt/spark/work
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: spark-local
+        emptyDir: {}
+{{- end }}

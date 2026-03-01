@@ -1,0 +1,18 @@
+{{- if and .Values.jupyter.enabled .Values.jupyter.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "spark-4.0.fullname" . }}-jupyter-notebooks
+  labels:
+    app: jupyter
+    {{- include "spark-4.0.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .Values.jupyter.persistence.storageClass }}
+  storageClassName: {{ .Values.jupyter.persistence.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.jupyter.persistence.size }}
+{{- end }}

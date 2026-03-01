@@ -1,0 +1,19 @@
+Apache Spark 4.0.2 deployed successfully!
+
+Components:
+{{- if .Values.connect.enabled }}
+- Spark Connect: {{ include "spark-4.0.fullname" . }}-connect:15002
+{{- end }}
+{{- if or .Values.hiveMetastore.enabled .Values.core.hiveMetastore.enabled }}
+- Hive Metastore: {{ if .Values.core.hiveMetastore.enabled }}{{ include "spark.core.hiveMetastore.fullname" . }}{{ else }}{{ include "spark-4.0.fullname" . }}-metastore{{ end }}:{{ .Values.core.hiveMetastore.service.port | default .Values.hiveMetastore.service.port | default 9083 }}
+{{- end }}
+{{- if .Values.historyServer.enabled }}
+- History Server: {{ include "spark-4.0.fullname" . }}-history:18080
+{{- end }}
+{{- if .Values.jupyter.enabled }}
+- Jupyter: {{ include "spark-4.0.fullname" . }}-jupyter:8888
+{{- end }}
+
+Get started:
+  kubectl port-forward svc/{{ include "spark-4.0.fullname" . }}-jupyter 8888:8888
+  # Open http://localhost:8888

@@ -1,0 +1,15 @@
+dependencies:
+- name: spark-base
+  repository: file://../spark-base
+  version: 0.1.0
+- name: prometheus
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 25.30.2
+- name: grafana
+  repository: https://grafana.github.io/helm-charts
+  version: 8.15.0
+- name: loki
+  repository: https://grafana.github.io/helm-charts
+  version: 6.53.0
+digest: sha256:4cefe0795a6656324356aad9614c6342cb98a9f0082bdefbdd9ad9907e1a1cfc
+generated: "2026-03-01T16:03:37.860007719+03:00"

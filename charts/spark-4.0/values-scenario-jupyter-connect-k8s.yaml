@@ -1,0 +1,98 @@
+# Preset: Jupyter + Spark Connect + K8s backend
+# Source: scripts/test-e2e-jupyter-connect.sh (Spark 4.0, BACKEND_MODE=k8s)
+# Components: Connect + Jupyter + MinIO
+
+global:
+  s3:
+    endpoint: "http://minio:9000"
+    accessKey: ""  # REQUIRED: set via --set or ExternalSecrets
+    secretKey: ""  # REQUIRED: set via --set or ExternalSecrets
+    pathStyleAccess: true
+    sslEnabled: false
+
+spark-base:
+  enabled: true
+  minio:
+    enabled: true
+    resources:
+      requests:
+        cpu: "0"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "512Mi"
+    persistence:
+      enabled: false
+  postgresql:
+    enabled: false
+
+rbac:
+  create: true
+  serviceAccountName: "spark-40"
+
+connect:
+  enabled: true
+  replicas: 1
+  backendMode: k8s
+  image:
+    repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
+    tag: "4.0.2"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "0"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "2Gi"
+  driver:
+    host: ""
+    port: 7078
+  eventLog:
+    enabled: true
+    dir: "s3a://spark-logs/events"
+  dynamicAllocation:
+    enabled: true
+    minExecutors: 0
+    maxExecutors: 10
+  sparkConf: {}
+
+jupyter:
+  enabled: true
+  image:
+    repository: ghcr.io/fall-out-bug/spark-k8s-jupyter-spark
+    tag: "4.0.2"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8888
+  env:
+    SPARK_CONNECT_URL: "sc://spark-connect:15002"
+  resources:
+    requests:
+      cpu: "0"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+  persistence:
+    enabled: false
+
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false
+
+# Disable optional components
+sparkOperator:
+  enabled: false
+
+celeborn:
+  enabled: false

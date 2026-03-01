@@ -1,0 +1,147 @@
+# OpenShift preset: anyuid SCC for edge cases
+#
+# WARNING: This preset uses the anyuid SCC which bypasses PSS restrictions.
+# Only use this when absolutely necessary (e.g., legacy workloads that require root).
+#
+# This preset configures Spark 4.0 for OpenShift with:
+# - Pod Security Standards (PSS) disabled (anyuid SCC bypasses PSS)
+# - Security Context Constraints (SCC) anyuid
+# - OpenShift-specific UID ranges
+# - External S3/PostgreSQL (no embedded MinIO/PostgreSQL)
+#
+# Usage:
+#   helm install my-spark charts/spark-4.0 -f charts/spark-4.0/presets/openshift/anyuid.yaml
+#
+# Requirements:
+# - OpenShift cluster with SCC anyuid available
+# - External S3-compatible storage
+# - External PostgreSQL for Hive Metastore
+
+# Global settings
+global:
+  s3:
+    enabled: true
+    endpoint: "https://s3.openshift.example.com"
+    accessKey: ""  # Use existingSecret
+    secretKey: ""
+    existingSecret: "s3-credentials"
+    sslEnabled: true
+
+# Security settings for OpenShift (anyuid SCC)
+security:
+  podSecurityStandards: false  # Anyuid SCC bypasses PSS
+  createNamespace: false
+  # No pssProfile - anyuid bypasses PSS
+  runAsUser: 1000000000  # OpenShift UID range (will be overridden by anyuid)
+  runAsGroup: 1000000000
+  fsGroup: 1000000000
+  readOnlyRootFilesystem: false
+
+# RBAC
+rbac:
+  create: true
+  serviceAccountName: "spark-40-openshift"
+
+# Spark Connect Server
+connect:
+  enabled: true
+  replicas: 1
+  image:
+    repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
+    tag: "4.0.2"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "1"
+    limits:
+      memory: "4Gi"
+      cpu: "2"
+  backendMode: k8s
+  driver:
+    host: ""
+    port: 7078
+    blockManagerPort: 7079
+  executor:
+    cores: "1"
+    coresLimit: "2"
+    memory: "1Gi"
+    memoryLimit: "2Gi"
+  dynamicAllocation:
+    enabled: true
+    minExecutors: 0
+    maxExecutors: 10
+  eventLog:
+    enabled: true
+    dir: "s3a://spark-logs/events"
+
+# Hive Metastore
+hiveMetastore:
+  enabled: true
+  image:
+    repository: spark-k8s/hive
+    tag: "4.0.0-pg"
+    pullPolicy: IfNotPresent
+  service:
+    port: 9083
+  warehouseDir: "s3a://warehouse/spark-40"
+  metastoreWarehouseDir: "file:/tmp/hive-warehouse"
+  database:
+    name: "metastore_spark41"
+  postgresql:
+    enabled: false  # Use external PostgreSQL
+    host: ""  # Set to external PostgreSQL host
+    port: 5432
+    database: "metastore_spark41"
+    username: ""
+    password: ""
+    persistence:
+      enabled: false
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+
+# History Server
+historyServer:
+  enabled: true
+  image:
+    repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
+    tag: "4.0.2"
+    pullPolicy: IfNotPresent
+  logDirectory: "s3a://spark-logs/events"
+  service:
+    type: ClusterIP
+    port: 18080
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+
+# Core infrastructure (disabled - use external)
+core:
+  minio:
+    enabled: false  # Use external S3
+  postgresql:
+    enabled: false  # Use external
+  hiveMetastore:
+    enabled: false  # Use external
+
+# Disable other components
+jupyter:
+  enabled: false
+
+ingress:
+  enabled: false
+
+celeborn:
+  enabled: false
+
+sparkOperator:
+  enabled: false

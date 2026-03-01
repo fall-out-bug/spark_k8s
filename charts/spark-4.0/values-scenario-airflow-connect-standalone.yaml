@@ -1,0 +1,88 @@
+# Preset: Airflow + Spark Connect + Standalone backend
+# Source: scripts/test-e2e-airflow-connect.sh (Spark 4.0, BACKEND_MODE=standalone)
+# Components: Airflow + Connect + MinIO + Standalone
+# Note: Airflow + Standalone deployed separately, this preset only for Connect
+
+global:
+  s3:
+    endpoint: "http://minio:9000"
+    accessKey: ""  # REQUIRED: set via --set or ExternalSecrets
+    secretKey: ""  # REQUIRED: set via --set or ExternalSecrets
+    pathStyleAccess: true
+    sslEnabled: false
+
+spark-base:
+  enabled: true
+  minio:
+    enabled: false
+  postgresql:
+    enabled: false
+
+rbac:
+  create: false  # Shared with Airflow
+  serviceAccountName: "spark"
+
+connect:
+  enabled: true
+  replicas: 1
+  backendMode: standalone
+  image:
+    repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
+    tag: "4.0.2"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1"
+      memory: "2Gi"
+  driver:
+    host: "${POD_IP}"  # Use POD_IP for standalone backend
+    port: 7078
+    memory: "512m"
+  executor:
+    cores: "1"
+    coresLimit: "1"
+    memory: "512Mi"
+    memoryLimit: "640Mi"
+  standalone:
+    masterService: "spark-sa-spark-standalone-master"
+    masterPort: 7077
+  eventLog:
+    enabled: true
+    dir: "s3a://spark-logs/events"
+  dynamicAllocation:
+    enabled: false
+  sparkConf:
+    spark.driver.memory: "512m"
+    spark.executor.memory: "512m"
+    spark.executor.memoryOverhead: "128m"
+    spark.executor.cores: "1"
+    spark.executor.instances: "1"
+    spark.cores.max: "1"
+    spark.scheduler.minRegisteredResourcesRatio: "0.0"
+    spark.scheduler.maxRegisteredResourcesWaitingTime: "30s"
+    spark.sql.shuffle.partitions: "2"
+
+jupyter:
+  enabled: false
+
+hiveMetastore:
+  enabled: false
+
+historyServer:
+  enabled: false
+
+ingress:
+  enabled: false
+
+security:
+  podSecurityStandards: false
+
+# Disable optional components
+sparkOperator:
+  enabled: false
+
+celeborn:
+  enabled: false

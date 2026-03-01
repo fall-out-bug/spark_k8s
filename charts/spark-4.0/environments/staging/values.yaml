@@ -1,0 +1,59 @@
+# Staging Environment Values
+
+connect:
+  # Moderate replicas for staging
+  replicas: 2
+
+  # Moderate resources
+  resources:
+    requests:
+      memory: "4Gi"
+      cpu: "2"
+    limits:
+      memory: "8Gi"
+      cpu: "4"
+
+  # Dynamic allocation (moderate)
+  dynamicAllocation:
+    enabled: true
+    initialExecutors: 2
+    minExecutors: 1
+    maxExecutors: 20
+    executorAllocationRatio: 0.5
+
+  # No PDB in staging
+  podDisruptionBudget:
+    enabled: false
+
+  # Production-like configuration
+  sparkConf:
+    # Standard logging
+    spark.sql.debug.maxToStringFields: "20"
+
+    # Standard timeouts
+    spark.network.timeout: "600s"
+    spark.executor.heartbeatInterval: "60s"
+
+    # Moderate shuffle partitions
+    spark.sql.shuffle.partitions: "100"
+
+    # Retry settings
+    spark.task.maxFailures: "4"
+
+# Security settings (production-like)
+security:
+  podSecurityStandards: true
+  networkPolicies:
+    enabled: true
+
+# Monitoring (enabled)
+monitoring:
+  serviceMonitor:
+    enabled: true
+
+# Secrets (use external secrets)
+secrets:
+  externalSecrets:
+    enabled: true
+    region: "us-east-1"
+    prefix: "staging"

@@ -1,0 +1,29 @@
+{{- if .Values.connect.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "spark-4.0.fullname" . }}-test-connect-grpc"
+  labels:
+    {{- include "spark-4.0.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
+spec:
+  restartPolicy: Never
+  containers:
+    - name: test-connect-grpc
+      image: busybox:1.36
+      command:
+        - sh
+        - -c
+        - |
+          echo "Testing Spark Connect gRPC port..."
+          until nc -z -w 5 {{ include "spark-4.0.fullname" . }}-connect {{ .Values.connect.service.port | default 15002 }};
+          do echo "Waiting for Spark Connect..."; sleep 2; done
+          echo "Spark Connect gRPC port is reachable"
+  {{- if .Values.security.podSecurityStandards }}
+  securityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+  {{- end }}
+{{- end }}
