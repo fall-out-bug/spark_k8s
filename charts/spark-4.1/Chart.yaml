@@ -10,21 +10,21 @@ dependencies:
     repository: "file://../spark-base"
     condition: spark-base.enabled
 
-  # Observability stack (optional - enable with --set observability.enabled=true)
-  - name: prometheus
-    version: "25.x.x"
-    repository: "https://prometheus-community.github.io/helm-charts"
-    condition: observability.prometheus.enabled
-    alias: prometheus
-
-  - name: grafana
-    version: "8.x.x"
-    repository: "https://grafana.github.io/helm-charts"
-    condition: observability.grafana.enabled
-    alias: grafana
-
-  - name: loki
-    version: "6.x.x"
-    repository: "https://grafana.github.io/helm-charts"
-    condition: observability.loki.enabled
-    alias: loki
+  # Observability stack - uncomment and run `helm dependency update` to enable
+  # - name: prometheus
+  #   version: "25.x.x"
+  #   repository: "https://prometheus-community.github.io/helm-charts"
+  #   condition: observability.prometheus.enabled
+  #   alias: prometheus
+  #
+  # - name: grafana
+  #   version: "8.x.x"
+  #   repository: "https://grafana.github.io/helm-charts"
+  #   condition: observability.grafana.enabled
+  #   alias: grafana
+  #
+  # - name: loki
+  #   version: "6.x.x"
+  #   repository: "https://grafana.github.io/helm-charts"
+  #   condition: observability.loki.enabled
+  #   alias: loki

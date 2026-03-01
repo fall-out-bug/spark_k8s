@@ -117,11 +117,13 @@ fi
 echo ""
 echo "=== 5. Spark Submit Test ==="
 
-cat > /tmp/smoke-test.py << 'PYEOF'
+MASTER_SERVICE="${RELEASE}-spark-standalone-master"
+
+cat > /tmp/smoke-test.py << PYEOF
 from pyspark.sql import SparkSession
-spark = SparkSession.builder \
-    .appName("SmokeTest") \
-    .master("spark://airflow-sc-standalone-master:7077") \
+spark = SparkSession.builder \\
+    .appName("SmokeTest") \\
+    .master("spark://${MASTER_SERVICE}:7077") \\
     .getOrCreate()
 df = spark.range(100)
 count = df.count()
@@ -132,7 +134,7 @@ PYEOF
 echo -n "Testing: spark-submit-basic... "
 if [[ -n "$MASTER_POD" ]]; then
     kubectl cp /tmp/smoke-test.py $NAMESPACE/$MASTER_POD:/tmp/smoke-test.py 2>/dev/null
-    OUTPUT=$(kubectl exec -n $NAMESPACE $MASTER_POD -- bash -c 'DRIVER_HOST=$(hostname -i) && timeout 60 spark-submit --master spark://airflow-sc-standalone-master:7077 --conf spark.driver.host=$DRIVER_HOST --conf spark.driver.bindAddress=0.0.0.0 /tmp/smoke-test.py' 2>&1) || true
+    OUTPUT=$(kubectl exec -n $NAMESPACE $MASTER_POD -- bash -c 'DRIVER_HOST=$(hostname -i) && timeout 60 spark-submit --master spark://'${MASTER_SERVICE}':7077 --conf spark.driver.host=$DRIVER_HOST --conf spark.driver.bindAddress=0.0.0.0 /tmp/smoke-test.py' 2>&1) || true
     
     if echo "$OUTPUT" | grep -q "SMOKE_TEST_RESULT: 100"; then
         log_pass "spark-submit-basic"
@@ -143,7 +145,6 @@ if [[ -n "$MASTER_POD" ]]; then
 else
     log_skip "spark-submit-basic (no master pod)"
 fi
-
 # === 6. S3/MinIO Storage ===
 echo ""
 echo "=== 6. S3/MinIO Storage ==="
