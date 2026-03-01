@@ -222,6 +222,44 @@ features:
         python:
           enabled: true
         fallback:
+
+## Monitoring & Alerting (Phase 2)
+
+Comprehensive monitoring with Grafana dashboards and Prometheus alerts:
+- **Grafana Dashboards:** Executor metrics, Job performance, Streaming metrics, ML training metrics
+- **Prometheus Alerts:** Executor OOM, High GC, Consumer lag
+
+## Examples Catalog
+
+Production-ready examples for Apache Spark on Kubernetes:
+
+### Batch Processing
+- `etl_pipeline.py` - Complete ETL pipeline (Extract, Transform, Load) - `data_quality.py` - Data quality validation framework
+
+### Machine Learning
+- `classification_catboost.py` - Binary classification with CatBoost/MLlib
+- `regression_spark_ml.py` - Regression with Spark MLlib
+
+### Streaming
+- `file_stream_basic.py` - Rate source, windowed aggregations
+- `kafka_stream_backpressure.py` - Kafka streaming with backpressure
+- `kafka_exactly_once.py` - Exactly-once semantics
+
+## Cloud Provider Presets
+- `aws.yaml` - AWS S3 with IAM Roles (IRSA)
+- `azure.yaml` - Azure Blob/ADLS with Managed Identity
+- `gcp.yaml` - GCS with Workload Identity
+
+## Integration Presets
+- `kafka-external.yaml` - External Kafka cluster (no operators)
+
+## Helper Scripts
+- `spark-submit.sh` - Simplified job submission with presets
+- `collect-metrics.sh` - Export metrics to Prometheus PushGateway
+- `monitor-resources.sh` - Cluster resource monitoring
+- `test-examples.sh` - Validation test suite
+
+
           enabled: true  # Fall back to CPU if GPU fails
       memory:
         allocFraction: "0.8"
