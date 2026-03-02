@@ -1,7 +1,6 @@
 #!/bin/bash
 # Lego-Spark Test Matrix Runner
-# Runs smoke/e2e/load tests for specified scenarios
-# Collects results in JUnit format and generates reports
+# Runs tests for each scenario in isolated namespace, cleans up after
 
 set -euo pipefail
 
@@ -24,6 +23,11 @@ FAILED=0
 SKIPPED=0
 TOTAL=0
 
+# Defaults
+TIMEOUT=10
+TEST_TYPE="smoke"
+SCENARIO_FILTER=""
+
 log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 log_pass() { echo -e "${GREEN}[PASS]${NC} $1"; }
 log_fail() { echo -e "${RED}[FAIL]${NC} $1"; }
@@ -31,70 +35,37 @@ log_skip() { echo -e "${YELLOW}[SKIP]${NC} $1"; }
 
 usage() {
     cat << EOF
-Usage: $0 [options] [test-type]
+Usage: $0 [test-type] [options]
 
 Test Types:
-  smoke   Run smoke tests (10 min per scenario)
-  e2e     Run E2E tests (25 min per scenario)
-  load    Run load tests (45 min per scenario)
-  all     Run all test types (default)
+  smoke   Run smoke tests only (default, ~3 min per scenario)
+  e2e     Run e2e tests (~10 min per scenario)
+  load    Run load tests (~15 min per scenario)
+  all     Run all test types
 
 Options:
-  --scenario <id>      Run specific scenario (e.g., SCENARIO-0001)
-  --filter <key=value> Filter scenarios (e.g., spark_version=3.5.7)
-  --parallel <n>       Run N scenarios in parallel (default: 1)
-  --timeout <min>      Timeout per scenario (default: 60)
-  --namespace <ns>     Kubernetes namespace (default: spark-test)
-  --skip-cleanup       Don't delete resources after tests
-  --dry-run            Show what would be run without executing
-  --help               Show this help
+  --filter "key=value,key=value"  Filter scenarios
+  --timeout <min>                 Timeout per scenario (default: 10)
+  --help                          Show this help
 
 Examples:
-  $0 smoke --filter spark_version=4.0.2
-  $0 e2e --scenario SCENARIO-0001
-  $0 all --filter platform=k8s --parallel 4
+  $0 smoke --filter "spark_version=3.5.7,platform=k8s"
+  $0 e2e --filter "gpu=false"
+  $0 all
 EOF
     exit 0
 }
 
 # Parse arguments
-SCENARIO_FILTER=""
-PARALLEL=1
-TIMEOUT=60
-NAMESPACE="spark-test"
-SKIP_CLEANUP=false
-DRY_RUN=false
-TEST_TYPE="all"
-
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --scenario)
-            SCENARIO_FILTER="id=$2"
-            shift 2
-            ;;
         --filter)
             SCENARIO_FILTER="$2"
-            shift 2
-            ;;
-        --parallel)
-            PARALLEL="$2"
             shift 2
             ;;
         --timeout)
             TIMEOUT="$2"
             shift 2
-            ;;
-        --namespace)
-            NAMESPACE="$2"
-            shift 2
-            ;;
-        --skip-cleanup)
-            SKIP_CLEANUP=true
-            shift
-            ;;
-        --dry-run)
-            DRY_RUN=true
-            shift
             ;;
         --help|-h)
             usage
@@ -110,12 +81,11 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Get scenarios to run
+# Get scenarios from matrix
 get_scenarios() {
     python3 << PYEOF
 import yaml
 import json
-import sys
 
 with open("$TEST_MATRIX", "r") as f:
     matrix = yaml.safe_load(f)
@@ -124,11 +94,9 @@ scenarios = matrix['scenarios']
 filter_str = "$SCENARIO_FILTER"
 
 if filter_str:
-    # Parse filter (key=value format, supports multiple filters with comma)
     filters = filter_str.split(',')
     for f in filters:
         key, value = f.split('=', 1)
-        # Handle boolean string comparison
         if value.lower() == 'true':
             scenarios = [s for s in scenarios if s.get(key) == True]
         elif value.lower() == 'false':
@@ -136,187 +104,226 @@ if filter_str:
         else:
             scenarios = [s for s in scenarios if str(s.get(key, '')).lower() == value.lower()]
 
-# Output as JSON
 print(json.dumps(scenarios))
 PYEOF
 }
 
-# Run smoke tests for a scenario
-run_smoke_test() {
+# Map scenario to runtime image
+get_runtime_image() {
+    local spark_version="$1"
+    local gpu="$2"
+    local iceberg="$3"
+    
+    local variant="baseline"
+    if [[ "$gpu" == "true" && "$iceberg" == "true" ]]; then
+        variant="gpu-iceberg"
+    elif [[ "$gpu" == "true" ]]; then
+        variant="gpu"
+    elif [[ "$iceberg" == "true" ]]; then
+        variant="iceberg"
+    fi
+    
+    # Map version to image tag
+    local version_tag
+    case "$spark_version" in
+        3.5.7) version_tag="3.5-3.5.7" ;;
+        3.5.8) version_tag="3.5-3.5.8" ;;
+        4.1.0) version_tag="4.1-4.1.0" ;;
+        4.1.1) version_tag="4.1-4.1.1" ;;
+        *) version_tag="3.5-3.5.7" ;;
+    esac
+    
+    echo "spark-k8s-runtime:${version_tag}-${variant}"
+}
+
+# Run single scenario
+run_scenario() {
     local scenario_json="$1"
     local scenario_id=$(echo "$scenario_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['id'])")
     local scenario_name=$(echo "$scenario_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['name'])")
+    local spark_version=$(echo "$scenario_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['spark_version'])")
+    local gpu=$(echo "$scenario_json" | python3 -c "import json,sys; print(str(json.load(sys.stdin).get('gpu', False)).lower())")
+    local iceberg=$(echo "$scenario_json" | python3 -c "import json,sys; print(str(json.load(sys.stdin).get('iceberg', False)).lower())")
     
-    log_info "Running smoke test: $scenario_name"
+    local ns="test-${scenario_id,,}"
+    local release="spark"
+    local result="PASS"
+    local start_time=$(date +%s)
     
-    if $DRY_RUN; then
-        log_skip "Dry run: $scenario_id"
+    # Get runtime image
+    local runtime_image=$(get_runtime_image "$spark_version" "$gpu" "$iceberg")
+    
+    log_info "Scenario: $scenario_name"
+    log_info "Image: $runtime_image"
+    
+    # Check if image exists
+    if ! docker image inspect "$runtime_image" &>/dev/null; then
+        log_skip "$scenario_id - Image not found: $runtime_image"
+        ((SKIPPED++)) || true
         return 0
     fi
     
-    local start_time=$(date +%s)
-    local result="PASS"
-    local duration=0
-    
-    # Get chart path - use standalone subchart
-    local chart=$(echo "$scenario_json" | python3 -c "
-import json,sys
-s = json.load(sys.stdin)
-v = s['spark_version']
-if v.startswith('3.5'): print('spark-3.5/charts/spark-standalone')
-elif v.startswith('4.0'): print('spark-4.0/charts/spark-standalone')
-elif v.startswith('4.1'): print('spark-4.1/charts/spark-standalone')
-else: print('spark-3.5/charts/spark-standalone')
-")
-    
-    local release="test-${scenario_id,,}"
-    local ns="$NAMESPACE-${scenario_id,,}"
-    
     # Create namespace
-    kubectl create namespace "$ns" 2>/dev/null || true
+    kubectl create namespace "$ns" --dry-run=client -o yaml | kubectl apply -f - >/dev/null 2>&1
     
-    # Generate minimal values file for standalone chart
-    local values_file="/tmp/${scenario_id}-values.yaml"
-    echo "$scenario_json" | python3 -c "
-import yaml, json, sys
-s = json.load(sys.stdin)
-
-# Values for spark-standalone subchart
-v = {
-    'master': {
-        'enabled': True,
-        'image': {'repository': 'spark-custom', 'tag': s['spark_version'], 'pullPolicy': 'IfNotPresent'},
-        'resources': {'requests': {'memory': '512Mi', 'cpu': '250m'}, 'limits': {'memory': '1Gi', 'cpu': '500m'}},
-    },
-    'worker': {
-        'enabled': True,
-        'replicas': 1,
-        'image': {'repository': 'spark-custom', 'tag': s['spark_version'], 'pullPolicy': 'IfNotPresent'},
-        'resources': {'requests': {'memory': '512Mi', 'cpu': '250m'}, 'limits': {'memory': '1Gi', 'cpu': '500m'}},
-    },
-    # Disable Airflow
-    'airflow': {'enabled': False},
-}
-
-with open('$values_file', 'w') as f:
-    yaml.dump(v, f)
-"
+    # Deploy Spark using spark-standalone chart with custom image
+    local chart="spark-3.5/charts/spark-standalone"
+    if [[ "$spark_version" == 4.1* ]]; then
+        chart="spark-4.1/charts/spark-standalone"
+    fi
     
-    # Install chart
+    # Extract image repo and tag from runtime image
+    local image_repo=$(echo "$runtime_image" | cut -d: -f1)
+    local image_tag=$(echo "$runtime_image" | cut -d: -f2)
+    
     if ! timeout ${TIMEOUT}m helm install "$release" "$PROJECT_ROOT/charts/$chart" \
-        -f "$values_file" \
-        -n "$ns" \
-        --timeout 10m --wait 2>&1; then
+        --namespace "$ns" \
+        --set master.image.repository="$image_repo" \
+        --set master.image.tag="$image_tag" \
+        --set worker.image.repository="$image_repo" \
+        --set worker.image.tag="$image_tag" \
+        --set master.resources.requests.cpu=250m \
+        --set master.resources.requests.memory=256Mi \
+        --set worker.resources.requests.cpu=250m \
+        --set worker.resources.requests.memory=256Mi \
+        --set airflow.enabled=false \
+        --timeout 5m --wait >/dev/null 2>&1; then
         result="FAIL"
-        log_fail "Helm install failed: $scenario_id"
+        log_fail "Deploy failed: $scenario_id"
     else
-        # Wait for pods
-        if ! kubectl wait --for=condition=Ready pods -n "$ns" --timeout=300s 2>&1; then
+        # Wait for master
+        if ! kubectl wait --for=condition=Ready pod -l app.kubernetes.io/component=spark-master -n "$ns" --timeout=180s >/dev/null 2>&1; then
             result="FAIL"
-            log_fail "Pods not ready: $scenario_id"
+            log_fail "Master not ready: $scenario_id"
         else
-            if [[ -n "$master_pod" ]]; then
-                if ! kubectl exec -n "$ns" "$master_pod" -- bash -c 'timeout 60 spark-submit --master spark://$(hostname):7077 --conf spark.driver.host=$(hostname -i) --conf spark.driver.bindAddress=0.0.0.0 -e "println(spark.range(100).count())"' 2>&1 | grep -q "100"; then
-                    result="FAIL"
-                    log_fail "Spark job failed: $scenario_id"
-                else
-                    result="PASS"
-                fi
-            else
-                result="FAIL"
-                log_fail "Master pod not found: $scenario_id"
-            fi
+            local master_pod=$(kubectl get pod -n "$ns" -l app.kubernetes.io/component=spark-master -o jsonpath='{.items[0].metadata.name}')
+            local master_service="${release}-spark-standalone-master"
+            
+            # Run test
+            case "$TEST_TYPE" in
+                smoke)
+                    if ! run_smoke_test "$ns" "$master_pod" "$master_service"; then
+                        result="FAIL"
+                    fi
+                    ;;
+                e2e)
+                    if ! run_e2e_test "$ns" "$master_pod" "$master_service"; then
+                        result="FAIL"
+                    fi
+                    ;;
+                load)
+                    if ! run_load_test "$ns" "$master_pod" "$master_service"; then
+                        result="FAIL"
+                    fi
+                    ;;
+                all)
+                    if ! run_smoke_test "$ns" "$master_pod" "$master_service" || \
+                       ! run_e2e_test "$ns" "$master_pod" "$master_service" || \
+                       ! run_load_test "$ns" "$master_pod" "$master_service"; then
+                        result="FAIL"
+                    fi
+                    ;;
+            esac
         fi
     fi
     
-    local end_time=$(date +%s)
-    duration=$((end_time - start_time))
-    
     # Cleanup
-    if ! $SKIP_CLEANUP; then
-        helm uninstall "$release" -n "$ns" 2>/dev/null || true
-        kubectl delete namespace "$ns" 2>/dev/null || true
-    fi
+    helm uninstall "$release" -n "$ns" >/dev/null 2>&1 || true
+    kubectl delete namespace "$ns" --ignore-not-found >/dev/null 2>&1 &
     
-    # Generate JUnit XML
-    generate_junit_result "$scenario_id" "$scenario_name" "smoke" "$result" "$duration"
+    local end_time=$(date +%s)
+    local duration=$((end_time - start_time))
     
     if [[ "$result" == "PASS" ]]; then
-        log_pass "Smoke test passed: $scenario_id (${duration}s)"
-        return 0
+        ((PASSED++)) || true
+        log_pass "$scenario_id (${duration}s)"
     else
-        return 1
+        ((FAILED++)) || true
+        log_fail "$scenario_id (${duration}s)"
     fi
+    
+    generate_junit "$scenario_id" "$scenario_name" "$TEST_TYPE" "$result" "$duration"
 }
 
-# Run E2E tests for a scenario
+# Smoke test
+run_smoke_test() {
+    local ns="$1"
+    local master_pod="$2"
+    local master_service="$3"
+    
+    kubectl exec -n "$ns" "$master_pod" -- python3 -c "
+from pyspark.sql import SparkSession
+spark = SparkSession.builder \
+    .appName('smoke-test') \
+    .master('spark://${master_service}:7077') \
+    .config('spark.driver.host', '127.0.0.1') \
+    .config('spark.driver.bindAddress', '0.0.0.0') \
+    .getOrCreate()
+result = spark.range(1000).count()
+print(f'RESULT: {result}')
+spark.stop()
+" 2>&1 | grep -q "RESULT: 1000"
+}
+
+# E2E test
 run_e2e_test() {
-    local scenario_json="$1"
-    local scenario_id=$(echo "$scenario_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['id'])")
-    local scenario_name=$(echo "$scenario_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['name'])")
+    local ns="$1"
+    local master_pod="$2"
+    local master_service="$3"
     
-    log_info "Running E2E test: $scenario_name"
+    kubectl exec -n "$ns" "$master_pod" -- python3 -c "
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
+spark = SparkSession.builder \
+    .appName('e2e-test') \
+    .master('spark://${master_service}:7077') \
+    .config('spark.driver.host', '127.0.0.1') \
+    .config('spark.driver.bindAddress', '0.0.0.0') \
+    .getOrCreate()
     
-    if $DRY_RUN; then
-        log_skip "Dry run: $scenario_id"
-        return 0
-    fi
-    
-    local start_time=$(date +%s)
-    local result="PASS"
-    local duration=0
-    
-    # E2E test implementation
-    # ... (SQL, DataFrame, ML, Streaming tests)
-    
-    local end_time=$(date +%s)
-    duration=$((end_time - start_time))
-    
-    generate_junit_result "$scenario_id" "$scenario_name" "e2e" "$result" "$duration"
-    
-    if [[ "$result" == "PASS" ]]; then
-        log_pass "E2E test passed: $scenario_id (${duration}s)"
-        return 0
-    else
-        return 1
-    fi
+# SQL test
+df = spark.range(1000).withColumn('group', col('id') % 10)
+result = df.groupBy('group').count().count()
+assert result == 10
+
+# DataFrame test
+df2 = spark.range(500).join(spark.range(250), 'id', 'inner')
+assert df2.count() == 250
+
+spark.stop()
+print('E2E_SUCCESS')
+" 2>&1 | grep -q "E2E_SUCCESS"
 }
 
-# Run load tests for a scenario
+# Load test
 run_load_test() {
-    local scenario_json="$1"
-    local scenario_id=$(echo "$scenario_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['id'])")
-    local scenario_name=$(echo "$scenario_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['name'])")
+    local ns="$1"
+    local master_pod="$2"
+    local master_service="$3"
     
-    log_info "Running load test: $scenario_name"
+    kubectl exec -n "$ns" "$master_pod" -- python3 -c "
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
+import time
+
+spark = SparkSession.builder \
+    .appName('load-test') \
+    .master('spark://${master_service}:7077') \
+    .config('spark.driver.host', '127.0.0.1') \
+    .config('spark.driver.bindAddress', '0.0.0.0') \
+    .getOrCreate()
     
-    if $DRY_RUN; then
-        log_skip "Dry run: $scenario_id"
-        return 0
-    fi
-    
-    local start_time=$(date +%s)
-    local result="PASS"
-    local duration=0
-    
-    # Load test implementation
-    # ... (throughput, shuffle, sort, cache tests)
-    
-    local end_time=$(date +%s)
-    duration=$((end_time - start_time))
-    
-    generate_junit_result "$scenario_id" "$scenario_name" "load" "$result" "$duration"
-    
-    if [[ "$result" == "PASS" ]]; then
-        log_pass "Load test passed: $scenario_id (${duration}s)"
-        return 0
-    else
-        return 1
-    fi
+start = time.time()
+df = spark.range(100000).withColumn('group', col('id') % 100)
+result = df.groupBy('group').count().count()
+duration = time.time() - start
+spark.stop()
+print(f'LOAD_SUCCESS: {result} groups in {duration:.2f}s')
+" 2>&1 | grep -q "LOAD_SUCCESS"
 }
 
-# Generate JUnit XML result
-generate_junit_result() {
+# Generate JUnit XML
+generate_junit() {
     local scenario_id="$1"
     local scenario_name="$2"
     local test_type="$3"
@@ -336,53 +343,6 @@ $([ "$result" = "FAIL" ] && echo "    <failure message=\"Test failed\"/>" || ech
 EOF
 }
 
-# Generate HTML report
-generate_html_report() {
-    local report_file="$RESULTS_DIR/test-report-$TIMESTAMP.html"
-    
-    python3 << PYEOF
-import yaml
-import os
-import glob
-
-results_dir = "$RESULTS_DIR"
-junit_dir = f"{results_dir}/junit"
-
-html = f"""<!DOCTYPE html>
-<html>
-<head>
-    <title>Lego-Spark Test Report - $TIMESTAMP</title>
-    <style>
-        body {{ font-family: Arial, sans-serif; margin: 20px; }}
-        h1 {{ color: #333; }}
-        .summary {{ background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 20px; }}
-        .pass {{ color: green; }}
-        .fail {{ color: red; }}
-        .skip {{ color: orange; }}
-        table {{ border-collapse: collapse; width: 100%; }}
-        th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
-        th {{ background: #4CAF50; color: white; }}
-    </style>
-</head>
-<body>
-    <h1>Lego-Spark Test Report</h1>
-    <p>Generated: $TIMESTAMP</p>
-    <div class="summary">
-        <strong>Passed:</strong> <span class="pass">$PASSED</span> |
-        <strong>Failed:</strong> <span class="fail">$FAILED</span> |
-        <strong>Skipped:</strong> <span class="skip">$SKIPPED</span>
-    </div>
-</body>
-</html>
-"""
-
-with open("$report_file", "w") as f:
-    f.write(html)
-
-print(f"HTML report: $report_file")
-PYEOF
-}
-
 # Main
 mkdir -p "$RESULTS_DIR/junit"
 
@@ -391,9 +351,7 @@ log_info "Lego-Spark Test Matrix Runner"
 log_info "=============================================="
 log_info "Test type: $TEST_TYPE"
 log_info "Filter: ${SCENARIO_FILTER:-none}"
-log_info "Parallel: $PARALLEL"
-log_info "Timeout: ${TIMEOUT}m"
-log_info "Namespace: $NAMESPACE"
+log_info "Timeout: ${TIMEOUT}m per scenario"
 log_info ""
 
 # Get scenarios
@@ -407,10 +365,14 @@ if [[ "$SCENARIO_COUNT" -eq 0 ]]; then
     exit 1
 fi
 
-# Run tests
+# Estimate time
+ESTIMATED_MIN=$((SCENARIO_COUNT * 3))
+log_info "Estimated time: ~${ESTIMATED_MIN}min"
+echo ""
+
+# Run scenarios
 START_TOTAL=$(date +%s)
 
-# Use while loop to properly handle JSON objects
 echo "$SCENARIOS" | python3 -c "
 import json, sys
 for s in json.load(sys.stdin):
@@ -418,46 +380,13 @@ for s in json.load(sys.stdin):
 " | while read scenario_id; do
     ((TOTAL++)) || true
     
-    # Get full scenario JSON
     scenario_json=$(echo "$SCENARIOS" | python3 -c "import json,sys; print(json.dumps([s for s in json.load(sys.stdin) if s['id']=='$scenario_id'][0]))")
     
-    case "$TEST_TYPE" in
-        smoke)
-            if run_smoke_test "$scenario_json"; then
-                ((PASSED++)) || true
-            else
-                ((FAILED++)) || true
-            fi
-            ;;
-        e2e)
-            if run_e2e_test "$scenario_json"; then
-                ((PASSED++)) || true
-            else
-                ((FAILED++)) || true
-            fi
-            ;;
-        load)
-            if run_load_test "$scenario_json"; then
-                ((PASSED++)) || true
-            else
-                ((FAILED++)) || true
-            fi
-            ;;
-        all)
-            if run_smoke_test "$scenario_json" && run_e2e_test "$scenario_json" && run_load_test "$scenario_json"; then
-                ((PASSED++)) || true
-            else
-                ((FAILED++)) || true
-            fi
-            ;;
-    esac
+    run_scenario "$scenario_json"
 done
 
 END_TOTAL=$(date +%s)
 TOTAL_DURATION=$((END_TOTAL - START_TOTAL))
-
-# Generate report
-generate_html_report
 
 # Summary
 echo ""
@@ -468,7 +397,7 @@ echo -e "Total:   $TOTAL"
 echo -e "Passed:  ${GREEN}$PASSED${NC}"
 echo -e "Failed:  ${RED}$FAILED${NC}"
 echo -e "Skipped: ${YELLOW}$SKIPPED${NC}"
-echo -e "Duration: ${TOTAL_DURATION}s"
+echo -e "Duration: ${TOTAL_DURATION}s ($((TOTAL_DURATION / 60))m)"
 echo ""
 
 if [[ $FAILED -gt 0 ]]; then

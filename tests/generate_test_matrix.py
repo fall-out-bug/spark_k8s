@@ -9,7 +9,7 @@ import json
 from itertools import product
 
 # Dimensions
-SPARK_VERSIONS = ["3.5.7", "3.5.8", "4.0.2", "4.1.1"]
+SPARK_VERSIONS = ["3.5.7", "3.5.8", "4.1.0", "4.1.1"]
 CONNECT_MODES = [True, False]
 K8S_MODES = ["native", "standalone"]
 GPU_MODES = [True, False]
