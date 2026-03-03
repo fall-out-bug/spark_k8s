@@ -1,5 +1,12 @@
 # Shared Infra Demo Runbook
 
+**Deployment paths:**
+
+| Path | Release | Namespace | Use case |
+|------|---------|-----------|----------|
+| This runbook | spark-infra | spark-infra | deploy-demo-minikube, single release |
+| README full-demo | full-demo | demo | Alternative full-stack deploy |
+
 **Persona recipes:** [docs/observability/recipes/](../docs/observability/recipes/) — DevOps, DataOps, Tech Lead, Data Engineer, DS (5-min guides).
 
 ## 0) Deploy Observability Stack (Prometheus + Grafana + Loki + demo-metrics-exporter)
