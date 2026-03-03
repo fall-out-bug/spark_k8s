@@ -5,6 +5,10 @@
 /.cursor/
 /.cursorrules
 
+# Test artifacts
+.coverage
+htmlcov/
+
 # Common local artifacts
 .DS_Store
 *.log
