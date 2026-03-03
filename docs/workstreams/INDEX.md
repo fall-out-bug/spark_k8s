@@ -449,6 +449,38 @@ WS-TESTING-001 (Diagnostics)
 
 ---
 
+## Feature F34: Test Matrix TDD
+
+**Source:** `docs/drafts/idea-test-matrix-tdd.md`
+**Status:** Backlog
+**Total Workstreams:** 5
+**Estimated LOC:** ~500
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-034-01 | Image Pyramid + get_runtime_image | MEDIUM (~150 LOC) | - | backlog |
+| WS-034-02 | Beads Generator (RGR plan) | SMALL (~100 LOC) | - | backlog |
+| WS-034-03 | Full Critical Path (Deploy+Smoke+E2E+Load) | MEDIUM (~200 LOC) | WS-034-01 | backlog |
+| WS-034-04 | Metrics Validation (History Server) | SMALL (~100 LOC) | WS-034-03 | backlog |
+| WS-034-05 | Green 96 k8s/no-gpu Scenarios | LARGE (~500 LOC) | WS-034-01, 02, 03 | backlog |
+
+### Context
+
+Матрица 320 сценариев в плачевном состоянии. TDD: каждый тест доказывает требование. Red → Green → Refactor. Beads на каждый сценарий. **GPU не исключается** — кластер перезапускается с GPU support.
+
+### Dependency Graph
+
+```
+WS-034-01 (Image pyramid)
+    ├── WS-034-03 (Critical path)
+    │       └── WS-034-04 (Metrics)
+    └── WS-034-05 (Green 96)
+
+WS-034-02 (Beads) ──► WS-034-05
+```
+
+---
+
 ## Feature F08: Phase 2 — Complete Smoke Tests
 
 **Source:** `docs/phases/phase-02-smoke.md`
@@ -1273,7 +1305,7 @@ WS-031-01 (Audit)
 | F25: Spark 3.5 Production-Ready | 12 | 10 | 0 | 2 |
 | **F26: Spark Performance Defaults** | **3** | **3** | **0** | **0** |
 | **F27: Code Quality A*** | **3** | **0** | **0** | **3** |
-| **F28: Chart Architecture DRY** | **3** | **1** | **0** | **2** |
+| **F28: Chart Architecture DRY** | **3** | **3** | **0** | **0** |
 | **F29: CI/CD Hardening** | **4** | **0** | **0** | **4** |
 | **F30: Data Engineering Patterns** | **4** | **0** | **0** | **4** |
 | TESTING: Testing Infrastructure | 3+ | 0 | 0 | 3+ |

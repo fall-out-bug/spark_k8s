@@ -28,7 +28,7 @@ Project progress by feature. Auto-generated from [docs/workstreams/INDEX.md](doc
 | F25: Spark 3.5 Production-Ready | 12 | 10 | 0 | 2 |
 | **F26: Spark Performance Defaults** | **3** | **3** | **0** | **0** |
 | **F27: Code Quality A*** | **3** | **0** | **0** | **3** |
-| **F28: Chart Architecture DRY** | **3** | **1** | **0** | **2** |
+| **F28: Chart Architecture DRY** | **3** | **3** | **0** | **0** |
 | **F29: CI/CD Hardening** | **4** | **0** | **0** | **4** |
 | **F30: Data Engineering Patterns** | **4** | **0** | **0** | **4** |
 | TESTING: Testing Infrastructure | 3+ | 0 | 0 | 3+ |
