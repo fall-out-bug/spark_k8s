@@ -176,8 +176,8 @@ run_scenario() {
         --set worker.image.tag="$image_tag" \
         --set master.resources.requests.cpu=500m \
         --set master.resources.requests.memory=512Mi \
-        --set worker.resources.requests.cpu=500m \
-        --set worker.resources.requests.memory=1Gi \
+        --set worker.resources.requests.cpu=200m \
+        --set worker.resources.requests.memory=512Mi \
         --set airflow.enabled=false \
         --timeout 5m --wait >/dev/null 2>&1; then
         result="FAIL"
