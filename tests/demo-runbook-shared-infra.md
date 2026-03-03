@@ -48,59 +48,33 @@ Upload Spark job scripts (required for nyc_taxi, citibike, movielens DAGs):
 ./scripts/upload-spark-jobs-to-minio.sh spark-infra
 ```
 
-## 3) Run demo validation job (Spark + S3 + Metastore)
+## 3) Run real pipelines (critical path)
+
+Trigger полноценные DAGs. Синтетика (spark.range, count) не используется — только реальные пайплайны.
+
+**Precondition:** NYC TLC data в `s3a://nyc-taxi/raw/` (≥4 files). Citibike/Movielens — свои buckets.
 
 ```bash
-MASTER_POD=$(kubectl get pod -n spark-infra -l app.kubernetes.io/component=spark-master -o jsonpath='{.items[0].metadata.name}')
+WEB_POD=$(kubectl get pod -n spark-infra -l app.kubernetes.io/component=airflow-webserver -o jsonpath='{.items[0].metadata.name}')
 
-cat > /tmp/demo-verify.py <<'PY'
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col
+# Unpause
+kubectl exec -n spark-infra $WEB_POD -- airflow dags unpause nyc_taxi_ml_full_pipeline
+kubectl exec -n spark-infra $WEB_POD -- airflow dags unpause spark_standalone_load_demo
+kubectl exec -n spark-infra $WEB_POD -- airflow dags unpause citibike_analytics_pipeline
+kubectl exec -n spark-infra $WEB_POD -- airflow dags unpause movielens_recommendation_pipeline
 
-spark = (SparkSession.builder
-    .appName('shared-demo-verify')
-    .config('spark.hadoop.fs.s3a.endpoint', 'http://minio:9000')
-    .config('spark.hadoop.fs.s3a.access.key', 'minioadmin')
-    .config('spark.hadoop.fs.s3a.secret.key', 'minioadmin')
-    .config('spark.hadoop.fs.s3a.path.style.access', 'true')
-    .config('spark.hadoop.fs.s3a.impl', 'org.apache.hadoop.fs.s3a.S3AFileSystem')
-    .config('spark.hadoop.hive.metastore.uris', 'thrift://spark-shared-spark-35-metastore:9083')
-    .config('spark.sql.warehouse.dir', 's3a://warehouse/spark-35')
-    .enableHiveSupport()
-    .getOrCreate())
-
-print('SMOKE_COUNT=', spark.range(1000).count())
-
-df = spark.range(10000).withColumn('g', col('id') % 16)
-df.write.mode('overwrite').parquet('s3a://spark-jobs/demo-shared-verify/')
-print('S3_COUNT=', spark.read.parquet('s3a://spark-jobs/demo-shared-verify/').count())
-
-spark.sql('CREATE DATABASE IF NOT EXISTS demo_shared LOCATION "s3a://warehouse/spark-35/demo_shared.db"')
-spark.sql('DROP TABLE IF EXISTS demo_shared.metrics')
-spark.sql('CREATE TABLE demo_shared.metrics (value INT) USING PARQUET LOCATION "s3a://warehouse/spark-35/demo_shared.db/metrics"')
-spark.sql('INSERT INTO demo_shared.metrics VALUES (42)')
-print('HIVE_VALUE=', spark.sql('SELECT value FROM demo_shared.metrics').collect()[0][0])
-
-spark.stop()
-PY
-
-kubectl cp /tmp/demo-verify.py spark-infra/$MASTER_POD:/tmp/demo-verify.py
-
-kubectl exec -n spark-infra $MASTER_POD -- bash -lc '
-DRIVER_HOST=$(hostname -i)
-spark-submit \
-  --master spark://spark-infra-spark-standalone-master:7077 \
-  --conf spark.driver.host=$DRIVER_HOST \
-  --conf spark.driver.bindAddress=0.0.0.0 \
-  --conf spark.eventLog.enabled=true \
-  --conf spark.eventLog.dir=s3a://spark-logs/events \
-  /tmp/demo-verify.py'
+# Trigger (выбери DAG с загруженными данными)
+kubectl exec -n spark-infra $WEB_POD -- airflow dags trigger nyc_taxi_ml_full_pipeline --run-id "demo-$(date +%Y%m%d%H%M%S)"
+# или spark_standalone_load_demo если nyc-taxi данных нет
 ```
 
-Expected output markers:
-- `SMOKE_COUNT= 1000`
-- `S3_COUNT= 10000`
-- `HIVE_VALUE= 42`
+**Verify completion:**
+```bash
+kubectl exec -n spark-infra $WEB_POD -- airflow dags list-runs -d nyc_taxi_ml_full_pipeline --output table
+# state = success
+```
+
+**Verify metrics/dashboards:** History Server → applications; Grafana Tech Lead Morning → phase breakdown; Prometheus `spark_latest_stage_*`, `airflow_dag_runs_state`.
 
 ## 4) Verify History Server, Grafana, Loki
 
@@ -182,14 +156,7 @@ WEB_POD=$(kubectl get pod -n spark-infra -l app.kubernetes.io/component=airflow-
 kubectl exec -n spark-infra $WEB_POD -- airflow dags list
 ```
 
-Unpause all demo DAGs:
-
-```bash
-kubectl exec -n spark-infra $WEB_POD -- airflow dags unpause nyc_taxi_ml_full_pipeline
-kubectl exec -n spark-infra $WEB_POD -- airflow dags unpause spark_standalone_load_demo
-kubectl exec -n spark-infra $WEB_POD -- airflow dags unpause citibike_analytics_pipeline
-kubectl exec -n spark-infra $WEB_POD -- airflow dags unpause movielens_recommendation_pipeline
-```
+Unpause + trigger — см. section 3.
 
 Jupyter notebooks expected:
 
@@ -222,27 +189,20 @@ kubectl get pod -n observability -l app=demo-metrics-exporter
 curl -s "http://$(minikube ip):30090/api/v1/targets" | grep -A2 demo-metrics-exporter
 ```
 
-## 9) Trigger DAG and verify History/Grafana logs
+## 9) Verify after pipeline run (section 3)
+
+После успешного DAG run:
 
 ```bash
-WEB_POD=$(kubectl get pod -n spark-infra -l app.kubernetes.io/component=airflow-webserver -o jsonpath='{.items[0].metadata.name}')
-RUN_ID="demo-history-$(date +%Y%m%d%H%M%S)"
-kubectl exec -n spark-infra $WEB_POD -- airflow dags trigger spark_standalone_load_demo --run-id "$RUN_ID"
-kubectl exec -n spark-infra $WEB_POD -- airflow dags list-runs -d spark_standalone_load_demo --output table
-
-# Event log in MinIO
+# Event log в MinIO
 kubectl run -n spark-infra minio-events-check --rm -i --restart=Never \
   --image=quay.io/minio/mc:latest --command -- /bin/sh -c "
   mc alias set local http://minio:9000 minioadmin minioadmin &&
   mc ls local/spark-logs/events"
 
-# History API should include new app
+# History API — applications
 IP=$(minikube ip)
 curl -s http://$IP:30081/api/v1/applications
-
-# History and Grafana pod logs
-kubectl logs -n spark-infra deployment/spark-shared-spark-35-history --tail=200
-kubectl logs -n observability deployment/grafana --tail=200
 ```
 
 ## 10) Prometheus + metrics checks
