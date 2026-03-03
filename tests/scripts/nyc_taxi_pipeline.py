@@ -8,7 +8,10 @@ Env: TEST_LEVEL=smoke|e2e|load, MASTER_URL=spark://host:7077
 import os
 import sys
 import time
+from functools import reduce
+
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
 from pyspark.sql.types import (
     StructType,
     StructField,
@@ -107,10 +110,44 @@ def run_e2e(spark: SparkSession) -> bool:
     return True
 
 
+def _list_parquet_paths(spark: SparkSession, base_path: str) -> list[str]:
+    """List parquet file paths under base_path via binaryFile (no schema inference)."""
+    paths_df = (
+        spark.read.format("binaryFile")
+        .option("pathGlobFilter", "*.parquet")
+        .option("recursiveFileLookup", "true")
+        .load(base_path)
+        .select("path")
+        .distinct()
+    )
+    return [r.path for r in paths_df.collect()]
+
+
 def run_load(spark: SparkSession, s3_endpoint: str) -> bool:
-    """Load: 100K in-memory, sustained ops. S3 parquet has mixed INT32/INT64 across files."""
-    df = make_nyc_data(spark, 100000)
-    count = 100000
+    """Load: S3 parquet only. Reads each file separately to handle INT32/INT64 mix."""
+    path = "s3a://nyc-taxi/raw/"
+    spark.conf.set("fs.s3a.endpoint", s3_endpoint)
+    spark.conf.set("fs.s3a.access.key", "minioadmin")
+    spark.conf.set("fs.s3a.secret.key", "minioadmin")
+    spark.conf.set("fs.s3a.path.style.access", "true")
+
+    paths = _list_parquet_paths(spark, path)
+    if not paths:
+        raise ValueError(f"No parquet files found in {path}")
+
+    dfs = []
+    for p in paths:
+        part = spark.read.parquet(p).select(
+            col("PULocationID").cast("int").alias("PULocationID"),
+            col("total_amount"),
+        )
+        dfs.append(part)
+
+    df = reduce(lambda a, b: a.union(b), dfs)
+    count = df.count()
+    if count < 100:
+        raise ValueError(f"Too few rows from S3: {count}")
+
     df.createOrReplaceTempView("nyc_taxi")
     start = time.time()
     for _ in range(3):
@@ -137,13 +174,26 @@ def main() -> int:
             ).stdout.strip()
             or "127.0.0.1"
         )
-    spark = (
+    builder = (
         SparkSession.builder.appName(f"nyc-taxi-{level}")
         .master(master_url)
         .config("spark.driver.host", driver_host)
         .config("spark.driver.bindAddress", "0.0.0.0")
-        .getOrCreate()
     )
+    # S3 config for event logging (images may default to s3a://spark-logs/...)
+    if s3_endpoint:
+        builder = (
+            builder.config("spark.hadoop.fs.s3a.endpoint", s3_endpoint)
+            .config("spark.hadoop.fs.s3a.access.key", "minioadmin")
+            .config("spark.hadoop.fs.s3a.secret.key", "minioadmin")
+            .config("spark.hadoop.fs.s3a.path.style.access", "true")
+        )
+    # Event logs to S3 for load (History Server path: s3a://spark-logs/events for 3.5.x)
+    if level == "load" and s3_endpoint:
+        builder = builder.config("spark.eventLog.enabled", "true").config(
+            "spark.eventLog.dir", "s3a://spark-logs/events"
+        )
+    spark = builder.getOrCreate()
     ok = False
     if level == "smoke":
         ok = run_smoke(spark)

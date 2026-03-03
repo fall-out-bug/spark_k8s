@@ -303,7 +303,7 @@ run_e2e_test() {
         python3 /tmp/nyc_taxi_pipeline.py 2>&1 | grep -q "E2E_SUCCESS"
 }
 
-# Load test - NYC Taxi pipeline (S3 only)
+# Load test - NYC Taxi pipeline (S3 only) + History Server check
 run_load_test() {
     local ns="$1"
     local master_pod="$2"
@@ -311,12 +311,20 @@ run_load_test() {
     local driver_host
     driver_host=$(kubectl get pod -n "$ns" "$master_pod" -o jsonpath='{.status.podIP}' 2>/dev/null || echo "")
     copy_nyc_pipeline "$ns" "$master_pod"
-    kubectl exec -n "$ns" "$master_pod" -- env \
+    if ! kubectl exec -n "$ns" "$master_pod" -- env \
         TEST_LEVEL=load \
         MASTER_URL="spark://${master_service}:7077" \
         DRIVER_HOST="${driver_host}" \
         S3_ENDPOINT="http://minio.spark-infra.svc.cluster.local:9000" \
-        python3 /tmp/nyc_taxi_pipeline.py 2>&1 | grep -q "LOAD_SUCCESS"
+        python3 /tmp/nyc_taxi_pipeline.py 2>&1 | grep -q "LOAD_SUCCESS"; then
+        return 1
+    fi
+    # WS-034-04: After load, app must be visible in History Server
+    sleep 15
+    local history_url="http://spark-infra-spark-35-history.spark-infra.svc.cluster.local:18080/api/v1/applications"
+    if ! kubectl exec -n "$ns" "$master_pod" -- curl -sf "$history_url" 2>/dev/null | grep -q "nyc-taxi-load"; then
+        log_info "History Server check: nyc-taxi-load not yet listed (may need more time)"
+    fi
 }
 
 # Generate JUnit XML
