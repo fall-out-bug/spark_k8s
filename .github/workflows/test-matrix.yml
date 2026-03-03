@@ -35,14 +35,14 @@ on:
         description: 'Feature set (basic, full, or specific: gpu,iceberg,shuffle,openlineage)'
         required: false
         default: 'basic'
-  
+
   # Scheduled runs
   schedule:
     # Smoke tests daily at 6 AM UTC
     - cron: '0 6 * * *'
       # E2E tests weekly on Sunday at 8 AM UTC
     - cron: '0 8 * * 0'
-  
+
   # On push to main/dev
   push:
     branches:
@@ -65,11 +65,11 @@ jobs:
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
       count: ${{ steps.matrix.outputs.count }}
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Generate test matrix
         id: matrix
         run: |
@@ -79,16 +79,16 @@ jobs:
             --platform "${{ github.event.inputs.platform || 'all' }}" \
             --features "${{ github.event.inputs.features || 'basic' }}" \
             --output-format json > matrix.json
-          
+
           # Extract matrix for GitHub Actions
           MATRIX=$(cat matrix.json | jq -c '.scenarios')
           COUNT=$(cat matrix.json | jq '.count')
-          
+
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
           echo "count=$COUNT" >> $GITHUB_OUTPUT
-          
+
           echo "Generated $COUNT test scenarios"
-      
+
       - name: Upload matrix artifact
         uses: actions/upload-artifact@v4
         with:
@@ -101,21 +101,21 @@ jobs:
     needs: generate-matrix
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    
+
     strategy:
       fail-fast: false
       max-parallel: 20
       matrix:
         scenario: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Setup environment variables
         run: |
           SCENARIO='${{ matrix.scenario }}'
-          
+
           # Parse scenario
           SPARK_VERSION=$(echo $SCENARIO | jq -r '.spark_version')
           PLATFORM=$(echo $SCENARIO | jq -r '.platform')
@@ -126,7 +126,7 @@ jobs:
           SHUFFLE_ENABLED=$(echo $SCENARIO | jq -r '.shuffle_enabled')
           OPENLINEAGE_ENABLED=$(echo $SCENARIO | jq -r '.openlineage_enabled')
           TEST_TYPE=$(echo $SCENARIO | jq -r '.test_type')
-          
+
           # Set environment variables
           echo "SPARK_VERSION=$SPARK_VERSION" >> $GITHUB_ENV
           echo "PLATFORM=$PLATFORM" >> $GITHUB_ENV
@@ -137,13 +137,13 @@ jobs:
           echo "SHUFFLE_ENABLED=$SHUFFLE_ENABLED" >> $GITHUB_ENV
           echo "OPENLINEAGE_ENABLED=$OPENLINEAGE_ENABLED" >> $GITHUB_ENV
           echo "TEST_TYPE=$TEST_TYPE" >> $GITHUB_ENV
-          
+
           # Generate scenario ID
           SCENARIO_ID="${TEST_TYPE}-${SPARK_VERSION}-${PLATFORM}-${DEPLOYMENT_MODE}-connect-${CONNECT_ENABLED}-gpu-${GPU_ENABLED}-iceberg-${ICEBERG_ENABLED}"
           echo "SCENARIO_ID=$SCENARIO_ID" >> $GITHUB_ENV
-          
+
           echo "Running scenario: $SCENARIO_ID"
-      
+
       - name: Setup Minikube
         if: env.PLATFORM == 'k8s'
         uses: medyagh/setup-minikube@latest
@@ -153,35 +153,35 @@ jobs:
           cpus: 2
           memory: 4096
           start-args: '--addons metrics-server'
-      
+
       - name: Setup Helm
         uses: azure/setup-helm@v3
         with:
           version: 'v3.13.0'
-      
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
           cache: 'pip'
-      
+
       - name: Install dependencies
         run: |
           pip install pyspark pytest junit-xml
           helm repo add bitnami https://charts.bitnami.com/bitnami || true
           helm repo update
-      
+
       - name: Create namespace
         run: |
           kubectl create namespace ${{ env.K8S_NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
-      
+
       - name: Deploy Spark (Standalone mode)
         if: env.DEPLOYMENT_MODE == 'standalone'
         run: |
           CHART_PATH="./charts/spark-3.5"
           [[ "${{ env.SPARK_VERSION }}" == "4.0."* ]] && CHART_PATH="./charts/spark-4.0"
           [[ "${{ env.SPARK_VERSION }}" == "4.1."* ]] && CHART_PATH="./charts/spark-4.1"
-          
+
           helm install ${{ env.HELM_RELEASE }} $CHART_PATH \
             --namespace ${{ env.K8S_NAMESPACE }} \
             --set standalone.enabled=true \
@@ -194,14 +194,14 @@ jobs:
         env:
           HELM_RELEASE: spark-matrix
         continue-on-error: true
-      
+
       - name: Deploy Spark (Native K8s mode)
         if: env.DEPLOYMENT_MODE == 'native'
         run: |
           CHART_PATH="./charts/spark-3.5"
           [[ "${{ env.SPARK_VERSION }}" == "4.0."* ]] && CHART_PATH="./charts/spark-4.0"
           [[ "${{ env.SPARK_VERSION }}" == "4.1."* ]] && CHART_PATH="./charts/spark-4.1"
-          
+
           helm install ${{ env.HELM_RELEASE }} $CHART_PATH \
             --namespace ${{ env.K8S_NAMESPACE }} \
             --set connect.enabled=true \
@@ -212,7 +212,7 @@ jobs:
         env:
           HELM_RELEASE: spark-matrix
         continue-on-error: true
-      
+
       - name: Wait for pods to be ready
         run: |
           kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=${{ env.HELM_RELEASE }} \
@@ -221,7 +221,7 @@ jobs:
         env:
           HELM_RELEASE: spark-matrix
         continue-on-error: true
-      
+
       - name: Run Smoke Test
         if: env.TEST_TYPE == 'smoke' || env.TEST_TYPE == 'all'
         run: |
@@ -236,21 +236,21 @@ jobs:
           export SHUFFLE_ENABLED=${{ env.SHUFFLE_ENABLED }}
           export OPENLINEAGE_ENABLED=${{ env.OPENLINEAGE_ENABLED }}
           export TEST_TIMEOUT=${{ env.TEST_TIMEOUT }}
-          
+
           chmod +x tests/templates/smoke-template.sh
           ./tests/templates/smoke-template.sh || TEST_EXIT_CODE=$?
-          
+
           # Generate JUnit XML
           python3 -c "
           import junit_xml
           from datetime import datetime
-          
+
           test_case = junit_xml.TestCase('${{ env.SCENARIO_ID }}')
           if $TEST_EXIT_CODE == 0:
               test_case.elapsed_sec = 60
           else:
               test_case.add_failure_info('Test failed')
-          
+
           ts = junit_xml.TestSuite('smoke', [test_case])
           with open('tests/results/junit-smoke-${{ env.SCENARIO_ID }}.xml', 'w') as f:
               junit_xml.TestSuite.to_file(f, [ts])
@@ -258,7 +258,7 @@ jobs:
         env:
           HELM_RELEASE: spark-matrix
         continue-on-error: true
-      
+
       - name: Run E2E Test
         if: env.TEST_TYPE == 'e2e' || env.TEST_TYPE == 'all'
         run: |
@@ -273,13 +273,13 @@ jobs:
           export SHUFFLE_ENABLED=${{ env.SHUFFLE_ENABLED }}
           export OPENLINEAGE_ENABLED=${{ env.OPENLINEAGE_ENABLED }}
           export TEST_TIMEOUT=${{ env.TEST_TIMEOUT }}
-          
+
           chmod +x tests/templates/e2e-template.sh
           ./tests/templates/e2e-template.sh || TEST_EXIT_CODE=$?
         env:
           HELM_RELEASE: spark-matrix
         continue-on-error: true
-      
+
       - name: Run Load Test
         if: env.TEST_TYPE == 'load' || env.TEST_TYPE == 'all'
         run: |
@@ -296,33 +296,33 @@ jobs:
           export TEST_TIMEOUT=600
           export DATA_SIZE=10000
           export PARTITIONS=4
-          
+
           chmod +x tests/templates/load-template.sh
           ./tests/templates/load-template.sh || TEST_EXIT_CODE=$?
         env:
           HELM_RELEASE: spark-matrix
         continue-on-error: true
-      
+
       - name: Collect results
         if: always()
         run: |
           mkdir -p results
-          
+
           # Collect logs
           kubectl logs -l app.kubernetes.io/instance=${{ env.HELM_RELEASE }} \
             --namespace ${{ env.K8S_NAMESPACE }} \
             --tail=100 > results/spark-logs-${{ env.SCENARIO_ID }}.txt || true
-          
+
           # Collect pod status
           kubectl get pods -n ${{ env.K8S_NAMESPACE }} \
             -l app.kubernetes.io/instance=${{ env.HELM_RELEASE }} \
             -o wide > results/pod-status-${{ env.SCENARIO_ID }}.txt || true
-          
+
           # Copy test results
           cp -r tests/results/* results/ 2>/dev/null || true
         env:
           HELM_RELEASE: spark-matrix
-      
+
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
@@ -330,7 +330,7 @@ jobs:
           name: results-${{ env.SCENARIO_ID }}
           path: results/
           retention-days: 7
-      
+
       - name: Cleanup
         if: always()
         run: |
@@ -344,18 +344,18 @@ jobs:
     needs: run-tests
     runs-on: ubuntu-latest
     if: always()
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: all-results
           pattern: results-*
           merge-multiple: false
-      
+
       - name: Generate summary report
         run: |
           python3 << 'EOF'
@@ -363,7 +363,7 @@ jobs:
           import glob
           import json
           from datetime import datetime
-          
+
           # Collect all results
           results = {
               'total': 0,
@@ -372,16 +372,16 @@ jobs:
               'skipped': 0,
               'scenarios': []
           }
-          
+
           # Process each result directory
           for result_dir in glob.glob('all-results/results-*'):
               scenario_id = result_dir.replace('all-results/results-', '')
-              
+
               # Check for pass/fail indicators
               failed_file = glob.glob(f'{result_dir}/*failed*.log')
               passed_file = glob.glob(f'{result_dir}/*passed*.log')
               junit_file = glob.glob(f'{result_dir}/*.xml')
-              
+
               status = 'unknown'
               if failed_file:
                   status = 'failed'
@@ -392,52 +392,52 @@ jobs:
               else:
                   status = 'skipped'
                   results['skipped'] += 1
-              
+
               results['scenarios'].append({
                   'id': scenario_id,
                   'status': status
               })
               results['total'] += 1
-          
+
           # Write summary
           with open('test-matrix-summary.json', 'w') as f:
               json.dump(results, f, indent=2)
-          
+
           # Generate markdown report
           report = f"""# Test Matrix Summary
 
           **Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
-          
+
           ## Overall Results
-          
+
           | Metric | Count |
           |--------|-------|
           | Total Scenarios | {results['total']} |
           | ✅ Passed | {results['passed']} |
           | ❌ Failed | {results['failed']} |
           | ⏭️ Skipped | {results['skipped']} |
-          
+
           ## Pass Rate
-          
+
           **{results['passed'] / max(results['total'], 1) * 100:.1f}%** ({results['passed']}/{results['total']})
-          
+
           ## Failed Scenarios
-          
+
           """
-          
+
           failed_scenarios = [s for s in results['scenarios'] if s['status'] == 'failed']
           if failed_scenarios:
               for s in failed_scenarios:
                   report += f"- {s['id']}\n"
           else:
               report += "None 🎉\n"
-          
+
           with open('test-matrix-report.md', 'w') as f:
               f.write(report)
-          
+
           print(report)
           EOF
-      
+
       - name: Upload summary
         uses: actions/upload-artifact@v4
         with:
@@ -446,7 +446,7 @@ jobs:
             test-matrix-summary.json
             test-matrix-report.md
           retention-days: 30
-      
+
       - name: Comment on PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
@@ -454,7 +454,7 @@ jobs:
           script: |
             const fs = require('fs');
             const report = fs.readFileSync('test-matrix-report.md', 'utf8');
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -467,7 +467,7 @@ jobs:
     needs: [run-tests, aggregate-results]
     runs-on: ubuntu-latest
     if: always()
-    
+
     steps:
       - name: Check for failures
         run: |

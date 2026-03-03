@@ -137,4 +137,3 @@ jobs:
       - name: Monitor for 30 minutes
         run: |
           scripts/cicd/monitor-deployment.sh --duration 30m
-

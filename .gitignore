@@ -38,3 +38,14 @@ secrets.yaml
 *.pem
 *.key
 credentials.yaml
+
+# SDP
+.sdp/.git
+.claude/skills
+.claude/agents
+.cursor/skills
+.cursor/agents
+.prompts
+
+# Test artifacts
+.coverage

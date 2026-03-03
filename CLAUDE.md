@@ -317,19 +317,19 @@ python scripts/validate.py docs/workstreams/backlog/
 
 ## Forbidden Patterns
 
-❌ `except: pass` or bare exceptions  
-❌ Time-based estimates  
-❌ Layer violations  
-❌ Files > 200 LOC  
-❌ TODO without followup WS  
+❌ `except: pass` or bare exceptions
+❌ Time-based estimates
+❌ Layer violations
+❌ Files > 200 LOC
+❌ TODO without followup WS
 ❌ Coverage < 80%
 
 ## Required Patterns
 
-✅ Type hints everywhere  
-✅ Tests first (TDD)  
-✅ Explicit error handling  
-✅ Clean architecture boundaries  
+✅ Type hints everywhere
+✅ Tests first (TDD)
+✅ Explicit error handling
+✅ Clean architecture boundaries
 ✅ Conventional commits
 
 ## Troubleshooting
@@ -380,6 +380,6 @@ See `.claude/settings.json` for:
 
 ---
 
-**Version:** SDP v0.9.8  
-**Claude Code Version:** 0.3+  
+**Version:** SDP v0.9.8
+**Claude Code Version:** 0.3+
 **Mode:** Skill-based, one-shot execution

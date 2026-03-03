@@ -79,4 +79,3 @@ If any smoke test fails → **equivalent to regression failure (BLOCKING)**.
   - **Execution Report**
   - **Review Result** (APPROVED / CHANGES REQUESTED)
 - After feature approval, add a UAT guide: `docs/uat/UAT-F01-spark-standalone.md`.
-
