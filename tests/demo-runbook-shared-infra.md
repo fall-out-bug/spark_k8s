@@ -12,6 +12,8 @@ kubectl apply -f tests/observability/prometheus-demo.yaml
 kubectl apply -f tests/observability/demo-metrics-exporter.yaml
 kubectl apply -f tests/observability/grafana-dashboards.yaml
 kubectl apply -f tests/observability/grafana-dashboards-spark.yaml
+kubectl apply -f tests/observability/grafana-dashboard-tech-lead.yaml
+kubectl apply -f tests/observability/grafana-dashboard-logs-explorer.yaml
 kubectl apply -f tests/observability/loki.yaml
 kubectl apply -f tests/observability/promtail.yaml
 ./scripts/deploy-grafana-with-sidecar.sh
