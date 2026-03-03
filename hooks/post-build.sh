@@ -67,7 +67,7 @@ if [ -d "src" ] && command -v poetry &> /dev/null; then
     } || {
         echo "⚠️  Ruff found issues"
     }
-    
+
     poetry run mypy src/ --ignore-missing-imports --no-error-summary 2>/dev/null && {
         echo "✓ Mypy passed"
     } || {

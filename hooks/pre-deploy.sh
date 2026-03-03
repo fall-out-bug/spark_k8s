@@ -25,7 +25,7 @@ echo "=== Review Status Check ==="
 
 if [ -d "docs/workstreams" ]; then
     WS_FILES=$(find docs/workstreams -name "WS-${FEATURE#F}*.md" 2>/dev/null || true)
-    
+
     if [ -n "$WS_FILES" ]; then
         ALL_APPROVED=true
         for WS_FILE in $WS_FILES; do
@@ -34,7 +34,7 @@ if [ -d "docs/workstreams" ]; then
                 ALL_APPROVED=false
             fi
         done
-        
+
         if [ "$ALL_APPROVED" = true ]; then
             echo "✓ All WS approved"
         else

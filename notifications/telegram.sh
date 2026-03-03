@@ -18,7 +18,7 @@ fi
 send_telegram() {
     local message="$1"
     local parse_mode="${2:-Markdown}"
-    
+
     curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
         -d "chat_id=${TELEGRAM_CHAT_ID}" \
         -d "text=${message}" \
@@ -31,7 +31,7 @@ send_telegram() {
 main() {
     local event_type="$1"
     shift
-    
+
     case "$event_type" in
         "oneshot_started")
             local feature_id="$1"
@@ -44,7 +44,7 @@ Status: Executing autonomously
 
 Branch: \`$(git branch --show-current)\`"
             ;;
-        
+
         "oneshot_completed")
             local feature_id="$1"
             local duration="$2"
@@ -56,7 +56,7 @@ Status: All WS executed successfully
 
 Ready for review: \`/review $feature_id\`"
             ;;
-        
+
         "oneshot_blocked")
             local feature_id="$1"
             local ws_id="$2"
@@ -71,7 +71,7 @@ Reason: $reason
 
 To resume: \`/oneshot $feature_id --resume\`"
             ;;
-        
+
         "ws_failed")
             local ws_id="$1"
             local error="$2"
@@ -82,7 +82,7 @@ Error: $error
 
 Retry: \`/build $ws_id\`"
             ;;
-        
+
         "review_failed")
             local feature_id="$1"
             local issues_count="$2"
@@ -95,7 +95,7 @@ Status: CHANGES_REQUESTED
 
 Check: \`docs/workstreams/reports/$feature_id-review.md\`"
             ;;
-        
+
         "breaking_changes")
             local count="$1"
             send_telegram "⚠️ *Breaking Changes Detected*
@@ -107,7 +107,7 @@ Action required:
 2. Complete \`MIGRATION_GUIDE.md\`
 3. Add both to commit"
             ;;
-        
+
         "e2e_failed")
             local feature_id="$1"
             local failed_tests="$2"
@@ -118,7 +118,7 @@ Failed tests: $failed_tests
 
 ⛔ Deployment blocked until fixed"
             ;;
-        
+
         "deploy_success")
             local feature_id="$1"
             local environment="$2"
@@ -131,7 +131,7 @@ Version: $version
 
 Status: Live"
             ;;
-        
+
         "hotfix_deployed")
             local issue_id="$1"
             local duration="$2"
@@ -143,7 +143,7 @@ Target: Production
 
 Status: Emergency fix live"
             ;;
-        
+
         *)
             echo "Unknown event type: $event_type"
             exit 1

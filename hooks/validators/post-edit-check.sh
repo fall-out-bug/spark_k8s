@@ -18,7 +18,7 @@ if echo "$FILE_PATH" | grep -qE "\.py$"; then
         echo "         Remove these before completing the workstream"
         WARNINGS=$((WARNINGS + 1))
     fi
-    
+
     # Check file size
     LINE_COUNT=$(wc -l < "$FILE_PATH")
     if [ "$LINE_COUNT" -gt 200 ]; then
@@ -28,7 +28,7 @@ if echo "$FILE_PATH" | grep -qE "\.py$"; then
     elif [ "$LINE_COUNT" -gt 150 ]; then
         echo "INFO: File $FILE_PATH has $LINE_COUNT lines (approaching 200 limit)"
     fi
-    
+
     # Check for bare except
     if grep -qE "except\s*:" "$FILE_PATH" 2>/dev/null; then
         BARE_EXCEPT=$(grep -cE "except\s*:" "$FILE_PATH" 2>/dev/null || echo "0")
@@ -36,7 +36,7 @@ if echo "$FILE_PATH" | grep -qE "\.py$"; then
         echo "         Use specific exception types"
         WARNINGS=$((WARNINGS + 1))
     fi
-    
+
     # Check for missing type hints (functions without ->)
     FUNCS_WITHOUT_RETURN=$(grep -cE "^\s*def\s+\w+\([^)]*\)\s*:" "$FILE_PATH" 2>/dev/null || echo "0")
     if [ "$FUNCS_WITHOUT_RETURN" -gt 0 ]; then

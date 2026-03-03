@@ -28,11 +28,11 @@ if [ -f "$CHECKPOINT_FILE" ]; then
     STATUS=$(jq -r '.status' "$CHECKPOINT_FILE" 2>/dev/null || echo "unknown")
     COMPLETED=$(jq -r '.completed_ws | length' "$CHECKPOINT_FILE" 2>/dev/null || echo "0")
     PENDING=$(jq -r '.pending_ws | length' "$CHECKPOINT_FILE" 2>/dev/null || echo "0")
-    
+
     echo "Status: $STATUS"
     echo "Completed WS: $COMPLETED"
     echo "Pending WS: $PENDING"
-    
+
     if [ "$PENDING" -gt 0 ]; then
         echo "⚠️  Some WS still pending"
     else
@@ -67,7 +67,7 @@ echo "=== Coverage Check ==="
 if [ -d "tests" ] && command -v poetry &> /dev/null; then
     COVERAGE=$(poetry run pytest tests/ --cov=src --cov-report=term-missing --cov-fail-under=80 -q 2>/dev/null | grep "TOTAL" | awk '{print $4}' || echo "unknown")
     echo "Coverage: $COVERAGE"
-    
+
     if [ "$COVERAGE" != "unknown" ]; then
         COV_NUM=${COVERAGE%\%}
         if [ "$COV_NUM" -ge 80 ]; then
