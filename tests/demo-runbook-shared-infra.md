@@ -38,6 +38,7 @@ kubectl run -n spark-infra minio-bootstrap --rm -i --restart=Never \
   mc mb --ignore-existing local/warehouse &&
   mc mb --ignore-existing local/spark-logs &&
   mc mb --ignore-existing local/spark-jobs &&
+  mc mb --ignore-existing local/nyc-taxi &&
   echo '' | mc pipe local/spark-logs/events/.keep &&
   mc ls local"
 ```
@@ -53,6 +54,13 @@ Upload Spark job scripts (required for nyc_taxi, citibike, movielens DAGs):
 Trigger полноценные DAGs. Синтетика (spark.range, count) не используется — только реальные пайплайны.
 
 **Precondition:** NYC TLC data в `s3a://nyc-taxi/raw/` (≥4 files). Citibike/Movielens — свои buckets.
+
+**Data ingestion (if nyc-taxi empty):** Run locally with port-forward to MinIO, or from a pod in spark-infra:
+```bash
+# From host (port-forward MinIO first: kubectl port-forward -n spark-infra svc/minio 9000:9000)
+python scripts/data_ingestion/download_nyc_tlc.py --start-month 2024-01 --end-month 2024-04 \
+  --endpoint http://localhost:9000 --bucket nyc-taxi --path raw/ --limit 4
+```
 
 ```bash
 WEB_POD=$(kubectl get pod -n spark-infra -l app.kubernetes.io/component=airflow-webserver -o jsonpath='{.items[0].metadata.name}')
