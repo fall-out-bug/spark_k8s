@@ -19,6 +19,8 @@ kubectl apply -f tests/observability/promtail.yaml
 ./scripts/deploy-grafana-with-sidecar.sh
 ```
 
+> **Promtail:** Log path `/var/log/pods/` is for containerd (minikube default). On Docker runtime, logs may not be collected; use containerd or document workaround.
+
 **Recommended:** `./scripts/tests/minikube/deploy-observability.sh` (deploys OTEL, Prometheus, Loki, Promtail, demo-metrics-exporter, Grafana, dashboards).
 
 ## 1) Preconditions
