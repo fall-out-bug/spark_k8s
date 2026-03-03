@@ -118,10 +118,35 @@ get_runtime_image() {
     local gpu="$2"
     local iceberg="$3"
 
+    # Image pyramid: baseline | iceberg | gpu | gpu-iceberg (see docs/drafts/idea-test-matrix-tdd.md)
+    local variant="baseline"
+    if [[ "$gpu" == "true" && "$iceberg" == "true" ]]; then
+        variant="gpu-iceberg"
+    elif [[ "$gpu" == "true" ]]; then
+        variant="gpu"
+    elif [[ "$iceberg" == "true" ]]; then
+        variant="iceberg"
+    fi
+
     case "$spark_version" in
-        3.5.7|3.5.8) echo "${MATRIX_IMAGE_REPO}:3.5.7" ;;
-        4.1.0) echo "${MATRIX_IMAGE_REPO}:4.1.0" ;;
-        4.1.1) echo "spark-k8s-runtime:4.1-4.1.1-baseline" ;;
+        3.5.7|3.5.8)
+            if [[ "$MATRIX_IMAGE_REPO" == "spark-k8s-runtime" ]]; then
+                echo "spark-k8s-runtime:3.5-${spark_version}-${variant}"
+            elif [[ "$variant" == "baseline" ]]; then
+                echo "${MATRIX_IMAGE_REPO}:${spark_version}"
+            else
+                echo "${MATRIX_IMAGE_REPO}:${spark_version}-${variant}"
+            fi
+            ;;
+        4.1.0|4.1.1)
+            if [[ "$MATRIX_IMAGE_REPO" == "spark-k8s-runtime" ]]; then
+                echo "spark-k8s-runtime:4.1-${spark_version}-${variant}"
+            elif [[ "$variant" == "baseline" ]]; then
+                echo "${MATRIX_IMAGE_REPO}:${spark_version}"
+            else
+                echo "${MATRIX_IMAGE_REPO}:${spark_version}-${variant}"
+            fi
+            ;;
         *) echo "${MATRIX_IMAGE_REPO}:3.5.7" ;;
     esac
 }
@@ -158,11 +183,8 @@ run_scenario() {
     sleep 3
     kubectl create namespace "$ns" --dry-run=client -o yaml | kubectl apply -f - >/dev/null 2>&1
 
-    # Deploy Spark using spark-standalone chart with custom image
-    local chart="spark-3.5/charts/spark-standalone"
-    if [[ "$spark_version" == 4.1* ]]; then
-        chart="spark-4.1/charts/spark-standalone"
-    fi
+    # Deploy Spark using canonical spark-standalone chart (symlink at charts/spark-standalone)
+    local chart="spark-standalone"
 
     # Extract image repo and tag from runtime image
     local image_repo=$(echo "$runtime_image" | cut -d: -f1)
@@ -261,6 +283,7 @@ run_smoke_test() {
         TEST_LEVEL=smoke \
         MASTER_URL="spark://${master_service}:7077" \
         DRIVER_HOST="${driver_host}" \
+        S3_ENDPOINT="http://minio.spark-infra.svc.cluster.local:9000" \
         python3 /tmp/nyc_taxi_pipeline.py 2>&1 | grep -q "SMOKE_SUCCESS"
 }
 
@@ -276,10 +299,11 @@ run_e2e_test() {
         TEST_LEVEL=e2e \
         MASTER_URL="spark://${master_service}:7077" \
         DRIVER_HOST="${driver_host}" \
+        S3_ENDPOINT="http://minio.spark-infra.svc.cluster.local:9000" \
         python3 /tmp/nyc_taxi_pipeline.py 2>&1 | grep -q "E2E_SUCCESS"
 }
 
-# Load test - NYC Taxi pipeline (S3 or 100K in-memory)
+# Load test - NYC Taxi pipeline (S3 only)
 run_load_test() {
     local ns="$1"
     local master_pod="$2"
