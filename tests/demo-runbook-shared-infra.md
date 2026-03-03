@@ -9,6 +9,8 @@
 
 **Persona recipes:** [docs/observability/recipes/](../docs/observability/recipes/) — DevOps, DataOps, Tech Lead, Data Engineer, DS (5-min guides).
 
+**Order of execution:** 1) Deploy spark-infra (or deploy-demo-minikube). 2) Deploy observability (section 0). 3) Bootstrap MinIO buckets (section 2) and nyc-taxi data if using nyc_taxi_ml. 4) Upload spark jobs. 5) Trigger DAGs (section 3).
+
 ## 0) Deploy Observability Stack (Prometheus + Grafana + Loki + demo-metrics-exporter)
 
 > **Note:** demo-metrics-exporter requires Spark Master and Airflow to be running in spark-infra; it will retry until they are up.
