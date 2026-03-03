@@ -194,9 +194,9 @@ kubectl exec -n spark-infra $JUPYTER_POD -- ls -la /home/jupyter/notebooks
 
 ## 8) Metrics and dashboards sync status
 
-Applied from chart monitoring templates:
-- `ServiceMonitor`: `spark-infra-spark-35-connect`
-- `PodMonitor`: `spark-infra-spark-35-executors`
+Applied from chart monitoring templates (when enabled):
+- `ServiceMonitor`: `spark-infra-spark-35-connect` (N/A if connect.enabled: false)
+- `PodMonitor`: `spark-infra-spark-35-executors` (N/A if connect disabled)
 - Dashboard ConfigMaps: `spark-infra-spark-35-dashboard-*`
 
 Quick checks:
