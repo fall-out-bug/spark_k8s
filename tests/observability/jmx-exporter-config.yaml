@@ -1,0 +1,28 @@
+# JMX Exporter config for Spark driver/executor
+# Requires jmx_prometheus_javaagent.jar in Spark image and:
+#   spark.driver.extraJavaOptions=-javaagent:/path/to/jmx_prometheus_javaagent.jar=8080:/etc/jmx/jmx-config.yaml
+#   spark.executor.extraJavaOptions=-javaagent:/path/to/jmx_prometheus_javaagent.jar=8081:/etc/jmx/jmx-config.yaml
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jmx-exporter-config
+  namespace: observability
+data:
+  jmx-config.yaml: |
+    lowercaseOutputName: true
+    rules:
+      - pattern: "org.apache.spark<type=(\w+)><>(\w+):"
+        name: spark_$1_$2
+        type: GAUGE
+      - pattern: "java.lang<type=Memory><HeapMemoryUsage>used"
+        name: jvm_memory_heap_used
+        type: GAUGE
+      - pattern: "java.lang<type=Memory><HeapMemoryUsage>max"
+        name: jvm_memory_heap_max
+        type: GAUGE
+      - pattern: "java.lang<type=GarbageCollector, name=(\w+)><>LastGcInfo.duration"
+        name: jvm_gc_duration
+        type: GAUGE
+        labels:
+          gc: "$1"

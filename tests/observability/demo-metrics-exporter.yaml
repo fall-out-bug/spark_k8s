@@ -1,0 +1,284 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-metrics-exporter-script
+  namespace: observability
+data:
+  exporter.py: |
+    import os
+    import time
+    import traceback
+    from datetime import datetime, timezone
+
+    import psycopg2
+    import requests
+    from prometheus_client import Gauge, start_http_server
+
+
+    SPARK_MASTER_JSON = os.getenv("SPARK_MASTER_JSON", "http://spark-infra-spark-standalone-master.spark-infra.svc.cluster.local:8080/json/")
+    SPARK_HISTORY_API = os.getenv("SPARK_HISTORY_API", "http://spark-shared-spark-35-history.spark-infra.svc.cluster.local:18080/api/v1")
+    AIRFLOW_PG_HOST = os.getenv("AIRFLOW_PG_HOST", "spark-infra-spark-standalone-airflow-postgresql.spark-infra.svc.cluster.local")
+    AIRFLOW_PG_PORT = int(os.getenv("AIRFLOW_PG_PORT", "5432"))
+    AIRFLOW_PG_DB = os.getenv("AIRFLOW_PG_DB", "airflow")
+    AIRFLOW_PG_USER = os.getenv("AIRFLOW_PG_USER", "airflow")
+    AIRFLOW_PG_PASSWORD = os.getenv("AIRFLOW_PG_PASSWORD", "airflow")
+    TARGET_DAGS = os.getenv("TARGET_DAGS", "spark_standalone_load_demo,nyc_taxi_ml_full_pipeline,citibike_analytics_pipeline,movielens_recommendation_pipeline").split(",")
+
+    scrape_ok = Gauge("demo_metrics_exporter_up", "Exporter scrape status")
+    scrape_spark_ok = Gauge("demo_metrics_exporter_spark_up", "Spark scrape status")
+    scrape_airflow_ok = Gauge("demo_metrics_exporter_airflow_up", "Airflow scrape status")
+
+    spark_workers_alive = Gauge("spark_workers_alive", "Alive Spark workers")
+    spark_workers_total = Gauge("spark_workers_total", "Total Spark workers")
+    spark_apps_running = Gauge("spark_apps_running", "Running Spark apps")
+    spark_apps_waiting = Gauge("spark_apps_waiting", "Waiting Spark apps (queue)")
+    spark_apps_completed = Gauge("spark_apps_completed", "Completed Spark apps")
+    spark_cores_total = Gauge("spark_cores_total", "Total Spark cores")
+    spark_cores_used = Gauge("spark_cores_used", "Used Spark cores")
+    spark_memory_total_mb = Gauge("spark_memory_total_mb", "Total Spark memory MB")
+    spark_memory_used_mb = Gauge("spark_memory_used_mb", "Used Spark memory MB")
+
+    spark_worker_cores_free = Gauge("spark_worker_cores_free", "Worker free cores", ["worker_id", "host"])
+    spark_worker_memory_free_mb = Gauge("spark_worker_memory_free_mb", "Worker free memory MB", ["worker_id", "host"])
+
+    spark_executor_active = Gauge("spark_executor_active", "Executor active flag", ["app_id", "executor_id"])
+    spark_executor_total_tasks = Gauge("spark_executor_total_tasks", "Executor total tasks", ["app_id", "executor_id"])
+    spark_executor_failed_tasks = Gauge("spark_executor_failed_tasks", "Executor failed tasks", ["app_id", "executor_id"])
+    spark_executor_shuffle_read_bytes = Gauge("spark_executor_shuffle_read_bytes", "Executor shuffle read bytes", ["app_id", "executor_id"])
+    spark_executor_shuffle_write_bytes = Gauge("spark_executor_shuffle_write_bytes", "Executor shuffle write bytes", ["app_id", "executor_id"])
+
+    spark_latest_stage_input_bytes = Gauge("spark_latest_stage_input_bytes", "Latest app total input bytes", ["app_id"])
+    spark_latest_stage_output_bytes = Gauge("spark_latest_stage_output_bytes", "Latest app total output bytes", ["app_id"])
+    spark_latest_stage_shuffle_read_bytes = Gauge("spark_latest_stage_shuffle_read_bytes", "Latest app total shuffle read bytes", ["app_id"])
+    spark_latest_stage_shuffle_write_bytes = Gauge("spark_latest_stage_shuffle_write_bytes", "Latest app total shuffle write bytes", ["app_id"])
+    spark_latest_stage_memory_spill_bytes = Gauge("spark_latest_stage_memory_spill_bytes", "Latest app total memory spill bytes", ["app_id"])
+    spark_latest_stage_disk_spill_bytes = Gauge("spark_latest_stage_disk_spill_bytes", "Latest app total disk spill bytes", ["app_id"])
+
+    spark_latest_app_duration_ms = Gauge("spark_latest_app_duration_ms", "Latest app duration ms", ["app_id", "app_name"])
+
+    airflow_dag_runs_state = Gauge("airflow_dag_runs_state", "Airflow dag_run rows by state", ["dag_id", "state"])
+    airflow_task_instances_state = Gauge("airflow_task_instances_state", "Airflow task_instance rows by state", ["dag_id", "state"])
+    airflow_latest_dag_run_age_seconds = Gauge("airflow_latest_dag_run_age_seconds", "Age of latest dag run in seconds", ["dag_id"])
+
+
+    def sum_stage_metric(stages, key):
+        total = 0
+        for stage in stages:
+            try:
+                total += int(stage.get(key, 0) or 0)
+            except Exception:
+                pass
+        return total
+
+
+    def scrape_spark():
+        r = requests.get(SPARK_MASTER_JSON, timeout=5)
+        r.raise_for_status()
+        data = r.json()
+
+        workers = data.get("workers", [])
+        spark_workers_alive.set(float(data.get("aliveworkers", 0) or 0))
+        spark_workers_total.set(float(len(workers)))
+        active_drivers = data.get("activedrivers", 0)
+        if isinstance(active_drivers, list):
+            active_drivers = len(active_drivers)
+        active_apps = data.get("activeapps", 0)
+        if isinstance(active_apps, list):
+            active_apps = len(active_apps)
+        spark_apps_running.set(float(active_drivers or 0) + float(active_apps or 0))
+
+        spark_apps_waiting.set(float(data.get("waitingapps", 0) or 0))
+        completed_apps = data.get("completedapps", 0)
+        if isinstance(completed_apps, list):
+            completed_apps = len(completed_apps)
+        spark_apps_completed.set(float(completed_apps or 0))
+        spark_cores_total.set(float(data.get("cores", 0) or 0))
+        spark_cores_used.set(float(data.get("coresused", 0) or 0))
+        spark_memory_total_mb.set(float(data.get("memory", 0) or 0))
+        spark_memory_used_mb.set(float(data.get("memoryused", 0) or 0))
+
+        for w in workers:
+            wid = str(w.get("id", "unknown"))
+            host = str(w.get("host", "unknown"))
+            spark_worker_cores_free.labels(worker_id=wid, host=host).set(float(w.get("coresfree", 0) or 0))
+            spark_worker_memory_free_mb.labels(worker_id=wid, host=host).set(float(w.get("memoryfree", 0) or 0))
+
+        apps = requests.get(f"{SPARK_HISTORY_API}/applications", timeout=5)
+        apps.raise_for_status()
+        apps_data = apps.json()
+        if not apps_data:
+            return
+
+        latest = apps_data[0]
+        app_id = latest.get("id")
+        app_name = latest.get("name", "unknown")
+        attempts = latest.get("attempts", [])
+        if attempts:
+            dur = attempts[0].get("duration", 0) or 0
+            spark_latest_app_duration_ms.labels(app_id=app_id, app_name=app_name).set(float(dur))
+
+        executors_resp = requests.get(f"{SPARK_HISTORY_API}/applications/{app_id}/executors", timeout=5)
+        executors_resp.raise_for_status()
+        for ex in executors_resp.json():
+            ex_id = str(ex.get("id", "unknown"))
+            spark_executor_active.labels(app_id=app_id, executor_id=ex_id).set(1.0 if ex.get("isActive") else 0.0)
+            spark_executor_total_tasks.labels(app_id=app_id, executor_id=ex_id).set(float(ex.get("totalTasks", 0) or 0))
+            spark_executor_failed_tasks.labels(app_id=app_id, executor_id=ex_id).set(float(ex.get("failedTasks", 0) or 0))
+            spark_executor_shuffle_read_bytes.labels(app_id=app_id, executor_id=ex_id).set(float(ex.get("totalShuffleRead", 0) or 0))
+            spark_executor_shuffle_write_bytes.labels(app_id=app_id, executor_id=ex_id).set(float(ex.get("totalShuffleWrite", 0) or 0))
+
+        stages_resp = requests.get(f"{SPARK_HISTORY_API}/applications/{app_id}/stages", timeout=5)
+        stages_resp.raise_for_status()
+        stages = stages_resp.json()
+        spark_latest_stage_input_bytes.labels(app_id=app_id).set(float(sum_stage_metric(stages, "inputBytes")))
+        spark_latest_stage_output_bytes.labels(app_id=app_id).set(float(sum_stage_metric(stages, "outputBytes")))
+        spark_latest_stage_shuffle_read_bytes.labels(app_id=app_id).set(float(sum_stage_metric(stages, "shuffleReadBytes")))
+        spark_latest_stage_shuffle_write_bytes.labels(app_id=app_id).set(float(sum_stage_metric(stages, "shuffleWriteBytes")))
+        spark_latest_stage_memory_spill_bytes.labels(app_id=app_id).set(float(sum_stage_metric(stages, "memoryBytesSpilled")))
+        spark_latest_stage_disk_spill_bytes.labels(app_id=app_id).set(float(sum_stage_metric(stages, "diskBytesSpilled")))
+
+
+    def scrape_airflow():
+        conn = psycopg2.connect(
+            host=AIRFLOW_PG_HOST,
+            port=AIRFLOW_PG_PORT,
+            dbname=AIRFLOW_PG_DB,
+            user=AIRFLOW_PG_USER,
+            password=AIRFLOW_PG_PASSWORD,
+            connect_timeout=3,
+        )
+        conn.autocommit = True
+        try:
+            with conn.cursor() as cur:
+                for dag_id in TARGET_DAGS:
+                    dag_id = dag_id.strip()
+                    if not dag_id:
+                        continue
+                    cur.execute(
+                        """
+                        SELECT state, COUNT(*)
+                        FROM dag_run
+                        WHERE dag_id = %s
+                        GROUP BY state
+                        """,
+                        (dag_id,),
+                    )
+                    for state, cnt in cur.fetchall():
+                        airflow_dag_runs_state.labels(dag_id=dag_id, state=str(state or "none")).set(float(cnt))
+
+                    cur.execute(
+                        """
+                        SELECT state, COUNT(*)
+                        FROM task_instance
+                        WHERE dag_id = %s
+                        GROUP BY state
+                        """,
+                        (dag_id,),
+                    )
+                    for state, cnt in cur.fetchall():
+                        airflow_task_instances_state.labels(dag_id=dag_id, state=str(state or "none")).set(float(cnt))
+
+                    cur.execute(
+                        """
+                        SELECT EXTRACT(EPOCH FROM (NOW() AT TIME ZONE 'UTC' - MAX(start_date)))
+                        FROM dag_run
+                        WHERE dag_id = %s
+                        """,
+                        (dag_id,),
+                    )
+                    row = cur.fetchone()
+                    age = float(row[0] or 0.0) if row else 0.0
+                    airflow_latest_dag_run_age_seconds.labels(dag_id=dag_id).set(age)
+        finally:
+            conn.close()
+
+
+    def scrape_once():
+        spark_ok = 0
+        airflow_ok = 0
+        try:
+            scrape_spark()
+            spark_ok = 1
+        except Exception:
+            traceback.print_exc()
+            spark_ok = 0
+
+        try:
+            scrape_airflow()
+            airflow_ok = 1
+        except Exception:
+            traceback.print_exc()
+            airflow_ok = 0
+
+        scrape_spark_ok.set(spark_ok)
+        scrape_airflow_ok.set(airflow_ok)
+        scrape_ok.set(1 if (spark_ok or airflow_ok) else 0)
+
+
+    if __name__ == "__main__":
+        start_http_server(9108)
+        while True:
+            scrape_once()
+            time.sleep(15)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-metrics-exporter
+  namespace: observability
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo-metrics-exporter
+  template:
+    metadata:
+      labels:
+        app: demo-metrics-exporter
+    spec:
+      containers:
+        - name: exporter
+          image: python:3.11-slim
+          command: ["/bin/sh", "-c"]
+          args:
+            - pip install --no-cache-dir requests prometheus_client psycopg2-binary && python /app/exporter.py
+          env:
+            - name: SPARK_MASTER_JSON
+              value: http://spark-infra-spark-standalone-master.spark-infra.svc.cluster.local:8080/json/
+            - name: SPARK_HISTORY_API
+              value: http://spark-shared-spark-35-history.spark-infra.svc.cluster.local:18080/api/v1
+            - name: AIRFLOW_PG_HOST
+              value: spark-infra-spark-standalone-airflow-postgresql.spark-infra.svc.cluster.local
+            - name: AIRFLOW_PG_PORT
+              value: "5432"
+            - name: AIRFLOW_PG_DB
+              value: airflow
+            - name: AIRFLOW_PG_USER
+              value: airflow
+            - name: AIRFLOW_PG_PASSWORD
+              value: airflow
+            - name: TARGET_DAGS
+              value: "spark_standalone_load_demo,nyc_taxi_ml_full_pipeline,citibike_analytics_pipeline,movielens_recommendation_pipeline"
+          ports:
+            - containerPort: 9108
+              name: metrics
+          volumeMounts:
+            - name: app
+              mountPath: /app
+      volumes:
+        - name: app
+          configMap:
+            name: demo-metrics-exporter-script
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-metrics-exporter
+  namespace: observability
+spec:
+  selector:
+    app: demo-metrics-exporter
+  ports:
+    - name: metrics
+      port: 9108
+      targetPort: metrics

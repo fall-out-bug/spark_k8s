@@ -27,4 +27,3 @@ dependencies:
     repository: "https://grafana.github.io/helm-charts"
     condition: observability.grafana.enabled
     alias: grafana
-

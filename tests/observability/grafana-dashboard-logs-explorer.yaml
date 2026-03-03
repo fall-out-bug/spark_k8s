@@ -1,0 +1,79 @@
+# Logs Explorer - correlate Airflow and Spark logs
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-logs-explorer
+  namespace: observability
+  labels:
+    grafana_dashboard: "1"
+data:
+  logs-explorer.json: |
+    {
+      "title": "Logs Explorer",
+      "uid": "logs-explorer",
+      "tags": ["logs", "spark", "airflow", "debug"],
+      "timezone": "browser",
+      "refresh": "5s",
+      "schemaVersion": 38,
+      "panels": [
+        {
+          "id": 1,
+          "title": "Spark & Airflow Logs",
+          "type": "logs",
+          "gridPos": {"h": 12, "w": 24, "x": 0, "y": 0},
+          "datasource": {"type": "loki", "uid": "loki"},
+          "options": {
+            "showTime": true,
+            "showLabels": true,
+            "sortOrder": "Descending"
+          },
+          "targets": [
+            {
+              "expr": "{namespace=~\"spark-infra|observability\"}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "displayMode": "lines",
+                "lineWrap": "wrap"
+              }
+            }
+          }
+        },
+        {
+          "id": 2,
+          "title": "Filter by namespace",
+          "type": "row",
+          "gridPos": {"h": 1, "w": 24, "x": 0, "y": 12}
+        },
+        {
+          "id": 3,
+          "title": "Airflow Scheduler",
+          "type": "logs",
+          "gridPos": {"h": 12, "w": 12, "x": 0, "y": 13},
+          "datasource": {"type": "loki", "uid": "loki"},
+          "targets": [{"expr": "{namespace=\"spark-infra\", container=~\"scheduler|airflow\"}", "refId": "A"}]
+        },
+        {
+          "id": 4,
+          "title": "Spark Driver",
+          "type": "logs",
+          "gridPos": {"h": 12, "w": 12, "x": 12, "y": 13},
+          "datasource": {"type": "loki", "uid": "loki"},
+          "targets": [{"expr": "{namespace=\"spark-infra\"} |= \"SparkContext\" or |= \"Driver\"", "refId": "A"}]
+        }
+      ],
+      "templating": {
+        "list": [
+          {
+            "name": "namespace",
+            "type": "query",
+            "query": "label_values(namespace)",
+            "datasource": {"type": "loki", "uid": "loki"}
+          }
+        ]
+      },
+      "time": {"from": "now-1h", "to": "now"}
+    }

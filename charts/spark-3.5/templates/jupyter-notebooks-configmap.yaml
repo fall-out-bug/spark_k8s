@@ -1,0 +1,23 @@
+{{- if and .Values.jupyter.enabled .Values.jupyter.demoNotebooks.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-jupyter-notebooks
+  labels:
+    app: jupyter
+    app.kubernetes.io/component: jupyter
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+data:
+  nyc_taxi_pipeline_demo.ipynb: |
+{{ .Files.Get "notebooks/nyc_taxi_pipeline_demo.ipynb" | indent 4 }}
+  spark_shared_infra_quickstart.ipynb: |
+{{ .Files.Get "notebooks/spark_shared_infra_quickstart.ipynb" | indent 4 }}
+  nyc_taxi_ml_training_pipeline.ipynb: |
+{{ .Files.Get "notebooks/nyc_taxi_ml_training_pipeline.ipynb" | indent 4 }}
+  citibike_eda.ipynb: |
+{{ .Files.Get "notebooks/citibike_eda.ipynb" | indent 4 }}
+  pandas_udf_feature_engineering.ipynb: |
+{{ .Files.Get "notebooks/pandas_udf_feature_engineering.ipynb" | indent 4 }}
+  ml_pandas_udf.ipynb: |
+{{ .Files.Get "notebooks/ml_pandas_udf.ipynb" | indent 4 }}
+{{- end }}

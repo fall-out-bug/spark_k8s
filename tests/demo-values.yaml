@@ -1,0 +1,74 @@
+global:
+  s3:
+    enabled: true
+    endpoint: "http://minio:9000"
+    accessKey: "minioadmin"
+    secretKey: "minioadmin"
+    existingSecret: ""
+    pathStyleAccess: true
+    sslEnabled: false
+  postgresql:
+    host: "spark-demo-spark-base-postgresql"
+    port: 5432
+    user: "spark"
+    password: "spark123"
+
+security:
+  podSecurityStandards: false
+
+standalone:
+  enabled: false
+
+spark-base:
+  enabled: true
+  s3:
+    accessKey: "minioadmin"
+    secretKey: "minioadmin"
+    existingSecret: ""
+  minio:
+    enabled: true
+    persistence:
+      enabled: true
+      size: "10Gi"
+  postgresql:
+    enabled: true
+    auth:
+      username: "spark"
+      password: "spark123"
+    databases:
+      - "metastore_spark35"
+    authMethod: "md5"
+    persistence:
+      enabled: true
+      size: "8Gi"
+
+hiveMetastore:
+  enabled: true
+  image:
+    repository: "spark-k8s/hive"
+    tag: "4.0.0-pg"
+  database:
+    name: "metastore_spark35"
+  warehouseDir: "s3a://warehouse/spark-35"
+
+historyServer:
+  enabled: true
+  image:
+    repository: "spark-custom"
+    tag: "3.5.7"
+  logDirectory: "s3a://spark-logs/events"
+
+sparkStandalone:
+  enabled: true
+  image:
+    repository: "spark-custom"
+    tag: "3.5.7"
+  worker:
+    replicas: 1
+
+connect:
+  enabled: false
+jupyter:
+  enabled: false
+airflow:
+  enabled: false

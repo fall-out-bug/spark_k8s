@@ -1,0 +1,92 @@
+# Tech Lead Morning Dashboard - cluster state, Airflow tasks, Spark phase breakdown
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-tech-lead
+  namespace: observability
+  labels:
+    grafana_dashboard: "1"
+data:
+  tech-lead-morning.json: |
+    {
+      "title": "Tech Lead Morning",
+      "uid": "tech-lead-morning",
+      "tags": ["overview", "spark", "airflow"],
+      "timezone": "browser",
+      "refresh": "30s",
+      "schemaVersion": 38,
+      "panels": [
+        {
+          "id": 1,
+          "title": "Spark Cluster",
+          "type": "row",
+          "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0}
+        },
+        {
+          "id": 2,
+          "title": "Workers",
+          "type": "stat",
+          "gridPos": {"h": 4, "w": 4, "x": 0, "y": 1},
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "targets": [{"expr": "spark_workers_alive", "refId": "A"}]
+        },
+        {
+          "id": 3,
+          "title": "Apps Running",
+          "type": "stat",
+          "gridPos": {"h": 4, "w": 4, "x": 4, "y": 1},
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "targets": [{"expr": "spark_apps_running", "refId": "A"}]
+        },
+        {
+          "id": 4,
+          "title": "Airflow DAG Runs",
+          "type": "row",
+          "gridPos": {"h": 1, "w": 24, "x": 0, "y": 5}
+        },
+        {
+          "id": 5,
+          "title": "DAG Runs by State",
+          "type": "timeseries",
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6},
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "targets": [{"expr": "airflow_dag_runs_state", "legendFormat": "{{dag_id}} - {{state}}", "refId": "A"}]
+        },
+        {
+          "id": 6,
+          "title": "Task Instances by State",
+          "type": "timeseries",
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6},
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "targets": [{"expr": "airflow_task_instances_state", "legendFormat": "{{dag_id}} - {{state}}", "refId": "A"}]
+        },
+        {
+          "id": 7,
+          "title": "Spark Task Phase Breakdown",
+          "type": "row",
+          "gridPos": {"h": 1, "w": 24, "x": 0, "y": 14}
+        },
+        {
+          "id": 8,
+          "title": "Shuffle / Spill / I/O",
+          "type": "timeseries",
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 15},
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "targets": [
+            {"expr": "spark_latest_stage_shuffle_read_bytes", "legendFormat": "Shuffle Read - {{app_id}}", "refId": "A"},
+            {"expr": "spark_latest_stage_shuffle_write_bytes", "legendFormat": "Shuffle Write - {{app_id}}", "refId": "B"},
+            {"expr": "spark_latest_stage_memory_spill_bytes", "legendFormat": "Memory Spill - {{app_id}}", "refId": "C"},
+            {"expr": "spark_latest_stage_disk_spill_bytes", "legendFormat": "Disk Spill - {{app_id}}", "refId": "D"}
+          ]
+        },
+        {
+          "id": 9,
+          "title": "App Duration",
+          "type": "timeseries",
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 15},
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "targets": [{"expr": "spark_latest_app_duration_ms / 1000", "legendFormat": "{{app_name}}", "refId": "A"}]
+        }
+      ],
+      "time": {"from": "now-6h", "to": "now"}
+    }

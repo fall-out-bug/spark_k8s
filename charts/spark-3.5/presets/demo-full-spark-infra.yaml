@@ -1,0 +1,94 @@
+# Demo: Full Spark Infra in spark-infra namespace
+# MinIO + Metastore + History + Standalone + Airflow + Jupyter
+# Usage: helm install spark-infra charts/spark-3.5 -n spark-infra -f charts/spark-3.5/presets/demo-full-spark-infra.yaml
+#        --set global.s3.accessKey=minioadmin --set global.s3.secretKey=minioadmin
+#        --set spark-base.postgresql.auth.password=postgres
+#        --set standalone.airflow.postgresql.auth.password=airflow
+
+global:
+  s3:
+    endpoint: "http://minio.spark-infra.svc.cluster.local:9000"
+    accessKey: "minioadmin"
+    secretKey: "minioadmin"
+    pathStyleAccess: true
+    sslEnabled: false
+  postgresql:
+    host: "spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local"
+    port: 5432
+    user: "postgres"
+    password: "postgres"
+
+spark-base:
+  enabled: true
+  minio:
+    enabled: true
+    persistence:
+      enabled: true
+      size: "10Gi"
+    buckets:
+      - warehouse
+      - spark-logs
+      - spark-jobs
+      - raw-data
+      - processed-data
+  postgresql:
+    enabled: true
+    auth:
+      username: "postgres"
+      password: "postgres"
+    databases:
+      - "spark_db"
+    authMethod: "md5"
+    persistence:
+      enabled: true
+      size: "5Gi"
+
+standalone:
+  enabled: true
+  master:
+    enabled: true
+    image:
+      repository: spark-custom
+      tag: "3.5.7"
+      pullPolicy: IfNotPresent
+  worker:
+    enabled: true
+    replicas: 1
+    image:
+      repository: spark-custom
+      tag: "3.5.7"
+      pullPolicy: IfNotPresent
+  airflow:
+    enabled: true
+    postgresql:
+      enabled: true
+      auth:
+        password: "airflow"
+
+connect:
+  enabled: false
+
+jupyter:
+  enabled: true
+  image:
+    repository: jupyter/all-spark-notebook
+    tag: "latest"
+  service:
+    type: ClusterIP
+  demoNotebooks:
+    enabled: true
+
+historyServer:
+  enabled: true
+  logDirectory: "s3a://spark-logs/events"
+  service:
+    type: ClusterIP
+
+hiveMetastore:
+  enabled: true
+  warehouseDir: "s3a://warehouse/spark-35"
+  database:
+    name: "spark_db"
+
+security:
+  podSecurityStandards: false

@@ -66,6 +66,7 @@ airflow:
     service:
       type: ClusterIP
       port: 8080
+      nodePort: null
     resources:
       requests:
         memory: "1Gi"
@@ -126,9 +127,12 @@ airflow:
     scheduler:
       catchup_by_default: "False"
 
-  # DAG files to include
+  # DAG files to include (must exist in charts/.../dags/)
   dags:
     - nyc_taxi_ml_full_pipeline.py
+    - spark_standalone_load_demo.py
+    - citibike_analytics_pipeline.py
+    - movielens_recommendation_pipeline.py
 
   # Airflow Variables (set at startup)
   variables:

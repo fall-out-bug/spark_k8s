@@ -196,8 +196,10 @@ standalone:
    standalone:
      airflow:
        dags:
-         - spark_etl_example.py
-         - spark_streaming_example.py
+         - nyc_taxi_ml_full_pipeline.py
+         - spark_standalone_load_demo.py
+         - citibike_analytics_pipeline.py
+         - movielens_recommendation_pipeline.py
          - my_custom_dag.py  # Add your DAG
    ```
 

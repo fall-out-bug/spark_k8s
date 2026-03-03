@@ -1,0 +1,260 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards-spark
+  namespace: observability
+  labels:
+    grafana_dashboard: "1"
+data:
+  spark-cluster.json: |
+    {
+      "annotations": {"list": []},
+      "editable": true,
+      "gnetId": null,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "panels": [
+        {
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}}, "overrides": []},
+          "gridPos": {"h": 4, "w": 3, "x": 0, "y": 0},
+          "id": 1,
+          "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+          "title": "Workers Alive",
+          "type": "stat",
+          "targets": [{"expr": "spark_workers_alive", "refId": "A"}]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}}, "overrides": []},
+          "gridPos": {"h": 4, "w": 3, "x": 3, "y": 0},
+          "id": 2,
+          "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+          "title": "Workers Total",
+          "type": "stat",
+          "targets": [{"expr": "spark_workers_total", "refId": "A"}]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 1}, {"color": "red", "value": 5}]}}, "overrides": []},
+          "gridPos": {"h": 4, "w": 3, "x": 6, "y": 0},
+          "id": 3,
+          "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+          "title": "Apps Running",
+          "type": "stat",
+          "targets": [{"expr": "spark_apps_running", "refId": "A"}]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}}, "overrides": []},
+          "gridPos": {"h": 4, "w": 3, "x": 9, "y": 0},
+          "id": 4,
+          "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+          "title": "Apps Completed",
+          "type": "stat",
+          "targets": [{"expr": "spark_apps_completed", "refId": "A"}]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}}, "overrides": []},
+          "gridPos": {"h": 4, "w": 3, "x": 12, "y": 0},
+          "id": 5,
+          "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+          "title": "Apps Waiting",
+          "type": "stat",
+          "targets": [{"expr": "spark_apps_waiting", "refId": "A"}]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "max": 4, "min": 0, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 3}, {"color": "red", "value": 4}]}, "unit": "cores"}, "overrides": []},
+          "gridPos": {"h": 6, "w": 6, "x": 0, "y": 4},
+          "id": 6,
+          "options": {"orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showThresholdLabels": false, "showThresholdMarkers": true},
+          "title": "CPU Cores",
+          "type": "gauge",
+          "targets": [
+            {"expr": "spark_cores_used", "legendFormat": "Used", "refId": "A"},
+            {"expr": "spark_cores_total", "legendFormat": "Total", "refId": "B"}
+          ]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "max": 4096, "min": 0, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 3000}, {"color": "red", "value": 3800}]}, "unit": "decmbytes"}, "overrides": []},
+          "gridPos": {"h": 6, "w": 6, "x": 6, "y": 4},
+          "id": 7,
+          "options": {"orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showThresholdLabels": false, "showThresholdMarkers": true},
+          "title": "Memory (MB)",
+          "type": "gauge",
+          "targets": [
+            {"expr": "spark_memory_used_mb", "legendFormat": "Used", "refId": "A"},
+            {"expr": "spark_memory_total_mb", "legendFormat": "Total", "refId": "B"}
+          ]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": {"legend": false, "tooltip": false, "viz": false}, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5, "scaleDistribution": {"type": "linear"}, "showPoints": "auto", "spanNulls": false}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}}},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 10},
+          "id": 8,
+          "options": {"legend": {"calcs": [], "displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "single"}},
+          "title": "Worker Free Cores",
+          "type": "timeseries",
+          "targets": [{"expr": "spark_worker_cores_free", "legendFormat": "{{host}}", "refId": "A"}]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": {"legend": false, "tooltip": false, "viz": false}, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5, "scaleDistribution": {"type": "linear"}, "showPoints": "auto", "spanNulls": false}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "decmbytes"}},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 18},
+          "id": 9,
+          "options": {"legend": {"calcs": [], "displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "single"}},
+          "title": "Worker Free Memory (MB)",
+          "type": "timeseries",
+          "targets": [{"expr": "spark_worker_memory_free_mb", "legendFormat": "{{host}}", "refId": "A"}]
+        }
+      ],
+      "refresh": "10s",
+      "schemaVersion": 38,
+      "style": "dark",
+      "tags": ["spark", "cluster"],
+      "templating": {"list": []},
+      "time": {"from": "now-1h", "to": "now"},
+      "timepicker": {},
+      "timezone": "",
+      "title": "Spark Cluster",
+      "uid": "spark-cluster",
+      "version": 1
+    }
+  spark-executors.json: |
+    {
+      "annotations": {"list": []},
+      "editable": true,
+      "gnetId": null,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "panels": [
+        {
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": {"legend": false, "tooltip": false, "viz": false}, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5, "scaleDistribution": {"type": "linear"}, "showPoints": "auto", "spanNulls": false}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}}},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+          "id": 1,
+          "options": {"legend": {"calcs": ["lastNotNull"], "displayMode": "table", "placement": "right"}, "tooltip": {"mode": "multi"}}},
+          "title": "Executor Total Tasks",
+          "type": "timeseries",
+          "targets": [{"expr": "spark_executor_total_tasks", "legendFormat": "{{app_id}} - {{executor_id}}", "refId": "A"}]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": {"legend": false, "tooltip": false, "viz": false}, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5, "scaleDistribution": {"type": "linear"}, "showPoints": "auto", "spanNulls": false}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}}},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+          "id": 2,
+          "options": {"legend": {"calcs": ["sum"], "displayMode": "table", "placement": "right"}, "tooltip": {"mode": "multi"}}},
+          "title": "Executor Failed Tasks",
+          "type": "timeseries",
+          "targets": [{"expr": "spark_executor_failed_tasks", "legendFormat": "{{app_id}} - {{executor_id}}", "refId": "A"}]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": {"legend": false, "tooltip": false, "viz": false}, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5, "scaleDistribution": {"type": "linear"}, "showPoints": "auto", "spanNulls": false}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "bytes"}},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+          "id": 3,
+          "options": {"legend": {"calcs": ["lastNotNull"], "displayMode": "table", "placement": "right"}, "tooltip": {"mode": "multi"}}},
+          "title": "Shuffle Read Bytes",
+          "type": "timeseries",
+          "targets": [{"expr": "spark_executor_shuffle_read_bytes", "legendFormat": "{{app_id}} - {{executor_id}}", "refId": "A"}]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": {"legend": false, "tooltip": false, "viz": false}, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5, "scaleDistribution": {"type": "linear"}, "showPoints": "auto", "spanNulls": false}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "bytes"}},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+          "id": 4,
+          "options": {"legend": {"calcs": ["lastNotNull"], "displayMode": "table", "placement": "right"}, "tooltip": {"mode": "multi"}}},
+          "title": "Shuffle Write Bytes",
+          "type": "timeseries",
+          "targets": [{"expr": "spark_executor_shuffle_write_bytes", "legendFormat": "{{app_id}} - {{executor_id}}", "refId": "A"}]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "bars", "fillOpacity": 80, "gradientMode": "none", "hideFrom": {"legend": false, "tooltip": false, "viz": false}, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5, "scaleDistribution": {"type": "linear"}, "showPoints": "auto", "spanNulls": false}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "bytes"}},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 32},
+          "id": 5,
+          "options": {"legend": {"calcs": ["lastNotNull"], "displayMode": "table", "placement": "right"}, "tooltip": {"mode": "multi"}}},
+          "title": "Stage I/O",
+          "type": "timeseries",
+          "targets": [
+            {"expr": "spark_latest_stage_input_bytes", "legendFormat": "Input - {{app_id}}", "refId": "A"},
+            {"expr": "spark_latest_stage_output_bytes", "legendFormat": "Output - {{app_id}}", "refId": "B"}
+          ]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": {"legend": false, "tooltip": false, "viz": false}, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5, "scaleDistribution": {"type": "linear"}, "showPoints": "auto", "spanNulls": false}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},"unit": "bytes"}},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 40},
+          "id": 6,
+          "options": {"legend": {"calcs": ["lastNotNull"], "displayMode": "table", "placement": "right"}, "tooltip": {"mode": "multi"}}},
+          "title": "Memory/Disk Spill",
+          "type": "timeseries",
+          "targets": [
+            {"expr": "spark_latest_stage_memory_spill_bytes", "legendFormat": "Memory Spill - {{app_id}}", "refId": "A"},
+            {"expr": "spark_latest_stage_disk_spill_bytes", "legendFormat": "Disk Spill - {{app_id}}", "refId": "B"}
+          ]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": {"legend": false, "tooltip": false, "viz": false}, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5, "scaleDistribution": {"type": "linear"}, "showPoints": "auto", "spanNulls": false}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "ms"}},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 48},
+          "id": 7,
+          "options": {"legend": {"calcs": ["lastNotNull"], "displayMode": "table", "placement": "right"}, "tooltip": {"mode": "multi"}}},
+          "title": "App Duration",
+          "type": "timeseries",
+          "targets": [{"expr": "spark_latest_app_duration_ms", "legendFormat": "{{app_name}}", "refId": "A"}]
+        }
+      ],
+      "refresh": "10s",
+      "schemaVersion": 38,
+      "style": "dark",
+      "tags": ["spark", "executors", "performance"],
+      "templating": {"list": []},
+      "time": {"from": "now-1h", "to": "now"},
+      "timepicker": {},
+      "timezone": "",
+      "title": "Spark Executors",
+      "uid": "spark-executors",
+      "version": 1
+    }
+  spark-tuning.json: |
+    {
+      "annotations": {"list": []},
+      "editable": true,
+      "panels": [
+        {"datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"}, "gridPos": {"h": 6, "w": 8, "x": 0, "y": 0}, "id": 1, "title": "Shuffle Read Bytes", "type": "timeseries", "targets": [{"expr": "spark_latest_stage_shuffle_read_bytes", "legendFormat": "{{app_id}}", "refId": "A"}]},
+        {"datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"}, "gridPos": {"h": 6, "w": 8, "x": 8, "y": 0}, "id": 2, "title": "Shuffle Write Bytes", "type": "timeseries", "targets": [{"expr": "spark_latest_stage_shuffle_write_bytes", "legendFormat": "{{app_id}}", "refId": "A"}]},
+        {"datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"}, "gridPos": {"h": 6, "w": 8, "x": 0, "y": 6}, "id": 3, "title": "Memory Spill", "type": "timeseries", "targets": [{"expr": "spark_latest_stage_memory_spill_bytes", "legendFormat": "{{app_id}}", "refId": "A"}]},
+        {"datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"}, "gridPos": {"h": 6, "w": 8, "x": 8, "y": 6}, "id": 4, "title": "Disk Spill", "type": "timeseries", "targets": [{"expr": "spark_latest_stage_disk_spill_bytes", "legendFormat": "{{app_id}}", "refId": "A"}]},
+        {"datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"}, "gridPos": {"h": 6, "w": 12, "x": 0, "y": 12}, "id": 5, "title": "App Duration (ms)", "type": "timeseries", "targets": [{"expr": "spark_latest_app_duration_ms", "legendFormat": "{{app_name}}", "refId": "A"}]}
+      ],
+      "refresh": "10s", "schemaVersion": 38, "tags": ["spark", "tuning"],
+      "time": {"from": "now-1h", "to": "now"}, "title": "Spark Tuning", "uid": "spark-tuning", "version": 1
+    }
+  spark-s3-io.json: |
+    {
+      "annotations": {"list": []},
+      "editable": true,
+      "panels": [
+        {"datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"}, "fieldConfig": {"defaults": {"unit": "bytes"}}, "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}, "id": 1, "title": "S3/Storage Input Bytes", "type": "timeseries", "targets": [{"expr": "spark_latest_stage_input_bytes", "legendFormat": "{{app_id}}", "refId": "A"}]},
+        {"datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"}, "fieldConfig": {"defaults": {"unit": "bytes"}}, "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}, "id": 2, "title": "S3/Storage Output Bytes", "type": "timeseries", "targets": [{"expr": "spark_latest_stage_output_bytes", "legendFormat": "{{app_id}}", "refId": "A"}]}
+      ],
+      "refresh": "10s", "schemaVersion": 38, "tags": ["spark", "s3", "io"],
+      "time": {"from": "now-1h", "to": "now"}, "title": "Spark S3 I/O", "uid": "spark-s3-io", "version": 1
+    }
+  airflow-multi-dag.json: |
+    {
+      "annotations": {"list": []},
+      "editable": true,
+      "panels": [
+        {"datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"}, "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}, "id": 1, "title": "DAG Runs by State (All DAGs)", "type": "timeseries", "targets": [{"expr": "airflow_dag_runs_state", "legendFormat": "{{dag_id}} - {{state}}", "refId": "A"}]},
+        {"datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"}, "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}, "id": 2, "title": "Task Instances by State (All DAGs)", "type": "timeseries", "targets": [{"expr": "airflow_task_instances_state", "legendFormat": "{{dag_id}} - {{state}}", "refId": "A"}]}
+      ],
+      "refresh": "10s", "schemaVersion": 38, "tags": ["airflow", "multi-dag"],
+      "time": {"from": "now-1h", "to": "now"}, "title": "Airflow All DAGs", "uid": "airflow-multi-dag", "version": 1
+    }
