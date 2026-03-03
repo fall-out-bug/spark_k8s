@@ -45,3 +45,4 @@ tests/results/load-test-*.csv
 *.tmp
 tmp/
 values-secrets.yaml
+tests/observability/.pf/
