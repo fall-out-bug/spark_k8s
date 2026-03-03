@@ -1,6 +1,7 @@
 #!/bin/bash
 # Lego-Spark Test Matrix Runner
 # Runs tests for each scenario in isolated namespace, cleans up after
+# shellcheck disable=SC2034,SC2155
 
 set -euo pipefail
 
@@ -44,12 +45,13 @@ Test Types:
   all     Run all test types
 
 Options:
-  --filter "key=value,key=value"  Filter scenarios
+  --filter "key=value,key=value"  Filter scenarios (e.g. id=SCENARIO-0009)
   --timeout <min>                 Timeout per scenario (default: 10)
   --help                          Show this help
 
 Examples:
-  $0 smoke --filter "spark_version=3.5.7,platform=k8s"
+  $0 smoke --filter "id=SCENARIO-0009"
+  $0 smoke --filter "spark_version=3.5.7,platform=k8s,gpu=false"
   $0 e2e --filter "gpu=false"
   $0 all
 EOF
@@ -108,32 +110,20 @@ print(json.dumps(scenarios))
 PYEOF
 }
 
-# Map scenario to runtime image
+# Map scenario to runtime image (spark-custom for local minikube, spark-k8s-runtime for CI)
+MATRIX_IMAGE_REPO="${MATRIX_IMAGE_REPO:-spark-custom}"
+
 get_runtime_image() {
     local spark_version="$1"
     local gpu="$2"
     local iceberg="$3"
 
-    local variant="baseline"
-    if [[ "$gpu" == "true" && "$iceberg" == "true" ]]; then
-        variant="gpu-iceberg"
-    elif [[ "$gpu" == "true" ]]; then
-        variant="gpu"
-    elif [[ "$iceberg" == "true" ]]; then
-        variant="iceberg"
-    fi
-
-    # Map version to image tag
-    local version_tag
     case "$spark_version" in
-        3.5.7) version_tag="3.5-3.5.7" ;;
-        3.5.8) version_tag="3.5-3.5.8" ;;
-        4.1.0) version_tag="4.1-4.1.0" ;;
-        4.1.1) version_tag="4.1-4.1.1" ;;
-        *) version_tag="3.5-3.5.7" ;;
+        3.5.7|3.5.8) echo "${MATRIX_IMAGE_REPO}:3.5.7" ;;
+        4.1.0) echo "${MATRIX_IMAGE_REPO}:4.1.0" ;;
+        4.1.1) echo "spark-k8s-runtime:4.1-4.1.1-baseline" ;;
+        *) echo "${MATRIX_IMAGE_REPO}:3.5.7" ;;
     esac
-
-    echo "spark-k8s-runtime:${version_tag}-${variant}"
 }
 
 # Run single scenario
@@ -163,7 +153,9 @@ run_scenario() {
         return 0
     fi
 
-    # Create namespace
+    # Create namespace (delete if leftover from previous run)
+    kubectl delete namespace "$ns" --ignore-not-found --wait=false >/dev/null 2>&1 || true
+    sleep 3
     kubectl create namespace "$ns" --dry-run=client -o yaml | kubectl apply -f - >/dev/null 2>&1
 
     # Deploy Spark using spark-standalone chart with custom image
@@ -182,10 +174,10 @@ run_scenario() {
         --set master.image.tag="$image_tag" \
         --set worker.image.repository="$image_repo" \
         --set worker.image.tag="$image_tag" \
-        --set master.resources.requests.cpu=250m \
-        --set master.resources.requests.memory=256Mi \
-        --set worker.resources.requests.cpu=250m \
-        --set worker.resources.requests.memory=256Mi \
+        --set master.resources.requests.cpu=500m \
+        --set master.resources.requests.memory=512Mi \
+        --set worker.resources.requests.cpu=500m \
+        --set worker.resources.requests.memory=1Gi \
         --set airflow.enabled=false \
         --timeout 5m --wait >/dev/null 2>&1; then
         result="FAIL"
@@ -227,9 +219,14 @@ run_scenario() {
         fi
     fi
 
-    # Cleanup
-    helm uninstall "$release" -n "$ns" >/dev/null 2>&1 || true
-    kubectl delete namespace "$ns" --ignore-not-found >/dev/null 2>&1 &
+    # Cleanup - sync delete namespace after each scenario
+    helm uninstall "$release" -n "$ns" --wait >/dev/null 2>&1 || true
+    kubectl delete namespace "$ns" --ignore-not-found --wait=false >/dev/null 2>&1 || true
+    local wait_count=0
+    while kubectl get namespace "$ns" >/dev/null 2>&1 && [[ $wait_count -lt 30 ]]; do
+        sleep 2
+        ((wait_count++)) || true
+    done
 
     local end_time=$(date +%s)
     local duration=$((end_time - start_time))
@@ -245,81 +242,57 @@ run_scenario() {
     generate_junit "$scenario_id" "$scenario_name" "$TEST_TYPE" "$result" "$duration"
 }
 
-# Smoke test
+# Copy NYC Taxi pipeline script to pod
+copy_nyc_pipeline() {
+    local ns="$1"
+    local master_pod="$2"
+    kubectl cp "$PROJECT_ROOT/tests/scripts/nyc_taxi_pipeline.py" "$ns/$master_pod:/tmp/nyc_taxi_pipeline.py" 2>/dev/null || true
+}
+
+# Smoke test - NYC Taxi pipeline (1K rows, no SparkPi)
 run_smoke_test() {
     local ns="$1"
     local master_pod="$2"
     local master_service="$3"
-
-    kubectl exec -n "$ns" "$master_pod" -- python3 -c "
-from pyspark.sql import SparkSession
-spark = SparkSession.builder \
-    .appName('smoke-test') \
-    .master('spark://${master_service}:7077') \
-    .config('spark.driver.host', '127.0.0.1') \
-    .config('spark.driver.bindAddress', '0.0.0.0') \
-    .getOrCreate()
-result = spark.range(1000).count()
-print(f'RESULT: {result}')
-spark.stop()
-" 2>&1 | grep -q "RESULT: 1000"
+    local driver_host
+    driver_host=$(kubectl get pod -n "$ns" "$master_pod" -o jsonpath='{.status.podIP}' 2>/dev/null || echo "")
+    copy_nyc_pipeline "$ns" "$master_pod"
+    kubectl exec -n "$ns" "$master_pod" -- env \
+        TEST_LEVEL=smoke \
+        MASTER_URL="spark://${master_service}:7077" \
+        DRIVER_HOST="${driver_host}" \
+        python3 /tmp/nyc_taxi_pipeline.py 2>&1 | grep -q "SMOKE_SUCCESS"
 }
 
-# E2E test
+# E2E test - NYC Taxi pipeline (10K rows, aggregations, joins)
 run_e2e_test() {
     local ns="$1"
     local master_pod="$2"
     local master_service="$3"
-
-    kubectl exec -n "$ns" "$master_pod" -- python3 -c "
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col
-spark = SparkSession.builder \
-    .appName('e2e-test') \
-    .master('spark://${master_service}:7077') \
-    .config('spark.driver.host', '127.0.0.1') \
-    .config('spark.driver.bindAddress', '0.0.0.0') \
-    .getOrCreate()
-
-# SQL test
-df = spark.range(1000).withColumn('group', col('id') % 10)
-result = df.groupBy('group').count().count()
-assert result == 10
-
-# DataFrame test
-df2 = spark.range(500).join(spark.range(250), 'id', 'inner')
-assert df2.count() == 250
-
-spark.stop()
-print('E2E_SUCCESS')
-" 2>&1 | grep -q "E2E_SUCCESS"
+    local driver_host
+    driver_host=$(kubectl get pod -n "$ns" "$master_pod" -o jsonpath='{.status.podIP}' 2>/dev/null || echo "")
+    copy_nyc_pipeline "$ns" "$master_pod"
+    kubectl exec -n "$ns" "$master_pod" -- env \
+        TEST_LEVEL=e2e \
+        MASTER_URL="spark://${master_service}:7077" \
+        DRIVER_HOST="${driver_host}" \
+        python3 /tmp/nyc_taxi_pipeline.py 2>&1 | grep -q "E2E_SUCCESS"
 }
 
-# Load test
+# Load test - NYC Taxi pipeline (S3 or 100K in-memory)
 run_load_test() {
     local ns="$1"
     local master_pod="$2"
     local master_service="$3"
-
-    kubectl exec -n "$ns" "$master_pod" -- python3 -c "
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col
-import time
-
-spark = SparkSession.builder \
-    .appName('load-test') \
-    .master('spark://${master_service}:7077') \
-    .config('spark.driver.host', '127.0.0.1') \
-    .config('spark.driver.bindAddress', '0.0.0.0') \
-    .getOrCreate()
-
-start = time.time()
-df = spark.range(100000).withColumn('group', col('id') % 100)
-result = df.groupBy('group').count().count()
-duration = time.time() - start
-spark.stop()
-print(f'LOAD_SUCCESS: {result} groups in {duration:.2f}s')
-" 2>&1 | grep -q "LOAD_SUCCESS"
+    local driver_host
+    driver_host=$(kubectl get pod -n "$ns" "$master_pod" -o jsonpath='{.status.podIP}' 2>/dev/null || echo "")
+    copy_nyc_pipeline "$ns" "$master_pod"
+    kubectl exec -n "$ns" "$master_pod" -- env \
+        TEST_LEVEL=load \
+        MASTER_URL="spark://${master_service}:7077" \
+        DRIVER_HOST="${driver_host}" \
+        S3_ENDPOINT="http://minio.spark-infra.svc.cluster.local:9000" \
+        python3 /tmp/nyc_taxi_pipeline.py 2>&1 | grep -q "LOAD_SUCCESS"
 }
 
 # Generate JUnit XML
@@ -373,17 +346,23 @@ echo ""
 # Run scenarios
 START_TOTAL=$(date +%s)
 
-echo "$SCENARIOS" | python3 -c "
+while read -r scenario_id; do
+    ((TOTAL++)) || true
+    scenario_json=$(SID="$scenario_id" python3 -c "
+import json, sys, os
+sid = os.environ.get('SID', '')
+data = json.load(sys.stdin)
+for s in data:
+    if s.get('id') == sid:
+        print(json.dumps(s))
+        break
+" <<< "$SCENARIOS")
+    run_scenario "$scenario_json"
+done < <(echo "$SCENARIOS" | python3 -c "
 import json, sys
 for s in json.load(sys.stdin):
     print(s['id'])
-" | while read scenario_id; do
-    ((TOTAL++)) || true
-
-    scenario_json=$(echo "$SCENARIOS" | python3 -c "import json,sys; print(json.dumps([s for s in json.load(sys.stdin) if s['id']=='$scenario_id'][0]))")
-
-    run_scenario "$scenario_json"
-done
+")
 
 END_TOTAL=$(date +%s)
 TOTAL_DURATION=$((END_TOTAL - START_TOTAL))
