@@ -60,6 +60,10 @@ standalone:
       pullPolicy: IfNotPresent
   airflow:
     enabled: true
+    webserver:
+      service:
+        type: NodePort
+        nodePort: 30080
     postgresql:
       enabled: true
       auth:
@@ -74,7 +78,8 @@ jupyter:
     repository: jupyter/all-spark-notebook
     tag: "latest"
   service:
-    type: ClusterIP
+    type: NodePort
+    nodePort: 30088
   demoNotebooks:
     enabled: true
 
@@ -82,7 +87,8 @@ historyServer:
   enabled: true
   logDirectory: "s3a://spark-logs/events"
   service:
-    type: ClusterIP
+    type: NodePort
+    nodePort: 30081
 
 hiveMetastore:
   enabled: true
