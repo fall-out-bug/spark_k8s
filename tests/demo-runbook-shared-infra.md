@@ -65,7 +65,9 @@ Upload Spark job scripts (required for nyc_taxi, citibike, movielens DAGs):
 
 Trigger полноценные DAGs. Синтетика (spark.range, count) не используется — только реальные пайплайны.
 
-**Precondition:** NYC TLC data в `s3a://nyc-taxi/raw/` (≥4 files). Citibike/Movielens — свои buckets.
+**Precondition:** NYC TLC data в `s3a://nyc-taxi/raw/` (≥4 files).
+
+**Optional DAGs:** `citibike_analytics_pipeline` needs bucket `citibike`; `movielens_recommendation_pipeline` needs bucket `movielens` and data in `raw/`. Add `mc mb local/citibike` and `mc mb local/movielens` if using.
 
 **Data ingestion (if nyc-taxi empty):** Run locally with port-forward to MinIO, or from a pod in spark-infra:
 ```bash
