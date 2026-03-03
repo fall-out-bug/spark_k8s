@@ -19,11 +19,11 @@ close_bead() {
     bd close "$bead" --reason "$reason" 2>/dev/null && echo "Closed $bead ($sid)" || true
   fi
 }
-grep '\[PASS\]' "$LOG" 2>/dev/null | grep -oE 'SCENARIO-[0-9]+' | sort -u | while read -r sid; do
+while read -r sid; do
   close_bead "$sid" "Smoke passed (matrix run)"
-done
+done < <((grep '\[PASS\]' "$LOG" 2>/dev/null || true) | grep -oE 'SCENARIO-[0-9]+' || true | sort -u)
 if [[ "$CLOSE_SKIP" == "true" ]]; then
-  grep '\[SKIP\]' "$LOG" 2>/dev/null | grep -oE 'SCENARIO-[0-9]+' | sort -u | while read -r sid; do
+  while read -r sid; do
     close_bead "$sid" "Skipped - image not built"
-  done
+  done < <((grep '\[SKIP\]' "$LOG" 2>/dev/null || true) | grep -oE 'SCENARIO-[0-9]+' || true | sort -u)
 fi
