@@ -1,6 +1,7 @@
 # Spark Standalone Chart Guide
 
-**Chart:** `charts/spark-standalone`
+**Chart:** `charts/spark-standalone` (symlink → `charts/spark-3.5/charts/spark-standalone`)
+**Current layout:** Spark 3.5 has spark-standalone as subchart; Spark 4.1 uses the same symlink. History Server lives in parent chart (`spark-3.5/templates/`).
 **Tested on:** Minikube
 **Prepared for:** OpenShift-like constraints (PSS `restricted` / SCC `restricted`)
 

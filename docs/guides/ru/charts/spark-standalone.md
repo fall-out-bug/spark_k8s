@@ -1,6 +1,7 @@
 # Гайд по чарту Spark Standalone
 
-**Чарт:** `charts/spark-standalone`
+**Чарт:** `charts/spark-standalone` (симлинк → `charts/spark-3.5/charts/spark-standalone`)
+**Текущая структура:** Spark 3.5 имеет spark-standalone как subchart; Spark 4.1 использует тот же симлинк. History Server в родительском чарте (`spark-3.5/templates/`).
 **Тестировалось на:** Minikube
 **Подготовлено для:** Ограничений OpenShift (PSS `restricted` / SCC `restricted`)
 
