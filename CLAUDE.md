@@ -24,7 +24,7 @@ cd .sdp && git log --oneline -1 && cd ..
 - `CODE_PATTERNS.md` → `.sdp/CODE_PATTERNS.md` (Code patterns)
 - `MODELS.md` → `.sdp/MODELS.md` (Model recommendations)
 
-**SDP Version:** v0.4.0
+**SDP Version:** v0.9.8
 
 ## TL;DR
 
@@ -380,6 +380,6 @@ See `.claude/settings.json` for:
 
 ---
 
-**Version:** SDP 0.3.0  
+**Version:** SDP v0.9.8  
 **Claude Code Version:** 0.3+  
 **Mode:** Skill-based, one-shot execution
