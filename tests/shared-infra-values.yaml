@@ -11,7 +11,7 @@ global:
     pathStyleAccess: true
     sslEnabled: false
   postgresql:
-    host: "spark-shared-spark-base-postgresql"
+    host: "spark-infra-spark-base-postgresql"
     port: 5432
     user: "spark"
     password: "spark123"

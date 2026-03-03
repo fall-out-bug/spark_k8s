@@ -27,7 +27,7 @@ kubectl get pods -n spark-infra
 kubectl get pods -n observability
 ```
 
-Expected: running pods for `spark-infra-spark-standalone-*`, `minio`, `spark-shared-spark-35-history`, `spark-shared-spark-35-metastore`, `spark-shared-spark-base-postgresql`, and `grafana`.
+Expected: running pods for `spark-infra-spark-standalone-*`, `minio`, `spark-infra-spark-35-history`, `spark-infra-spark-35-metastore`, `spark-infra-spark-base-postgresql`, and `grafana`.
 
 ## 2) Ensure shared buckets exist
 
@@ -81,7 +81,7 @@ kubectl exec -n spark-infra $WEB_POD -- airflow dags list-runs -d nyc_taxi_ml_fu
 ```bash
 kubectl run -n spark-infra history-http-check --rm -i --restart=Never \
   --image=curlimages/curl:8.11.1 --command -- \
-  sh -c "curl -s -o /tmp/out -w '%{http_code}' http://spark-shared-spark-35-history:18080/ && echo"
+  sh -c "curl -s -o /tmp/out -w '%{http_code}' http://spark-infra-spark-35-history:18080/ && echo"
 
 kubectl run -n observability grafana-http-check --rm -i --restart=Never \
   --image=curlimages/curl:8.11.1 --command -- \
@@ -105,7 +105,7 @@ Expected: HTTP `200` from all commands.
 
 ```bash
 kubectl port-forward -n spark-infra svc/spark-infra-spark-standalone-master 8080:8080
-kubectl port-forward -n spark-infra svc/spark-shared-spark-35-history 18080:18080
+kubectl port-forward -n spark-infra svc/spark-infra-spark-35-history 18080:18080
 kubectl port-forward -n observability svc/grafana 3000:3000
 kubectl port-forward -n spark-infra svc/minio 9000:9000 9001:9001
 ```
@@ -173,16 +173,16 @@ kubectl exec -n spark-infra $JUPYTER_POD -- ls -la /home/jupyter/notebooks
 ## 8) Metrics and dashboards sync status
 
 Applied from chart monitoring templates:
-- `ServiceMonitor`: `spark-shared-spark-35-connect`
-- `PodMonitor`: `spark-shared-spark-35-executors`
-- Dashboard ConfigMaps: `spark-shared-spark-35-dashboard-*`
+- `ServiceMonitor`: `spark-infra-spark-35-connect`
+- `PodMonitor`: `spark-infra-spark-35-executors`
+- Dashboard ConfigMaps: `spark-infra-spark-35-dashboard-*`
 
 Quick checks:
 
 ```bash
 kubectl get servicemonitor,podmonitor -n spark-infra
 kubectl get configmap -n spark-infra | grep 'dashboard-'
-kubectl get configmap -n spark-infra spark-shared-spark-35-dashboard-job-phase-timeline -o jsonpath='{.metadata.labels.grafana_dashboard}{"\n"}'
+kubectl get configmap -n spark-infra spark-infra-spark-35-dashboard-job-phase-timeline -o jsonpath='{.metadata.labels.grafana_dashboard}{"\n"}'
 
 # demo-metrics-exporter and Prometheus target
 kubectl get pod -n observability -l app=demo-metrics-exporter

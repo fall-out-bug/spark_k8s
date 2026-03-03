@@ -50,7 +50,7 @@ echo ""
 echo "=== History Server ==="
 kubectl run -n spark-infra history-check --rm -i --restart=Never \
   --image=curlimages/curl:8.11.1 --command -- \
-  sh -c "curl -s -o /dev/null -w '%{http_code}' http://spark-shared-spark-35-history:18080/" 2>/dev/null | grep -q 200 && echo "  ✓ History Server" || echo "  ✗ History Server"
+  sh -c "curl -s -o /dev/null -w '%{http_code}' http://spark-infra-spark-35-history:18080/" 2>/dev/null | grep -q 200 && echo "  ✓ History Server" || echo "  ✗ History Server"
 
 echo ""
 echo "=== Grafana (login page) ==="

@@ -66,7 +66,7 @@ with DAG(
                 "--conf spark.hadoop.fs.s3a.secret.key=minioadmin "
                 "--conf spark.hadoop.fs.s3a.path.style.access=true "
                 "--conf spark.hadoop.fs.s3a.connection.ssl.enabled=false "
-                "--conf spark.hadoop.hive.metastore.uris=thrift://spark-shared-spark-35-metastore:9083 "
+                "--conf spark.hadoop.hive.metastore.uris=thrift://spark-infra-spark-35-metastore:9083 "
                 "--conf spark.sql.warehouse.dir=s3a://warehouse/spark-35 "
                 "/tmp/airflow_demo_pipeline.py"
             )

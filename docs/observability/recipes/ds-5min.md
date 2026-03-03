@@ -51,7 +51,7 @@ kubectl run -n spark-infra minio-check --rm -i --restart=Never \
 Для просмотра завершённых Spark jobs:
 
 ```bash
-kubectl port-forward -n spark-infra svc/spark-shared-spark-35-history 18080:18080
+kubectl port-forward -n spark-infra svc/spark-infra-spark-35-history 18080:18080
 # http://localhost:18080
 ```
 
