@@ -23,7 +23,7 @@ repos:
       - id: mypy
         additional_dependencies: [types-PyYAML]
         args: [--config-file=pyproject.toml]
-        exclude: ^(tests/|scripts/|examples/|docker/)
+        exclude: ^(tests/|scripts/|examples/|docker/|charts/.*/dags/)
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0

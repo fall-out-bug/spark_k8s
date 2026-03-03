@@ -13,7 +13,8 @@ CONFIG = {
     "namespace": "spark-infra",
     "spark_master": "spark://spark-infra-spark-standalone-master:7077",
     "minio_endpoint": "http://minio.spark-infra.svc.cluster.local:9000",
-    "pushgateway_url": "http://prometheus.observability.svc.cluster.local:9090",
+    # Pushgateway (9091); empty = disabled. Prometheus (9090) does not accept push.
+    "pushgateway_url": "",  # Set via PUSHGATEWAY_URL if Pushgateway deployed
     "otel_endpoint": "http://otel-collector.observability.svc.cluster.local:4317",
     "model_version": datetime.now().strftime("%Y%m%d"),
     "mape_threshold": 0.75,
@@ -29,6 +30,10 @@ default_args = {
 
 
 def push_metric(name, value, labels=None):
+    """Push metric to Prometheus Pushgateway. No-op if pushgateway_url empty or Pushgateway unavailable."""
+    url = str(CONFIG.get("pushgateway_url") or "")
+    if not url or ":9091" not in url:
+        return  # Pushgateway not configured or wrong port (Prometheus 9090 does not accept push)
     import requests
 
     labels = labels or {}
@@ -36,13 +41,9 @@ def push_metric(name, value, labels=None):
     label_str = ",".join([f'{k}="{v}"' for k, v in labels.items()])
     payload = f"# TYPE {name} gauge\n{name}{{{label_str}}} {value}\n"
     try:
-        requests.post(
-            f"{CONFIG['pushgateway_url']}/metrics/job/nyc_taxi_ml_pipeline",
-            data=payload,
-            timeout=10,
-        )
+        requests.post(f"{url}/metrics/job/nyc_taxi_ml_pipeline", data=payload, timeout=5)
     except Exception as exc:
-        logger.warning(f"Could not push metric {name}: {exc}")
+        logger.debug(f"Pushgateway push skipped for {name}: {exc}")
 
 
 def build_spark_submit_pod_task(task_id: str, script_name: str, extra_env: dict | None = None):
