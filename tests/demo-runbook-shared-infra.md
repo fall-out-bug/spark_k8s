@@ -42,6 +42,7 @@ kubectl run -n spark-infra minio-bootstrap --rm -i --restart=Never \
   mc mb --ignore-existing local/spark-jobs &&
   mc mb --ignore-existing local/nyc-taxi &&
   echo '' | mc pipe local/spark-logs/events/.keep &&
+  echo '' | mc pipe local/spark-logs/4.1/events/.keep &&
   mc ls local"
 ```
 
