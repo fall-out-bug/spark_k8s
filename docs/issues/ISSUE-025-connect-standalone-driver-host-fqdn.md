@@ -1,8 +1,8 @@
 # ISSUE-025: Spark Connect Standalone backend fails across namespaces
 
-**Created:** 2026-01-20  
-**Status:** Resolved  
-**Severity:** 🔴 CRITICAL (jobs never get resources)  
+**Created:** 2026-01-20
+**Status:** Resolved
+**Severity:** 🔴 CRITICAL (jobs never get resources)
 **Feature:** F06 - Spark Connect Standalone Parity
 
 ---

@@ -60,21 +60,21 @@ if kubectl get svc "$HISTORY_SVC" -n "$NAMESPACE" &>/dev/null; then
     echo "   WARN: History Server pod not ready (skipping API check)"
     echo "   OK (service exists)"
   }
-  
+
   # Port-forward in background
   echo "   Port-forwarding to History Server..."
   kubectl port-forward "svc/${HISTORY_SVC}" 18080:18080 -n "$NAMESPACE" >/dev/null 2>&1 &
   PF_PID=$!
   sleep 3
-  
+
   # Query applications (may take a moment for logs to be parsed)
   echo "   Querying History Server API..."
   APPS=$(curl -s http://localhost:18080/api/v1/applications 2>/dev/null || echo "[]")
-  
+
   # Cleanup port-forward
   kill $PF_PID 2>/dev/null || true
   wait $PF_PID 2>/dev/null || true
-  
+
   # Check at least one application exists
   APP_COUNT=$(echo "$APPS" | python3 -c "import sys,json; print(len(json.load(sys.stdin)))" 2>/dev/null || echo "0")
   if [[ "$APP_COUNT" -gt 0 ]]; then
@@ -89,4 +89,3 @@ else
 fi
 
 echo "=== Done ==="
-

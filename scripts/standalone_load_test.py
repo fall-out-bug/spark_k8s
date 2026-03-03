@@ -36,8 +36,7 @@ def create_spark_session() -> SparkSession:
     print(f"Driver host: {driver_host}")
 
     builder = (
-        SparkSession.builder
-        .appName("standalone-load-test")
+        SparkSession.builder.appName("standalone-load-test")
         .master(spark_master)
         # K8s networking - driver must be reachable by workers
         .config("spark.driver.host", driver_host)
@@ -78,6 +77,7 @@ def run_load_test(spark: SparkSession, mode: str, rows: int, partitions: int) ->
         df = spark.range(0, rows, numPartitions=partitions)
         # Add some null values
         from pyspark.sql.functions import when, col
+
         df = df.withColumn("value", when(col("id") % 100 == 0, None).otherwise(col("id")))
     else:
         print(f"Unknown mode: {mode}, using range")

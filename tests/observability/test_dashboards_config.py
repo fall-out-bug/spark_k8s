@@ -41,11 +41,14 @@ class TestGrafanaDashboards:
                 continue
             if path.exists():
                 content = path.read_text()
-                assert "grafana_dashboard: \"1\"" in content, f"Spark {version} {name} should have grafana_dashboard label"
+                assert (
+                    'grafana_dashboard: "1"' in content
+                ), f"Spark {version} {name} should have grafana_dashboard label"
 
     def test_dashboard_json_valid(self, dashboard_templates):
         """Test that dashboard JSON is valid"""
         import json
+
         version = dashboard_templates["version"]
         for name, path in dashboard_templates.items():
             if name == "version":
@@ -72,7 +75,9 @@ class TestGrafanaDashboards:
         if overview.exists():
             content = overview.read_text()
             # Should have panels for executors, memory, jobs
-            assert "Executors" in content or "executor" in content.lower(), f"Spark {version} Overview should show executors"
+            assert (
+                "Executors" in content or "executor" in content.lower()
+            ), f"Spark {version} Overview should show executors"
             assert "Memory" in content or "memory" in content.lower(), f"Spark {version} Overview should show memory"
 
         executor = dashboard_templates["executor"]
@@ -85,5 +90,9 @@ class TestGrafanaDashboards:
         if performance.exists():
             content = performance.read_text()
             # Should have job performance metrics
-            assert "Job" in content or "job" in content.lower(), f"Spark {version} Performance dashboard should show jobs"
-            assert "Duration" in content or "duration" in content.lower(), f"Spark {version} Performance dashboard should show duration"
+            assert (
+                "Job" in content or "job" in content.lower()
+            ), f"Spark {version} Performance dashboard should show jobs"
+            assert (
+                "Duration" in content or "duration" in content.lower()
+            ), f"Spark {version} Performance dashboard should show duration"

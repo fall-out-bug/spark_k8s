@@ -14,11 +14,7 @@ class TestGPULoadWorkloads:
         script = Path("examples/gpu/gpu_operations_notebook.py")
         assert script.exists()
         content = script.read_text()
-        assert (
-            "cudf" in content.lower()
-            or "rapids" in content.lower()
-            or "gpu" in content.lower()
-        )
+        assert "cudf" in content.lower() or "rapids" in content.lower() or "gpu" in content.lower()
 
     def test_gpu_script_is_valid_python(self) -> None:
         """GPU script should be valid Python."""

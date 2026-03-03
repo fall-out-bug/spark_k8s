@@ -35,4 +35,3 @@ Operators want to keep configuration aligned across both charts, especially:
   - Less drift in S3 and service identity config across deployments.
 - **Cons**
   - Some chart-specific settings still require per-chart overlays.
-

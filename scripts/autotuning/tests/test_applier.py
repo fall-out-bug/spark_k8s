@@ -81,24 +81,28 @@ class TestValidateHelmValues:
     def test_validate_valid_yaml(self, tmp_path: Path):
         """Test validating valid YAML file."""
         values_file = tmp_path / "values.yaml"
-        values_file.write_text("""
+        values_file.write_text(
+            """
 connect:
   executor:
     memory: "8Gi"
     cores: 4
-""")
+"""
+        )
         result = validate_helm_values(values_file)
         assert result.valid is True
 
     def test_validate_invalid_yaml(self, tmp_path: Path):
         """Test validating invalid YAML file."""
         values_file = tmp_path / "values.yaml"
-        values_file.write_text("""
+        values_file.write_text(
+            """
 connect:
   executor:
     memory: "8Gi"
     - invalid list
-""")
+"""
+        )
         result = validate_helm_values(values_file)
         assert result.valid is False
         assert len(result.errors) > 0
@@ -106,11 +110,13 @@ connect:
     def test_validate_memory_format(self, tmp_path: Path):
         """Test memory format validation."""
         values_file = tmp_path / "values.yaml"
-        values_file.write_text("""
+        values_file.write_text(
+            """
 connect:
   executor:
     memory: "invalid"
-""")
+"""
+        )
         result = validate_helm_values(values_file)
         assert len(result.errors) > 0
 
@@ -241,24 +247,28 @@ class TestGenerateHelmOverlay:
     def test_generate_from_file(self, tmp_path: Path):
         """Test generating from recommendations file."""
         rec_file = tmp_path / "recommendations.json"
-        rec_file.write_text(json.dumps({
-            "app_id": "app-123",
-            "workload_type": "etl_batch",
-            "recommendations": [
+        rec_file.write_text(
+            json.dumps(
                 {
-                    "parameter": "spark.executor.memory",
-                    "current_value": "8Gi",
-                    "recommended_value": "10Gi",
-                    "change_pct": 25.0,
-                    "confidence": 0.9,
-                    "rationale": "test",
-                    "safety_check": "pass",
+                    "app_id": "app-123",
+                    "workload_type": "etl_batch",
+                    "recommendations": [
+                        {
+                            "parameter": "spark.executor.memory",
+                            "current_value": "8Gi",
+                            "recommended_value": "10Gi",
+                            "change_pct": 25.0,
+                            "confidence": 0.9,
+                            "rationale": "test",
+                            "safety_check": "pass",
+                        }
+                    ],
+                    "overall_confidence": 0.8,
+                    "safety_issues": [],
+                    "base_config": {},
                 }
-            ],
-            "overall_confidence": 0.8,
-            "safety_issues": [],
-            "base_config": {},
-        }))
+            )
+        )
 
         yaml_str = generate_helm_overlay(rec_file)
         values = yaml.safe_load(yaml_str)
@@ -272,14 +282,18 @@ class TestApplyRecommendations:
     def test_apply_with_output(self, tmp_path: Path):
         """Test applying with output file."""
         rec_file = tmp_path / "recommendations.json"
-        rec_file.write_text(json.dumps({
-            "app_id": "app-123",
-            "workload_type": "etl_batch",
-            "recommendations": [],
-            "overall_confidence": 0.8,
-            "safety_issues": [],
-            "base_config": {},
-        }))
+        rec_file.write_text(
+            json.dumps(
+                {
+                    "app_id": "app-123",
+                    "workload_type": "etl_batch",
+                    "recommendations": [],
+                    "overall_confidence": 0.8,
+                    "safety_issues": [],
+                    "base_config": {},
+                }
+            )
+        )
 
         output_path = tmp_path / "output.yaml"
         result = apply_recommendations(
@@ -402,15 +416,19 @@ class TestLoadRecommendations:
     def test_load_valid_file(self, tmp_path: Path):
         """Test loading valid recommendations file."""
         rec_file = tmp_path / "recs.json"
-        rec_file.write_text(json.dumps({
-            "app_id": "app-123",
-            "workload_type": "etl_batch",
-            "recommendations": [],
-            "overall_confidence": 0.8,
-            "safety_issues": [],
-            "generated_at": "2026-02-22T12:00:00",
-            "base_config": {},
-        }))
+        rec_file.write_text(
+            json.dumps(
+                {
+                    "app_id": "app-123",
+                    "workload_type": "etl_batch",
+                    "recommendations": [],
+                    "overall_confidence": 0.8,
+                    "safety_issues": [],
+                    "generated_at": "2026-02-22T12:00:00",
+                    "base_config": {},
+                }
+            )
+        )
 
         rec_set = load_recommendations(rec_file)
 

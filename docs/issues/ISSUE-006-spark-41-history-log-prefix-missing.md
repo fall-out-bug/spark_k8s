@@ -1,8 +1,8 @@
 # ISSUE-006: Spark 4.1 History Server crashes if log prefix missing
 
-**Created:** 2026-01-19  
-**Status:** Resolved  
-**Severity:** 🔴 CRITICAL (blocks runtime tests)  
+**Created:** 2026-01-19
+**Status:** Resolved
+**Severity:** 🔴 CRITICAL (blocks runtime tests)
 **Feature:** F04 - Spark 4.1.0 Charts
 
 ---

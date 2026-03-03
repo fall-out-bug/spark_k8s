@@ -1,8 +1,8 @@
 # ISSUE-013: Spark Connect MinIO init job does not create events prefix
 
-**Created:** 2026-01-20  
-**Status:** Open  
-**Severity:** 🔴 CRITICAL (Connect init stuck, load tests blocked)  
+**Created:** 2026-01-20
+**Status:** Open
+**Severity:** 🔴 CRITICAL (Connect init stuck, load tests blocked)
 **Feature:** F06 - Spark Connect Standalone Parity
 
 ---

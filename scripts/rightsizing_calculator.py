@@ -49,7 +49,8 @@ def print_helm_values(recommendation: SizingRecommendation) -> None:
     """Print Helm values snippet."""
     print("\n# Helm Values")
     print("-" * 70)
-    print(f"""
+    print(
+        f"""
 connect:
   executor:
     cores: "{recommendation.executor_config.cores}"
@@ -73,48 +74,28 @@ connect:
     "spark.executor.cores": "{recommendation.executor_config.cores}"
     "spark.memory.fraction": "0.8"
     "spark.memory.storageFraction": "0.3"
-""")
+"""
+    )
     print("-" * 70)
 
 
 def main() -> int:
     """Main CLI entry point."""
-    parser = argparse.ArgumentParser(
-        description="Calculate optimal Spark executor sizing"
-    )
+    parser = argparse.ArgumentParser(description="Calculate optimal Spark executor sizing")
     parser.add_argument(
-        "--data-size",
-        type=str,
-        required=True,
-        help="Data size to process (e.g., 100TB, 500GB, 1000MB)"
+        "--data-size", type=str, required=True, help="Data size to process (e.g., 100TB, 500GB, 1000MB)"
     )
     parser.add_argument(
         "--executor-preset",
         type=str,
         choices=list(EXECUTOR_PRESETS.keys()),
         default="medium",
-        help="Executor configuration preset"
+        help="Executor configuration preset",
     )
-    parser.add_argument(
-        "--cluster-cores",
-        type=int,
-        help="Maximum CPU cores available in cluster"
-    )
-    parser.add_argument(
-        "--cluster-memory",
-        type=int,
-        help="Maximum memory available in cluster (GB)"
-    )
-    parser.add_argument(
-        "--spot",
-        action="store_true",
-        help="Calculate for spot instances"
-    )
-    parser.add_argument(
-        "--helm-values",
-        action="store_true",
-        help="Output Helm values snippet"
-    )
+    parser.add_argument("--cluster-cores", type=int, help="Maximum CPU cores available in cluster")
+    parser.add_argument("--cluster-memory", type=int, help="Maximum memory available in cluster (GB)")
+    parser.add_argument("--spot", action="store_true", help="Calculate for spot instances")
+    parser.add_argument("--helm-values", action="store_true", help="Output Helm values snippet")
 
     args = parser.parse_args()
 
@@ -124,7 +105,7 @@ def main() -> int:
         executor_preset=args.executor_preset,
         cluster_cores=args.cluster_cores,
         cluster_memory_gb=args.cluster_memory,
-        spot_instances=args.spot
+        spot_instances=args.spot,
     )
 
     print_recommendation(recommendation)

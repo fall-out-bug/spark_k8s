@@ -1,6 +1,6 @@
 # UAT: F07 Security (PSS/SCC)
 
-**Feature:** F07 - Phase 01 Security (Pod Security Standards / OpenShift SCC)  
+**Feature:** F07 - Phase 01 Security (Pod Security Standards / OpenShift SCC)
 **Review Date:** 2026-02-10
 
 ---

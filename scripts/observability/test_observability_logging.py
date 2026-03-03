@@ -13,32 +13,17 @@ from pathlib import Path
 def run_command(cmd: list, description: str) -> dict:
     """Run a command and return result."""
     try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=30
-        )
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
         return {
             "success": result.returncode == 0,
             "stdout": result.stdout.strip(),
             "stderr": result.stderr.strip(),
-            "returncode": result.returncode
+            "returncode": result.returncode,
         }
     except subprocess.TimeoutExpired:
-        return {
-            "success": False,
-            "stdout": "",
-            "stderr": "Command timed out after 30s",
-            "returncode": -1
-        }
+        return {"success": False, "stdout": "", "stderr": "Command timed out after 30s", "returncode": -1}
     except Exception as e:
-        return {
-            "success": False,
-            "stdout": "",
-            "stderr": str(e),
-            "returncode": -1
-        }
+        return {"success": False, "stdout": "", "stderr": str(e), "returncode": -1}
 
 
 def test_loki_deployment() -> dict:
@@ -46,46 +31,22 @@ def test_loki_deployment() -> dict:
     print("Testing Loki deployment...")
 
     # Check if loki pod is running
-    result = run_command([
-        "kubectl", "get", "pods",
-        "-n", "observability",
-        "-l", "app=loki"
-    ], "Loki pod check")
+    result = run_command(["kubectl", "get", "pods", "-n", "observability", "-l", "app=loki"], "Loki pod check")
 
     if not result["success"]:
-        return {
-            "name": "Loki Deployment",
-            "status": "failed",
-            "message": f"Failed to get pods: {result['stderr']}"
-        }
+        return {"name": "Loki Deployment", "status": "failed", "message": f"Failed to get pods: {result['stderr']}"}
 
     pods = result["stdout"]
     if "loki" not in pods.lower():
-        return {
-            "name": "Loki Deployment",
-            "status": "failed",
-            "message": "No loki pod found"
-        }
+        return {"name": "Loki Deployment", "status": "failed", "message": "No loki pod found"}
 
     # Check if Loki service is accessible
-    result = run_command([
-        "kubectl", "get", "svc",
-        "-n", "observability",
-        "loki"
-    ], "Loki service check")
+    result = run_command(["kubectl", "get", "svc", "-n", "observability", "loki"], "Loki service check")
 
     if not result["success"]:
-        return {
-            "name": "Loki Service",
-            "status": "failed",
-            "message": f"Failed to get service: {result['stderr']}"
-        }
+        return {"name": "Loki Service", "status": "failed", "message": f"Failed to get service: {result['stderr']}"}
 
-    return {
-        "name": "Loki Deployment",
-        "status": "passed",
-        "message": "Loki is deployed and accessible"
-    }
+    return {"name": "Loki Deployment", "status": "passed", "message": "Loki is deployed and accessible"}
 
 
 def test_log_aggregation() -> dict:
@@ -93,32 +54,20 @@ def test_log_aggregation() -> dict:
     print("Testing log aggregation...")
 
     # Check if Promtail is deployed (for log aggregation)
-    result = run_command([
-        "kubectl", "get", "pods",
-        "-n", "observability",
-        "-l", "app=promtail"
-    ], "Promtail pod check")
+    result = run_command(["kubectl", "get", "pods", "-n", "observability", "-l", "app=promtail"], "Promtail pod check")
 
     if not result["success"]:
         return {
             "name": "Log Aggregation (Promtail)",
             "status": "error",
-            "message": f"Failed to get pods: {result['stderr']}"
+            "message": f"Failed to get pods: {result['stderr']}",
         }
 
     pods = result["stdout"]
     if "promtail" not in pods.lower():
-        return {
-            "name": "Log Aggregation (Promtail)",
-            "status": "failed",
-            "message": "No promtail pod found"
-        }
+        return {"name": "Log Aggregation (Promtail)", "status": "failed", "message": "No promtail pod found"}
 
-    return {
-        "name": "Log Aggregation (Promtail)",
-        "status": "passed",
-        "message": "Promtail is deployed"
-    }
+    return {"name": "Log Aggregation (Promtail)", "status": "passed", "message": "Promtail is deployed"}
 
 
 def test_log_query() -> dict:
@@ -126,35 +75,31 @@ def test_log_query() -> dict:
     print("Testing log querying...")
 
     # Check if Loki API is accessible
-    result = run_command([
-        "kubectl", "exec",
-        "-n", "observability",
-        "loki-0",
-        "--", "curl",
-        "-s", "http://localhost:3100/loki/api/v1/label",
-        "--max-time", "10s"
-    ], "Loki API label query")
+    result = run_command(
+        [
+            "kubectl",
+            "exec",
+            "-n",
+            "observability",
+            "loki-0",
+            "--",
+            "curl",
+            "-s",
+            "http://localhost:3100/loki/api/v1/label",
+            "--max-time",
+            "10s",
+        ],
+        "Loki API label query",
+    )
 
     if not result["success"]:
-        return {
-            "name": "Loki API",
-            "status": "error",
-            "message": f"Failed to query Loki API: {result['stderr']}"
-        }
+        return {"name": "Loki API", "status": "error", "message": f"Failed to query Loki API: {result['stderr']}"}
 
     labels = result["stdout"].strip()
     if labels:
-        return {
-            "name": "Loki API",
-            "status": "passed",
-            "message": f"Loki API accessible, labels: {labels[:100]}"
-        }
+        return {"name": "Loki API", "status": "passed", "message": f"Loki API accessible, labels: {labels[:100]}"}
 
-    return {
-        "name": "Loki API",
-        "status": "failed",
-        "message": "No labels returned from Loki API"
-    }
+    return {"name": "Loki API", "status": "failed", "message": "No labels returned from Loki API"}
 
 
 def main() -> int:

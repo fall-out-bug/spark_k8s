@@ -1,8 +1,8 @@
 # ISSUE-023: Spark 4.1 Connect client missing zstandard dependency
 
-**Created:** 2026-01-20  
-**Status:** Resolved  
-**Severity:** 🔴 CRITICAL (Connect client fails)  
+**Created:** 2026-01-20
+**Status:** Resolved
+**Severity:** 🔴 CRITICAL (Connect client fails)
 **Feature:** F06 - Spark Connect Standalone Parity
 
 ---

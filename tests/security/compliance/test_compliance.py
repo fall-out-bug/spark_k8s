@@ -14,8 +14,7 @@ class TestCompliance:
         docs_dir = repository_root / "docs"
         if docs_dir.exists():
             result = subprocess.run(
-                ["grep", "-r", "pod-security.kubernetes.io/enforce", str(docs_dir)],
-                capture_output=True
+                ["grep", "-r", "pod-security.kubernetes.io/enforce", str(docs_dir)], capture_output=True
             )
             # Should find reference in documentation
             # (not necessarily applied, but documented)

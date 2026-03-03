@@ -79,10 +79,7 @@ class TestRightsizingForWorkloads:
         """Rightsizing calculator should handle different data sizes."""
         script = Path("scripts/rightsizing_calculator.py")
         content = script.read_text()
-        assert any(
-            size in content.lower()
-            for size in ["gb", "tb", "pb", "data size"]
-        )
+        assert any(size in content.lower() for size in ["gb", "tb", "pb", "data size"])
 
 
 class TestCostOptimizedLoad:
@@ -99,7 +96,4 @@ class TestCostOptimizedLoad:
         preset = Path("charts/spark-4.1/presets/cost-optimized-values.yaml")
         if preset.exists():
             content = preset.read_text()
-            assert (
-                "dynamicAllocation" in content
-                or "dynamicallocation" in content.lower()
-            )
+            assert "dynamicAllocation" in content or "dynamicallocation" in content.lower()

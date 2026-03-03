@@ -1,7 +1,7 @@
 # F08 Full Review — Drift Analysis
 
-**Feature:** F08 - Phase 2 Complete Smoke Tests  
-**Review Date:** 2026-02-10  
+**Feature:** F08 - Phase 2 Complete Smoke Tests
+**Review Date:** 2026-02-10
 **Mode:** Full review with drift checks, sub-agent verification
 
 ---
@@ -19,16 +19,16 @@
 
 ### 1.2 run-smoke-tests.sh — CRITICAL BUGS
 
-**Bug 1: PROJECT_ROOT wrong (P0)**  
-- **Line 27:** `PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"`  
-- **Result:** PROJECT_ROOT = `scripts/` (one level too high)  
-- **Effect:** `source "${PROJECT_ROOT}/scripts/tests/lib/common.sh"` → `scripts/scripts/tests/lib` — **path does not exist**  
+**Bug 1: PROJECT_ROOT wrong (P0)**
+- **Line 27:** `PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"`
+- **Result:** PROJECT_ROOT = `scripts/` (one level too high)
+- **Effect:** `source "${PROJECT_ROOT}/scripts/tests/lib/common.sh"` → `scripts/scripts/tests/lib` — **path does not exist**
 - **Fix:** `PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"` (3 levels up to repo root)
 
-**Bug 2: @meta block not commented (P0)**  
-- **Lines 6-17:** `name:`, `type:`, etc. without `#` prefix  
-- **Result:** Bash executes them as commands → `name:: command not found`  
-- **Effect:** `run-smoke-tests.sh --list` fails immediately  
+**Bug 2: @meta block not commented (P0)**
+- **Lines 6-17:** `name:`, `type:`, etc. without `#` prefix
+- **Result:** Bash executes them as commands → `name:: command not found`
+- **Effect:** `run-smoke-tests.sh --list` fails immediately
 - **Fix:** Add `#` before each line in @meta block (or use block comment)
 
 ### 1.3 Executability

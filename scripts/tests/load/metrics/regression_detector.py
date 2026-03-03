@@ -79,10 +79,7 @@ class RegressionDetector:
             is_significant = p_value < P_VALUE_THRESHOLD
 
         # Determine regression
-        is_regression = (
-            change_pct > self.threshold_pct and
-            (is_significant or p_value is None)
-        )
+        is_regression = change_pct > self.threshold_pct and (is_significant or p_value is None)
 
         return {
             "metric": metric_name,
@@ -208,50 +205,31 @@ class RegressionDetector:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Detect performance regressions"
-    )
-    subparsers = parser.add_subparsers(dest='command', help='Command to run')
+    parser = argparse.ArgumentParser(description="Detect performance regressions")
+    subparsers = parser.add_subparsers(dest="command", help="Command to run")
 
     # Detect command
-    detect_parser = subparsers.add_parser('detect', help='Detect regression')
-    detect_parser.add_argument(
-        '--test-name', type=str, required=True,
-        help='Name of the test'
-    )
-    detect_parser.add_argument(
-        '--baseline', type=str,
-        help='Baseline values as JSON array'
-    )
-    detect_parser.add_argument(
-        '--current', type=str,
-        help='Current values as JSON array'
-    )
+    detect_parser = subparsers.add_parser("detect", help="Detect regression")
+    detect_parser.add_argument("--test-name", type=str, required=True, help="Name of the test")
+    detect_parser.add_argument("--baseline", type=str, help="Baseline values as JSON array")
+    detect_parser.add_argument("--current", type=str, help="Current values as JSON array")
 
     # Analyze command
-    analyze_parser = subparsers.add_parser('analyze', help='Analyze test results')
+    analyze_parser = subparsers.add_parser("analyze", help="Analyze test results")
+    analyze_parser.add_argument("--test-name", type=str, required=True, help="Name of the test")
     analyze_parser.add_argument(
-        '--test-name', type=str, required=True,
-        help='Name of the test'
-    )
-    analyze_parser.add_argument(
-        '--results-dir', type=str,
-        default='/tmp/load-test-results',
-        help='Directory containing result files'
+        "--results-dir", type=str, default="/tmp/load-test-results", help="Directory containing result files"
     )
 
     # Outliers command
-    outliers_parser = subparsers.add_parser('outliers', help='Detect outliers')
-    outliers_parser.add_argument(
-        '--values', type=str, required=True,
-        help='Values as JSON array'
-    )
+    outliers_parser = subparsers.add_parser("outliers", help="Detect outliers")
+    outliers_parser.add_argument("--values", type=str, required=True, help="Values as JSON array")
 
     args = parser.parse_args()
 
     detector = RegressionDetector()
 
-    if args.command == 'detect':
+    if args.command == "detect":
         if not args.baseline or not args.current:
             print("Error: Must provide --baseline and --current")
             return 1
@@ -268,7 +246,7 @@ def main():
 
         return 0
 
-    elif args.command == 'analyze':
+    elif args.command == "analyze":
         # Load results from files
         results_dir = Path(args.results_dir)
         baseline_file = results_dir / f"{args.test_name}-baseline.jsonl"
@@ -314,7 +292,7 @@ def main():
 
         return 0
 
-    elif args.command == 'outliers':
+    elif args.command == "outliers":
         values = json.loads(args.values)
         outliers = detector.detect_outliers(values)
 
@@ -330,5 +308,5 @@ def main():
         return 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

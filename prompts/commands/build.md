@@ -508,7 +508,7 @@ Goal: achieved"
 
 **Git:**
 - Branch: `feature/{slug}`
-- Commits: 
+- Commits:
   - `feat({feature}): WS-060-01 - {title}`
   - `test({feature}): WS-060-01 - add tests`
 

@@ -40,8 +40,7 @@ class TestSecretCreation:
             # Verify that S3 credentials use existingSecret
             s3_config = preset_values.get("global", {}).get("s3", {})
             if s3_config.get("enabled", False):
-                assert s3_config.get("existingSecret") != "", \
-                    "Should use existingSecret for S3 credentials"
+                assert s3_config.get("existingSecret") != "", "Should use existingSecret for S3 credentials"
 
     def test_secret_has_correct_type(self, chart_35_path, preset_35_baseline):
         """Test that Secret has correct type (Opaque, TLS, etc.)"""
@@ -55,9 +54,12 @@ class TestSecretCreation:
 
         for secret in secrets:
             secret_type = secret.get("type", "Opaque")
-            assert secret_type in ["Opaque", "kubernetes.io/tls", "kubernetes.io/basic-auth",
-                                  "kubernetes.io/dockerconfigjson"], \
-                f"Secret type should be valid, got {secret_type}"
+            assert secret_type in [
+                "Opaque",
+                "kubernetes.io/tls",
+                "kubernetes.io/basic-auth",
+                "kubernetes.io/dockerconfigjson",
+            ], f"Secret type should be valid, got {secret_type}"
 
     def test_secret_uses_existing_secret_when_configured(self, chart_35_path, preset_35_baseline):
         """Test that Secret uses existingSecret when configured"""
@@ -68,8 +70,7 @@ class TestSecretCreation:
         # Verify S3 credentials use existingSecret
         s3_config = preset_values.get("global", {}).get("s3", {})
         if s3_config.get("enabled", False):
-            assert s3_config.get("existingSecret") != "", \
-                "S3 credentials should use existingSecret when S3 is enabled"
+            assert s3_config.get("existingSecret") != "", "S3 credentials should use existingSecret when S3 is enabled"
 
     def test_postgresql_secret_uses_existing_secret(self, chart_35_path, preset_35_baseline):
         """Test that PostgreSQL secret uses existingSecret"""
@@ -79,5 +80,4 @@ class TestSecretCreation:
         postgresql_config = preset_values.get("postgresql", {})
         if postgresql_config.get("enabled", False):
             # Check that database uses existingSecret
-            assert postgresql_config.get("existingSecret") != "", \
-                "PostgreSQL should use existingSecret for credentials"
+            assert postgresql_config.get("existingSecret") != "", "PostgreSQL should use existingSecret for credentials"

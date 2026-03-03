@@ -255,9 +255,9 @@ class ReportGenerator:
         """
         output_file = self.output_dir / "raw-data.jsonl"
 
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             for r in results:
-                f.write(json.dumps(r) + '\n')
+                f.write(json.dumps(r) + "\n")
 
         return output_file
 
@@ -303,23 +303,11 @@ class ReportGenerator:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Generate load test reports"
-    )
+    parser = argparse.ArgumentParser(description="Generate load test reports")
+    parser.add_argument("--results-dir", type=str, required=True, help="Directory containing result files")
+    parser.add_argument("--output-dir", type=str, default="/tmp/load-test-reports", help="Output directory for reports")
     parser.add_argument(
-        '--results-dir', type=str, required=True,
-        help='Directory containing result files'
-    )
-    parser.add_argument(
-        '--output-dir', type=str,
-        default='/tmp/load-test-reports',
-        help='Output directory for reports'
-    )
-    parser.add_argument(
-        '--layers', type=str,
-        default='all',
-        choices=['all', '1', '2', '3', '4'],
-        help='Report layers to generate'
+        "--layers", type=str, default="all", choices=["all", "1", "2", "3", "4"], help="Report layers to generate"
     )
 
     args = parser.parse_args()
@@ -329,7 +317,7 @@ def main():
         Path(args.output_dir),
     )
 
-    if args.layers == 'all':
+    if args.layers == "all":
         output_files = generator.generate_all()
         print("\nReport generation complete!")
         for layer, path in output_files.items():
@@ -338,16 +326,16 @@ def main():
     else:
         # Generate specific layer
         results = generator.load_results()
-        if args.layers == '1':
+        if args.layers == "1":
             content = generator.generate_layer1_executive_summary(results)
             output_file = Path(args.output_dir) / "executive-summary.md"
-        elif args.layers == '2':
+        elif args.layers == "2":
             content = generator.generate_layer2_technical_deep_dive(results)
             output_file = Path(args.output_dir) / "technical-report.html"
-        elif args.layers == '3':
+        elif args.layers == "3":
             content = generator.generate_layer3_detailed_report(results)
             output_file = Path(args.output_dir) / "detailed-report.md"
-        elif args.layers == '4':
+        elif args.layers == "4":
             output_file = generator.generate_layer4_raw_data(results)
             content = None
 
@@ -359,5 +347,5 @@ def main():
         return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

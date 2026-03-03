@@ -10,13 +10,7 @@ class TestDataAccessControlDocs:
 
     @pytest.fixture(scope="class")
     def doc_path(self) -> Path:
-        return (
-            Path(__file__).parent.parent.parent
-            / "docs"
-            / "recipes"
-            / "governance"
-            / "data-access-control.md"
-        )
+        return Path(__file__).parent.parent.parent / "docs" / "recipes" / "governance" / "data-access-control.md"
 
     def test_doc_exists(self, doc_path: Path) -> None:
         """Test that data access control doc exists."""
@@ -48,13 +42,7 @@ class TestDataLineageDocs:
 
     @pytest.fixture(scope="class")
     def doc_path(self) -> Path:
-        return (
-            Path(__file__).parent.parent.parent
-            / "docs"
-            / "recipes"
-            / "governance"
-            / "data-lineage.md"
-        )
+        return Path(__file__).parent.parent.parent / "docs" / "recipes" / "governance" / "data-lineage.md"
 
     def test_doc_exists(self, doc_path: Path) -> None:
         """Test that data lineage doc exists."""

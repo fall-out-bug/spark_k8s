@@ -8,22 +8,17 @@ def rollback_procedures(spark: SparkSession) -> None:
     print("\n9. Rollback Procedures")
     print("   Available snapshots:")
     snapshots = spark.sql(
-        "SELECT snapshot_id, committed_at, summary FROM iceberg.db_examples.orders.snapshots "
-        "ORDER BY committed_at"
+        "SELECT snapshot_id, committed_at, summary FROM iceberg.db_examples.orders.snapshots " "ORDER BY committed_at"
     )
     snapshots.show(truncate=False)
     first_snapshot_id = snapshots.collect()[0]["snapshot_id"]
     print(f"\n   Rolling back to snapshot {first_snapshot_id}...")
-    spark.sql(
-        f"CALL iceberg.system.rollback_to_snapshot('iceberg.db_examples.orders', {first_snapshot_id})"
-    )
+    spark.sql(f"CALL iceberg.system.rollback_to_snapshot('iceberg.db_examples.orders', {first_snapshot_id})")
     print("\n   Data after rollback (should have fewer rows):")
     spark.sql("SELECT COUNT(*) as cnt FROM iceberg.db_examples.orders").show()
     print("\n   Rolling forward to latest snapshot...")
     latest_snapshot_id = snapshots.collect()[-1]["snapshot_id"]
-    spark.sql(
-        f"CALL iceberg.system.rollback_to_snapshot('iceberg.db_examples.orders', {latest_snapshot_id})"
-    )
+    spark.sql(f"CALL iceberg.system.rollback_to_snapshot('iceberg.db_examples.orders', {latest_snapshot_id})")
     print("\n   Data after rolling forward:")
     spark.sql("SELECT COUNT(*) as cnt FROM iceberg.db_examples.orders").show()
 

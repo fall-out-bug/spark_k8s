@@ -17,10 +17,17 @@ class TestTraceSpans:
     def jaeger_collector_pod(self, kube_namespace):
         """Get Jaeger Collector pod"""
         import subprocess
+
         cmd = [
-            "kubectl", "get", "pods", "-n", kube_namespace,
-            "-l", "app=jaeger-collector",
-            "-o", "jsonpath={.items[0].metadata.name}"
+            "kubectl",
+            "get",
+            "pods",
+            "-n",
+            kube_namespace,
+            "-l",
+            "app=jaeger-collector",
+            "-o",
+            "jsonpath={.items[0].metadata.name}",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0 or not result.stdout.strip():
@@ -62,6 +69,7 @@ class TestTraceSpans:
 def kube_namespace():
     """Get Kubernetes namespace for tests"""
     import os
+
     return os.getenv("KUBE_NAMESPACE", "spark-operations")
 
 

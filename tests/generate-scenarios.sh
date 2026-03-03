@@ -66,7 +66,7 @@ PYEOF
 generate_helm_values() {
     local scenario_json="$1"
     local output_file="$2"
-    
+
     python3 << PYEOF
 import yaml
 import json
@@ -136,7 +136,7 @@ generate_test_script() {
     local helm_values_file="$3"
     local chart="$4"
     local output_file="$5"
-    
+
     cat > "$output_file" << TESTSCRIPT
 #!/bin/bash
 # Test script for scenario: $scenario_name
@@ -167,21 +167,21 @@ log_fail() { echo -e "\${RED}[FAIL]\${NC} \$1"; }
 # Smoke test (10 min)
 run_smoke_tests() {
     log_info "Running smoke tests for \$SCENARIO_NAME"
-    
+
     # Install chart
     helm install \$RELEASE \$PROJECT_ROOT/charts/\$CHART \\
         -f \$VALUES_FILE \\
         -n \$NAMESPACE --create-namespace \\
         --timeout 10m --wait
-    
+
     log_pass "Helm install successful"
-    
+
     # Wait for pods
     kubectl wait --for=condition=Ready pods -l app.kubernetes.io/instance=\$RELEASE \\
         -n \$NAMESPACE --timeout=300s
-    
+
     log_pass "All pods ready"
-    
+
     # Run smoke tests
     # ... test implementation
 }
@@ -222,7 +222,7 @@ TESTSCRIPT
 # Generate GitHub Actions matrix
 generate_github_matrix() {
     local output_file="$1"
-    
+
     python3 << PYEOF
 import yaml
 import json
@@ -249,7 +249,7 @@ for s in matrix['scenarios']:
 # Write include matrix
 with open('$output_file', 'w') as f:
     yaml.dump({'include': scenarios[:20]}, f, default_flow_style=False)  # First 20 for demo
-    
+
 print(f"Generated GitHub matrix with {len(scenarios[:20])} scenarios (demo)")
 print(f"Total scenarios available: {len(scenarios)}")
 PYEOF
@@ -312,10 +312,10 @@ case "$COMMAND" in
         mkdir -p "$OUTPUT_DIR/helm-values"
         mkdir -p "$OUTPUT_DIR/test-scripts"
         mkdir -p "$OUTPUT_DIR/github"
-        
+
         # Generate artifacts using Python
         python3 "$SCRIPT_DIR/generate_test_matrix.py"
-        
+
         log_pass "All artifacts generated in $OUTPUT_DIR"
         ;;
     helm-values)

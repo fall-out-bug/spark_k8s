@@ -115,8 +115,7 @@ def generate_html_report(results_dir: str) -> str:
 
     # Add scenario rows (failed first, then by name)
     sorted_scenarios = sorted(
-        aggregated["scenarios"],
-        key=lambda s: (s.get("status") != "failed", s.get("scenario", ""))
+        aggregated["scenarios"], key=lambda s: (s.get("status") != "failed", s.get("scenario", ""))
     )
 
     for scenario in sorted_scenarios:
@@ -127,13 +126,9 @@ def generate_html_report(results_dir: str) -> str:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Generate HTML report from aggregated test results"
-    )
+    parser = argparse.ArgumentParser(description="Generate HTML report from aggregated test results")
     parser.add_argument(
-        "--results-dir",
-        default="test-results",
-        help="Directory containing aggregated.json (default: test-results)"
+        "--results-dir", default="test-results", help="Directory containing aggregated.json (default: test-results)"
     )
 
     args = parser.parse_args()

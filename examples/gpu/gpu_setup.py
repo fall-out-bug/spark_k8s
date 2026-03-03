@@ -6,12 +6,13 @@ from pyspark.sql import SparkSession
 
 def create_gpu_spark_session(app_name: str = "GPU Operations") -> SparkSession:
     """Create Spark session with GPU/RAPIDS configuration."""
-    return SparkSession.builder \
-        .appName(app_name) \
-        .config("spark.plugins", "com.nvidia.spark.SQLPlugin") \
-        .config("spark.rapids.sql.enabled", "true") \
-        .config("spark.rapids.sql.fallback.enabled", "true") \
+    return (
+        SparkSession.builder.appName(app_name)
+        .config("spark.plugins", "com.nvidia.spark.SQLPlugin")
+        .config("spark.rapids.sql.enabled", "true")
+        .config("spark.rapids.sql.fallback.enabled", "true")
         .getOrCreate()
+    )
 
 
 def print_gpu_status(spark: SparkSession) -> None:

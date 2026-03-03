@@ -22,11 +22,7 @@ class TestServiceAccount:
 
     def test_service_account_created_when_rbac_enabled(self, chart_35_path, preset_35_baseline):
         """Test that ServiceAccount is created when RBAC is enabled"""
-        output = helm_template(
-            chart_35_path,
-            [preset_35_baseline],
-            set_values={"rbac.create": "true"}
-        )
+        output = helm_template(chart_35_path, [preset_35_baseline], set_values={"rbac.create": "true"})
 
         if output is None:
             pytest.fail("helm template should succeed")
@@ -41,31 +37,23 @@ class TestServiceAccount:
         output = helm_template(
             chart_35_path,
             [preset_35_baseline],
-            set_values={"rbac.create": "true", "rbac.serviceAccountName": "test-sa"}
+            set_values={"rbac.create": "true", "rbac.serviceAccountName": "test-sa"},
         )
 
         if output is None:
             pytest.fail("helm template should succeed")
 
         docs = parse_yaml_docs(output)
-        service_account = next(
-            (d for d in docs if d and d.get("kind") == "ServiceAccount"),
-            None
-        )
+        service_account = next((d for d in docs if d and d.get("kind") == "ServiceAccount"), None)
 
         if service_account:
             metadata = service_account.get("metadata", {})
             name = metadata.get("name", "")
-            assert "test-sa" in name or name == "test-sa", \
-                f"ServiceAccount name should match configuration, got {name}"
+            assert "test-sa" in name or name == "test-sa", f"ServiceAccount name should match configuration, got {name}"
 
     def test_service_account_not_created_when_rbac_disabled(self, chart_35_path, preset_35_baseline):
         """Test that ServiceAccount is not created when RBAC is disabled"""
-        output = helm_template(
-            chart_35_path,
-            [preset_35_baseline],
-            set_values={"rbac.create": "false"}
-        )
+        output = helm_template(chart_35_path, [preset_35_baseline], set_values={"rbac.create": "false"})
 
         if output is None:
             pytest.fail("helm template should succeed")
@@ -79,20 +67,13 @@ class TestServiceAccount:
 
     def test_service_account_has_correct_labels(self, chart_35_path, preset_35_baseline):
         """Test that ServiceAccount has correct labels"""
-        output = helm_template(
-            chart_35_path,
-            [preset_35_baseline],
-            set_values={"rbac.create": "true"}
-        )
+        output = helm_template(chart_35_path, [preset_35_baseline], set_values={"rbac.create": "true"})
 
         if output is None:
             pytest.fail("helm template should succeed")
 
         docs = parse_yaml_docs(output)
-        service_account = next(
-            (d for d in docs if d and d.get("kind") == "ServiceAccount"),
-            None
-        )
+        service_account = next((d for d in docs if d and d.get("kind") == "ServiceAccount"), None)
 
         if service_account:
             metadata = service_account.get("metadata", {})

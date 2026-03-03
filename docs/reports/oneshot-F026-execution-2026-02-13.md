@@ -1,7 +1,7 @@
 # @oneshot F026 Execution Report
 
-**Feature:** F26 — Spark Performance Defaults  
-**Date:** 2026-02-13  
+**Feature:** F26 — Spark Performance Defaults
+**Date:** 2026-02-13
 **Status:** Completed
 
 ## Summary

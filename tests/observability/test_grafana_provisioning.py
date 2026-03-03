@@ -19,9 +19,15 @@ class TestDashboardProvisioning:
     def grafana_pod(self, kube_namespace):
         """Get Grafana pod"""
         cmd = [
-            "kubectl", "get", "pods", "-n", kube_namespace,
-            "-l", "app.kubernetes.io/name=grafana",
-            "-o", "jsonpath={.items[0].metadata.name}"
+            "kubectl",
+            "get",
+            "pods",
+            "-n",
+            kube_namespace,
+            "-l",
+            "app.kubernetes.io/name=grafana",
+            "-o",
+            "jsonpath={.items[0].metadata.name}",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0 or not result.stdout.strip():
@@ -31,9 +37,15 @@ class TestDashboardProvisioning:
     def test_spark_dashboards_provisioned(self, grafana_pod, kube_namespace):
         """Test that Spark dashboards are provisioned"""
         cmd = [
-            "kubectl", "exec", "-n", kube_namespace, grafana_pod,
-            "--", "curl", "-s",
-            "http://localhost:3000/api/search?query=Spark"
+            "kubectl",
+            "exec",
+            "-n",
+            kube_namespace,
+            grafana_pod,
+            "--",
+            "curl",
+            "-s",
+            "http://localhost:3000/api/search?query=Spark",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         assert result.returncode == 0
@@ -45,10 +57,7 @@ class TestDashboardProvisioning:
 
     def test_dashboard_configmaps_exist(self, kube_namespace):
         """Test that dashboard ConfigMaps exist in the cluster"""
-        cmd = [
-            "kubectl", "get", "configmap", "-n", kube_namespace,
-            "-l", "grafana_dashboard"
-        ]
+        cmd = ["kubectl", "get", "configmap", "-n", kube_namespace, "-l", "grafana_dashboard"]
         result = subprocess.run(cmd, capture_output=True, text=True)
         # ConfigMaps may or may not have the label
         # Just verify command runs
@@ -90,6 +99,7 @@ class TestDashboardProvisioning:
 def kube_namespace():
     """Get Kubernetes namespace for tests"""
     import os
+
     return os.getenv("KUBE_NAMESPACE", "spark-operations")
 
 

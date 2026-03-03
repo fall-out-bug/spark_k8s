@@ -1,6 +1,6 @@
 # UAT: F06 Core Components + Feature Presets
 
-**Feature:** F06 - Phase 0 Core Components + Feature Presets  
+**Feature:** F06 - Phase 0 Core Components + Feature Presets
 **Review Date:** 2026-02-10
 
 ---

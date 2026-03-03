@@ -27,22 +27,16 @@ def validate_load_metrics(
 
     error_rate = metrics.get("error_rate", 1.0)
     if error_rate > max_error_rate:
-        errors.append(
-            f"Error rate too high: {error_rate:.2%} > {max_error_rate:.2%}"
-        )
+        errors.append(f"Error rate too high: {error_rate:.2%} > {max_error_rate:.2%}")
 
     throughput = metrics.get("throughput_qps", 0)
     if throughput < min_throughput:
-        errors.append(
-            f"Throughput too low: {throughput:.2f} qps < {min_throughput:.2f} qps"
-        )
+        errors.append(f"Throughput too low: {throughput:.2f} qps < {min_throughput:.2f} qps")
 
     if max_latency_p95_ms is not None:
         latency_p95 = metrics.get("latency_p95_ms", 0)
         if latency_p95 > max_latency_p95_ms:
-            errors.append(
-                f"P95 latency too high: {latency_p95:.1f}ms > {max_latency_p95_ms:.1f}ms"
-            )
+            errors.append(f"P95 latency too high: {latency_p95:.1f}ms > {max_latency_p95_ms:.1f}ms")
 
     return errors
 

@@ -23,10 +23,9 @@ class TestRealGPUWorkload:
     def test_has_gpu_nodes(self):
         """Check if cluster has GPU nodes."""
         result = subprocess.run(
-            ["kubectl", "get", "nodes",
-             "-o", "jsonpath={.items[*].status.allocatable.nvidia\\.com/gpu}"],
+            ["kubectl", "get", "nodes", "-o", "jsonpath={.items[*].status.allocatable.nvidia\\.com/gpu}"],
             capture_output=True,
-            text=True
+            text=True,
         )
         if not result.stdout or result.stdout.strip() == "":
             pytest.skip("No GPU nodes available in cluster")
@@ -35,35 +34,57 @@ class TestRealGPUWorkload:
         """Deploy GPU preset and verify GPU resources are requested."""
         result = subprocess.run(
             [
-                "helm", "install", "spark-gpu", "charts/spark-4.1",
-                "-f", "charts/spark-4.1/presets/gpu-values.yaml",
-                "--namespace", gpu_namespace,
+                "helm",
+                "install",
+                "spark-gpu",
+                "charts/spark-4.1",
+                "-f",
+                "charts/spark-4.1/presets/gpu-values.yaml",
+                "--namespace",
+                gpu_namespace,
                 "--wait",
-                "--timeout", "5m"
+                "--timeout",
+                "5m",
             ],
             capture_output=True,
-            text=True
+            text=True,
         )
         if result.returncode != 0:
             pytest.skip(f"GPU deployment failed (likely no GPU nodes): {result.stderr}")
 
         result = subprocess.run(
-            ["kubectl", "get", "pods", "-n", gpu_namespace,
-             "-l", "app=spark-connect",
-             "-o", "jsonpath={.items[0].spec.containers[0].resources}"],
+            [
+                "kubectl",
+                "get",
+                "pods",
+                "-n",
+                gpu_namespace,
+                "-l",
+                "app=spark-connect",
+                "-o",
+                "jsonpath={.items[0].spec.containers[0].resources}",
+            ],
             capture_output=True,
-            text=True
+            text=True,
         )
         assert result.returncode == 0
 
     def test_run_gpu_job(self, gpu_namespace):
         """Run a GPU-accelerated Spark job."""
         result = subprocess.run(
-            ["kubectl", "get", "pods", "-n", gpu_namespace,
-             "-l", "app=spark-connect",
-             "-o", "jsonpath={.items[0].metadata.name}"],
+            [
+                "kubectl",
+                "get",
+                "pods",
+                "-n",
+                gpu_namespace,
+                "-l",
+                "app=spark-connect",
+                "-o",
+                "jsonpath={.items[0].metadata.name}",
+            ],
             capture_output=True,
-            text=True
+            text=True,
         )
         if not result.stdout:
             pytest.skip("No GPU pod found")
@@ -71,8 +92,14 @@ class TestRealGPUWorkload:
         pod_name = result.stdout.strip()
         result = subprocess.run(
             [
-                "kubectl", "exec", "-n", gpu_namespace, pod_name, "--",
-                "/bin/bash", "-c",
+                "kubectl",
+                "exec",
+                "-n",
+                gpu_namespace,
+                pod_name,
+                "--",
+                "/bin/bash",
+                "-c",
                 """
                 python3 << 'EOF'
                 try:
@@ -85,10 +112,10 @@ class TestRealGPUWorkload:
                 except Exception as e:
                     print(f"GPU_TEST_FAILED: {e}")
                 EOF
-                """
+                """,
             ],
             capture_output=True,
             text=True,
-            timeout=300
+            timeout=300,
         )
         assert "GPU_TEST_SUCCESS" in result.stdout or "GPU_TEST_FAILED" not in result.stdout

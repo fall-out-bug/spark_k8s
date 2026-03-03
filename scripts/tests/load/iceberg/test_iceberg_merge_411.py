@@ -29,7 +29,7 @@ def test_iceberg_merge_load_411(spark_connect_client):
     - Stable latency
     """
     duration_sec = 1800  # 30 minutes
-    interval_sec = 0.2   # 5 merges/sec
+    interval_sec = 0.2  # 5 merges/sec
 
     from datetime import datetime, timedelta
 
@@ -53,7 +53,8 @@ def test_iceberg_merge_load_411(spark_connect_client):
             query_start = datetime.now()
 
             # Run MERGE operation
-            spark_connect_client.sql("""
+            spark_connect_client.sql(
+                """
                 MERGE INTO nyc_iceberg.test_table AS target
                 USING (
                     SELECT {0} as id, {1} as value, 'load_test' as source
@@ -61,7 +62,10 @@ def test_iceberg_merge_load_411(spark_connect_client):
                 ON target.id = source.id
                 WHEN MATCHED THEN UPDATE SET value = source.value
                 WHEN NOT MATCHED THEN INSERT *
-            """.format(metrics["queries_total"] % 100, 10.5 + (metrics["queries_total"] % 100))).collect()
+            """.format(
+                    metrics["queries_total"] % 100, 10.5 + (metrics["queries_total"] % 100)
+                )
+            ).collect()
 
             query_end = datetime.now()
 
@@ -71,8 +75,10 @@ def test_iceberg_merge_load_411(spark_connect_client):
 
             if metrics["queries_total"] % 300 == 0:
                 elapsed = (datetime.now() - start_time).total_seconds()
-                print(f"[iceberg_merge_411] Progress: {elapsed:.0f}/{duration_sec}s, "
-                      f"ops: {metrics['queries_success']/elapsed:.2f}/s")
+                print(
+                    f"[iceberg_merge_411] Progress: {elapsed:.0f}/{duration_sec}s, "
+                    f"ops: {metrics['queries_success']/elapsed:.2f}/s"
+                )
 
         except Exception as e:
             metrics["queries_failed"] += 1
@@ -80,7 +86,7 @@ def test_iceberg_merge_load_411(spark_connect_client):
         finally:
             metrics["queries_total"] += 1
 
-            query_duration = (datetime.now() - query_start).total_seconds() if 'query_start' in locals() else 0
+            query_duration = (datetime.now() - query_start).total_seconds() if "query_start" in locals() else 0
             sleep_time = max(0, interval_sec - query_duration)
             if sleep_time > 0 and datetime.now() < end_time:
                 time.sleep(sleep_time)
@@ -89,11 +95,7 @@ def test_iceberg_merge_load_411(spark_connect_client):
     actual_duration = (datetime.now() - start_time).total_seconds()
     metrics["actual_duration_sec"] = actual_duration
     metrics["throughput_qps"] = metrics["queries_total"] / actual_duration if actual_duration > 0 else 0
-    metrics["error_rate"] = (
-        metrics["queries_failed"] / metrics["queries_total"]
-        if metrics["queries_total"] > 0
-        else 0
-    )
+    metrics["error_rate"] = metrics["queries_failed"] / metrics["queries_total"] if metrics["queries_total"] > 0 else 0
 
     # Calculate percentiles
     if metrics["latencies"]:
@@ -125,7 +127,9 @@ def test_iceberg_merge_load_411(spark_connect_client):
     print(f"Merges: {metrics['queries_success']} / {metrics['queries_total']}")
     print(f"Throughput: {metrics['throughput_qps']:.2f} ops/sec")
     print(f"Error rate: {metrics['error_rate']:.2%}")
-    print(f"Latency - Avg: {metrics['latency_avg_ms']:.1f}ms, "
-          f"P50: {metrics['latency_p50_ms']:.1f}ms, "
-          f"P95: {metrics['latency_p95_ms']:.1f}ms, "
-          f"P99: {metrics['latency_p99_ms']:.1f}ms")
+    print(
+        f"Latency - Avg: {metrics['latency_avg_ms']:.1f}ms, "
+        f"P50: {metrics['latency_p50_ms']:.1f}ms, "
+        f"P95: {metrics['latency_p95_ms']:.1f}ms, "
+        f"P99: {metrics['latency_p99_ms']:.1f}ms"
+    )

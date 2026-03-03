@@ -29,8 +29,8 @@ class TestPSSBaseline41:
             set_values={
                 "security.createNamespace": "true",
                 "security.podSecurityStandards": "true",
-                "security.pssProfile": "baseline"
-            }
+                "security.pssProfile": "baseline",
+            },
         )
 
         if output is None:
@@ -48,8 +48,10 @@ class TestPSSBaseline41:
 
         # If PSS is enforced, it should be set to baseline (or restricted)
         if pss_profile:
-            assert pss_profile in ["baseline", "restricted"], \
-                f"PSS profile should be baseline or restricted, got {pss_profile}"
+            assert pss_profile in [
+                "baseline",
+                "restricted",
+            ], f"PSS profile should be baseline or restricted, got {pss_profile}"
 
     def test_pss_baseline_version_is_latest(self, chart_41_path, preset_41_baseline):
         """Test that PSS baseline version is set to latest"""
@@ -59,8 +61,8 @@ class TestPSSBaseline41:
             set_values={
                 "security.createNamespace": "true",
                 "security.podSecurityStandards": "true",
-                "security.pssProfile": "baseline"
-            }
+                "security.pssProfile": "baseline",
+            },
         )
 
         if output is None:
@@ -74,17 +76,12 @@ class TestPSSBaseline41:
 
         labels = namespace.get("metadata", {}).get("labels", {})
         if "pod-security.kubernetes.io/enforce-version" in labels:
-            assert labels.get("pod-security.kubernetes.io/enforce-version") == "latest", \
-                "Should use latest PSS version"
+            assert labels.get("pod-security.kubernetes.io/enforce-version") == "latest", "Should use latest PSS version"
 
     def test_basic_security_context(self, chart_41_path, preset_41_baseline):
         """Test that basic security context is configured for baseline"""
         output = helm_template(
-            chart_41_path,
-            [preset_41_baseline],
-            set_values={
-                "security.podSecurityStandards": "true"
-            }
+            chart_41_path, [preset_41_baseline], set_values={"security.podSecurityStandards": "true"}
         )
 
         if output is None:
@@ -112,5 +109,4 @@ class TestPSSBaseline41:
                         security_context_count += 1
 
         # At least some security context should be configured
-        assert security_context_count > 0, \
-            "At least some security context should be configured for PSS baseline"
+        assert security_context_count > 0, "At least some security context should be configured for PSS baseline"

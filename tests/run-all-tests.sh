@@ -28,27 +28,27 @@ TOTAL_SKIPPED=0
 run_test_suite() {
     local name="$1"
     local script="$2"
-    
+
     echo ""
     echo -e "${BLUE}========================================${NC}"
     echo -e "${BLUE}Running: $name${NC}"
     echo -e "${BLUE}========================================${NC}"
-    
+
     local output
     local exit_code
-    
+
     output=$(bash "$script" 2>&1) && exit_code=$? || exit_code=$?
-    
+
     echo "$output" | tee -a "$MAIN_RESULTS"
-    
+
     local passed=$(echo "$output" | grep -c "✓ PASS" || echo "0")
     local failed=$(echo "$output" | grep -c "✗ FAIL" || echo "0")
     local skipped=$(echo "$output" | grep -c "⊘ SKIP" || echo "0")
-    
+
     TOTAL_PASSED=$((TOTAL_PASSED + passed))
     TOTAL_FAILED=$((TOTAL_FAILED + failed))
     TOTAL_SKIPPED=$((TOTAL_SKIPPED + skipped))
-    
+
     if [[ $exit_code -eq 0 ]]; then
         echo -e "${GREEN}✓ $name completed successfully${NC}"
     else

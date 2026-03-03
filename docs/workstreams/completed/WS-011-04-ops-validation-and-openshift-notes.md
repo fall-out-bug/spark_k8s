@@ -41,7 +41,7 @@ WS-011-01
 
 ### Execution Report
 
-**Executed by:** GPT-5.2 (agent)  
+**Executed by:** GPT-5.2 (agent)
 **Date:** 2026-01-16
 
 #### 🎯 Goal Status
@@ -102,7 +102,7 @@ None. Scope exceeded estimate (718 LOC vs 300-500) but this is acceptable for co
 
 ### Review Result
 
-**Reviewed by:** GPT-5.2 (agent)  
+**Reviewed by:** GPT-5.2 (agent)
 **Date:** 2026-01-16
 
 #### Metrics Summary

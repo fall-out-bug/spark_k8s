@@ -39,9 +39,10 @@ class TestContainerNoPrivilege:
 
                 # If set, it should be false
                 if allow_priv is not None:
-                    assert allow_priv is False, \
-                        f"Container {container_name} in {pod_spec['kind']}/{pod_spec['name']} " \
+                    assert allow_priv is False, (
+                        f"Container {container_name} in {pod_spec['kind']}/{pod_spec['name']} "
                         f"should have allowPrivilegeEscalation=false, got {allow_priv}"
+                    )
 
     def test_no_container_has_privileged_true(self, chart_35_path, preset_35_baseline):
         """Test that no container has privileged: true"""
@@ -60,9 +61,10 @@ class TestContainerNoPrivilege:
                 privileged = sec_ctx.get("privileged")
 
                 # privileged should never be true
-                assert privileged is not True, \
-                    f"Container {container_name} in {pod_spec['kind']}/{pod_spec['name']} " \
+                assert privileged is not True, (
+                    f"Container {container_name} in {pod_spec['kind']}/{pod_spec['name']} "
                     f"should not have privileged=true"
+                )
 
     def test_capabilities_are_dropped(self, chart_35_path, preset_35_baseline):
         """Test that capabilities are dropped"""
@@ -90,7 +92,7 @@ class TestContainerNoPrivilege:
         output = helm_template(
             chart_35_path,
             [preset_35_baseline],
-            set_values={"security.podSecurityStandards": "true", "security.createNamespace": "true"}
+            set_values={"security.podSecurityStandards": "true", "security.createNamespace": "true"},
         )
 
         if output is None:
@@ -111,5 +113,4 @@ class TestContainerNoPrivilege:
                     for container in containers:
                         sec_ctx = container.get("securityContext", {})
                         privileged = sec_ctx.get("privileged", False)
-                        assert privileged is not True, \
-                            "PSS restricted should not allow privileged containers"
+                        assert privileged is not True, "PSS restricted should not allow privileged containers"

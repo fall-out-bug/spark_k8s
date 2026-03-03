@@ -1,8 +1,8 @@
 # F14 Review Report
 
-**Feature:** F14 — Phase 8 Advanced Security  
-**Review Date:** 2026-02-10 (updated 2026-02-10)  
-**Reviewer:** Cursor Composer  
+**Feature:** F14 — Phase 8 Advanced Security
+**Review Date:** 2026-02-10 (updated 2026-02-10)
+**Reviewer:** Cursor Composer
 
 ---
 
@@ -188,5 +188,5 @@ All 7 workstreams have deliverables. 118 tests pass, 14 skipped. **Fixed:** test
 
 ---
 
-**Report ID:** review-F14-full-2026-02-10  
+**Report ID:** review-F14-full-2026-02-10
 **Updated:** 2026-02-10 (protocol review, beads sync)

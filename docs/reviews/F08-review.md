@@ -6,18 +6,18 @@
 ## Bugs Found and Fixed
 
 ### spark_k8s-bbh: Incorrect PROJECT_ROOT path
-**Priority:** P1  
+**Priority:** P1
 **Status:** FIXED ✓
 
 **Root Cause:** PROJECT_ROOT used `../..` instead of `../../..`
 
 **Fix:** Updated all 144 scenarios to use correct path (4 levels up)
 
-### spark_k8s-dat: Multiple sourcing causing array errors  
+### spark_k8s-dat: Multiple sourcing causing array errors
 **Priority:** P1
 **Status:** FIXED ✓
 
-**Root Cause:** 
+**Root Cause:**
 - Libraries sourced recursively in subshells
 - `declare -A` in guard blocks prevented re-initialization
 - `validate_history_server` exported before definition
@@ -34,7 +34,7 @@
 ✅ All 144 scenarios passed bash syntax validation
 
 ### Dry-Run Test (jupyter-k8s-357)
-✅ Test progressed past library loading phase  
+✅ Test progressed past library loading phase
 ✅ No `bad array subscript` errors
 ✅ No `export: not a function` errors
 

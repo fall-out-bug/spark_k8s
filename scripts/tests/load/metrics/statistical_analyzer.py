@@ -167,7 +167,7 @@ class StatisticalAnalyzer:
         # Calculate moving average
         moving_avg = []
         for i in range(len(values) - window_size + 1):
-            window = values[i:i + window_size]
+            window = values[i : i + window_size]
             moving_avg.append(np.mean(window))
 
         # Calculate linear regression
@@ -190,7 +190,7 @@ class StatisticalAnalyzer:
         return {
             "trend": trend,
             "slope": float(slope),
-            "r_squared": float(r_value ** 2),
+            "r_squared": float(r_value**2),
             "p_value": float(p_value),
             "moving_average": [float(v) for v in moving_avg],
         }
@@ -225,68 +225,40 @@ class StatisticalAnalyzer:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Statistical analysis for load test metrics"
-    )
-    subparsers = parser.add_subparsers(dest='command', help='Command to run')
+    parser = argparse.ArgumentParser(description="Statistical analysis for load test metrics")
+    subparsers = parser.add_subparsers(dest="command", help="Command to run")
 
     # Confidence interval command
-    ci_parser = subparsers.add_parser('confidence-interval', help='Calculate confidence interval')
-    ci_parser.add_argument(
-        '--values', type=str, required=True,
-        help='Values as JSON array'
-    )
-    ci_parser.add_argument(
-        '--confidence', type=float, default=0.95,
-        help='Confidence level (default: 0.95)'
-    )
+    ci_parser = subparsers.add_parser("confidence-interval", help="Calculate confidence interval")
+    ci_parser.add_argument("--values", type=str, required=True, help="Values as JSON array")
+    ci_parser.add_argument("--confidence", type=float, default=0.95, help="Confidence level (default: 0.95)")
 
     # T-test command
-    tt_parser = subparsers.add_parser('t-test', help='Perform paired t-test')
-    tt_parser.add_argument(
-        '--sample-a', type=str, required=True,
-        help='Sample A as JSON array'
-    )
-    tt_parser.add_argument(
-        '--sample-b', type=str, required=True,
-        help='Sample B as JSON array'
-    )
+    tt_parser = subparsers.add_parser("t-test", help="Perform paired t-test")
+    tt_parser.add_argument("--sample-a", type=str, required=True, help="Sample A as JSON array")
+    tt_parser.add_argument("--sample-b", type=str, required=True, help="Sample B as JSON array")
 
     # Outliers command
-    outliers_parser = subparsers.add_parser('outliers', help='Detect outliers')
+    outliers_parser = subparsers.add_parser("outliers", help="Detect outliers")
+    outliers_parser.add_argument("--values", type=str, required=True, help="Values as JSON array")
     outliers_parser.add_argument(
-        '--values', type=str, required=True,
-        help='Values as JSON array'
-    )
-    outliers_parser.add_argument(
-        '--method', type=str, default='iqr',
-        choices=['iqr', 'zscore'],
-        help='Outlier detection method'
+        "--method", type=str, default="iqr", choices=["iqr", "zscore"], help="Outlier detection method"
     )
 
     # Trend command
-    trend_parser = subparsers.add_parser('trend', help='Analyze trend')
-    trend_parser.add_argument(
-        '--values', type=str, required=True,
-        help='Time-series values as JSON array'
-    )
-    trend_parser.add_argument(
-        '--window-size', type=int, default=5,
-        help='Window size for moving average'
-    )
+    trend_parser = subparsers.add_parser("trend", help="Analyze trend")
+    trend_parser.add_argument("--values", type=str, required=True, help="Time-series values as JSON array")
+    trend_parser.add_argument("--window-size", type=int, default=5, help="Window size for moving average")
 
     # Percentiles command
-    perc_parser = subparsers.add_parser('percentiles', help='Calculate percentiles')
-    perc_parser.add_argument(
-        '--values', type=str, required=True,
-        help='Values as JSON array'
-    )
+    perc_parser = subparsers.add_parser("percentiles", help="Calculate percentiles")
+    perc_parser.add_argument("--values", type=str, required=True, help="Values as JSON array")
 
     args = parser.parse_args()
 
     analyzer = StatisticalAnalyzer()
 
-    if args.command == 'confidence-interval':
+    if args.command == "confidence-interval":
         values = json.loads(args.values)
         mean, lower, upper = analyzer.calculate_confidence_interval(
             values,
@@ -303,7 +275,7 @@ def main():
         print(json.dumps(result, indent=2))
         return 0
 
-    elif args.command == 't-test':
+    elif args.command == "t-test":
         sample_a = json.loads(args.sample_a)
         sample_b = json.loads(args.sample_b)
 
@@ -317,10 +289,10 @@ def main():
         print(json.dumps(result, indent=2))
         return 0
 
-    elif args.command == 'outliers':
+    elif args.command == "outliers":
         values = json.loads(args.values)
 
-        if args.method == 'iqr':
+        if args.method == "iqr":
             outliers = analyzer.detect_outliers_iqr(values)
         else:
             outliers = analyzer.detect_outliers_zscore(values)
@@ -333,13 +305,13 @@ def main():
         print(json.dumps(result, indent=2))
         return 0
 
-    elif args.command == 'trend':
+    elif args.command == "trend":
         values = json.loads(args.values)
         result = analyzer.analyze_trend(values, args.window_size)
         print(json.dumps(result, indent=2))
         return 0
 
-    elif args.command == 'percentiles':
+    elif args.command == "percentiles":
         values = json.loads(args.values)
         result = analyzer.calculate_percentiles(values)
         print(json.dumps(result, indent=2))
@@ -350,5 +322,5 @@ def main():
         return 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

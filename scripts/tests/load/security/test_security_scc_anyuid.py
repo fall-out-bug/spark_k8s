@@ -11,6 +11,7 @@ import pytest
 
 try:
     from kubernetes import client, config
+
     K8S_AVAILABLE = True
 except ImportError:
     K8S_AVAILABLE = False
@@ -38,7 +39,7 @@ def test_scc_anyuid_stability(spark_connect_client):
     """
 
     duration_sec = 1800  # 30 minutes
-    interval_sec = 1.0   # 1 qps
+    interval_sec = 1.0  # 1 qps
 
     # Load kubeconfig
     try:
@@ -83,8 +84,7 @@ def test_scc_anyuid_stability(spark_connect_client):
             if metrics["queries_total"] % 60 == 0:
                 try:
                     pods = k8s_core_api.list_namespaced_pod(
-                        namespace=namespace,
-                        label_selector="app.kubernetes.io/component=executor"
+                        namespace=namespace, label_selector="app.kubernetes.io/component=executor"
                     )
 
                     for pod in pods.items:
@@ -104,7 +104,7 @@ def test_scc_anyuid_stability(spark_connect_client):
         finally:
             metrics["queries_total"] += 1
 
-            query_duration = (datetime.now() - query_start).total_seconds() if 'query_start' in locals() else 0
+            query_duration = (datetime.now() - query_start).total_seconds() if "query_start" in locals() else 0
             sleep_time = max(0, interval_sec - query_duration)
             if sleep_time > 0 and datetime.now() < end_time:
                 time.sleep(sleep_time)
@@ -113,11 +113,7 @@ def test_scc_anyuid_stability(spark_connect_client):
     actual_duration = (datetime.now() - start_time).total_seconds()
     metrics["actual_duration_sec"] = actual_duration
     metrics["throughput_qps"] = metrics["queries_total"] / actual_duration if actual_duration > 0 else 0
-    metrics["error_rate"] = (
-        metrics["queries_failed"] / metrics["queries_total"]
-        if metrics["queries_total"] > 0
-        else 0
-    )
+    metrics["error_rate"] = metrics["queries_failed"] / metrics["queries_total"] if metrics["queries_total"] > 0 else 0
 
     if metrics["latencies"]:
         sorted_latencies = sorted(metrics["latencies"])
@@ -140,8 +136,7 @@ def test_scc_anyuid_stability(spark_connect_client):
     )
 
     assert not errors, f"Load test failed: {'; '.join(errors)}"
-    assert metrics["permission_violations"] == 0, \
-        f"Permission violations detected: {metrics['permission_violations']}"
+    assert metrics["permission_violations"] == 0, f"Permission violations detected: {metrics['permission_violations']}"
 
     # Print summary
     print(f"\n=== Security Stability Summary (SCC AnyUID) ===")

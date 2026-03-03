@@ -50,7 +50,7 @@ def test_baseline_join_filter_411(spark_connect_client):
     """
 
     duration_sec = 1800  # 30 minutes
-    interval_sec = 1.0   # 1 qps
+    interval_sec = 1.0  # 1 qps
 
     metrics = run_sustained_load(
         spark_connect_client,
@@ -76,7 +76,9 @@ def test_baseline_join_filter_411(spark_connect_client):
     print(f"Queries: {metrics['queries_success']} / {metrics['queries_total']}")
     print(f"Throughput: {metrics['throughput_qps']:.2f} qps")
     print(f"Error rate: {metrics['error_rate']:.2%}")
-    print(f"Latency - Avg: {metrics['latency_avg_ms']:.1f}ms, "
-          f"P50: {metrics['latency_p50_ms']:.1f}ms, "
-          f"P95: {metrics['latency_p95_ms']:.1f}ms, "
-          f"P99: {metrics['latency_p99_ms']:.1f}ms")
+    print(
+        f"Latency - Avg: {metrics['latency_avg_ms']:.1f}ms, "
+        f"P50: {metrics['latency_p50_ms']:.1f}ms, "
+        f"P95: {metrics['latency_p95_ms']:.1f}ms, "
+        f"P99: {metrics['latency_p99_ms']:.1f}ms"
+    )

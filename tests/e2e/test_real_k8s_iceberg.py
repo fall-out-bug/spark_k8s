@@ -13,15 +13,25 @@ class TestRealIcebergWorkload:
         """Create test namespace for Iceberg tests."""
         ns = "spark-iceberg-test"
         subprocess.run(["kubectl", "create", "namespace", ns], check=False, capture_output=True)
-        subprocess.run(["helm", "repo", "add", "minio", "https://charts.min.io/"],
-                      check=False, capture_output=True)
-        subprocess.run([
-            "helm", "install", "minio", "minio/minio",
-            "--set", "accessKey=minioadmin",
-            "--set", "secretKey=minioadmin",
-            "--set", "persistence.enabled=false",
-            "--namespace", ns
-        ], check=False, capture_output=True)
+        subprocess.run(["helm", "repo", "add", "minio", "https://charts.min.io/"], check=False, capture_output=True)
+        subprocess.run(
+            [
+                "helm",
+                "install",
+                "minio",
+                "minio/minio",
+                "--set",
+                "accessKey=minioadmin",
+                "--set",
+                "secretKey=minioadmin",
+                "--set",
+                "persistence.enabled=false",
+                "--namespace",
+                ns,
+            ],
+            check=False,
+            capture_output=True,
+        )
         yield ns
         subprocess.run(["helm", "uninstall", "minio", "-n", ns], check=False, capture_output=True)
         subprocess.run(["kubectl", "delete", "namespace", ns], check=False, capture_output=True)
@@ -30,11 +40,19 @@ class TestRealIcebergWorkload:
         """Deploy Iceberg preset and verify configuration."""
         result = subprocess.run(
             [
-                "helm", "install", "spark-iceberg", "charts/spark-4.1",
-                "-f", "charts/spark-4.1/presets/iceberg-values.yaml",
-                "--namespace", iceberg_namespace,
-                "--set", "global.s3.endpoint=http://minio:9000",
-                "--wait", "--timeout", "5m"
+                "helm",
+                "install",
+                "spark-iceberg",
+                "charts/spark-4.1",
+                "-f",
+                "charts/spark-4.1/presets/iceberg-values.yaml",
+                "--namespace",
+                iceberg_namespace,
+                "--set",
+                "global.s3.endpoint=http://minio:9000",
+                "--wait",
+                "--timeout",
+                "5m",
             ],
             capture_output=True,
             text=True,
@@ -43,8 +61,18 @@ class TestRealIcebergWorkload:
             pytest.skip(f"Iceberg deployment failed: {result.stderr}")
 
         subprocess.run(
-            ["kubectl", "wait", "--for=condition=ready", "pod",
-             "-l", "app=spark-connect", "-n", iceberg_namespace, "--timeout", "300s"],
+            [
+                "kubectl",
+                "wait",
+                "--for=condition=ready",
+                "pod",
+                "-l",
+                "app=spark-connect",
+                "-n",
+                iceberg_namespace,
+                "--timeout",
+                "300s",
+            ],
             check=False,
             capture_output=True,
         )
@@ -52,8 +80,17 @@ class TestRealIcebergWorkload:
     def test_create_iceberg_table(self, iceberg_namespace: str) -> None:
         """Create an Iceberg table and perform ACID operations."""
         result = subprocess.run(
-            ["kubectl", "get", "pods", "-n", iceberg_namespace,
-             "-l", "app=spark-connect", "-o", "jsonpath={.items[0].metadata.name}"],
+            [
+                "kubectl",
+                "get",
+                "pods",
+                "-n",
+                iceberg_namespace,
+                "-l",
+                "app=spark-connect",
+                "-o",
+                "jsonpath={.items[0].metadata.name}",
+            ],
             capture_output=True,
             text=True,
         )
@@ -75,8 +112,7 @@ class TestRealIcebergWorkload:
         print("ICEBERG_TEST_SUCCESS")
         """
         result = subprocess.run(
-            ["kubectl", "exec", "-n", iceberg_namespace, pod_name, "--",
-             "python3", "-c", script],
+            ["kubectl", "exec", "-n", iceberg_namespace, pod_name, "--", "python3", "-c", script],
             capture_output=True,
             text=True,
             timeout=600,
@@ -86,8 +122,17 @@ class TestRealIcebergWorkload:
     def test_iceberg_time_travel(self, iceberg_namespace: str) -> None:
         """Test Iceberg time travel feature."""
         result = subprocess.run(
-            ["kubectl", "get", "pods", "-n", iceberg_namespace,
-             "-l", "app=spark-connect", "-o", "jsonpath={.items[0].metadata.name}"],
+            [
+                "kubectl",
+                "get",
+                "pods",
+                "-n",
+                iceberg_namespace,
+                "-l",
+                "app=spark-connect",
+                "-o",
+                "jsonpath={.items[0].metadata.name}",
+            ],
             capture_output=True,
             text=True,
         )
@@ -106,8 +151,7 @@ class TestRealIcebergWorkload:
         print("TIME_TRAVEL_TEST_SUCCESS")
         """
         result = subprocess.run(
-            ["kubectl", "exec", "-n", iceberg_namespace, pod_name, "--",
-             "python3", "-c", script],
+            ["kubectl", "exec", "-n", iceberg_namespace, pod_name, "--", "python3", "-c", script],
             capture_output=True,
             text=True,
             timeout=600,

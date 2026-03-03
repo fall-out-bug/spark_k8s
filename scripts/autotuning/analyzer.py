@@ -237,26 +237,19 @@ class WorkloadAnalyzer:
             if severity != "ok":
                 # Build rationale
                 rationale_template = rule_config.get("rationale", "")
-                rationale = rationale_template.replace(
-                    "{{value}}", str(metric_value)
-                )
+                rationale = rationale_template.replace("{{value}}", str(metric_value))
 
                 issue = DetectedIssue(
                     issue_type=rule_name,
                     severity=severity,
                     metric_value=metric_value,
-                    threshold=(
-                        critical_threshold
-                        if severity == "critical"
-                        else warning_threshold
-                    ),
+                    threshold=(critical_threshold if severity == "critical" else warning_threshold),
                     recommendation=rule_config.get("recommendation", ""),
                     rationale=rationale,
                 )
                 issues.append(issue)
                 logger.debug(
-                    f"Detected {rule_name}: {severity} "
-                    f"(value={metric_value}, threshold={issue.threshold})"
+                    f"Detected {rule_name}: {severity} " f"(value={metric_value}, threshold={issue.threshold})"
                 )
 
         return issues
@@ -334,9 +327,7 @@ class WorkloadAnalyzer:
 
         return max(scores, key=scores.get)
 
-    def _check_condition(
-        self, actual: float, condition: str, expected: float
-    ) -> bool:
+    def _check_condition(self, actual: float, condition: str, expected: float) -> bool:
         """Check if condition is met.
 
         Args:
@@ -423,11 +414,7 @@ def analyze_metrics(
         app_id=data.get("app_id", "unknown"),
         metrics=data.get("metrics", {}),
         duration_seconds=data.get("duration_seconds", 0),
-        timestamp=(
-            datetime.fromisoformat(data["timestamp"])
-            if "timestamp" in data
-            else None
-        ),
+        timestamp=(datetime.fromisoformat(data["timestamp"]) if "timestamp" in data else None),
     )
 
     if output_path:
@@ -438,17 +425,17 @@ def analyze_metrics(
 
 def main():
     """CLI entry point."""
-    parser = argparse.ArgumentParser(
-        description="Analyze Spark metrics for autotuning recommendations"
-    )
+    parser = argparse.ArgumentParser(description="Analyze Spark metrics for autotuning recommendations")
     parser.add_argument(
-        "--metrics-file", "-m",
+        "--metrics-file",
+        "-m",
         required=True,
         type=Path,
         help="Path to metrics JSON file from collector",
     )
     parser.add_argument(
-        "--output", "-o",
+        "--output",
+        "-o",
         type=Path,
         help="Output file path for analysis JSON",
     )
@@ -458,7 +445,8 @@ def main():
         help="Path to detection rules YAML",
     )
     parser.add_argument(
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         action="store_true",
         help="Enable verbose logging",
     )

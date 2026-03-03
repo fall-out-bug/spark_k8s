@@ -1,7 +1,7 @@
 # @oneshot F027 Execution Report
 
-**Feature:** F27 — Code Quality A*  
-**Date:** 2026-02-13  
+**Feature:** F27 — Code Quality A*
+**Date:** 2026-02-13
 **Status:** Partial
 
 ## Summary

@@ -1,8 +1,8 @@
 # F18 Review Report
 
-**Feature:** F18 — Production Operations Suite  
-**Review Date:** 2026-02-10 (updated 2026-02-10)  
-**Reviewer:** Cursor Composer  
+**Feature:** F18 — Production Operations Suite
+**Review Date:** 2026-02-10 (updated 2026-02-10)
+**Reviewer:** Cursor Composer
 
 ---
 

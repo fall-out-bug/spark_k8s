@@ -39,4 +39,3 @@ This feature provides `charts/spark-standalone` for deploying Spark Standalone (
 - [ ] `helm lint` passes for both charts
 - [ ] `scripts/test-sa-prodlike-all.sh` passes
 - [ ] No unexpected restarts / CrashLoopBackOff
-

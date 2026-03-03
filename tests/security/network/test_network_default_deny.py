@@ -67,8 +67,9 @@ class TestNetworkDefaultDeny:
                     pod_selector = spec.get("podSelector", {})
 
                     # Empty podSelector means applies to all pods
-                    assert pod_selector == {} or pod_selector.get("matchLabels") is None, \
-                        "Default-deny should apply to all pods (empty selector)"
+                    assert (
+                        pod_selector == {} or pod_selector.get("matchLabels") is None
+                    ), "Default-deny should apply to all pods (empty selector)"
                     return
 
         pytest.skip("Default-deny network policy not found")

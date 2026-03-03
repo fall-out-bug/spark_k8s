@@ -1,7 +1,7 @@
 # Feature F23: Project Origins Documentation
 
-> **Feature ID:** F23  
-> **Beads:** spark_k8s-1wf (F21)  
+> **Feature ID:** F23
+> **Beads:** spark_k8s-1wf (F21)
 > **Source:** docs/plans/2026-02-04-product-branding-strategy.md Phase 1
 
 ## Goal

@@ -154,7 +154,7 @@ spark = SparkSession.builder.appName("MLflowTraining").getOrCreate()
 df = spark.range(0, 10000).selectExpr(
     "id",
     "rand() as feature1",
-    "rand() as feature2", 
+    "rand() as feature2",
     "id * 0.5 + rand() * 10 as label"
 )
 
@@ -170,20 +170,20 @@ mlflow.set_experiment("spark-standalone-training")
 with mlflow.start_run(run_name="linear-regression"):
     lr = LinearRegression(featuresCol="features", labelCol="label")
     model = lr.fit(train)
-    
+
     # Evaluate
     predictions = model.transform(test)
     evaluator = RegressionEvaluator(labelCol="label", predictionCol="prediction")
     rmse = evaluator.evaluate(predictions, {evaluator.metricName: "rmse"})
     r2 = evaluator.evaluate(predictions, {evaluator.metricName: "r2"})
-    
+
     # Log to MLflow
     mlflow.log_param("maxIter", lr.getMaxIter())
     mlflow.log_param("regParam", lr.getRegParam())
     mlflow.log_metric("rmse", rmse)
     mlflow.log_metric("r2", r2)
     mlflow.spark.log_model(model, "model")
-    
+
     print(f"Model trained: RMSE={rmse:.4f}, R2={r2:.4f}")
 
 spark.stop()
@@ -383,7 +383,7 @@ Post-build checks complete: WS-001-10
 
 ### Review Result
 
-**Reviewed by:** GPT-5.2 (agent)  
+**Reviewed by:** GPT-5.2 (agent)
 **Date:** 2026-01-16
 
 #### Metrics Summary

@@ -54,21 +54,21 @@ run_spark_job() {
     local name="$2"
     local timeout="${3:-120}"
     local expected="${4:-E2E_RESULT}"
-    
+
     local MASTER_POD=$(get_master_pod)
-    
+
     if [[ -z "$MASTER_POD" ]]; then
         log_skip "$name (no master pod)"
         return 0
     fi
-    
+
     echo -n "Running: $name... "
-    
+
     kubectl cp "$script" $NAMESPACE/$MASTER_POD:/tmp/test.py 2>/dev/null
-    
+
     local output
     output=$(kubectl exec -n $NAMESPACE $MASTER_POD -- bash -c 'DRIVER_HOST=$(hostname -i) && timeout '$timeout' spark-submit --master spark://$MASTER_SERVICE:7077 --conf spark.driver.host=$DRIVER_HOST --conf spark.driver.bindAddress=0.0.0.0 /tmp/test.py' 2>&1) || true
-    
+
     if echo "$output" | grep -q "$expected"; then
         log_pass "$name"
         return 0
@@ -95,14 +95,14 @@ PRESETS_DIR="$PROJECT_ROOT/charts/spark-3.5/presets"
 if [[ -d "$PRESETS_DIR" ]]; then
     for preset in $(find "$PRESETS_DIR" -name "*.yaml" -type f | sort); do
         name=$(echo "$preset" | sed "s|$PRESETS_DIR/||" | sed 's|.yaml$||' | tr '/' '-')
-        
+
         echo -n "Linting: $name... "
         if helm lint "$PROJECT_ROOT/charts/spark-3.5" -f "$preset" > /dev/null 2>&1; then
             log_pass "preset-lint-$name"
         else
             log_fail "preset-lint-$name"
         fi
-        
+
         echo -n "Templating: $name... "
         if helm template test "$PROJECT_ROOT/charts/spark-3.5" -f "$preset" > /dev/null 2>&1; then
             log_pass "preset-template-$name"
@@ -123,7 +123,7 @@ if [[ -d "$EXAMPLES_DIR" ]]; then
     for file in $(find "$EXAMPLES_DIR" -name "*.py" -type f | sort); do
         name=$(basename "$file" .py)
         echo -n "Validating: $name... "
-        
+
         if python3 -m py_compile "$file" 2>/dev/null; then
             log_pass "example-syntax-$name"
         else
@@ -309,10 +309,10 @@ log_section "8. MONITORING E2E"
 DASHBOARDS=$(kubectl get configmap -n $NAMESPACE -l grafana_dashboard=1 --no-headers 2>/dev/null | wc -l || echo "0")
 if [[ $DASHBOARDS -gt 0 ]]; then
     echo -n "Checking Grafana dashboards... "
-    
+
     DASHBOARD_NAMES=$(kubectl get configmap -n $NAMESPACE -l grafana_dashboard=1 -o jsonpath='{.items[*].metadata.name}' 2>/dev/null)
     DASHBOARD_COUNT=$(echo $DASHBOARD_NAMES | wc -w)
-    
+
     if [[ $DASHBOARD_COUNT -ge 5 ]]; then
         log_pass "grafana-dashboards-count ($DASHBOARD_COUNT found)"
     else

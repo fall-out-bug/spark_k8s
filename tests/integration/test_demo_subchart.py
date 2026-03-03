@@ -11,16 +11,17 @@ class TestSparkStandaloneSubchart:
         """Subchart should pass helm lint."""
         result = subprocess.run(
             ["helm", "lint", "charts/spark-3.5/charts/spark-standalone"],
-            capture_output=True, text=True,
+            capture_output=True,
+            text=True,
         )
         assert result.returncode == 0, f"Lint failed: {result.stderr}"
 
     def test_subchart_template_renders(self) -> None:
         """Subchart should render without errors."""
         result = subprocess.run(
-            ["helm", "template", "test",
-             "charts/spark-3.5/charts/spark-standalone", "--namespace", "test"],
-            capture_output=True, text=True,
+            ["helm", "template", "test", "charts/spark-3.5/charts/spark-standalone", "--namespace", "test"],
+            capture_output=True,
+            text=True,
         )
         assert result.returncode == 0, f"Template failed: {result.stderr}"
 

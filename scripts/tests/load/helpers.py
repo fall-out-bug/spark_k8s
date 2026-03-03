@@ -62,8 +62,10 @@ def run_sustained_load(
 
             if metrics["queries_total"] % 60 == 0:
                 elapsed = (datetime.now() - start_time).total_seconds()
-                print(f"[{query_name}] Progress: {elapsed:.0f}/{duration_sec}s, "
-                      f"qps: {metrics['queries_success']/elapsed:.2f}")
+                print(
+                    f"[{query_name}] Progress: {elapsed:.0f}/{duration_sec}s, "
+                    f"qps: {metrics['queries_success']/elapsed:.2f}"
+                )
 
         except Exception as e:
             metrics["queries_failed"] += 1
@@ -71,7 +73,7 @@ def run_sustained_load(
         finally:
             metrics["queries_total"] += 1
 
-            query_duration = (datetime.now() - query_start).total_seconds() if 'query_start' in locals() else 0
+            query_duration = (datetime.now() - query_start).total_seconds() if "query_start" in locals() else 0
             sleep_time = max(0, interval_sec - query_duration)
             if sleep_time > 0 and datetime.now() < end_time:
                 time.sleep(sleep_time)
@@ -80,11 +82,7 @@ def run_sustained_load(
     actual_duration = (datetime.now() - start_time).total_seconds()
     metrics["actual_duration_sec"] = actual_duration
     metrics["throughput_qps"] = metrics["queries_total"] / actual_duration if actual_duration > 0 else 0
-    metrics["error_rate"] = (
-        metrics["queries_failed"] / metrics["queries_total"]
-        if metrics["queries_total"] > 0
-        else 0
-    )
+    metrics["error_rate"] = metrics["queries_failed"] / metrics["queries_total"] if metrics["queries_total"] > 0 else 0
 
     # Calculate percentiles
     if metrics["latencies"]:
@@ -111,11 +109,13 @@ def get_gpu_metrics() -> Dict[str, Any]:
         Dictionary with GPU utilization and memory usage
     """
     try:
-        output = subprocess.check_output([
-            "nvidia-smi",
-            "--query-gpu=utilization.gpu,memory.used,memory.total",
-            "--format=csv,noheader,nounits"
-        ]).decode().strip()
+        output = (
+            subprocess.check_output(
+                ["nvidia-smi", "--query-gpu=utilization.gpu,memory.used,memory.total", "--format=csv,noheader,nounits"]
+            )
+            .decode()
+            .strip()
+        )
 
         if not output:
             return {"utilization_pct": 0, "memory_used_mb": 0, "memory_total_mb": 0}

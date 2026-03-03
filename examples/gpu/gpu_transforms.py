@@ -15,11 +15,15 @@ def gpu_aggregations(df) -> None:
     print("\n3. GPU-Accelerated Aggregations")
 
     start = time.time()
-    result = df.groupBy("product_id").agg(
-        count("*").alias("transaction_count"),
-        avg("price").alias("avg_price"),
-        spark_sum("price").alias("total_revenue")
-    ).orderBy("total_revenue", ascending=False)
+    result = (
+        df.groupBy("product_id")
+        .agg(
+            count("*").alias("transaction_count"),
+            avg("price").alias("avg_price"),
+            spark_sum("price").alias("total_revenue"),
+        )
+        .orderBy("total_revenue", ascending=False)
+    )
 
     result.show(10, truncate=False)
     agg_time = time.time() - start
@@ -36,17 +40,14 @@ def gpu_joins(df) -> None:
 
     spark = df.sql_ctx.sparkSession
     product_data = spark.range(1000).selectExpr(
-        "id as product_id",
-        "concat('Product ', id) as product_name",
-        "cast(id % 10 as int) as category_id"
+        "id as product_id", "concat('Product ', id) as product_name", "cast(id % 10 as int) as category_id"
     )
 
     start = time.time()
     joined = df.join(product_data, "product_id", "inner")
 
     result = joined.groupBy("category_id").agg(
-        count("*").alias("sales_count"),
-        spark_sum("price").alias("category_revenue")
+        count("*").alias("sales_count"), spark_sum("price").alias("category_revenue")
     )
 
     result.show(10, truncate=False)
@@ -59,11 +60,7 @@ def gpu_filter_operations(df) -> None:
     print("\n5. GPU-Accelerated Filter Operations")
 
     start = time.time()
-    filtered = df.filter(
-        (col("price") > 50) &
-        (col("quantity") >= 2) &
-        (col("price") * col("quantity") > 100)
-    )
+    filtered = df.filter((col("price") > 50) & (col("quantity") >= 2) & (col("price") * col("quantity") > 100))
 
     count = filtered.count()
     filter_time = time.time() - start

@@ -1,8 +1,8 @@
 # F17 Review Report
 
-**Feature:** F17 — Spark Connect Go Client  
-**Review Date:** 2026-02-10 (updated 2026-02-10)  
-**Reviewer:** Cursor Composer  
+**Feature:** F17 — Spark Connect Go Client
+**Review Date:** 2026-02-10 (updated 2026-02-10)
+**Reviewer:** Cursor Composer
 
 ---
 
@@ -126,5 +126,5 @@ Feature implemented. All WS-017-01..04 deliverables exist. **Blocker:** 4 Go fil
 
 ---
 
-**Report ID:** review-F17-full-2026-02-10  
+**Report ID:** review-F17-full-2026-02-10
 **Updated:** 2026-02-10 (implementation verified, LOC blocker, bead cqy.6)

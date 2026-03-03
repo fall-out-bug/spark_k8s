@@ -79,7 +79,7 @@ log_info "=== 3. Security Context Constraints ==="
 if check_openshift; then
     echo -n "Testing: scc-restricted... "
     SCC_PODS=$(kubectl get pods -n $NAMESPACE -o jsonpath='{.items[*].metadata.name}' 2>/dev/null)
-    
+
     SCC_ISSUES=0
     for pod in $SCC_PODS; do
         RUNAS_NON_ROOT=$(kubectl get pod $pod -n $NAMESPACE -o jsonpath='{.spec.securityContext.runAsNonRoot}' 2>/dev/null || echo "false")
@@ -87,7 +87,7 @@ if check_openshift; then
             SCC_ISSUES=$((SCC_ISSUES + 1))
         fi
     done
-    
+
     if [[ $SCC_ISSUES -eq 0 ]]; then
         log_pass "scc-restricted-compliant"
     else
@@ -134,17 +134,17 @@ log_info "=== 5. OpenShift Routes ==="
 if check_openshift; then
     echo -n "Testing: spark-master-route... "
     MASTER_ROUTE=$(kubectl get route -n $NAMESPACE -l 'app.kubernetes.io/component=spark-master' -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
-    
+
     if [[ -n "$MASTER_ROUTE" ]]; then
         HOST=$(kubectl get route -n $NAMESPACE $MASTER_ROUTE -o jsonpath='{.spec.host}' 2>/dev/null || echo "")
         log_pass "spark-master-route (host: $HOST)"
     else
         log_skip "spark-master-route (not created)"
     fi
-    
+
     echo -n "Testing: spark-connect-route... "
     CONNECT_ROUTE=$(kubectl get route -n $NAMESPACE -l 'app.kubernetes.io/component=spark-connect' -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
-    
+
     if [[ -n "$CONNECT_ROUTE" ]]; then
         HOST=$(kubectl get route -n $NAMESPACE $CONNECT_ROUTE -o jsonpath='{.spec.host}' 2>/dev/null || echo "")
         log_pass "spark-connect-route (host: $HOST)"
@@ -230,7 +230,7 @@ log_info "=== 11. Image Registry ==="
 if check_openshift; then
     echo -n "Testing: internal-registry-access... "
     REGISTRY_ROUTE=$(kubectl get route -n openshift-image-registry default-route -o jsonpath='{.spec.host}' 2>/dev/null || echo "")
-    
+
     if [[ -n "$REGISTRY_ROUTE" ]]; then
         log_pass "internal-registry-access ($REGISTRY_ROUTE)"
     else

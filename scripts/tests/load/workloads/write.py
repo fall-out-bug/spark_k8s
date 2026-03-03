@@ -18,9 +18,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import (
-    col, count, spark_sum, avg, lit
-)
+from pyspark.sql.functions import col, count, spark_sum, avg, lit
 
 
 # Data paths for different sizes
@@ -40,17 +38,18 @@ POSTGRES_PROPS = {
 
 def create_spark_session() -> SparkSession:
     """Create Spark session with S3 and Postgres configuration."""
-    return SparkSession.builder \
-        .appName("load-test-write") \
-        .config("spark.hadoop.fs.s3a.endpoint", "http://minio.spark-infra.svc.cluster.local:9000") \
-        .config("spark.hadoop.fs.s3a.access.key", "minioadmin") \
-        .config("spark.hadoop.fs.s3a.secret.key", "minioadmin") \
-        .config("spark.hadoop.fs.s3a.path.style.access", "true") \
-        .config("spark.sql.shuffle.partitions", "200") \
-        .config("spark.eventLog.enabled", "true") \
-        .config("spark.eventLog.dir", "s3a://spark-logs/") \
-        .config("spark.sql.execution.arrow.pyspark.enabled", "true") \
+    return (
+        SparkSession.builder.appName("load-test-write")
+        .config("spark.hadoop.fs.s3a.endpoint", "http://minio.spark-infra.svc.cluster.local:9000")
+        .config("spark.hadoop.fs.s3a.access.key", "minioadmin")
+        .config("spark.hadoop.fs.s3a.secret.key", "minioadmin")
+        .config("spark.hadoop.fs.s3a.path.style.access", "true")
+        .config("spark.sql.shuffle.partitions", "200")
+        .config("spark.eventLog.enabled", "true")
+        .config("spark.eventLog.dir", "s3a://spark-logs/")
+        .config("spark.sql.execution.arrow.pyspark.enabled", "true")
         .getOrCreate()
+    )
 
 
 def run_write_workload(
@@ -75,9 +74,7 @@ def run_write_workload(
     df = spark.read.parquet(data_path)
 
     # Aggregate for summary table
-    summary = df.groupBy(
-        "PULocationID"
-    ).agg(
+    summary = df.groupBy("PULocationID").agg(
         count("*").alias("total_trips"),
         spark_sum("passenger_count").alias("total_passengers"),
         avg("trip_distance").alias("avg_distance"),
@@ -90,16 +87,9 @@ def run_write_workload(
     # Write to Postgres with batch optimization
     write_start = time.time()
 
-    summary.write \
-        .mode("overwrite") \
-        .option("truncate", "true") \
-        .option("batchsize", "10000") \
-        .option("rewriteBatchedInserts", "true") \
-        .jdbc(
-            POSTGRES_URL,
-            "test_schema.trip_summary",
-            properties=POSTGRES_PROPS
-        )
+    summary.write.mode("overwrite").option("truncate", "true").option("batchsize", "10000").option(
+        "rewriteBatchedInserts", "true"
+    ).jdbc(POSTGRES_URL, "test_schema.trip_summary", properties=POSTGRES_PROPS)
 
     write_duration = time.time() - write_start
     total_duration = time.time() - start_time
@@ -120,26 +110,11 @@ def run_write_workload(
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Write workload for load testing"
-    )
-    parser.add_argument(
-        '--operation', type=str, default='write',
-        help='Operation name (for compatibility)'
-    )
-    parser.add_argument(
-        '--data_size', type=str, required=True,
-        choices=['1gb', '11gb'],
-        help='Data size to write'
-    )
-    parser.add_argument(
-        '--output', type=str, required=True,
-        help='Output file for metrics (JSONL)'
-    )
-    parser.add_argument(
-        '--metadata', type=str,
-        help='Additional metadata as JSON string'
-    )
+    parser = argparse.ArgumentParser(description="Write workload for load testing")
+    parser.add_argument("--operation", type=str, default="write", help="Operation name (for compatibility)")
+    parser.add_argument("--data_size", type=str, required=True, choices=["1gb", "11gb"], help="Data size to write")
+    parser.add_argument("--output", type=str, required=True, help="Output file for metrics (JSONL)")
+    parser.add_argument("--metadata", type=str, help="Additional metadata as JSON string")
 
     args = parser.parse_args()
 
@@ -165,8 +140,8 @@ def main():
         output_path = Path(args.output)
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(output_path, 'a') as f:
-            f.write(json.dumps(metrics) + '\n')
+        with open(output_path, "a") as f:
+            f.write(json.dumps(metrics) + "\n")
 
         print(f"Write workload complete: {metrics['rows_written']:,} rows in {metrics['duration_sec']:.2f}s")
         print(f"Throughput: {metrics['throughput_rows_sec']:,.0f} rows/sec")
@@ -181,5 +156,5 @@ def main():
         spark.stop()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

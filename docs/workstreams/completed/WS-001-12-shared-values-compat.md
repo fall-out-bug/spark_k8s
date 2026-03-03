@@ -25,7 +25,7 @@ and the newer Spark Standalone chart.
 
 ### Execution Report
 
-**Executed by:** GPT-5.2 (agent)  
+**Executed by:** GPT-5.2 (agent)
 **Date:** 2026-01-16
 
 #### 🎯 Goal Status
@@ -47,7 +47,7 @@ helm lint charts/spark-standalone
 
 ### Review Result
 
-**Reviewed by:** GPT-5.2 (agent)  
+**Reviewed by:** GPT-5.2 (agent)
 **Date:** 2026-01-16
 
 #### Metrics Summary
@@ -60,4 +60,3 @@ helm lint charts/spark-standalone
 | AI-Readiness | ✅ |
 
 **Verdict:** ✅ APPROVED
-

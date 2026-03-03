@@ -139,7 +139,7 @@ class TestPhase2Completeness:
             "docs/recipes/data-quality/great-expectations-guide.md",
             "docs/operations/compatibility-matrix.md",
             "docs/operations/disaster-recovery.md",
-            "docs/quick-start.md"
+            "docs/quick-start.md",
         ]
         for guide in guides:
             assert Path(guide).exists(), f"Missing: {guide}"
@@ -150,7 +150,7 @@ class TestPhase2Completeness:
             "docs/recipes/data-quality/great-expectations-guide.md",
             "docs/operations/compatibility-matrix.md",
             "docs/operations/disaster-recovery.md",
-            "docs/quick-start.md"
+            "docs/quick-start.md",
         ]
         for guide in guides:
             assert Path(guide).suffix == ".md"

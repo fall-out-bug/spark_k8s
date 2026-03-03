@@ -31,4 +31,3 @@ During strict SDP review of **F01: Spark Standalone Helm Chart**, the implementa
 ### Resolution
 
 - WS-001-12 was executed and moved to `docs/workstreams/completed/WS-001-12-shared-values-compat.md`.
-

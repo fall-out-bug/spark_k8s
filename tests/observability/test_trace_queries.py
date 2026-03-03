@@ -17,9 +17,15 @@ class TestTraceQueries:
     def jaeger_query_pod(self, kube_namespace):
         """Get Jaeger Query pod for API access"""
         cmd = [
-            "kubectl", "get", "pods", "-n", kube_namespace,
-            "-l", "app=jaeger-query",
-            "-o", "jsonpath={.items[0].metadata.name}"
+            "kubectl",
+            "get",
+            "pods",
+            "-n",
+            kube_namespace,
+            "-l",
+            "app=jaeger-query",
+            "-o",
+            "jsonpath={.items[0].metadata.name}",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0 or not result.stdout.strip():
@@ -29,9 +35,15 @@ class TestTraceQueries:
     def test_get_services(self, jaeger_query_pod, kube_namespace):
         """Test that services list can be retrieved"""
         cmd = [
-            "kubectl", "exec", "-n", kube_namespace, jaeger_query_pod,
-            "--", "curl", "-s",
-            "http://localhost:16686/api/services"
+            "kubectl",
+            "exec",
+            "-n",
+            kube_namespace,
+            jaeger_query_pod,
+            "--",
+            "curl",
+            "-s",
+            "http://localhost:16686/api/services",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         assert result.returncode == 0
@@ -44,9 +56,15 @@ class TestTraceQueries:
         """Test that traces can be searched"""
         # Search for traces from Spark services
         cmd = [
-            "kubectl", "exec", "-n", kube_namespace, jaeger_query_pod,
-            "--", "curl", "-s",
-            "http://localhost:16686/api/traces?service=spark&limit=10"
+            "kubectl",
+            "exec",
+            "-n",
+            kube_namespace,
+            jaeger_query_pod,
+            "--",
+            "curl",
+            "-s",
+            "http://localhost:16686/api/traces?service=spark&limit=10",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         assert result.returncode == 0
@@ -61,4 +79,5 @@ class TestTraceQueries:
 def kube_namespace():
     """Get Kubernetes namespace for tests"""
     import os
+
     return os.getenv("KUBE_NAMESPACE", "spark-operations")

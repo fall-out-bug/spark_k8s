@@ -1,8 +1,8 @@
 # UAT Guide: F03 - Spark History Server for Standalone Chart
 
-**Feature:** F03 - Spark History Server for Standalone Chart  
-**Workstreams:** WS-012-01, WS-012-02  
-**Created:** 2026-01-16  
+**Feature:** F03 - Spark History Server for Standalone Chart
+**Workstreams:** WS-012-01, WS-012-02
+**Created:** 2026-01-16
 **Tester:** Human + Agent
 
 ---

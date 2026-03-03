@@ -381,13 +381,13 @@ def handle_error(error: Error) -> bool:
     if error.severity == "LOW":
         log_warning(error)
         return True  # continue
-    
+
     if error.severity in ["MEDIUM", "HIGH"]:
         if attempt_auto_fix(error):
             return True  # fixed, continue
         else:
             return escalate(error)
-    
+
     if error.severity == "CRITICAL":
         return escalate(error)  # always escalate
 
@@ -440,17 +440,17 @@ WORKSTREAMS=$(get_ws_list "$FEATURE_ID")
 
 for WS in $WORKSTREAMS; do
   echo "Starting $WS..."
-  
+
   # Execute WS
   result=$(/build "$WS")
-  
+
   if [[ $result == "success" ]]; then
     mark_complete "$WS"
     save_checkpoint "$FEATURE_ID"
     update_progress "$FEATURE_ID"
   else
     error_severity=$(classify_error "$result")
-    
+
     if can_auto_fix "$error_severity"; then
       fixed=$(attempt_fix "$result")
       if [[ $fixed == "true" ]]; then

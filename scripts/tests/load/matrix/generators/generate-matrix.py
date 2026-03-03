@@ -49,12 +49,12 @@ def generate_combinations(tier_config: Dict[str, Any]) -> List[Dict[str, str]]:
         List of test combination dictionaries
     """
     dimensions = {
-        'spark_version': tier_config['spark_versions'],
-        'orchestrator': tier_config['orchestrators'],
-        'mode': tier_config['modes'],
-        'extensions': tier_config['extensions'],
-        'operation': tier_config['operations'],
-        'data_size': tier_config['data_sizes'],
+        "spark_version": tier_config["spark_versions"],
+        "orchestrator": tier_config["orchestrators"],
+        "mode": tier_config["modes"],
+        "extensions": tier_config["extensions"],
+        "operation": tier_config["operations"],
+        "data_size": tier_config["data_sizes"],
     }
 
     combinations = []
@@ -77,8 +77,8 @@ def generate_test_name(
     """Generate standardized test name."""
     # Format: {tier}_{spark_ver}_{orchestrator}_{mode}_{exts}_{op}_{data_size}
     # Clean up version number (remove dots for filename safety)
-    spark_ver_clean = spark_version.replace('.', '')
-    exts_clean = extensions.replace('+', '-plus-')
+    spark_ver_clean = spark_version.replace(".", "")
+    exts_clean = extensions.replace("+", "-plus-")
 
     return f"{tier}_{spark_ver_clean}_{orchestrator}_{mode}_{exts_clean}_{operation}_{data_size}"
 
@@ -104,17 +104,22 @@ def generate_helm_values(
     template = env.get_template("test-values.jinja2.yaml")
 
     test_name = generate_test_name(
-        tier, combo['spark_version'], combo['orchestrator'],
-        combo['mode'], combo['extensions'], combo['operation'], combo['data_size']
+        tier,
+        combo["spark_version"],
+        combo["orchestrator"],
+        combo["mode"],
+        combo["extensions"],
+        combo["operation"],
+        combo["data_size"],
     )
 
     content = template.render(
-        spark_ver=combo['spark_version'],
-        orchestrator=combo['orchestrator'],
-        mode=combo['mode'],
-        extensions=combo['extensions'],
-        operation=combo['operation'],
-        data_size=combo['data_size'],
+        spark_ver=combo["spark_version"],
+        orchestrator=combo["orchestrator"],
+        mode=combo["mode"],
+        extensions=combo["extensions"],
+        operation=combo["operation"],
+        data_size=combo["data_size"],
     )
 
     output_file = output_dir / f"{test_name}-values.yaml"
@@ -147,35 +152,40 @@ def generate_scenario_script(
     template = env.get_template("load-scenario.jinja2.sh")
 
     test_name = generate_test_name(
-        tier, combo['spark_version'], combo['orchestrator'],
-        combo['mode'], combo['extensions'], combo['operation'], combo['data_size']
+        tier,
+        combo["spark_version"],
+        combo["orchestrator"],
+        combo["mode"],
+        combo["extensions"],
+        combo["operation"],
+        combo["data_size"],
     )
 
     # Calculate timeout based on operation and data size
-    base_timeout = tier_config['timeout_minutes'] * 60
-    if combo['data_size'] == '11gb':
+    base_timeout = tier_config["timeout_minutes"] * 60
+    if combo["data_size"] == "11gb":
         timeout_sec = base_timeout * 3
     else:
         timeout_sec = base_timeout
 
     # Add per-operation multiplier
     operation_multipliers = {
-        'read': 1.0,
-        'aggregate': 1.5,
-        'join': 2.0,
-        'window': 1.8,
-        'write': 1.3,
+        "read": 1.0,
+        "aggregate": 1.5,
+        "join": 2.0,
+        "window": 1.8,
+        "write": 1.3,
     }
-    timeout_sec = int(timeout_sec * operation_multipliers.get(combo['operation'], 1.0))
+    timeout_sec = int(timeout_sec * operation_multipliers.get(combo["operation"], 1.0))
 
     content = template.render(
         test_name=test_name,
-        spark_ver=combo['spark_version'],
-        orchestrator=combo['orchestrator'],
-        mode=combo['mode'],
-        extensions=combo['extensions'],
-        operation=combo['operation'],
-        data_size=combo['data_size'],
+        spark_ver=combo["spark_version"],
+        orchestrator=combo["orchestrator"],
+        mode=combo["mode"],
+        extensions=combo["extensions"],
+        operation=combo["operation"],
+        data_size=combo["data_size"],
         timeout_sec=timeout_sec,
     )
 
@@ -209,10 +219,10 @@ def generate_workflow(
 
     content = template.render(
         tier=tier,
-        timeout_minutes=tier_config['timeout_minutes'],
-        parallelism=min(len(tier_config['spark_versions']) * 2, 10),
-        spark_versions=tier_config['spark_versions'],
-        orchestrators=tier_config['orchestrators'],
+        timeout_minutes=tier_config["timeout_minutes"],
+        parallelism=min(len(tier_config["spark_versions"]) * 2, 10),
+        spark_versions=tier_config["spark_versions"],
+        orchestrators=tier_config["orchestrators"],
     )
 
     output_file = output_dir / f"{tier}-workflow.yaml"
@@ -241,52 +251,34 @@ def generate_summary(
         Path to summary file
     """
     summary = {
-        'tier': tier,
-        'total_combinations': len(combinations),
-        'combinations': combinations,
-        'artifacts': {
-            'helm_values': [str(p) for t, p in artifacts if t == 'helm'],
-            'scenarios': [str(p) for t, p in artifacts if t == 'scenario'],
-            'workflows': [str(p) for t, p in artifacts if t == 'workflow'],
+        "tier": tier,
+        "total_combinations": len(combinations),
+        "combinations": combinations,
+        "artifacts": {
+            "helm_values": [str(p) for t, p in artifacts if t == "helm"],
+            "scenarios": [str(p) for t, p in artifacts if t == "scenario"],
+            "workflows": [str(p) for t, p in artifacts if t == "workflow"],
         },
     }
 
     output_file = output_dir / f"{tier}-summary.json"
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(output_file, 'w') as f:
+    with open(output_file, "w") as f:
         json.dump(summary, f, indent=2)
 
     return output_file
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Generate test matrix artifacts"
-    )
+    parser = argparse.ArgumentParser(description="Generate test matrix artifacts")
     parser.add_argument(
-        '--tier', type=str, required=True,
-        choices=['p0_smoke', 'p1_core', 'p2_full'],
-        help='Priority tier to generate'
+        "--tier", type=str, required=True, choices=["p0_smoke", "p1_core", "p2_full"], help="Priority tier to generate"
     )
-    parser.add_argument(
-        '--matrix-file', type=Path,
-        default=MATRIX_FILE,
-        help='Path to matrix configuration'
-    )
-    parser.add_argument(
-        '--output-dir', type=Path,
-        default=OUTPUT_BASE,
-        help='Base output directory'
-    )
-    parser.add_argument(
-        '--validate', action='store_true',
-        help='Validate matrix configuration before generation'
-    )
-    parser.add_argument(
-        '--parallel', action='store_true',
-        help='Use parallel processing for large matrices'
-    )
+    parser.add_argument("--matrix-file", type=Path, default=MATRIX_FILE, help="Path to matrix configuration")
+    parser.add_argument("--output-dir", type=Path, default=OUTPUT_BASE, help="Base output directory")
+    parser.add_argument("--validate", action="store_true", help="Validate matrix configuration before generation")
+    parser.add_argument("--parallel", action="store_true", help="Use parallel processing for large matrices")
 
     args = parser.parse_args()
 
@@ -298,8 +290,9 @@ def main():
     if args.validate:
         print("Validating matrix configuration...")
         # Import validator
-        sys.path.insert(0, str(SCRIPT_DIR / 'generators'))
+        sys.path.insert(0, str(SCRIPT_DIR / "generators"))
         from validate_matrix import validate_matrix_config
+
         errors = validate_matrix_config(config)
         if errors:
             print(f"Validation failed with {len(errors)} errors:")
@@ -309,7 +302,7 @@ def main():
         print("Validation passed")
 
     # Get tier configuration
-    tier_config = config['matrix']['priority_tiers'][args.tier]
+    tier_config = config["matrix"]["priority_tiers"][args.tier]
     print(f"Generating {args.tier} tier (timeout: {tier_config['timeout_minutes']}min)")
 
     # Generate combinations
@@ -330,39 +323,31 @@ def main():
     for combo in combinations:
         test_name = generate_test_name(
             args.tier,
-            combo['spark_version'], combo['orchestrator'],
-            combo['mode'], combo['extensions'], combo['operation'], combo['data_size']
+            combo["spark_version"],
+            combo["orchestrator"],
+            combo["mode"],
+            combo["extensions"],
+            combo["operation"],
+            combo["data_size"],
         )
 
         # Generate Helm values
-        helm_file = generate_helm_values(
-            combo, args.tier, env,
-            args.output_dir / 'helm-values'
-        )
-        artifacts.append(('helm', helm_file))
+        helm_file = generate_helm_values(combo, args.tier, env, args.output_dir / "helm-values")
+        artifacts.append(("helm", helm_file))
 
         # Generate scenario script
-        scenario_file = generate_scenario_script(
-            combo, args.tier, tier_config, env,
-            args.output_dir / 'scenarios'
-        )
-        artifacts.append(('scenario', scenario_file))
+        scenario_file = generate_scenario_script(combo, args.tier, tier_config, env, args.output_dir / "scenarios")
+        artifacts.append(("scenario", scenario_file))
 
         print(f"  Generated: {test_name}")
 
     # Generate workflow
-    workflow_file = generate_workflow(
-        args.tier, tier_config, env,
-        args.output_dir / 'workflows'
-    )
-    artifacts.append(('workflow', workflow_file))
+    workflow_file = generate_workflow(args.tier, tier_config, env, args.output_dir / "workflows")
+    artifacts.append(("workflow", workflow_file))
     print(f"  Generated workflow: {workflow_file.name}")
 
     # Generate summary
-    summary_file = generate_summary(
-        args.tier, combinations, artifacts,
-        args.output_dir
-    )
+    summary_file = generate_summary(args.tier, combinations, artifacts, args.output_dir)
     print(f"  Generated summary: {summary_file.name}")
 
     print(f"\nGeneration complete!")
@@ -375,5 +360,5 @@ def main():
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

@@ -39,4 +39,3 @@ We hit these issues:
   - KubernetesExecutor pods use correct image and permissions.
 - **Cons**
   - Requires managing a Fernet key (Secret) for each environment.
-

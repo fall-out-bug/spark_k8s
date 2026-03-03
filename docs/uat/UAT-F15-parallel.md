@@ -1,7 +1,7 @@
 # UAT Guide: F15 — Phase 9 Parallel Execution & CI/CD
 
-**Feature:** F15  
-**Date:** 2026-02-10  
+**Feature:** F15
+**Date:** 2026-02-10
 
 ---
 

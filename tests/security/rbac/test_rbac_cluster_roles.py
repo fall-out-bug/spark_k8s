@@ -23,9 +23,7 @@ class TestClusterRoleMinimalPermissions:
     def test_cluster_role_created_for_k8s_backend(self, chart_35_path, preset_35_baseline):
         """Test that ClusterRole is created for k8s backend mode"""
         output = helm_template(
-            chart_35_path,
-            [preset_35_baseline],
-            set_values={"rbac.create": "true", "connect.enabled": "true"}
+            chart_35_path, [preset_35_baseline], set_values={"rbac.create": "true", "connect.enabled": "true"}
         )
 
         if output is None:
@@ -40,9 +38,7 @@ class TestClusterRoleMinimalPermissions:
     def test_cluster_role_no_wildcard_verbs(self, chart_35_path, preset_35_baseline):
         """Test that ClusterRole has no wildcard (*) verbs"""
         output = helm_template(
-            chart_35_path,
-            [preset_35_baseline],
-            set_values={"rbac.create": "true", "connect.enabled": "true"}
+            chart_35_path, [preset_35_baseline], set_values={"rbac.create": "true", "connect.enabled": "true"}
         )
 
         if output is None:
@@ -55,15 +51,14 @@ class TestClusterRoleMinimalPermissions:
             rules = role.get("rules", [])
             for rule in rules:
                 verbs = rule.get("verbs", [])
-                assert "*" not in verbs, \
-                    f"ClusterRole {role['metadata']['name']} should not have wildcard verbs, got {verbs}"
+                assert (
+                    "*" not in verbs
+                ), f"ClusterRole {role['metadata']['name']} should not have wildcard verbs, got {verbs}"
 
     def test_cluster_role_has_required_permissions(self, chart_35_path, preset_35_baseline):
         """Test that ClusterRole has required cluster-scoped permissions"""
         output = helm_template(
-            chart_35_path,
-            [preset_35_baseline],
-            set_values={"rbac.create": "true", "connect.enabled": "true"}
+            chart_35_path, [preset_35_baseline], set_values={"rbac.create": "true", "connect.enabled": "true"}
         )
 
         if output is None:
@@ -73,8 +68,15 @@ class TestClusterRoleMinimalPermissions:
         cluster_roles = [d for d in docs if d and d.get("kind") == "ClusterRole"]
 
         # Check that ClusterRole has permissions for pods, services, configmaps
-        required_resources = {"pods", "pods/log", "pods/status", "services", "configmaps",
-                            "persistentvolumeclaims", "leases"}
+        required_resources = {
+            "pods",
+            "pods/log",
+            "pods/status",
+            "services",
+            "configmaps",
+            "persistentvolumeclaims",
+            "leases",
+        }
         found_resources = set()
 
         for role in cluster_roles:
@@ -84,16 +86,16 @@ class TestClusterRoleMinimalPermissions:
                 found_resources.update(resources)
 
         # Should have permissions for executor pod management
-        assert len(found_resources.intersection(required_resources)) > 0, \
-            "ClusterRole should have permissions for Spark executor management"
+        assert (
+            len(found_resources.intersection(required_resources)) > 0
+        ), "ClusterRole should have permissions for Spark executor management"
 
     def test_cluster_role_binding_correct_service_account(self, chart_35_path, preset_35_baseline):
         """Test that ClusterRoleBinding binds to correct ServiceAccount"""
         output = helm_template(
             chart_35_path,
             [preset_35_baseline],
-            set_values={"rbac.create": "true", "connect.enabled": "true",
-                       "rbac.serviceAccountName": "test-sa"}
+            set_values={"rbac.create": "true", "connect.enabled": "true", "rbac.serviceAccountName": "test-sa"},
         )
 
         if output is None:
@@ -107,19 +109,17 @@ class TestClusterRoleMinimalPermissions:
             assert len(subjects) > 0, "ClusterRoleBinding should have subjects"
 
             for subject in subjects:
-                assert subject.get("kind") == "ServiceAccount", \
-                    "ClusterRoleBinding should bind to a ServiceAccount"
+                assert subject.get("kind") == "ServiceAccount", "ClusterRoleBinding should bind to a ServiceAccount"
 
                 sa_name = subject.get("name", "")
-                assert "test-sa" in sa_name or sa_name == "test-sa", \
-                    f"ClusterRoleBinding should bind to test-sa, got {sa_name}"
+                assert (
+                    "test-sa" in sa_name or sa_name == "test-sa"
+                ), f"ClusterRoleBinding should bind to test-sa, got {sa_name}"
 
     def test_cluster_role_not_created_for_standalone_mode(self, chart_35_path, preset_35_baseline):
         """Test that ClusterRole is not created when not using k8s backend"""
         output = helm_template(
-            chart_35_path,
-            [preset_35_baseline],
-            set_values={"rbac.create": "true", "connect.backendMode": "standalone"}
+            chart_35_path, [preset_35_baseline], set_values={"rbac.create": "true", "connect.backendMode": "standalone"}
         )
 
         if output is None:

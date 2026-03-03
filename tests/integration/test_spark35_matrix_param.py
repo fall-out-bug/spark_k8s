@@ -12,9 +12,7 @@ class TestSpark35CompleteMatrix:
     @pytest.mark.parametrize("component", ["jupyter", "airflow"])
     @pytest.mark.parametrize("mode", ["connect-k8s", "connect-standalone", "k8s-submit", "operator"])
     @pytest.mark.parametrize("features", ["none", "gpu", "iceberg", "gpu-iceberg"])
-    def test_all_combinations_render_35(
-        self, component: str, mode: str, features: str
-    ) -> None:
+    def test_all_combinations_render_35(self, component: str, mode: str, features: str) -> None:
         """Test that all 3.5 combinations render successfully."""
         chart_dir = "charts/spark-3.5"
         if "connect" in mode:

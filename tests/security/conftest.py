@@ -48,8 +48,7 @@ def preset_41_baseline(chart_41_path: Path) -> Path:
     return chart_41_path / "presets" / "core-baseline.yaml"
 
 
-def helm_template(chart_path: Path, values_files: List[Path] = None,
-                 set_values: Dict[str, str] = None) -> str:
+def helm_template(chart_path: Path, values_files: List[Path] = None, set_values: Dict[str, str] = None) -> str:
     """
     Run helm template command and return output.
 
@@ -127,10 +126,6 @@ def get_pod_specs(yaml_content: str) -> List[Dict[str, Any]]:
         if kind in ["Deployment", "StatefulSet", "DaemonSet", "Job", "Pod"]:
             template = doc.get("spec", {}).get("template", {})
             spec = template.get("spec", {})
-            pod_specs.append({
-                "kind": kind,
-                "name": doc.get("metadata", {}).get("name", "unknown"),
-                "spec": spec
-            })
+            pod_specs.append({"kind": kind, "name": doc.get("metadata", {}).get("name", "unknown"), "spec": spec})
 
     return pod_specs

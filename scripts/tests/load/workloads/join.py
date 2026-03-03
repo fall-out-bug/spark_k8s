@@ -18,9 +18,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import (
-    col, count, broadcast, expr
-)
+from pyspark.sql.functions import col, count, broadcast, expr
 
 
 # Data paths for different sizes
@@ -32,17 +30,18 @@ DATA_PATHS = {
 
 def create_spark_session() -> SparkSession:
     """Create Spark session with S3 configuration."""
-    return SparkSession.builder \
-        .appName("load-test-join") \
-        .config("spark.hadoop.fs.s3a.endpoint", "http://minio.spark-infra.svc.cluster.local:9000") \
-        .config("spark.hadoop.fs.s3a.access.key", "minioadmin") \
-        .config("spark.hadoop.fs.s3a.secret.key", "minioadmin") \
-        .config("spark.hadoop.fs.s3a.path.style.access", "true") \
-        .config("spark.sql.shuffle.partitions", "200") \
-        .config("spark.eventLog.enabled", "true") \
-        .config("spark.eventLog.dir", "s3a://spark-logs/") \
-        .config("spark.sql.autoBroadcastJoinThreshold", "10m") \
+    return (
+        SparkSession.builder.appName("load-test-join")
+        .config("spark.hadoop.fs.s3a.endpoint", "http://minio.spark-infra.svc.cluster.local:9000")
+        .config("spark.hadoop.fs.s3a.access.key", "minioadmin")
+        .config("spark.hadoop.fs.s3a.secret.key", "minioadmin")
+        .config("spark.hadoop.fs.s3a.path.style.access", "true")
+        .config("spark.sql.shuffle.partitions", "200")
+        .config("spark.eventLog.enabled", "true")
+        .config("spark.eventLog.dir", "s3a://spark-logs/")
+        .config("spark.sql.autoBroadcastJoinThreshold", "10m")
         .getOrCreate()
+    )
 
 
 def calculate_skew_ratio(spark: SparkSession) -> float:
@@ -108,15 +107,15 @@ def run_join_workload(
 
     # Perform self-join on location ID
     # Join: trips from same pickup location
-    joined = df_cached.alias("a").join(
-        df_cached.alias("b"),
-        col("a.PULocationID") == col("b.PULocationID"),
-        "inner"
-    ).select(
-        col("a.PULocationID"),
-        col("a.tpep_pickup_datetime").alias("a_pickup"),
-        col("b.tpep_pickup_datetime").alias("b_pickup"),
-        (col("a.tpep_pickup_datetime") - col("b.tpep_pickup_datetime")).alias("time_diff"),
+    joined = (
+        df_cached.alias("a")
+        .join(df_cached.alias("b"), col("a.PULocationID") == col("b.PULocationID"), "inner")
+        .select(
+            col("a.PULocationID"),
+            col("a.tpep_pickup_datetime").alias("a_pickup"),
+            col("b.tpep_pickup_datetime").alias("b_pickup"),
+            (col("a.tpep_pickup_datetime") - col("b.tpep_pickup_datetime")).alias("time_diff"),
+        )
     )
 
     # Force execution
@@ -146,26 +145,11 @@ def run_join_workload(
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Join workload for load testing"
-    )
-    parser.add_argument(
-        '--operation', type=str, default='join',
-        help='Operation name (for compatibility)'
-    )
-    parser.add_argument(
-        '--data_size', type=str, required=True,
-        choices=['1gb', '11gb'],
-        help='Data size to join'
-    )
-    parser.add_argument(
-        '--output', type=str, required=True,
-        help='Output file for metrics (JSONL)'
-    )
-    parser.add_argument(
-        '--metadata', type=str,
-        help='Additional metadata as JSON string'
-    )
+    parser = argparse.ArgumentParser(description="Join workload for load testing")
+    parser.add_argument("--operation", type=str, default="join", help="Operation name (for compatibility)")
+    parser.add_argument("--data_size", type=str, required=True, choices=["1gb", "11gb"], help="Data size to join")
+    parser.add_argument("--output", type=str, required=True, help="Output file for metrics (JSONL)")
+    parser.add_argument("--metadata", type=str, help="Additional metadata as JSON string")
 
     args = parser.parse_args()
 
@@ -191,8 +175,8 @@ def main():
         output_path = Path(args.output)
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(output_path, 'a') as f:
-            f.write(json.dumps(metrics) + '\n')
+        with open(output_path, "a") as f:
+            f.write(json.dumps(metrics) + "\n")
 
         print(f"Join workload complete: {metrics['rows_joined']:,} rows in {metrics['duration_sec']:.2f}s")
         print(f"Skew ratio: {metrics['skew_ratio']:.2f}")
@@ -207,5 +191,5 @@ def main():
         spark.stop()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

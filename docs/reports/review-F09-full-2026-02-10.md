@@ -1,8 +1,8 @@
 # F09 Full Review Report (per prompts/commands/review.md)
 
-**Feature:** F09 - Phase 3 Docker Base Layers  
-**Review Date:** 2026-02-10  
-**Reviewer:** Cursor Composer  
+**Feature:** F09 - Phase 3 Docker Base Layers
+**Review Date:** 2026-02-10
+**Reviewer:** Cursor Composer
 **Verdict:** ✅ **APPROVED**
 
 ---

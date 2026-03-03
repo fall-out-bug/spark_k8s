@@ -2,8 +2,8 @@
 
 ### 🎯 Goal
 
-**Bug:** History Server crashes when `s3a://spark-logs/4.1/events` does not exist.  
-**Expected:** MinIO init creates required prefix so History Server starts.  
+**Bug:** History Server crashes when `s3a://spark-logs/4.1/events` does not exist.
+**Expected:** MinIO init creates required prefix so History Server starts.
 **Actual:** CrashLoopBackOff with FileNotFoundException.
 
 **Acceptance Criteria:**
@@ -16,8 +16,8 @@
 
 ### Context
 
-**Reported by:** Runtime validation  
-**Affected:** Spark 4.1 History Server  
+**Reported by:** Runtime validation
+**Affected:** Spark 4.1 History Server
 **Severity:** P1
 
 **Reproduction steps:**
@@ -66,7 +66,7 @@ helm template spark-base charts/spark-base \
 
 ### Execution Report
 
-**Executed by:** Auto (agent)  
+**Executed by:** Auto (agent)
 **Date:** 2026-01-19
 
 #### 🎯 Goal Status

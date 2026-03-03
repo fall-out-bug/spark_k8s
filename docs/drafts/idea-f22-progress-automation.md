@@ -1,7 +1,7 @@
 # Feature F22: Progress Automation
 
-> **Feature ID:** F22  
-> **Beads:** spark_k8s-703  
+> **Feature ID:** F22
+> **Beads:** spark_k8s-703
 > **Source:** docs/plans/2026-02-04-product-branding-strategy.md Phase 1
 
 ## Goal

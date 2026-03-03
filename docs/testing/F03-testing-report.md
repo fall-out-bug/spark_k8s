@@ -1,7 +1,7 @@
 # F03 Testing Report
 
-**Feature:** F03 - Spark History Server for Standalone Chart  
-**Date:** 2026-01-16  
+**Feature:** F03 - Spark History Server for Standalone Chart
+**Date:** 2026-01-16
 **Tester:** Auto (agent) + Runtime Validation
 
 ---
@@ -105,8 +105,8 @@ $ scripts/test-spark-standalone.sh spark-sa spark-sa
 ]
 ```
 
-✅ Application visible in History Server  
-✅ Complete job details available (start/end times, duration, user)  
+✅ Application visible in History Server
+✅ Complete job details available (start/end times, duration, user)
 ✅ Status: `completed: true`
 
 ### 4. S3 Event Logs Validation
@@ -119,8 +119,8 @@ Bucket created successfully `myminio/spark-logs`.
 Bucket created successfully `myminio/spark-logs/events/.keep`.
 ```
 
-✅ Buckets created  
-✅ Directory markers (`.keep`) created  
+✅ Buckets created
+✅ Directory markers (`.keep`) created
 ✅ SparkPi event logs written to `s3a://spark-logs/events`
 
 ### 5. PSS Compatibility
@@ -142,7 +142,7 @@ containerSecurityContext:
       - ALL
 ```
 
-✅ History Server pod runs with PSS `restricted` compatible security contexts  
+✅ History Server pod runs with PSS `restricted` compatible security contexts
 ✅ EmptyDir mounts for writable paths (`/tmp`)
 
 ---

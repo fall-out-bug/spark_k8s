@@ -56,12 +56,12 @@ def download_tlc_parquet(month: str, verbose: bool = True) -> bytes:
 def create_minio_client(endpoint: str, access_key: str, secret_key: str):
     """Create MinIO S3 client."""
     return boto3.client(
-        's3',
+        "s3",
         endpoint_url=endpoint,
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
-        config=Config(signature_version='s3v4'),
-        region_name='us-east-1'
+        config=Config(signature_version="s3v4"),
+        region_name="us-east-1",
     )
 
 
@@ -86,24 +86,24 @@ def validate_parquet(data: bytes) -> dict:
     """Validate parquet file and return stats."""
     table = pq.read_table(BytesIO(data))
     return {
-        'rows': table.num_rows,
-        'columns': len(table.column_names),
-        'column_names': table.column_names,
+        "rows": table.num_rows,
+        "columns": len(table.column_names),
+        "column_names": table.column_names,
     }
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Download NYC TLC data to MinIO')
-    parser.add_argument('--start-month', required=True, help='Start month (YYYY-MM)')
-    parser.add_argument('--end-month', required=True, help='End month (YYYY-MM)')
-    parser.add_argument('--endpoint', default='http://localhost:9000', help='MinIO endpoint')
-    parser.add_argument('--access-key', default='minioadmin', help='MinIO access key')
-    parser.add_argument('--secret-key', default='minioadmin', help='MinIO secret key')
-    parser.add_argument('--bucket', default='nyc-taxi', help='MinIO bucket name')
-    parser.add_argument('--path', default='raw/', help='Path prefix in bucket')
-    parser.add_argument('--dry-run', action='store_true', help='Download but do not upload')
-    parser.add_argument('--limit', type=int, help='Limit number of months (for testing)')
-    parser.add_argument('--sample', action='store_true', help='Sample data (10% of rows)')
+    parser = argparse.ArgumentParser(description="Download NYC TLC data to MinIO")
+    parser.add_argument("--start-month", required=True, help="Start month (YYYY-MM)")
+    parser.add_argument("--end-month", required=True, help="End month (YYYY-MM)")
+    parser.add_argument("--endpoint", default="http://localhost:9000", help="MinIO endpoint")
+    parser.add_argument("--access-key", default="minioadmin", help="MinIO access key")
+    parser.add_argument("--secret-key", default="minioadmin", help="MinIO secret key")
+    parser.add_argument("--bucket", default="nyc-taxi", help="MinIO bucket name")
+    parser.add_argument("--path", default="raw/", help="Path prefix in bucket")
+    parser.add_argument("--dry-run", action="store_true", help="Download but do not upload")
+    parser.add_argument("--limit", type=int, help="Limit number of months (for testing)")
+    parser.add_argument("--sample", action="store_true", help="Sample data (10% of rows)")
 
     args = parser.parse_args()
 
@@ -117,7 +117,7 @@ def main():
     # Get months
     months = get_month_range(args.start_month, args.end_month)
     if args.limit:
-        months = months[:args.limit]
+        months = months[: args.limit]
 
     print(f"Months to process: {len(months)}")
     print()
@@ -142,7 +142,7 @@ def main():
             # Validate
             stats = validate_parquet(data)
             print(f"  Validated: {stats['rows']:,} rows, {stats['columns']} columns")
-            total_rows += stats['rows']
+            total_rows += stats["rows"]
 
             # Sample if requested
             if args.sample:
@@ -172,5 +172,5 @@ def main():
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

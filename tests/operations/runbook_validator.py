@@ -24,12 +24,7 @@ class RunbookTester:
     def validate_structure(self, runbook: Path) -> Dict[str, Any]:
         """Validate runbook structure."""
         content = runbook.read_text()
-        result = {
-            "file": str(runbook.relative_to(self.runbook_dir)),
-            "errors": [],
-            "warnings": [],
-            "sections": []
-        }
+        result = {"file": str(runbook.relative_to(self.runbook_dir)), "errors": [], "warnings": [], "sections": []}
 
         # Check for required sections
         required_sections = ["Overview", "Detection", "Diagnosis", "Remediation"]
@@ -50,24 +45,20 @@ class RunbookTester:
     def validate_code_blocks(self, runbook: Path) -> Dict[str, Any]:
         """Validate code blocks in runbook."""
         content = runbook.read_text()
-        result = {
-            "bash_blocks": 0,
-            "invalid_commands": [],
-            "warnings": []
-        }
+        result = {"bash_blocks": 0, "invalid_commands": [], "warnings": []}
 
         # Extract bash code blocks
-        bash_blocks = re.findall(r'```bash\n(.*?)\n```', content, re.DOTALL)
+        bash_blocks = re.findall(r"```bash\n(.*?)\n```", content, re.DOTALL)
         result["bash_blocks"] = len(bash_blocks)
 
         # Validate commands (basic check)
         for block in bash_blocks:
-            for line in block.split('\n'):
+            for line in block.split("\n"):
                 line = line.strip()
-                if line and not line.startswith('#') and not line.startswith('echo'):
+                if line and not line.startswith("#") and not line.startswith("echo"):
                     # Check for kubectl commands
-                    if 'kubectl' in line:
-                        if 'get pods' in line:
+                    if "kubectl" in line:
+                        if "get pods" in line:
                             result["warnings"].append(f"Consider using -A flag: {line[:50]}")
 
         return result
@@ -75,18 +66,15 @@ class RunbookTester:
     def validate_links(self, runbook: Path) -> Dict[str, Any]:
         """Validate internal and external links."""
         content = runbook.read_text()
-        result = {
-            "links": [],
-            "broken": []
-        }
+        result = {"links": [], "broken": []}
 
         # Extract links
-        links = re.findall(r'\[([^\]]+)\]\(([^)]+)\)', content)
+        links = re.findall(r"\[([^\]]+)\]\(([^)]+)\)", content)
         for text, url in links:
             result["links"].append(url)
 
             # Check internal links
-            if not url.startswith('http') and not url.startswith('#'):
+            if not url.startswith("http") and not url.startswith("#"):
                 link_path = runbook.parent / url
                 if not link_path.exists():
                     result["broken"].append(f"Broken link: {url}")
@@ -99,14 +87,11 @@ class RunbookTester:
             "file": str(runbook.relative_to(self.runbook_dir)),
             "structure": self.validate_structure(runbook),
             "code_blocks": self.validate_code_blocks(runbook),
-            "links": self.validate_links(runbook)
+            "links": self.validate_links(runbook),
         }
 
         # Calculate overall pass/fail
-        result["passed"] = (
-            len(result["structure"]["errors"]) == 0 and
-            len(result["structure"]["warnings"]) == 0
-        )
+        result["passed"] = len(result["structure"]["errors"]) == 0 and len(result["structure"]["warnings"]) == 0
 
         return result
 
@@ -137,13 +122,14 @@ class RunbookTester:
     def save_results(self, results: List[Dict[str, Any]], output: str) -> None:
         """Save results to JSON file."""
         import json
-        with open(output, 'w') as f:
+
+        with open(output, "w") as f:
             json.dump(results, f, indent=2)
 
     def get_section_count(self, runbook: Path) -> int:
         """Get the number of sections in a runbook."""
         content = runbook.read_text()
-        return len(re.findall(r'^##+\s+', content, re.MULTILINE))
+        return len(re.findall(r"^##+\s+", content, re.MULTILINE))
 
     def has_required_headers(self, runbook: Path) -> bool:
         """Check if runbook has all required headers."""
@@ -154,34 +140,30 @@ class RunbookTester:
     def get_link_count(self, runbook: Path) -> int:
         """Get total number of links in runbook."""
         content = runbook.read_text()
-        return len(re.findall(r'\[([^\]]+)\]\(([^)]+)\)', content))
+        return len(re.findall(r"\[([^\]]+)\]\(([^)]+)\)", content))
 
     def get_code_block_count(self, runbook: Path) -> Dict[str, int]:
         """Get count of different code block types."""
         content = runbook.read_text()
         return {
-            "bash": len(re.findall(r'```bash', content)),
-            "python": len(re.findall(r'```python', content)),
-            "yaml": len(re.findall(r'```yaml', content)),
-            "total": len(re.findall(r'```', content)) // 2
+            "bash": len(re.findall(r"```bash", content)),
+            "python": len(re.findall(r"```python", content)),
+            "yaml": len(re.findall(r"```yaml", content)),
+            "total": len(re.findall(r"```", content)) // 2,
         }
 
     def validate_frontmatter(self, runbook: Path) -> Dict[str, Any]:
         """Validate YAML frontmatter if present."""
         content = runbook.read_text()
-        result = {
-            "has_frontmatter": False,
-            "valid": False,
-            "errors": []
-        }
+        result = {"has_frontmatter": False, "valid": False, "errors": []}
 
-        if content.startswith('---'):
+        if content.startswith("---"):
             result["has_frontmatter"] = True
-            match = re.match(r'^---\n(.*?)\n---', content, re.DOTALL)
+            match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
             if match:
                 # Basic validation - check if it looks like YAML
                 frontmatter = match.group(1)
-                if ':' in frontmatter:
+                if ":" in frontmatter:
                     result["valid"] = True
                 else:
                     result["errors"].append("Frontmatter missing key-value pairs")

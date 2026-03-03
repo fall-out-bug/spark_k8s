@@ -272,18 +272,18 @@ def get_user(user_id):
 ```python
 def process_payment(amount: Decimal, user_id: int) -> PaymentResult:
     """Process payment for user.
-    
+
     Args:
         amount: Payment amount in USD
         user_id: User identifier
-        
+
     Returns:
         PaymentResult with status and transaction_id
-        
+
     Raises:
         InsufficientFundsError: If user balance < amount
         PaymentGatewayError: If external API fails
-        
+
     Example:
         result = process_payment(Decimal("19.99"), user_id=123)
     """
@@ -415,6 +415,6 @@ Before marking any workstream as DONE, verify:
 
 ---
 
-**Last Updated:** [YYYY-MM-DD]  
-**Version:** 1.0  
+**Last Updated:** [YYYY-MM-DD]
+**Version:** 1.0
 **Maintained By:** [Team/Person]

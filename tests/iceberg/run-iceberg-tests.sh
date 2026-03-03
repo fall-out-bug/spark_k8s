@@ -122,7 +122,7 @@ try:
         ) USING iceberg
         PARTITIONED BY (age)
     """)
-    
+
     spark.stop()
     print("ICEBERG_CREATE_SUCCESS")
 except Exception as e:
@@ -172,15 +172,15 @@ spark = SparkSession.builder \\
 
 try:
     from pyspark.sql.functions import col
-    
+
     df = spark.range(100).select(
         col("id"),
         col("id").cast("string").alias("name"),
         (col("id") % 50 + 18).alias("age")
     ).withColumn("created_at", current_timestamp())
-    
+
     df.writeTo("$CATALOG_NAME.crud_test.users").append()
-    
+
     spark.stop()
     print("ICEBERG_INSERT_SUCCESS")
 except Exception as e:
@@ -228,7 +228,7 @@ spark = SparkSession.builder \\
 
 try:
     count = spark.sql("SELECT COUNT(*) as cnt FROM $CATALOG_NAME.crud_test.users").collect()[0]["cnt"]
-    
+
     spark.stop()
     print(f"ICEBERG_SELECT_SUCCESS: {count} rows")
 except Exception as e:
@@ -276,9 +276,9 @@ spark = SparkSession.builder \\
 
 try:
     spark.sql("UPDATE $CATALOG_NAME.crud_test.users SET name = 'updated' WHERE id < 10")
-    
+
     updated = spark.sql("SELECT COUNT(*) as cnt FROM $CATALOG_NAME.crud_test.users WHERE name = 'updated'").collect()[0]["cnt"]
-    
+
     spark.stop()
     print(f"ICEBERG_UPDATE_SUCCESS: {updated} rows updated")
 except Exception as e:
@@ -326,11 +326,11 @@ spark = SparkSession.builder \\
 
 try:
     before = spark.sql("SELECT COUNT(*) as cnt FROM $CATALOG_NAME.crud_test.users").collect()[0]["cnt"]
-    
+
     spark.sql("DELETE FROM $CATALOG_NAME.crud_test.users WHERE id >= 90")
-    
+
     after = spark.sql("SELECT COUNT(*) as cnt FROM $CATALOG_NAME.crud_test.users").collect()[0]["cnt"]
-    
+
     spark.stop()
     print(f"ICEBERG_DELETE_SUCCESS: {before} -> {after} rows")
 except Exception as e:
@@ -379,9 +379,9 @@ spark = SparkSession.builder \\
 try:
     spark.sql("DROP TABLE IF EXISTS $CATALOG_NAME.crud_test.updates")
     spark.sql("CREATE TABLE $CATALOG_NAME.crud_test.updates (id LONG, name STRING, age INT) USING iceberg")
-    
+
     spark.sql("INSERT INTO $CATALOG_NAME.crud_test.updates VALUES (1, 'merged_name', 25), (100, 'new_user', 30)")
-    
+
     spark.sql("""
         MERGE INTO $CATALOG_NAME.crud_test.users u
         USING $CATALOG_NAME.crud_test.updates s
@@ -389,7 +389,7 @@ try:
         WHEN MATCHED THEN UPDATE SET name = s.name, age = s.age
         WHEN NOT MATCHED THEN INSERT *
     """)
-    
+
     spark.stop()
     print("ICEBERG_MERGE_SUCCESS")
 except Exception as e:
@@ -437,7 +437,7 @@ spark = SparkSession.builder \\
 
 try:
     snapshots = spark.sql("SELECT snapshot_id FROM $CATALOG_NAME.crud_test.users.snapshots ORDER BY committed_at").collect()
-    
+
     if len(snapshots) > 1:
         first_snapshot = snapshots[0]["snapshot_id"]
         count_historical = spark.sql(f"SELECT COUNT(*) as cnt FROM $CATALOG_NAME.crud_test.users VERSION AS OF {first_snapshot}").collect()[0]["cnt"]

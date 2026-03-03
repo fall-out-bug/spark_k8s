@@ -34,9 +34,7 @@ class TestSecretTemplates:
         template = helm_chart_path / "templates" / "secrets" / "vault-secrets.yaml"
         assert template.exists(), "Vault secrets template should exist"
 
-    def test_secret_templates_helm_template(
-        self, helm_chart_path: Path, environments_path: Path
-    ) -> None:
+    def test_secret_templates_helm_template(self, helm_chart_path: Path, environments_path: Path) -> None:
         """Test that secret templates render correctly."""
         import yaml
 
@@ -72,9 +70,7 @@ class TestEnvironmentIsolation:
         """Test that environments are progressively configured."""
         import yaml
 
-        base_path = (
-            Path(__file__).parent.parent.parent / "charts" / "spark-4.1" / "environments"
-        )
+        base_path = Path(__file__).parent.parent.parent / "charts" / "spark-4.1" / "environments"
 
         with open(base_path / "dev" / "values.yaml") as f:
             dev = yaml.safe_load(f)
@@ -87,9 +83,7 @@ class TestEnvironmentIsolation:
         assert staging["connect"]["replicas"] < prod["connect"]["replicas"]
 
         dev_mem = int(dev["connect"]["resources"]["requests"]["memory"].rstrip("Gi"))
-        staging_mem = int(
-            staging["connect"]["resources"]["requests"]["memory"].rstrip("Gi")
-        )
+        staging_mem = int(staging["connect"]["resources"]["requests"]["memory"].rstrip("Gi"))
         prod_mem = int(prod["connect"]["resources"]["requests"]["memory"].rstrip("Gi"))
         assert dev_mem < staging_mem < prod_mem
 

@@ -20,17 +20,29 @@ class TestDataSourceConfiguration:
     def grafana_pod(self, kube_namespace):
         """Get Grafana pod"""
         cmd = [
-            "kubectl", "get", "pods", "-n", kube_namespace,
-            "-l", "app.kubernetes.io/name=grafana",
-            "-o", "jsonpath={.items[0].metadata.name}"
+            "kubectl",
+            "get",
+            "pods",
+            "-n",
+            kube_namespace,
+            "-l",
+            "app.kubernetes.io/name=grafana",
+            "-o",
+            "jsonpath={.items[0].metadata.name}",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0 or not result.stdout.strip():
             # Try alternate labels
             cmd = [
-                "kubectl", "get", "pods", "-n", kube_namespace,
-                "-l", "app=grafana",
-                "-o", "jsonpath={.items[0].metadata.name}"
+                "kubectl",
+                "get",
+                "pods",
+                "-n",
+                kube_namespace,
+                "-l",
+                "app=grafana",
+                "-o",
+                "jsonpath={.items[0].metadata.name}",
             ]
             result = subprocess.run(cmd, capture_output=True, text=True)
 
@@ -41,9 +53,15 @@ class TestDataSourceConfiguration:
     def test_prometheus_datasource(self, grafana_pod, kube_namespace):
         """Test that Prometheus datasource is configured"""
         cmd = [
-            "kubectl", "exec", "-n", kube_namespace, grafana_pod,
-            "--", "curl", "-s",
-            "http://localhost:3000/api/datasources"
+            "kubectl",
+            "exec",
+            "-n",
+            kube_namespace,
+            grafana_pod,
+            "--",
+            "curl",
+            "-s",
+            "http://localhost:3000/api/datasources",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         assert result.returncode == 0
@@ -55,9 +73,15 @@ class TestDataSourceConfiguration:
     def test_loki_datasource(self, grafana_pod, kube_namespace):
         """Test that Loki datasource is configured"""
         cmd = [
-            "kubectl", "exec", "-n", kube_namespace, grafana_pod,
-            "--", "curl", "-s",
-            "http://localhost:3000/api/datasources"
+            "kubectl",
+            "exec",
+            "-n",
+            kube_namespace,
+            grafana_pod,
+            "--",
+            "curl",
+            "-s",
+            "http://localhost:3000/api/datasources",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         assert result.returncode == 0
@@ -69,9 +93,15 @@ class TestDataSourceConfiguration:
     def test_jaeger_datasource(self, grafana_pod, kube_namespace):
         """Test that Jaeger/Tempo datasource is configured"""
         cmd = [
-            "kubectl", "exec", "-n", kube_namespace, grafana_pod,
-            "--", "curl", "-s",
-            "http://localhost:3000/api/datasources"
+            "kubectl",
+            "exec",
+            "-n",
+            kube_namespace,
+            grafana_pod,
+            "--",
+            "curl",
+            "-s",
+            "http://localhost:3000/api/datasources",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         assert result.returncode == 0
@@ -90,17 +120,29 @@ class TestDashboardQueries:
     def grafana_pod(self, kube_namespace):
         """Get Grafana pod"""
         cmd = [
-            "kubectl", "get", "pods", "-n", kube_namespace,
-            "-l", "app.kubernetes.io/name=grafana",
-            "-o", "jsonpath={.items[0].metadata.name}"
+            "kubectl",
+            "get",
+            "pods",
+            "-n",
+            kube_namespace,
+            "-l",
+            "app.kubernetes.io/name=grafana",
+            "-o",
+            "jsonpath={.items[0].metadata.name}",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0 or not result.stdout.strip():
             # Try alternate labels
             cmd = [
-                "kubectl", "get", "pods", "-n", kube_namespace,
-                "-l", "app=grafana",
-                "-o", "jsonpath={.items[0].metadata.name}"
+                "kubectl",
+                "get",
+                "pods",
+                "-n",
+                kube_namespace,
+                "-l",
+                "app=grafana",
+                "-o",
+                "jsonpath={.items[0].metadata.name}",
             ]
             result = subprocess.run(cmd, capture_output=True, text=True)
 
@@ -112,9 +154,15 @@ class TestDashboardQueries:
         """Test that Prometheus can be queried through Grafana"""
         # Query for up metrics
         cmd = [
-            "kubectl", "exec", "-n", kube_namespace, grafana_pod,
-            "--", "curl", "-s",
-            "http://localhost:3000/api/datasources/proxy/1/api/v1/query?query=up"
+            "kubectl",
+            "exec",
+            "-n",
+            kube_namespace,
+            grafana_pod,
+            "--",
+            "curl",
+            "-s",
+            "http://localhost:3000/api/datasources/proxy/1/api/v1/query?query=up",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
 
@@ -127,4 +175,5 @@ class TestDashboardQueries:
 def kube_namespace():
     """Get Kubernetes namespace for tests"""
     import os
+
     return os.getenv("KUBE_NAMESPACE", "spark-operations")

@@ -22,12 +22,14 @@ class TestLoadMetricsConfig:
     def test_load_valid_config(self, tmp_path: Path):
         """Test loading valid metrics config."""
         config_path = tmp_path / "metrics.yaml"
-        config_path.write_text("""
+        config_path.write_text(
+            """
 prometheus_queries:
   gc_time:
     query: 'rate(jvm_gc_time_seconds_sum[5m])'
     aggregation: sum
-""")
+"""
+        )
         config = load_metrics_config(config_path)
         assert "prometheus_queries" in config
         assert "gc_time" in config["prometheus_queries"]
@@ -133,7 +135,7 @@ class TestMetricsCollector:
         mock_response.raise_for_status = Mock()
         mock_get.return_value = mock_response
 
-        value = collector.fetch_metric('rate(jvm_gc_time_seconds_sum[5m])')
+        value = collector.fetch_metric("rate(jvm_gc_time_seconds_sum[5m])")
 
         assert value == 0.05
         mock_get.assert_called_once()
@@ -155,10 +157,7 @@ class TestMetricsCollector:
         mock_response.raise_for_status = Mock()
         mock_get.return_value = mock_response
 
-        value = collector.fetch_metric(
-            'spark_executor_memory_bytes_spilled_total',
-            aggregation="sum"
-        )
+        value = collector.fetch_metric("spark_executor_memory_bytes_spilled_total", aggregation="sum")
 
         assert value == 300.0  # 100 + 200
 
@@ -173,7 +172,7 @@ class TestMetricsCollector:
         mock_response.raise_for_status = Mock()
         mock_get.return_value = mock_response
 
-        value = collector.fetch_metric('nonexistent_metric')
+        value = collector.fetch_metric("nonexistent_metric")
 
         assert value == 0.0
 
@@ -189,7 +188,7 @@ class TestMetricsCollector:
         mock_get.return_value = mock_response
 
         with pytest.raises(ValueError, match="Prometheus query failed"):
-            collector.fetch_metric('bad_query')
+            collector.fetch_metric("bad_query")
 
     @patch("autotuning.collector.requests.get")
     def test_collect_all_metrics(self, mock_get, collector, mock_prometheus_response):
@@ -240,7 +239,7 @@ class TestMetricsCollector:
             mock_response_success,
         ]
 
-        value = collector.fetch_metric('test_metric')
+        value = collector.fetch_metric("test_metric")
 
         assert value == 1.0
         assert mock_get.call_count == 2

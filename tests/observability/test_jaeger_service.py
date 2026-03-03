@@ -12,26 +12,40 @@ import subprocess
 
 class TestJaegerService:
     """Tests for Jaeger service accessibility"""
+
     skip_pod = False
 
     @pytest.fixture(scope="class")
     def jaeger_pod(self, request):
         """Get Jaeger pod (collector or query)"""
         import os
+
         kube_namespace = os.getenv("KUBE_NAMESPACE", "spark-operations")
         # Try collector first
         cmd = [
-            "kubectl", "get", "pods", "-n", kube_namespace,
-            "-l", "app=jaeger",
-            "-o", "jsonpath={.items[0].metadata.name}"
+            "kubectl",
+            "get",
+            "pods",
+            "-n",
+            kube_namespace,
+            "-l",
+            "app=jaeger",
+            "-o",
+            "jsonpath={.items[0].metadata.name}",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0 or not result.stdout.strip():
             # Try all-in-one
             cmd = [
-                "kubectl", "get", "pods", "-n", kube_namespace,
-                "-l", "app=jaeger-all-in-one",
-                "-o", "jsonpath={.items[0].metadata.name}"
+                "kubectl",
+                "get",
+                "pods",
+                "-n",
+                kube_namespace,
+                "-l",
+                "app=jaeger-all-in-one",
+                "-o",
+                "jsonpath={.items[0].metadata.name}",
             ]
             result = subprocess.run(cmd, capture_output=True, text=True)
 
@@ -42,20 +56,14 @@ class TestJaegerService:
 
     def test_jaeger_pod_running(self, jaeger_pod, kube_namespace):
         """Test that Jaeger pod is running"""
-        cmd = [
-            "kubectl", "get", "pod", "-n", kube_namespace, jaeger_pod,
-            "-o", "jsonpath={.status.phase}"
-        ]
+        cmd = ["kubectl", "get", "pod", "-n", kube_namespace, jaeger_pod, "-o", "jsonpath={.status.phase}"]
         result = subprocess.run(cmd, capture_output=True, text=True)
         assert result.stdout.strip() == "Running"
 
     def test_jaeger_ui_service(self, kube_namespace):
         """Test that Jaeger UI service exists"""
         # Check for Jaeger UI service
-        cmd = [
-            "kubectl", "get", "svc", "-n", kube_namespace,
-            "-o", "jsonpath={.items[*].metadata.name}"
-        ]
+        cmd = ["kubectl", "get", "svc", "-n", kube_namespace, "-o", "jsonpath={.items[*].metadata.name}"]
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0 or not result.stdout.strip():
             pytest.skip("No services found in namespace (cluster not running)")
@@ -67,17 +75,25 @@ class TestJaegerService:
 
 class TestTraceCollection:
     """Tests for trace collection from Spark applications"""
+
     skip_pod = False
 
     @pytest.fixture(scope="class")
     def jaeger_query_pod(self, request):
         """Get Jaeger Query pod for API access"""
         import os
+
         kube_namespace = os.getenv("KUBE_NAMESPACE", "spark-operations")
         cmd = [
-            "kubectl", "get", "pods", "-n", kube_namespace,
-            "-l", "app=jaeger-query",
-            "-o", "jsonpath={.items[0].metadata.name}"
+            "kubectl",
+            "get",
+            "pods",
+            "-n",
+            kube_namespace,
+            "-l",
+            "app=jaeger-query",
+            "-o",
+            "jsonpath={.items[0].metadata.name}",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0 or not result.stdout.strip():
@@ -88,9 +104,19 @@ class TestTraceCollection:
     def test_jaeger_api_services(self, jaeger_query_pod, kube_namespace):
         """Test that Jaeger API endpoints are accessible"""
         cmd = [
-            "kubectl", "exec", "-n", kube_namespace, jaeger_query_pod,
-            "--", "curl", "-s", "-o", "/dev/null", "-w", "%{http_code}",
-            "http://localhost:16686/api/services"
+            "kubectl",
+            "exec",
+            "-n",
+            kube_namespace,
+            jaeger_query_pod,
+            "--",
+            "curl",
+            "-s",
+            "-o",
+            "/dev/null",
+            "-w",
+            "%{http_code}",
+            "http://localhost:16686/api/services",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         # May return 200 or 401 depending on auth
@@ -120,6 +146,7 @@ class TestTraceCollection:
 def kube_namespace():
     """Get Kubernetes namespace for tests"""
     import os
+
     return os.getenv("KUBE_NAMESPACE", "spark-operations")
 
 
@@ -127,4 +154,5 @@ def kube_namespace():
 def charts_dir():
     """Get charts directory"""
     from pathlib import Path
+
     return Path(__file__).parent.parent.parent / "charts"

@@ -1,6 +1,6 @@
 # UAT: F13 Phase 7 — Load Tests
 
-**Feature:** F13 - Phase 7 Load Tests  
+**Feature:** F13 - Phase 7 Load Tests
 **Review Date:** 2026-02-10
 
 ---

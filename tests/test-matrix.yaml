@@ -7,7 +7,7 @@ metadata:
     spark_versions:
     - 3.5.7
     - 3.5.8
-    - 4.0.2
+    - 4.1.0
     - 4.1.1
     connection_modes:
     - connect
@@ -2477,7 +2477,7 @@ scenarios:
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0161
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: true
@@ -2485,15 +2485,15 @@ scenarios:
   shuffle_service: true
   openlineage: true
   platform: k8s
-  name: 4.0.2-C-N-GPU-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-GPU-ICE-SHUF-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true\
     \ \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true\
     \ \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0162
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: true
@@ -2501,14 +2501,14 @@ scenarios:
   shuffle_service: true
   openlineage: false
   platform: k8s
-  name: 4.0.2-C-N-GPU-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-GPU-ICE-SHUF-NO-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true\
     \ \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0163
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: true
@@ -2516,14 +2516,14 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: k8s
-  name: 4.0.2-C-N-GPU-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-GPU-ICE-NO-SHUF-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true\
     \ \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0164
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: true
@@ -2531,14 +2531,14 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: k8s
-  name: 4.0.2-C-N-GPU-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-GPU-ICE-NO-SHUF-NO-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true\
     \ \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0165
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: true
@@ -2546,14 +2546,14 @@ scenarios:
   shuffle_service: true
   openlineage: true
   platform: k8s
-  name: 4.0.2-C-N-GPU-NO-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-GPU-NO-ICE-SHUF-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true\
     \ \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0166
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: true
@@ -2561,14 +2561,14 @@ scenarios:
   shuffle_service: true
   openlineage: false
   platform: k8s
-  name: 4.0.2-C-N-GPU-NO-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-GPU-NO-ICE-SHUF-NO-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true\
     \ \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0167
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: true
@@ -2576,14 +2576,14 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: k8s
-  name: 4.0.2-C-N-GPU-NO-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-GPU-NO-ICE-NO-SHUF-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.gpu.enabled=true \\\n  --set openlineage.enabled=true\
     \ \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0168
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: true
@@ -2591,13 +2591,13 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: k8s
-  name: 4.0.2-C-N-GPU-NO-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-GPU-NO-ICE-NO-SHUF-NO-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.gpu.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0169
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: false
@@ -2605,15 +2605,15 @@ scenarios:
   shuffle_service: true
   openlineage: true
   platform: k8s
-  name: 4.0.2-C-N-CPU-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-CPU-ICE-SHUF-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.iceberg.enabled=true \\\n  --set\
     \ spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n\
     \  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0170
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: false
@@ -2621,14 +2621,14 @@ scenarios:
   shuffle_service: true
   openlineage: false
   platform: k8s
-  name: 4.0.2-C-N-CPU-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-CPU-ICE-SHUF-NO-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.iceberg.enabled=true \\\n  --set\
     \ spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0171
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: false
@@ -2636,14 +2636,14 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: k8s
-  name: 4.0.2-C-N-CPU-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-CPU-ICE-NO-SHUF-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.iceberg.enabled=true \\\n  --set\
     \ openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n\
     \  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0172
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: false
@@ -2651,14 +2651,14 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: k8s
-  name: 4.0.2-C-N-CPU-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-CPU-ICE-NO-SHUF-NO-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.iceberg.enabled=true \\\n  --set\
     \ monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0173
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: false
@@ -2666,14 +2666,14 @@ scenarios:
   shuffle_service: true
   openlineage: true
   platform: k8s
-  name: 4.0.2-C-N-CPU-NO-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-CPU-NO-ICE-SHUF-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set spark.shuffle.service.enabled=true \\\n\
     \  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0174
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: false
@@ -2681,14 +2681,14 @@ scenarios:
   shuffle_service: true
   openlineage: false
   platform: k8s
-  name: 4.0.2-C-N-CPU-NO-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-CPU-NO-ICE-SHUF-NO-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set spark.shuffle.service.enabled=true \\\n\
     \  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0175
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: false
@@ -2696,13 +2696,13 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: k8s
-  name: 4.0.2-C-N-CPU-NO-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-CPU-NO-ICE-NO-SHUF-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0176
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: false
@@ -2710,13 +2710,13 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: k8s
-  name: 4.0.2-C-N-CPU-NO-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-CPU-NO-ICE-NO-SHUF-NO-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set monitoring.prometheus.enabled=true \\\n\
     \  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0177
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: true
@@ -2724,15 +2724,15 @@ scenarios:
   shuffle_service: true
   openlineage: true
   platform: openshift
-  name: 4.0.2-C-N-GPU-ICE-SHUF-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-GPU-ICE-SHUF-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true\
     \ \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true\
     \ \\\n  --set openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0178
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: true
@@ -2740,15 +2740,15 @@ scenarios:
   shuffle_service: true
   openlineage: false
   platform: openshift
-  name: 4.0.2-C-N-GPU-ICE-SHUF-NO-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-GPU-ICE-SHUF-NO-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true\
     \ \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openshift.enabled=true\
     \ \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0179
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: true
@@ -2756,15 +2756,15 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: openshift
-  name: 4.0.2-C-N-GPU-ICE-NO-SHUF-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-GPU-ICE-NO-SHUF-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true\
     \ \\\n  --set openlineage.enabled=true \\\n  --set openshift.enabled=true \\\n\
     \  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0180
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: true
@@ -2772,14 +2772,14 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: openshift
-  name: 4.0.2-C-N-GPU-ICE-NO-SHUF-NO-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-GPU-ICE-NO-SHUF-NO-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true\
     \ \\\n  --set openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0181
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: true
@@ -2787,15 +2787,15 @@ scenarios:
   shuffle_service: true
   openlineage: true
   platform: openshift
-  name: 4.0.2-C-N-GPU-NO-ICE-SHUF-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-GPU-NO-ICE-SHUF-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true\
     \ \\\n  --set openlineage.enabled=true \\\n  --set openshift.enabled=true \\\n\
     \  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0182
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: true
@@ -2803,14 +2803,14 @@ scenarios:
   shuffle_service: true
   openlineage: false
   platform: openshift
-  name: 4.0.2-C-N-GPU-NO-ICE-SHUF-NO-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-GPU-NO-ICE-SHUF-NO-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true\
     \ \\\n  --set openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0183
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: true
@@ -2818,14 +2818,14 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: openshift
-  name: 4.0.2-C-N-GPU-NO-ICE-NO-SHUF-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-GPU-NO-ICE-NO-SHUF-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.gpu.enabled=true \\\n  --set openlineage.enabled=true\
     \ \\\n  --set openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0184
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: true
@@ -2833,14 +2833,14 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: openshift
-  name: 4.0.2-C-N-GPU-NO-ICE-NO-SHUF-NO-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-GPU-NO-ICE-NO-SHUF-NO-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.gpu.enabled=true \\\n  --set openshift.enabled=true\
     \ \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0185
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: false
@@ -2848,15 +2848,15 @@ scenarios:
   shuffle_service: true
   openlineage: true
   platform: openshift
-  name: 4.0.2-C-N-CPU-ICE-SHUF-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-CPU-ICE-SHUF-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.iceberg.enabled=true \\\n  --set\
     \ spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n\
     \  --set openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0186
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: false
@@ -2864,15 +2864,15 @@ scenarios:
   shuffle_service: true
   openlineage: false
   platform: openshift
-  name: 4.0.2-C-N-CPU-ICE-SHUF-NO-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-CPU-ICE-SHUF-NO-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.iceberg.enabled=true \\\n  --set\
     \ spark.shuffle.service.enabled=true \\\n  --set openshift.enabled=true \\\n \
     \ --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0187
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: false
@@ -2880,14 +2880,14 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: openshift
-  name: 4.0.2-C-N-CPU-ICE-NO-SHUF-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-CPU-ICE-NO-SHUF-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.iceberg.enabled=true \\\n  --set\
     \ openlineage.enabled=true \\\n  --set openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0188
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: false
@@ -2895,14 +2895,14 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: openshift
-  name: 4.0.2-C-N-CPU-ICE-NO-SHUF-NO-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-CPU-ICE-NO-SHUF-NO-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set features.iceberg.enabled=true \\\n  --set\
     \ openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n \
     \ --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0189
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: false
@@ -2910,15 +2910,15 @@ scenarios:
   shuffle_service: true
   openlineage: true
   platform: openshift
-  name: 4.0.2-C-N-CPU-NO-ICE-SHUF-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-CPU-NO-ICE-SHUF-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set spark.shuffle.service.enabled=true \\\n\
     \  --set openlineage.enabled=true \\\n  --set openshift.enabled=true \\\n  --set\
     \ monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0190
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: false
@@ -2926,14 +2926,14 @@ scenarios:
   shuffle_service: true
   openlineage: false
   platform: openshift
-  name: 4.0.2-C-N-CPU-NO-ICE-SHUF-NO-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-CPU-NO-ICE-SHUF-NO-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set spark.shuffle.service.enabled=true \\\n\
     \  --set openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0191
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: false
@@ -2941,14 +2941,14 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: openshift
-  name: 4.0.2-C-N-CPU-NO-ICE-NO-SHUF-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-CPU-NO-ICE-NO-SHUF-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set openlineage.enabled=true \\\n  --set openshift.enabled=true\
     \ \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0192
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: native
   gpu: false
@@ -2956,13 +2956,13 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: openshift
-  name: 4.0.2-C-N-CPU-NO-ICE-NO-SHUF-NO-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-N-CPU-NO-ICE-NO-SHUF-NO-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ connect.backendMode=k8s \\\n  --set openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0193
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: standalone
   gpu: false
@@ -2970,14 +2970,14 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: k8s
-  name: 4.0.2-C-S-CPU-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-S-CPU-ICE-NO-SHUF-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.iceberg.enabled=true \\\n\
     \  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0194
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: standalone
   gpu: false
@@ -2985,14 +2985,14 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: k8s
-  name: 4.0.2-C-S-CPU-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-S-CPU-ICE-NO-SHUF-NO-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.iceberg.enabled=true \\\n\
     \  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0195
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: standalone
   gpu: false
@@ -3000,14 +3000,14 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: k8s
-  name: 4.0.2-C-S-CPU-NO-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-S-CPU-NO-ICE-NO-SHUF-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set\
     \ monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0196
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: standalone
   gpu: false
@@ -3015,13 +3015,13 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: k8s
-  name: 4.0.2-C-S-CPU-NO-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-S-CPU-NO-ICE-NO-SHUF-NO-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0197
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: standalone
   gpu: false
@@ -3029,15 +3029,15 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: openshift
-  name: 4.0.2-C-S-CPU-ICE-NO-SHUF-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-S-CPU-ICE-NO-SHUF-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.iceberg.enabled=true \\\n\
     \  --set openlineage.enabled=true \\\n  --set openshift.enabled=true \\\n  --set\
     \ monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0198
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: standalone
   gpu: false
@@ -3045,14 +3045,14 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: openshift
-  name: 4.0.2-C-S-CPU-ICE-NO-SHUF-NO-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-S-CPU-ICE-NO-SHUF-NO-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.iceberg.enabled=true \\\n\
     \  --set openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0199
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: standalone
   gpu: false
@@ -3060,14 +3060,14 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: openshift
-  name: 4.0.2-C-S-CPU-NO-ICE-NO-SHUF-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-S-CPU-NO-ICE-NO-SHUF-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set\
     \ openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n \
     \ --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0200
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: true
   k8s_mode: standalone
   gpu: false
@@ -3075,14 +3075,14 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: openshift
-  name: 4.0.2-C-S-CPU-NO-ICE-NO-SHUF-NO-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=true \\\n  --set\
+  name: 4.1.0-C-S-CPU-NO-ICE-NO-SHUF-NO-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=true \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set openshift.enabled=true \\\n  --set\
     \ monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0201
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: true
@@ -3090,15 +3090,15 @@ scenarios:
   shuffle_service: true
   openlineage: true
   platform: k8s
-  name: 4.0.2-NC-N-GPU-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-GPU-ICE-SHUF-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set\
     \ features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true\
     \ \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0202
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: true
@@ -3106,15 +3106,15 @@ scenarios:
   shuffle_service: true
   openlineage: false
   platform: k8s
-  name: 4.0.2-NC-N-GPU-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-GPU-ICE-SHUF-NO-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set\
     \ features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true\
     \ \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0203
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: true
@@ -3122,15 +3122,15 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: k8s
-  name: 4.0.2-NC-N-GPU-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-GPU-ICE-NO-SHUF-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set\
     \ features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set\
     \ monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0204
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: true
@@ -3138,14 +3138,14 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: k8s
-  name: 4.0.2-NC-N-GPU-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-GPU-ICE-NO-SHUF-NO-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set\
     \ features.iceberg.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0205
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: true
@@ -3153,15 +3153,15 @@ scenarios:
   shuffle_service: true
   openlineage: true
   platform: k8s
-  name: 4.0.2-NC-N-GPU-NO-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-GPU-NO-ICE-SHUF-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set\
     \ spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n\
     \  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0206
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: true
@@ -3169,14 +3169,14 @@ scenarios:
   shuffle_service: true
   openlineage: false
   platform: k8s
-  name: 4.0.2-NC-N-GPU-NO-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-GPU-NO-ICE-SHUF-NO-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set\
     \ spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0207
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: true
@@ -3184,14 +3184,14 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: k8s
-  name: 4.0.2-NC-N-GPU-NO-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-GPU-NO-ICE-NO-SHUF-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set\
     \ openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n\
     \  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0208
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: true
@@ -3199,14 +3199,14 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: k8s
-  name: 4.0.2-NC-N-GPU-NO-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-GPU-NO-ICE-NO-SHUF-NO-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set\
     \ monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0209
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: false
@@ -3214,15 +3214,15 @@ scenarios:
   shuffle_service: true
   openlineage: true
   platform: k8s
-  name: 4.0.2-NC-N-CPU-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-CPU-ICE-SHUF-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.iceberg.enabled=true \\\n\
     \  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true\
     \ \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0210
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: false
@@ -3230,14 +3230,14 @@ scenarios:
   shuffle_service: true
   openlineage: false
   platform: k8s
-  name: 4.0.2-NC-N-CPU-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-CPU-ICE-SHUF-NO-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.iceberg.enabled=true \\\n\
     \  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0211
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: false
@@ -3245,14 +3245,14 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: k8s
-  name: 4.0.2-NC-N-CPU-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-CPU-ICE-NO-SHUF-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.iceberg.enabled=true \\\n\
     \  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0212
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: false
@@ -3260,14 +3260,14 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: k8s
-  name: 4.0.2-NC-N-CPU-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-CPU-ICE-NO-SHUF-NO-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.iceberg.enabled=true \\\n\
     \  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0213
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: false
@@ -3275,14 +3275,14 @@ scenarios:
   shuffle_service: true
   openlineage: true
   platform: k8s
-  name: 4.0.2-NC-N-CPU-NO-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-CPU-NO-ICE-SHUF-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set spark.shuffle.service.enabled=true\
     \ \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0214
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: false
@@ -3290,14 +3290,14 @@ scenarios:
   shuffle_service: true
   openlineage: false
   platform: k8s
-  name: 4.0.2-NC-N-CPU-NO-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-CPU-NO-ICE-SHUF-NO-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set spark.shuffle.service.enabled=true\
     \ \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0215
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: false
@@ -3305,14 +3305,14 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: k8s
-  name: 4.0.2-NC-N-CPU-NO-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-CPU-NO-ICE-NO-SHUF-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set\
     \ monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0216
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: false
@@ -3320,13 +3320,13 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: k8s
-  name: 4.0.2-NC-N-CPU-NO-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-CPU-NO-ICE-NO-SHUF-NO-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0217
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: true
@@ -3334,8 +3334,8 @@ scenarios:
   shuffle_service: true
   openlineage: true
   platform: openshift
-  name: 4.0.2-NC-N-GPU-ICE-SHUF-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-GPU-ICE-SHUF-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set\
     \ features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true\
     \ \\\n  --set openlineage.enabled=true \\\n  --set openshift.enabled=true \\\n\
@@ -3343,7 +3343,7 @@ scenarios:
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0218
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: true
@@ -3351,15 +3351,15 @@ scenarios:
   shuffle_service: true
   openlineage: false
   platform: openshift
-  name: 4.0.2-NC-N-GPU-ICE-SHUF-NO-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-GPU-ICE-SHUF-NO-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set\
     \ features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true\
     \ \\\n  --set openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0219
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: true
@@ -3367,15 +3367,15 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: openshift
-  name: 4.0.2-NC-N-GPU-ICE-NO-SHUF-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-GPU-ICE-NO-SHUF-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set\
     \ features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set\
     \ openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n \
     \ --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0220
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: true
@@ -3383,15 +3383,15 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: openshift
-  name: 4.0.2-NC-N-GPU-ICE-NO-SHUF-NO-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-GPU-ICE-NO-SHUF-NO-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set\
     \ features.iceberg.enabled=true \\\n  --set openshift.enabled=true \\\n  --set\
     \ monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0221
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: true
@@ -3399,15 +3399,15 @@ scenarios:
   shuffle_service: true
   openlineage: true
   platform: openshift
-  name: 4.0.2-NC-N-GPU-NO-ICE-SHUF-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-GPU-NO-ICE-SHUF-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set\
     \ spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n\
     \  --set openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0222
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: true
@@ -3415,15 +3415,15 @@ scenarios:
   shuffle_service: true
   openlineage: false
   platform: openshift
-  name: 4.0.2-NC-N-GPU-NO-ICE-SHUF-NO-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-GPU-NO-ICE-SHUF-NO-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set\
     \ spark.shuffle.service.enabled=true \\\n  --set openshift.enabled=true \\\n \
     \ --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0223
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: true
@@ -3431,14 +3431,14 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: openshift
-  name: 4.0.2-NC-N-GPU-NO-ICE-NO-SHUF-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-GPU-NO-ICE-NO-SHUF-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set\
     \ openlineage.enabled=true \\\n  --set openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0224
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: true
@@ -3446,14 +3446,14 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: openshift
-  name: 4.0.2-NC-N-GPU-NO-ICE-NO-SHUF-NO-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-GPU-NO-ICE-NO-SHUF-NO-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set\
     \ openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n \
     \ --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0225
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: false
@@ -3461,15 +3461,15 @@ scenarios:
   shuffle_service: true
   openlineage: true
   platform: openshift
-  name: 4.0.2-NC-N-CPU-ICE-SHUF-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-CPU-ICE-SHUF-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.iceberg.enabled=true \\\n\
     \  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true\
     \ \\\n  --set openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0226
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: false
@@ -3477,15 +3477,15 @@ scenarios:
   shuffle_service: true
   openlineage: false
   platform: openshift
-  name: 4.0.2-NC-N-CPU-ICE-SHUF-NO-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-CPU-ICE-SHUF-NO-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.iceberg.enabled=true \\\n\
     \  --set spark.shuffle.service.enabled=true \\\n  --set openshift.enabled=true\
     \ \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0227
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: false
@@ -3493,15 +3493,15 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: openshift
-  name: 4.0.2-NC-N-CPU-ICE-NO-SHUF-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-CPU-ICE-NO-SHUF-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.iceberg.enabled=true \\\n\
     \  --set openlineage.enabled=true \\\n  --set openshift.enabled=true \\\n  --set\
     \ monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0228
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: false
@@ -3509,14 +3509,14 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: openshift
-  name: 4.0.2-NC-N-CPU-ICE-NO-SHUF-NO-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-CPU-ICE-NO-SHUF-NO-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.iceberg.enabled=true \\\n\
     \  --set openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0229
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: false
@@ -3524,15 +3524,15 @@ scenarios:
   shuffle_service: true
   openlineage: true
   platform: openshift
-  name: 4.0.2-NC-N-CPU-NO-ICE-SHUF-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-CPU-NO-ICE-SHUF-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set spark.shuffle.service.enabled=true\
     \ \\\n  --set openlineage.enabled=true \\\n  --set openshift.enabled=true \\\n\
     \  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0230
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: false
@@ -3540,14 +3540,14 @@ scenarios:
   shuffle_service: true
   openlineage: false
   platform: openshift
-  name: 4.0.2-NC-N-CPU-NO-ICE-SHUF-NO-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-CPU-NO-ICE-SHUF-NO-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set spark.shuffle.service.enabled=true\
     \ \\\n  --set openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0231
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: false
@@ -3555,14 +3555,14 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: openshift
-  name: 4.0.2-NC-N-CPU-NO-ICE-NO-SHUF-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-CPU-NO-ICE-NO-SHUF-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set\
     \ openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n \
     \ --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0232
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: native
   gpu: false
@@ -3570,14 +3570,14 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: openshift
-  name: 4.0.2-NC-N-CPU-NO-ICE-NO-SHUF-NO-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-N-CPU-NO-ICE-NO-SHUF-NO-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set openshift.enabled=true \\\n  --set\
     \ monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0233
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: standalone
   gpu: false
@@ -3585,14 +3585,14 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: k8s
-  name: 4.0.2-NC-S-CPU-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-S-CPU-ICE-NO-SHUF-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.iceberg.enabled=true \\\n\
     \  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0234
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: standalone
   gpu: false
@@ -3600,14 +3600,14 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: k8s
-  name: 4.0.2-NC-S-CPU-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-S-CPU-ICE-NO-SHUF-NO-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.iceberg.enabled=true \\\n\
     \  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0235
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: standalone
   gpu: false
@@ -3615,14 +3615,14 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: k8s
-  name: 4.0.2-NC-S-CPU-NO-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-S-CPU-NO-ICE-NO-SHUF-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set\
     \ monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0236
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: standalone
   gpu: false
@@ -3630,13 +3630,13 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: k8s
-  name: 4.0.2-NC-S-CPU-NO-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-S-CPU-NO-ICE-NO-SHUF-NO-OL-K8S
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0237
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: standalone
   gpu: false
@@ -3644,15 +3644,15 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: openshift
-  name: 4.0.2-NC-S-CPU-ICE-NO-SHUF-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-S-CPU-ICE-NO-SHUF-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.iceberg.enabled=true \\\n\
     \  --set openlineage.enabled=true \\\n  --set openshift.enabled=true \\\n  --set\
     \ monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\
     \ \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0238
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: standalone
   gpu: false
@@ -3660,14 +3660,14 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: openshift
-  name: 4.0.2-NC-S-CPU-ICE-NO-SHUF-NO-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-S-CPU-ICE-NO-SHUF-NO-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set features.iceberg.enabled=true \\\n\
     \  --set openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true\
     \ \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0239
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: standalone
   gpu: false
@@ -3675,14 +3675,14 @@ scenarios:
   shuffle_service: false
   openlineage: true
   platform: openshift
-  name: 4.0.2-NC-S-CPU-NO-ICE-NO-SHUF-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-S-CPU-NO-ICE-NO-SHUF-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set\
     \ openshift.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n \
     \ --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true\
     \ \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0240
-  spark_version: 4.0.2
+  spark_version: 4.1.0
   connect: false
   k8s_mode: standalone
   gpu: false
@@ -3690,8 +3690,8 @@ scenarios:
   shuffle_service: false
   openlineage: false
   platform: openshift
-  name: 4.0.2-NC-S-CPU-NO-ICE-NO-SHUF-NO-OL-OPENSHIFT
-  helm_values: "spark.version=\"4.0.2\" \\\n  --set connect.enabled=false \\\n  --set\
+  name: 4.1.0-NC-S-CPU-NO-ICE-NO-SHUF-NO-OL-OPENSHIFT
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set\
     \ sparkStandalone.enabled=true \\\n  --set openshift.enabled=true \\\n  --set\
     \ monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true\
     \ \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true\

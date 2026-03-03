@@ -1,7 +1,7 @@
 # Spark Standalone Chart Guide
 
-**Chart:** `charts/spark-standalone`  
-**Tested on:** Minikube  
+**Chart:** `charts/spark-standalone`
+**Tested on:** Minikube
 **Prepared for:** OpenShift-like constraints (PSS `restricted` / SCC `restricted`)
 
 ## Overview

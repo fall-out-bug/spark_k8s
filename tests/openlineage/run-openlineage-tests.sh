@@ -228,18 +228,18 @@ rm -f /tmp/ol-run-test.py
 # === 6. Marquez Integration (if available) ===
 if check_marquez; then
     log_info "=== 6. Marquez Integration ==="
-    
+
     MARQUEZ_SVC=$(kubectl get svc -n $NAMESPACE -l app=marquez -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
-    
+
     echo -n "Testing: marquez-connectivity... "
     MARQUEZ_CHECK=$(kubectl exec -n $NAMESPACE $MASTER_POD -- curl -s -o /dev/null -w "%{http_code}" http://${MARQUEZ_SVC}:5000/api/v1/namespaces 2>/dev/null || echo "000")
-    
+
     if [[ "$MARQUEZ_CHECK" == "200" ]]; then
         log_pass "marquez-connectivity"
     else
         log_skip "marquez-connectivity (status: $MARQUEZ_CHECK)"
     fi
-    
+
     cat > /tmp/ol-marquez-test.py << PYEOF
 from pyspark.sql import SparkSession
 import os
@@ -259,10 +259,10 @@ count = df.count()
 spark.stop()
 print("OPENLINEAGE_MARQUEZ_SUCCESS")
 PYEOF
-    
+
     echo -n "Testing: marquez-lineage-submit... "
     kubectl cp /tmp/ol-marquez-test.py $NAMESPACE/$MASTER_POD:/tmp/ol-marquez-test.py 2>/dev/null
-    
+
     OUTPUT=$(kubectl exec -n $NAMESPACE $MASTER_POD -- bash -c '
     timeout 60 spark-submit --master local[*] \
         --conf spark.extraListeners=io.openlineage.spark.OpenLineageSparkListener \
@@ -270,13 +270,13 @@ PYEOF
         --conf spark.openlineage.transport.url=http://'${MARQUEZ_SVC}':5000 \
         /tmp/ol-marquez-test.py 2>&1
     ' 2>&1) || true
-    
+
     if echo "$OUTPUT" | grep -q "OPENLINEAGE_MARQUEZ_SUCCESS"; then
         log_pass "marquez-lineage-submit"
     else
         log_fail "marquez-lineage-submit"
     fi
-    
+
     rm -f /tmp/ol-marquez-test.py
 fi
 

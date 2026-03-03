@@ -76,25 +76,25 @@ run_load_test() {
     local data_size="${3:-100000}"
     local partitions="${4:-10}"
     local timeout="${5:-300}"
-    
+
     log_info "Running load test: $test_name (rows=$data_size, partitions=$partitions)"
-    
+
     kubectl cp "$script" $NAMESPACE/$MASTER_POD:/tmp/load-test.py 2>/dev/null
-    
+
     local start_time=$(date +%s%3N)
-    
+
     local output
     # Fix: Set spark.driver.host to pod IP for worker connectivity
     # Fix: Use service name instead of localhost for master URL
     output=$(kubectl exec -n $NAMESPACE $MASTER_POD -- bash -c 'DRIVER_HOST=$(hostname -i) && timeout '$timeout' spark-submit --master spark://$MASTER_SERVICE:7077 --conf spark.driver.host=$DRIVER_HOST --conf spark.driver.bindAddress=0.0.0.0 --conf spark.sql.shuffle.partitions='$partitions' /tmp/load-test.py' $timeout $partitions 2>&1) || true
-    
+
     local end_time=$(date +%s%3N)
     local duration=$((end_time - start_time))
-    
+
     local status="FAIL"
     local throughput="0"
     local rows_per_sec="0"
-    
+
     if echo "$output" | grep -q "LOAD_TEST_SUCCESS"; then
         status="PASS"
         rows_per_sec=$(echo "$data_size * 1000 / $duration" | bc 2>/dev/null || echo "0")
@@ -103,7 +103,7 @@ run_load_test() {
         log_fail "$test_name failed"
         echo "$output" >> "$RESULTS_DIR/${test_name}.log"
     fi
-    
+
     echo "$TIMESTAMP,$test_name,$data_size,$partitions,$duration,0,$rows_per_sec,$status" >> "$RESULTS_FILE"
 }
 

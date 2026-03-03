@@ -21,46 +21,32 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # Test Configuration
 # ============================================================================
 
+
 def pytest_configure(config):
     """Configure pytest with custom markers."""
-    config.addinivalue_line(
-        "markers", "load: mark test as load test (long-running)"
-    )
-    config.addinivalue_line(
-        "markers", "baseline: mark test as baseline load test"
-    )
-    config.addinivalue_line(
-        "markers", "gpu: mark test as GPU load test"
-    )
-    config.addinivalue_line(
-        "markers", "iceberg: mark test as Iceberg load test"
-    )
-    config.addinivalue_line(
-        "markers", "comparison: mark test as version comparison test"
-    )
-    config.addinivalue_line(
-        "markers", "security: mark test as security stability test"
-    )
+    config.addinivalue_line("markers", "load: mark test as load test (long-running)")
+    config.addinivalue_line("markers", "baseline: mark test as baseline load test")
+    config.addinivalue_line("markers", "gpu: mark test as GPU load test")
+    config.addinivalue_line("markers", "iceberg: mark test as Iceberg load test")
+    config.addinivalue_line("markers", "comparison: mark test as version comparison test")
+    config.addinivalue_line("markers", "security: mark test as security stability test")
 
 
 # ============================================================================
 # Configuration Fixtures
 # ============================================================================
 
+
 @pytest.fixture(scope="session")
 def load_test_config() -> Dict[str, Any]:
     """Get load test configuration from environment."""
     return {
-        "spark_connect_url": os.getenv(
-            "SPARK_CONNECT_URL",
-            "sc://localhost:15002"
-        ),
+        "spark_connect_url": os.getenv("SPARK_CONNECT_URL", "sc://localhost:15002"),
         "namespace": os.getenv("TEST_NAMESPACE", "spark-load-test"),
         "duration_sec": int(os.getenv("LOAD_TEST_DURATION", "1800")),  # 30 min default
         "interval_sec": float(os.getenv("LOAD_TEST_INTERVAL", "1.0")),
         "queries_file": os.getenv(
-            "QUERIES_FILE",
-            str(Path(__file__).parent.parent / "e2e" / "queries" / "standard.sql")
+            "QUERIES_FILE", str(Path(__file__).parent.parent / "e2e" / "queries" / "standard.sql")
         ),
     }
 
@@ -68,10 +54,7 @@ def load_test_config() -> Dict[str, Any]:
 @pytest.fixture(scope="session")
 def metrics_output_dir() -> Path:
     """Get directory for metrics output."""
-    output_dir = Path(os.getenv(
-        "METRICS_OUTPUT_DIR",
-        Path(__file__).parent / "results"
-    ))
+    output_dir = Path(os.getenv("METRICS_OUTPUT_DIR", Path(__file__).parent / "results"))
     output_dir.mkdir(parents=True, exist_ok=True)
     return output_dir
 
@@ -80,6 +63,7 @@ def metrics_output_dir() -> Path:
 # Spark Client Fixtures
 # ============================================================================
 
+
 @pytest.fixture(scope="session")
 def spark_connect_client(load_test_config: Dict[str, Any]) -> SparkSession:
     """
@@ -87,9 +71,7 @@ def spark_connect_client(load_test_config: Dict[str, Any]) -> SparkSession:
 
     Uses sc:// protocol for Spark Connect.
     """
-    client = SparkSession.builder.remote(
-        load_test_config["spark_connect_url"]
-    ).getOrCreate()
+    client = SparkSession.builder.remote(load_test_config["spark_connect_url"]).getOrCreate()
 
     yield client
 
@@ -118,6 +100,7 @@ def spark_411_client() -> Optional[SparkSession]:
 # Metrics Collection Fixtures
 # ============================================================================
 
+
 @pytest.fixture(scope="function")
 def metrics_collector():
     """
@@ -129,10 +112,12 @@ def metrics_collector():
 
     def collector(metrics: Dict[str, Any]) -> None:
         """Collect metrics from a test iteration."""
-        collected_metrics.append({
-            **metrics,
-            "timestamp": datetime.now().isoformat(),
-        })
+        collected_metrics.append(
+            {
+                **metrics,
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
     yield collector
 
@@ -142,6 +127,7 @@ def metrics_collector():
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
         import json
+
         with open(output_file, "w") as f:
             for m in collected_metrics:
                 f.write(json.dumps(m) + "\n")
@@ -151,9 +137,11 @@ def metrics_collector():
 # Statistics Helpers
 # ============================================================================
 
+
 @pytest.fixture(scope="session")
 def calculate_percentiles():
     """Calculate percentiles from a list of values."""
+
     def helper(values: List[float]) -> Dict[str, float]:
         if not values:
             return {"p50": 0.0, "p95": 0.0, "p99": 0.0}
@@ -166,21 +154,20 @@ def calculate_percentiles():
             "p95": sorted_values[int(n * 0.95)],
             "p99": sorted_values[int(n * 0.99)],
         }
+
     return helper
 
 
 @pytest.fixture(scope="session")
 def calculate_throughput():
     """Calculate throughput from metrics."""
-    def helper(
-        total_queries: int,
-        duration_sec: int,
-        success_count: Optional[int] = None
-    ) -> Dict[str, float]:
+
+    def helper(total_queries: int, duration_sec: int, success_count: Optional[int] = None) -> Dict[str, float]:
         success = success_count if success_count is not None else total_queries
         return {
             "throughput_qps": total_queries / duration_sec,
             "success_rate": success / total_queries if total_queries > 0 else 0.0,
             "error_rate": (total_queries - success) / total_queries if total_queries > 0 else 0.0,
         }
+
     return helper

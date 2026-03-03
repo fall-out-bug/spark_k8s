@@ -39,8 +39,9 @@ class TestContainerNonRoot:
 
             # If runAsUser is set, it should not be root (0)
             if run_as_user is not None:
-                assert run_as_user != 0, \
-                    f"{pod_spec['kind']}/{pod_spec['name']} should not run as root user (0), got {run_as_user}"
+                assert (
+                    run_as_user != 0
+                ), f"{pod_spec['kind']}/{pod_spec['name']} should not run as root user (0), got {run_as_user}"
 
     def test_container_run_as_user_is_not_root(self, chart_35_path, preset_35_baseline):
         """Test that container security context sets runAsUser != 0"""
@@ -60,9 +61,10 @@ class TestContainerNonRoot:
 
                 # If runAsUser is set, it should not be root (0)
                 if run_as_user is not None:
-                    assert run_as_user != 0, \
-                        f"Container {container_name} in {pod_spec['kind']}/{pod_spec['name']} " \
+                    assert run_as_user != 0, (
+                        f"Container {container_name} in {pod_spec['kind']}/{pod_spec['name']} "
                         f"should not run as root user (0), got {run_as_user}"
+                    )
 
     def test_run_as_group_is_set(self, chart_35_path, preset_35_baseline):
         """Test that runAsGroup is set (if applicable)"""
@@ -121,5 +123,6 @@ class TestContainerNonRoot:
             if run_as_user is not None and run_as_user != 0:
                 # UID 185 is common for spark-k8s images
                 # Other UIDs are also acceptable (like OpenShift range)
-                assert run_as_user == 185 or run_as_user >= 1000000000, \
-                    f"UID should be 185 or in OpenShift range, got {run_as_user}"
+                assert (
+                    run_as_user == 185 or run_as_user >= 1000000000
+                ), f"UID should be 185 or in OpenShift range, got {run_as_user}"

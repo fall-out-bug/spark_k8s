@@ -124,10 +124,7 @@ def calculate_recommendation(
     min_executors = max(1, executor_count // 4)
     driver_memory = f"{max(1, executor_config.memory_mb // 1024)}G"
     driver_cores = str(min(4, executor_config.cores * 2))
-    total_memory_gb = (
-        executor_count * executor_config.memory_mb / 1024
-        + executor_config.memory_mb / 1024
-    )
+    total_memory_gb = executor_count * executor_config.memory_mb / 1024 + executor_config.memory_mb / 1024
     total_cores = executor_count * executor_config.cores
     cost_per_hour = f"${total_memory_gb * 0.01:.2f} - ${total_memory_gb * 0.03:.2f}"
     if spot_instances:

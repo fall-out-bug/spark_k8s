@@ -27,7 +27,7 @@ class TestPSSRestricted41:
         output = helm_template(
             chart_41_path,
             [preset_41_baseline],
-            set_values={"security.createNamespace": "true", "security.podSecurityStandards": "true"}
+            set_values={"security.createNamespace": "true", "security.podSecurityStandards": "true"},
         )
 
         if output is None:
@@ -40,19 +40,16 @@ class TestPSSRestricted41:
             pytest.skip("Namespace not rendered (security.createNamespace may be false)")
 
         labels = namespace.get("metadata", {}).get("labels", {})
-        assert labels.get("pod-security.kubernetes.io/enforce") == "restricted", \
-            "Should enforce PSS restricted"
-        assert labels.get("pod-security.kubernetes.io/audit") == "restricted", \
-            "Should audit PSS restricted"
-        assert labels.get("pod-security.kubernetes.io/warn") == "restricted", \
-            "Should warn PSS restricted"
+        assert labels.get("pod-security.kubernetes.io/enforce") == "restricted", "Should enforce PSS restricted"
+        assert labels.get("pod-security.kubernetes.io/audit") == "restricted", "Should audit PSS restricted"
+        assert labels.get("pod-security.kubernetes.io/warn") == "restricted", "Should warn PSS restricted"
 
     def test_pss_restricted_version_is_latest(self, chart_41_path, preset_41_baseline):
         """Test that PSS version is set to latest"""
         output = helm_template(
             chart_41_path,
             [preset_41_baseline],
-            set_values={"security.createNamespace": "true", "security.podSecurityStandards": "true"}
+            set_values={"security.createNamespace": "true", "security.podSecurityStandards": "true"},
         )
 
         if output is None:
@@ -65,12 +62,9 @@ class TestPSSRestricted41:
             pytest.skip("Namespace not rendered (security.createNamespace may be false)")
 
         labels = namespace.get("metadata", {}).get("labels", {})
-        assert labels.get("pod-security.kubernetes.io/enforce-version") == "latest", \
-            "Should use latest PSS version"
-        assert labels.get("pod-security.kubernetes.io/audit-version") == "latest", \
-            "Should use latest PSS version"
-        assert labels.get("pod-security.kubernetes.io/warn-version") == "latest", \
-            "Should use latest PSS version"
+        assert labels.get("pod-security.kubernetes.io/enforce-version") == "latest", "Should use latest PSS version"
+        assert labels.get("pod-security.kubernetes.io/audit-version") == "latest", "Should use latest PSS version"
+        assert labels.get("pod-security.kubernetes.io/warn-version") == "latest", "Should use latest PSS version"
 
     def test_non_root_user_required(self, chart_41_path, preset_41_baseline):
         """Test that containers run as non-root user"""
@@ -91,8 +85,9 @@ class TestPSSRestricted41:
 
             # If runAsUser is set, it should not be root (0)
             if run_as_user is not None:
-                assert run_as_user != 0, \
-                    f"{pod_spec['kind']}/{pod_spec['name']} should not run as root, got {run_as_user}"
+                assert (
+                    run_as_user != 0
+                ), f"{pod_spec['kind']}/{pod_spec['name']} should not run as root, got {run_as_user}"
 
             # Check container-level security contexts
             containers = pod_spec["spec"].get("containers", [])
@@ -102,9 +97,10 @@ class TestPSSRestricted41:
                 run_as_user = sec_ctx.get("runAsUser")
 
                 if run_as_user is not None:
-                    assert run_as_user != 0, \
-                        f"Container {container_name} in {pod_spec['kind']}/{pod_spec['name']} " \
+                    assert run_as_user != 0, (
+                        f"Container {container_name} in {pod_spec['kind']}/{pod_spec['name']} "
                         f"should not run as root, got {run_as_user}"
+                    )
 
     def test_privilege_escalation_disabled(self, chart_41_path, preset_41_baseline):
         """Test that privilege escalation is disabled"""
@@ -124,9 +120,10 @@ class TestPSSRestricted41:
 
                 # If set, it should be false
                 if allow_priv is not None:
-                    assert allow_priv is False, \
-                        f"Container {container_name} in {pod_spec['kind']}/{pod_spec['name']} " \
+                    assert allow_priv is False, (
+                        f"Container {container_name} in {pod_spec['kind']}/{pod_spec['name']} "
                         f"should have allowPrivilegeEscalation=false"
+                    )
 
     def test_capabilities_dropped(self, chart_41_path, preset_41_baseline):
         """Test that capabilities are dropped"""
@@ -165,5 +162,8 @@ class TestPSSRestricted41:
             if seccomp:
                 # seccompProfile should have type
                 assert "type" in seccomp, "seccompProfile should have type"
-                assert seccomp["type"] in ["RuntimeDefault", "Localhost", "Unconfined"], \
-                    f"seccompProfile type should be valid, got {seccomp['type']}"
+                assert seccomp["type"] in [
+                    "RuntimeDefault",
+                    "Localhost",
+                    "Unconfined",
+                ], f"seccompProfile type should be valid, got {seccomp['type']}"

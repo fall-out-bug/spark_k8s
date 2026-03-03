@@ -1,7 +1,7 @@
 # UAT Guide: F17 — Spark Connect Go Client
 
-**Feature:** F17  
-**Date:** 2026-02-10  
+**Feature:** F17
+**Date:** 2026-02-10
 
 ---
 

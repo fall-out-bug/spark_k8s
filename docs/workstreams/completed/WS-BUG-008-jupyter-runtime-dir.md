@@ -2,8 +2,8 @@
 
 ### 🎯 Goal
 
-**Bug:** Jupyter fails to start with `PermissionError: /nonexistent`.  
-**Expected:** Jupyter uses writable runtime/home directories.  
+**Bug:** Jupyter fails to start with `PermissionError: /nonexistent`.
+**Expected:** Jupyter uses writable runtime/home directories.
 **Actual:** CrashLoopBackOff due to runtime dir permission.
 
 **Acceptance Criteria:**
@@ -16,8 +16,8 @@
 
 ### Context
 
-**Reported by:** Runtime validation  
-**Affected:** Spark 4.1 Jupyter  
+**Reported by:** Runtime validation
+**Affected:** Spark 4.1 Jupyter
 **Severity:** P1
 
 ### Root Cause Analysis
@@ -46,7 +46,7 @@ helm template spark-41 charts/spark-4.1 | rg "JUPYTER_RUNTIME_DIR"
 
 ### Execution Report
 
-**Executed by:** Auto (agent)  
+**Executed by:** Auto (agent)
 **Date:** 2026-01-19
 
 #### 🎯 Goal Status

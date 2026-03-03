@@ -135,7 +135,7 @@ echo -n "Testing: spark-submit-basic... "
 if [[ -n "$MASTER_POD" ]]; then
     kubectl cp /tmp/smoke-test.py $NAMESPACE/$MASTER_POD:/tmp/smoke-test.py 2>/dev/null
     OUTPUT=$(kubectl exec -n $NAMESPACE $MASTER_POD -- bash -c 'DRIVER_HOST=$(hostname -i) && timeout 60 spark-submit --master spark://'${MASTER_SERVICE}':7077 --conf spark.driver.host=$DRIVER_HOST --conf spark.driver.bindAddress=0.0.0.0 /tmp/smoke-test.py' 2>&1) || true
-    
+
     if echo "$OUTPUT" | grep -q "SMOKE_TEST_RESULT: 100"; then
         log_pass "spark-submit-basic"
     else

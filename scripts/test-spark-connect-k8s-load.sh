@@ -162,7 +162,7 @@ if [[ $? -eq 0 ]]; then
     else
         echo "   WARN: No executor pods found (may be using dynamic allocation)"
     fi
-    
+
     echo ""
     echo "=== Load Test PASSED ==="
     exit 0

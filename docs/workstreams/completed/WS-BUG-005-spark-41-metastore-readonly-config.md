@@ -2,8 +2,8 @@
 
 ### 🎯 Goal
 
-**Bug:** Hive Metastore cannot write `hive-site.xml` into ConfigMap mount.  
-**Expected:** Metastore renders config into a writable path and starts.  
+**Bug:** Hive Metastore cannot write `hive-site.xml` into ConfigMap mount.
+**Expected:** Metastore renders config into a writable path and starts.
 **Actual:** CrashLoopBackOff with permission denied and schema init fails.
 
 **Acceptance Criteria:**
@@ -16,8 +16,8 @@
 
 ### Context
 
-**Reported by:** Runtime validation  
-**Affected:** Spark 4.1 Hive Metastore  
+**Reported by:** Runtime validation
+**Affected:** Spark 4.1 Hive Metastore
 **Severity:** P1
 
 **Reproduction steps:**
@@ -69,7 +69,7 @@ helm template spark-41 charts/spark-4.1 >/dev/null
 
 ### Execution Report
 
-**Executed by:** Auto (agent)  
+**Executed by:** Auto (agent)
 **Date:** 2026-01-19
 
 #### 🎯 Goal Status

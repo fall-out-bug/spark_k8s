@@ -1,8 +1,8 @@
 # ISSUE-004: Spark 4.1 Spark Connect cannot write config (read-only ConfigMap)
 
-**Created:** 2026-01-19  
-**Status:** Resolved  
-**Severity:** 🔴 CRITICAL (blocks runtime tests)  
+**Created:** 2026-01-19
+**Status:** Resolved
+**Severity:** 🔴 CRITICAL (blocks runtime tests)
 **Feature:** F04 - Spark 4.1.0 Charts
 
 ---

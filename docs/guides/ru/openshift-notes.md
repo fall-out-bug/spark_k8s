@@ -1,6 +1,6 @@
 # Заметки по совместимости с OpenShift
 
-**Тестировалось на:** Minikube  
+**Тестировалось на:** Minikube
 **Подготовлено для:** Ограничений OpenShift (PSS `restricted` / SCC `restricted`)
 
 ## Обзор

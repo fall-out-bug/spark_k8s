@@ -9,17 +9,21 @@ def delete_operations(spark):
     print("=== Delete Operations ===")
 
     # Delete by condition
-    spark.sql("""
+    spark.sql(
+        """
         DELETE FROM iceberg.db_examples.users
         WHERE id = 3
-    """)
+    """
+    )
 
     # Update with condition
-    spark.sql("""
+    spark.sql(
+        """
         UPDATE iceberg.db_examples.users
         SET email = 'alice.new@example.com'
         WHERE id = 1
-    """)
+    """
+    )
 
     # Show results
     spark.sql("SELECT * FROM iceberg.db_examples.users").show()
@@ -27,14 +31,13 @@ def delete_operations(spark):
 
 def run_all_examples():
     """Run all Iceberg examples."""
-    from iceberg_setup import (
-        create_spark_session, setup_database,
-        create_iceberg_table, insert_initial_data
-    )
+    from iceberg_setup import create_spark_session, setup_database, create_iceberg_table, insert_initial_data
     from iceberg_evolution import (
-        time_travel_example, schema_evolution_add_column,
-        schema_evolution_rename_column, partition_evolution,
-        rollback_procedures
+        time_travel_example,
+        schema_evolution_add_column,
+        schema_evolution_rename_column,
+        partition_evolution,
+        rollback_procedures,
     )
 
     print("=" * 80)

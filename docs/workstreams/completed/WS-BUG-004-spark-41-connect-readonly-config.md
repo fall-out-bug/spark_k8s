@@ -2,8 +2,8 @@
 
 ### 🎯 Goal
 
-**Bug:** Spark Connect cannot write rendered configs to `/opt/spark/conf-k8s` (ConfigMap mount).  
-**Expected:** Spark Connect renders configs to a writable path and starts.  
+**Bug:** Spark Connect cannot write rendered configs to `/opt/spark/conf-k8s` (ConfigMap mount).
+**Expected:** Spark Connect renders configs to a writable path and starts.
 **Actual:** CrashLoopBackOff with permission denied.
 
 **Acceptance Criteria:**
@@ -16,8 +16,8 @@
 
 ### Context
 
-**Reported by:** Runtime validation  
-**Affected:** Spark 4.1 Connect server  
+**Reported by:** Runtime validation
+**Affected:** Spark 4.1 Connect server
 **Severity:** P1
 
 **Reproduction steps:**
@@ -70,7 +70,7 @@ helm template spark-41 charts/spark-4.1 >/dev/null
 
 ### Execution Report
 
-**Executed by:** Auto (agent)  
+**Executed by:** Auto (agent)
 **Date:** 2026-01-19
 
 #### 🎯 Goal Status

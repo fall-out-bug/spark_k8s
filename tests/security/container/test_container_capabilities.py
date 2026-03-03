@@ -67,8 +67,7 @@ class TestContainerCapabilities:
                 add = capabilities.get("add", [])
 
                 # CAP_NET_RAW should not be added
-                assert "NET_RAW" not in add, \
-                    f"Container {container_name} should not add CAP_NET_RAW"
+                assert "NET_RAW" not in add, f"Container {container_name} should not add CAP_NET_RAW"
 
                 # If drop is specified, NET_RAW should be in it
                 if drop:
@@ -93,8 +92,7 @@ class TestContainerCapabilities:
                 capabilities = sec_ctx.get("capabilities", {})
 
                 add = capabilities.get("add", [])
-                assert "ALL" not in add, \
-                    f"Container {container_name} should not add ALL capabilities"
+                assert "ALL" not in add, f"Container {container_name} should not add ALL capabilities"
 
     def test_add_capabilities_are_minimal(self, chart_35_path, preset_35_baseline):
         """Test that add capabilities are minimal (only if required)"""

@@ -1,8 +1,8 @@
 # ISSUE-012: Spark Connect 3.5 backendMode not authoritative
 
-**Created:** 2026-01-20  
-**Status:** Resolved  
-**Severity:** 🟠 HIGH (misconfiguration risk)  
+**Created:** 2026-01-20
+**Status:** Resolved
+**Severity:** 🟠 HIGH (misconfiguration risk)
 **Feature:** F06 - Spark Connect Standalone Parity
 
 ---

@@ -299,14 +299,14 @@ spark = SparkSession.builder \
 
 try:
     from pyspark.sql.functions import col
-    
+
     df = spark.range(50000).withColumn("x", col("id") * 1.5)
     df = df.withColumn("y", col("x") * 2.0)
     df.cache()
-    
+
     count = df.count()
     df.unpersist()
-    
+
     spark.stop()
     print("GPU_MEMORY_SUCCESS")
 except Exception as e:

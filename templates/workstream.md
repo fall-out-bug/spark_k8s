@@ -1,9 +1,9 @@
 # Workstream: [Short Description]
 
-**ID:** WS-XXX-YY  
-**Feature:** F-XXX  
-**Status:** READY  
-**Owner:** [Agent/Developer]  
+**ID:** WS-XXX-YY
+**Feature:** F-XXX
+**Status:** READY
+**Owner:** [Agent/Developer]
 **Complexity:** [SMALL/MEDIUM/LARGE]
 
 ---
@@ -194,7 +194,7 @@
 pytest tests/ --cov=src
 ```
 
-**Coverage:** [X]%  
+**Coverage:** [X]%
 **Tests Passed:** [X]/[Y]
 
 ### Decisions Made
@@ -245,12 +245,12 @@ pytest tests/ --cov=src
 
 ## Sign-off
 
-**Completed By:** [Name/Agent]  
-**Reviewed By:** [Name/Agent]  
-**Date:** YYYY-MM-DD  
+**Completed By:** [Name/Agent]
+**Reviewed By:** [Name/Agent]
+**Date:** YYYY-MM-DD
 **Status:** [READY → EXECUTING → DONE]
 
 ---
 
-**Version:** 1.0  
+**Version:** 1.0
 **Last Updated:** YYYY-MM-DD

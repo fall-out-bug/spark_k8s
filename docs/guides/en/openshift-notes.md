@@ -1,6 +1,6 @@
 # OpenShift Compatibility Notes
 
-**Tested on:** Minikube  
+**Tested on:** Minikube
 **Prepared for:** OpenShift-like constraints (PSS `restricted` / SCC `restricted`)
 
 ## Overview

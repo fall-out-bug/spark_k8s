@@ -4,6 +4,7 @@ GPU-specific fixtures for E2E tests.
 This module provides fixtures for GPU detection, metrics collection,
 and GPU-specific Spark configuration.
 """
+
 import os
 import json
 import subprocess
@@ -25,10 +26,7 @@ def _check_nvidia_smi() -> bool:
     """
     try:
         result = subprocess.run(
-            ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
-            capture_output=True,
-            text=True,
-            timeout=5
+            ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"], capture_output=True, text=True, timeout=5
         )
         return result.returncode == 0 and bool(result.stdout.strip())
     except (FileNotFoundError, subprocess.TimeoutExpired):
@@ -43,11 +41,12 @@ def _get_gpu_stats() -> Dict[str, Any]:
         Dict: GPU utilization and memory metrics.
     """
     try:
-        result = subprocess.run([
-            "nvidia-smi",
-            "--query-gpu=utilization.gpu,memory.used,memory.total",
-            "--format=csv,noheader,nounits"
-        ], capture_output=True, text=True, timeout=5)
+        result = subprocess.run(
+            ["nvidia-smi", "--query-gpu=utilization.gpu,memory.used,memory.total", "--format=csv,noheader,nounits"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
 
         if result.returncode == 0:
             parts = result.stdout.strip().split(",")
@@ -55,18 +54,14 @@ def _get_gpu_stats() -> Dict[str, Any]:
                 return {
                     "gpu_utilization": int(parts[0].strip()),
                     "gpu_memory_used_mb": int(parts[1].strip()),
-                    "gpu_memory_total_mb": int(parts[2].strip())
+                    "gpu_memory_total_mb": int(parts[2].strip()),
                 }
     except (FileNotFoundError, subprocess.TimeoutExpired, ValueError) as e:
         # Log the exception and return default metrics
         # GPU metrics not available, using defaults
         pass
 
-    return {
-        "gpu_utilization": 0,
-        "gpu_memory_used_mb": 0,
-        "gpu_memory_total_mb": 0
-    }
+    return {"gpu_utilization": 0, "gpu_memory_used_mb": 0, "gpu_memory_total_mb": 0}
 
 
 @pytest.fixture(scope="session")
@@ -113,7 +108,7 @@ def gpu_metrics() -> Generator[Dict[str, Any], None, Dict[str, Any]]:
         "baseline": baseline,
         "final": final,
         "utilization_delta": final["gpu_utilization"] - baseline["gpu_utilization"],
-        "memory_delta_mb": final["gpu_memory_used_mb"] - baseline["gpu_memory_used_mb"]
+        "memory_delta_mb": final["gpu_memory_used_mb"] - baseline["gpu_memory_used_mb"],
     }
 
 
@@ -154,9 +149,12 @@ def cuda_version() -> Optional[str]:
         Optional[str]: CUDA version string or None if not available.
     """
     try:
-        result = subprocess.run([
-            "nvidia-smi", "--query-gpu=cuda_version", "--format=csv,noheader"
-        ], capture_output=True, text=True, timeout=5)
+        result = subprocess.run(
+            ["nvidia-smi", "--query-gpu=cuda_version", "--format=csv,noheader"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
 
         if result.returncode == 0:
             version = result.stdout.strip().strip('"/')
@@ -176,5 +174,5 @@ def gpu_performance_metrics(spark_session: Any) -> Dict[str, Any]:
     """
     return {
         "gpu_enabled": spark_session.conf.get("spark.rapids.sql.enabled", "false") == "true",
-        "gpu_resource_amount": spark_session.conf.get("spark.task.resource.gpu.amount", "0")
+        "gpu_resource_amount": spark_session.conf.get("spark.task.resource.gpu.amount", "0"),
     }

@@ -40,8 +40,9 @@ class TestContainerReadOnlyFS:
                 # If set, it should ideally be true
                 # (but we allow false for writable workloads)
                 if readonly_fs is not None:
-                    assert isinstance(readonly_fs, bool), \
-                        f"readOnlyRootFilesystem should be boolean for {container_name}"
+                    assert isinstance(
+                        readonly_fs, bool
+                    ), f"readOnlyRootFilesystem should be boolean for {container_name}"
 
     def test_tmpfs_used_for_writable_directories(self, chart_35_path, preset_35_baseline):
         """Test that tmpfs is used for writable directories"""
@@ -57,8 +58,9 @@ class TestContainerReadOnlyFS:
             for volume in volumes:
                 if volume.get("name", "").endswith("-tmp"):
                     # Check if tmpfs is used for temporary volumes
-                    assert "emptyDir" in volume or "configMap" in volume or "secret" in volume, \
-                        f"Temporary volume {volume['name']} should use emptyDir or tmpfs"
+                    assert (
+                        "emptyDir" in volume or "configMap" in volume or "secret" in volume
+                    ), f"Temporary volume {volume['name']} should use emptyDir or tmpfs"
 
     def test_volume_mounts_work_with_readonly_root(self, chart_35_path, preset_35_baseline):
         """Test that volume mounts work with read-only root"""
@@ -92,5 +94,6 @@ class TestContainerReadOnlyFS:
                     # emptyDir is good for temporary storage with read-only root
                     empty_dir = volume["emptyDir"]
                     # emptyDir config is OK
-                    assert isinstance(empty_dir, dict) or empty_dir is None or empty_dir == {}, \
-                        "emptyDir should be a dict or empty"
+                    assert (
+                        isinstance(empty_dir, dict) or empty_dir is None or empty_dir == {}
+                    ), "emptyDir should be a dict or empty"

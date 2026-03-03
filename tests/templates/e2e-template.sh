@@ -115,26 +115,26 @@ run_spark_job() {
     local name="$2"
     local timeout="${3:-$TIMEOUT}"
     local expected="${4:-E2E_RESULT}"
-    
+
     local MASTER_POD=$(get_master_pod)
-    
+
     if [[ -z "$MASTER_POD" ]]; then
         log_skip "$name (no spark pod)"
         return 0
     fi
-    
+
     echo -n "Running: $name... "
-    
+
     kubectl cp "$script" $NAMESPACE/$MASTER_POD:/tmp/test.py 2>/dev/null
-    
+
     local master_url="local[*]"
     if [[ "$DEPLOYMENT_MODE" == "standalone" ]]; then
         master_url="spark://$(get_master_service):7077"
     fi
-    
+
     local output
     output=$(kubectl exec -n $NAMESPACE $MASTER_POD -- bash -c 'DRIVER_HOST=$(hostname -i) && timeout '$timeout' spark-submit --master '$master_url' --conf spark.driver.host=$DRIVER_HOST --conf spark.driver.bindAddress=0.0.0.0 /tmp/test.py' 2>&1) || true
-    
+
     if echo "$output" | grep -q "$expected"; then
         log_pass "$name"
         return 0
@@ -150,26 +150,26 @@ run_connect_job() {
     local name="$2"
     local timeout="${3:-$TIMEOUT}"
     local expected="${4:-CONNECT_RESULT}"
-    
+
     if [[ "$CONNECT_ENABLED" != "true" ]]; then
         log_skip "$name (connect not enabled)"
         return 0
     fi
-    
+
     local CONNECT_POD=$(kubectl get pods -n $NAMESPACE -l 'app.kubernetes.io/component=spark-connect' -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
-    
+
     if [[ -z "$CONNECT_POD" ]]; then
         log_skip "$name (no connect pod)"
         return 0
     fi
-    
+
     echo -n "Running: $name... "
-    
+
     kubectl cp "$script" $NAMESPACE/$CONNECT_POD:/tmp/test.py 2>/dev/null
-    
+
     local output
     output=$(kubectl exec -n $NAMESPACE $CONNECT_POD -- timeout $timeout python3 /tmp/test.py 2>&1) || true
-    
+
     if echo "$output" | grep -q "$expected"; then
         log_pass "$name"
         return 0
@@ -209,7 +209,7 @@ if [[ -d "$CHART_PATH" ]]; then
     else
         log_fail "chart-lint"
     fi
-    
+
     echo -n "Templating chart... "
     if helm template test "$CHART_PATH" > /dev/null 2>&1; then
         log_pass "chart-template"
@@ -321,9 +321,9 @@ run_spark_job /tmp/e2e-ml-test-$SCENARIO_ID.py "ml-pipeline-e2e" 180 "E2E_ML_RES
 # === 5. SPARK CONNECT E2E (if enabled) ===
 if [[ "$CONNECT_ENABLED" == "true" ]]; then
     log_section "5. SPARK CONNECT E2E"
-    
+
     CONNECT_SVC=$(kubectl get svc -n $NAMESPACE -l 'app.kubernetes.io/component=spark-connect' -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
-    
+
     if [[ -n "$CONNECT_SVC" ]]; then
         cat > /tmp/e2e-connect-test-$SCENARIO_ID.py << PYEOF
 from pyspark.sql import SparkSession
@@ -336,7 +336,7 @@ count = df.count()
 spark.stop()
 print(f"CONNECT_RESULT: {count}")
 PYEOF
-        
+
         run_connect_job /tmp/e2e-connect-test-$SCENARIO_ID.py "connect-e2e" 60 "CONNECT_RESULT: 100"
     else
         log_skip "connect-e2e (service not found)"
@@ -346,7 +346,7 @@ fi
 # === 6. GPU E2E (if enabled) ===
 if [[ "$GPU_ENABLED" == "true" ]]; then
     log_section "6. GPU E2E"
-    
+
     cat > /tmp/e2e-gpu-test-$SCENARIO_ID.py << PYEOF
 from pyspark.sql import SparkSession
 
@@ -368,16 +368,16 @@ except Exception as e:
 spark.stop()
 print(result)
 PYEOF
-    
+
     run_spark_job /tmp/e2e-gpu-test-$SCENARIO_ID.py "gpu-e2e" 120 "GPU_RESULT: SUCCESS"
 fi
 
 # === 7. ICEBERG E2E (if enabled) ===
 if [[ "$ICEBERG_ENABLED" == "true" ]]; then
     log_section "7. ICEBERG E2E"
-    
+
     MINIO_SVC=$(kubectl get svc -n $NAMESPACE -l app=minio -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
-    
+
     if [[ -n "$MINIO_SVC" ]]; then
         cat > /tmp/e2e-iceberg-test-$SCENARIO_ID.py << PYEOF
 from pyspark.sql import SparkSession
@@ -399,20 +399,20 @@ try:
     # Create database and table
     spark.sql("CREATE DATABASE IF NOT EXISTS my_catalog.e2e_test")
     spark.sql("CREATE TABLE IF NOT EXISTS my_catalog.e2e_test.test_table (id LONG, name STRING) USING iceberg")
-    
+
     # Insert
     spark.sql("INSERT INTO my_catalog.e2e_test.test_table VALUES (1, 'test')")
-    
+
     # Select
     count = spark.sql("SELECT COUNT(*) as cnt FROM my_catalog.e2e_test.test_table").collect()[0]["cnt"]
-    
+
     spark.stop()
     print(f"ICEBERG_RESULT: {count}")
 except Exception as e:
     spark.stop()
     print(f"ICEBERG_ERROR: {e}")
 PYEOF
-        
+
         run_spark_job /tmp/e2e-iceberg-test-$SCENARIO_ID.py "iceberg-e2e" 180 "ICEBERG_RESULT:"
     else
         log_skip "iceberg-e2e (MinIO not deployed)"
@@ -422,9 +422,9 @@ fi
 # === 8. SHUFFLE SERVICE E2E (if enabled) ===
 if [[ "$SHUFFLE_ENABLED" == "true" ]]; then
     log_section "8. SHUFFLE SERVICE E2E"
-    
+
     SHUFFLE_SVC=$(kubectl get svc -n $NAMESPACE -l 'app.kubernetes.io/component=shuffle-service' -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
-    
+
     if [[ -n "$SHUFFLE_SVC" ]]; then
         cat > /tmp/e2e-shuffle-test-$SCENARIO_ID.py << PYEOF
 from pyspark.sql import SparkSession
@@ -445,7 +445,7 @@ result = df.groupBy("key").agg(count("*").alias("cnt")).count()
 spark.stop()
 print(f"SHUFFLE_RESULT: {result}")
 PYEOF
-        
+
         run_spark_job /tmp/e2e-shuffle-test-$SCENARIO_ID.py "shuffle-e2e" 180 "SHUFFLE_RESULT:"
     else
         log_skip "shuffle-e2e (shuffle service not deployed)"
@@ -455,7 +455,7 @@ fi
 # === 9. OPENLINEAGE E2E (if enabled) ===
 if [[ "$OPENLINEAGE_ENABLED" == "true" ]]; then
     log_section "9. OPENLINEAGE E2E"
-    
+
     cat > /tmp/e2e-openlineage-test-$SCENARIO_ID.py << PYEOF
 from pyspark.sql import SparkSession
 import os
@@ -474,7 +474,7 @@ count = df.count()
 spark.stop()
 print(f"OPENLINEAGE_RESULT: {count}")
 PYEOF
-    
+
     run_spark_job /tmp/e2e-openlineage-test-$SCENARIO_ID.py "openlineage-e2e" 120 "OPENLINEAGE_RESULT:"
 fi
 

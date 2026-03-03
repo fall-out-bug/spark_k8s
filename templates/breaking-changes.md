@@ -18,8 +18,8 @@ This release contains breaking changes that require action before upgrading.
 
 ### CRITICAL: Removed endpoint
 
-**Endpoint:** `POST /old-endpoint`  
-**Status:** REMOVED  
+**Endpoint:** `POST /old-endpoint`
+**Status:** REMOVED
 **Replacement:** `POST /new-endpoint`
 
 **Impact:** All API clients using this endpoint will fail.
@@ -39,7 +39,7 @@ response = requests.post("https://api/new-endpoint", json=data)
 
 ### HIGH: Changed argument name
 
-**Command:** `hwc grading run`  
+**Command:** `hwc grading run`
 **Changed:** `--repo-url` → `--repo`
 
 **Impact:** Scripts using old argument name will fail.
@@ -59,7 +59,7 @@ hwc grading run --repo https://...
 
 ### CRITICAL: Dropped column
 
-**Table:** `submissions`  
+**Table:** `submissions`
 **Column:** `old_field` (dropped)
 
 **Impact:** Queries referencing this column will fail.

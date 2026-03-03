@@ -221,7 +221,7 @@ READY: 1/1
 
 ## Key Questions for Next Agent
 
-1. **Is the `render-spark-config` init container necessary?** 
+1. **Is the `render-spark-config` init container necessary?**
    - Spark 4.1 might not need template pre-processing
    - Can we remove it entirely?
 

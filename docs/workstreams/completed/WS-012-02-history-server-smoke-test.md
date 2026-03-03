@@ -52,27 +52,27 @@ WS-012-01
 HISTORY_SVC="${RELEASE}-spark-standalone-history-server"
 if kubectl get svc "$HISTORY_SVC" -n "$NAMESPACE" &>/dev/null; then
   echo "=== Checking History Server ==="
-  
+
   # Wait for pod ready
   echo "Waiting for History Server pod..."
   kubectl wait --for=condition=ready pod \
     -l app=spark-history-server \
     -n "$NAMESPACE" \
     --timeout=120s
-  
+
   # Port-forward in background
   kubectl port-forward "svc/${HISTORY_SVC}" 18080:18080 -n "$NAMESPACE" &
   PF_PID=$!
   sleep 3
-  
+
   # Query applications (may take a moment for logs to be parsed)
   echo "Querying History Server API..."
   APPS=$(curl -s http://localhost:18080/api/v1/applications 2>/dev/null || echo "[]")
   echo "Applications: $APPS"
-  
+
   # Cleanup port-forward
   kill $PF_PID 2>/dev/null || true
-  
+
   # Check at least one application exists
   APP_COUNT=$(echo "$APPS" | python3 -c "import sys,json; print(len(json.load(sys.stdin)))" 2>/dev/null || echo "0")
   if [[ "$APP_COUNT" -gt 0 ]]; then

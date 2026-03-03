@@ -1,7 +1,7 @@
 # Feature F24: Pre-built Docker Images
 
-> **Feature ID:** F24  
-> **Beads:** spark_k8s-ds8  
+> **Feature ID:** F24
+> **Beads:** spark_k8s-ds8
 > **Source:** docs/plans/2026-02-04-product-branding-strategy.md Product-Led Growth
 
 ## Goal

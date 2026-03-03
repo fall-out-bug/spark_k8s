@@ -45,9 +45,7 @@ class TestCostOptimizedPreset:
             values = yaml.safe_load(f)
         assert "tolerations" in values["connect"]
 
-    def test_cost_preset_aggressive_dynamic_allocation(
-        self, preset_file: Path
-    ) -> None:
+    def test_cost_preset_aggressive_dynamic_allocation(self, preset_file: Path) -> None:
         """Preset should use aggressive dynamic allocation."""
         import yaml
 

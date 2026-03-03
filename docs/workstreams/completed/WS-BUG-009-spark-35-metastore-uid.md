@@ -2,8 +2,8 @@
 
 ### 🎯 Goal
 
-**Bug:** Hive Metastore fails because image user is non-numeric with `runAsNonRoot`.  
-**Expected:** Metastore runs with numeric UID under PSS `restricted`.  
+**Bug:** Hive Metastore fails because image user is non-numeric with `runAsNonRoot`.
+**Expected:** Metastore runs with numeric UID under PSS `restricted`.
 **Actual:** CreateContainerConfigError in Kubernetes.
 
 **Acceptance Criteria:**
@@ -16,8 +16,8 @@
 
 ### Context
 
-**Reported by:** Runtime validation  
-**Affected:** Spark 3.5 Hive Metastore  
+**Reported by:** Runtime validation
+**Affected:** Spark 3.5 Hive Metastore
 **Severity:** P1
 
 ### Root Cause Analysis
@@ -55,7 +55,7 @@ PY
 
 ### Execution Report
 
-**Executed by:** Auto (agent)  
+**Executed by:** Auto (agent)
 **Date:** 2026-01-19
 
 #### 🎯 Goal Status

@@ -48,7 +48,7 @@ class BaselineManager:
     def _save_baselines(self) -> None:
         """Save baselines to file."""
         self.baseline_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.baseline_file, 'w') as f:
+        with open(self.baseline_file, "w") as f:
             yaml.dump(self.baselines, f, default_flow_style=False)
 
     def create_baseline(
@@ -200,62 +200,38 @@ class BaselineManager:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Manage load test baselines"
-    )
-    subparsers = parser.add_subparsers(dest='command', help='Command to run')
+    parser = argparse.ArgumentParser(description="Manage load test baselines")
+    subparsers = parser.add_subparsers(dest="command", help="Command to run")
 
     # Create command
-    create_parser = subparsers.add_parser('create', help='Create baseline')
+    create_parser = subparsers.add_parser("create", help="Create baseline")
+    create_parser.add_argument("--test-name", type=str, required=True, help="Name of the test")
     create_parser.add_argument(
-        '--test-name', type=str, required=True,
-        help='Name of the test'
+        "--results-dir", type=str, default=str(RESULTS_DIR), help="Directory containing result files"
     )
-    create_parser.add_argument(
-        '--results-dir', type=str,
-        default=str(RESULTS_DIR),
-        help='Directory containing result files'
-    )
-    create_parser.add_argument(
-        '--sample-size', type=int, default=5,
-        help='Number of runs to use for baseline'
-    )
+    create_parser.add_argument("--sample-size", type=int, default=5, help="Number of runs to use for baseline")
 
     # Update command
-    update_parser = subparsers.add_parser('update', help='Update baseline')
+    update_parser = subparsers.add_parser("update", help="Update baseline")
+    update_parser.add_argument("--test-name", type=str, required=True, help="Name of the test")
     update_parser.add_argument(
-        '--test-name', type=str, required=True,
-        help='Name of the test'
-    )
-    update_parser.add_argument(
-        '--results-dir', type=str,
-        default=str(RESULTS_DIR),
-        help='Directory containing result files'
+        "--results-dir", type=str, default=str(RESULTS_DIR), help="Directory containing result files"
     )
 
     # Compare command
-    compare_parser = subparsers.add_parser('compare', help='Compare to baseline')
-    compare_parser.add_argument(
-        '--test-name', type=str, required=True,
-        help='Name of the test'
-    )
-    compare_parser.add_argument(
-        '--metrics', type=str,
-        help='Current metrics as JSON string'
-    )
-    compare_parser.add_argument(
-        '--metrics-file', type=str,
-        help='File containing current metrics'
-    )
+    compare_parser = subparsers.add_parser("compare", help="Compare to baseline")
+    compare_parser.add_argument("--test-name", type=str, required=True, help="Name of the test")
+    compare_parser.add_argument("--metrics", type=str, help="Current metrics as JSON string")
+    compare_parser.add_argument("--metrics-file", type=str, help="File containing current metrics")
 
     # List command
-    subparsers.add_parser('list', help='List baselines')
+    subparsers.add_parser("list", help="List baselines")
 
     args = parser.parse_args()
 
     manager = BaselineManager()
 
-    if args.command == 'create':
+    if args.command == "create":
         results_dir = Path(args.results_dir)
         metrics_files = list(results_dir.glob(f"{args.test_name}.jsonl"))
 
@@ -265,7 +241,7 @@ def main():
 
         # Read metrics
         all_metrics = []
-        for metrics_file in metrics_files[:args.sample_size]:
+        for metrics_file in metrics_files[: args.sample_size]:
             with open(metrics_file) as f:
                 for line in f:
                     all_metrics.append(json.loads(line))
@@ -273,7 +249,7 @@ def main():
         manager.create_baseline(args.test_name, all_metrics)
         return 0
 
-    elif args.command == 'update':
+    elif args.command == "update":
         results_dir = Path(args.results_dir)
         metrics_files = list(results_dir.glob(f"{args.test_name}.jsonl"))
 
@@ -287,7 +263,7 @@ def main():
         manager.create_baseline(args.test_name, all_metrics)
         return 0
 
-    elif args.command == 'compare':
+    elif args.command == "compare":
         current_metrics = {}
 
         if args.metrics:
@@ -309,7 +285,7 @@ def main():
 
         return 0
 
-    elif args.command == 'list':
+    elif args.command == "list":
         baselines = manager.list_baselines()
         print(f"Available baselines ({len(baselines)}):")
         for name in sorted(baselines):
@@ -321,5 +297,5 @@ def main():
         return 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

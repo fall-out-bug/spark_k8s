@@ -14,17 +14,25 @@ from pathlib import Path
 
 class TestLogFormats:
     """Tests for log format and structure"""
+
     skip_pod = False
 
     @pytest.fixture(scope="class")
     def spark_pod(self, request):
         """Get a running Spark pod"""
         import os
+
         kube_namespace = os.getenv("KUBE_NAMESPACE", "spark-operations")
         cmd = [
-            "kubectl", "get", "pods", "-n", kube_namespace,
-            "-l", "spark-role=driver",
-            "-o", "jsonpath={.items[0].metadata.name}"
+            "kubectl",
+            "get",
+            "pods",
+            "-n",
+            kube_namespace,
+            "-l",
+            "spark-role=driver",
+            "-o",
+            "jsonpath={.items[0].metadata.name}",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0 or not result.stdout.strip():
@@ -34,10 +42,7 @@ class TestLogFormats:
 
     def test_spark_logs_json_format(self, spark_pod, kube_namespace):
         """Test that Spark logs are in JSON format"""
-        cmd = [
-            "kubectl", "logs", "-n", kube_namespace, spark_pod,
-            "--tail", "10"
-        ]
+        cmd = ["kubectl", "logs", "-n", kube_namespace, spark_pod, "--tail", "10"]
         result = subprocess.run(cmd, capture_output=True, text=True)
         assert result.returncode == 0
 
@@ -48,19 +53,13 @@ class TestLogFormats:
 
     def test_log_levels_present(self, spark_pod, kube_namespace):
         """Test that different log levels are present"""
-        cmd = [
-            "kubectl", "logs", "-n", kube_namespace, spark_pod,
-            "--tail", "100"
-        ]
+        cmd = ["kubectl", "logs", "-n", kube_namespace, spark_pod, "--tail", "100"]
         result = subprocess.run(cmd, capture_output=True, text=True)
         assert result.returncode == 0
 
         logs = result.stdout.lower()
         # Check for common log levels
-        has_log_levels = any(
-            level in logs
-            for level in ["info", "warn", "error", "debug"]
-        )
+        has_log_levels = any(level in logs for level in ["info", "warn", "error", "debug"])
         assert has_log_levels, "Logs should contain log level indicators"
 
 
@@ -94,7 +93,9 @@ class TestGrafanaLokiDataSource:
                     if "datasources" in content and "loki" in content:
                         loki_found = True
                         break
-            assert loki_found, f"Loki datasource should be configured. Checked files: {[str(f) for f in datasource_files + configmap_files + provisioning_files + values_files]}"
+            assert (
+                loki_found
+            ), f"Loki datasource should be configured. Checked files: {[str(f) for f in datasource_files + configmap_files + provisioning_files + values_files]}"
         else:
             assert len(datasource_files) > 0
 
@@ -103,6 +104,7 @@ class TestGrafanaLokiDataSource:
 def kube_namespace():
     """Get Kubernetes namespace for tests"""
     import os
+
     return os.getenv("KUBE_NAMESPACE", "spark-operations")
 
 

@@ -1,6 +1,6 @@
 # UAT: F12 Phase 6 — E2E Tests
 
-**Feature:** F12 - Phase 6 E2E Tests  
+**Feature:** F12 - Phase 6 E2E Tests
 **Review Date:** 2026-02-10
 
 ---

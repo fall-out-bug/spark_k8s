@@ -1,8 +1,8 @@
 # F06 Full Review Report (per prompts/commands/review.md)
 
-**Feature:** F06 - Phase 0 Core Components + Feature Presets  
-**Review Date:** 2026-02-10  
-**Reviewer:** Cursor Composer  
+**Feature:** F06 - Phase 0 Core Components + Feature Presets
+**Review Date:** 2026-02-10
+**Reviewer:** Cursor Composer
 **Verdict:** ✅ **APPROVED**
 
 ---

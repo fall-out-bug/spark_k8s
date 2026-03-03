@@ -1,7 +1,7 @@
 # Idea: Repository Documentation (Charts + How-To Guides)
 
-**Created:** 2026-01-16  
-**Status:** Draft  
+**Created:** 2026-01-16
+**Status:** Draft
 **Author:** user + GPT-5.2 (agent)
 
 ---
@@ -170,4 +170,3 @@ Create a serious repository documentation package (EN + RU, minimal fluff) that 
 
 1. **Review draft** — confirm scope and doc structure.
 2. **Run `/design idea-repo-documentation`** — create workstreams (docs structure + content).
-

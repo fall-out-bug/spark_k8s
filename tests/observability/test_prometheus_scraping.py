@@ -19,9 +19,15 @@ class TestPrometheusScraping:
     def prometheus_pod(self, kube_namespace):
         """Get Prometheus pod"""
         cmd = [
-            "kubectl", "get", "pods", "-n", kube_namespace,
-            "-l", "app=prometheus",
-            "-o", "jsonpath={.items[0].metadata.name}"
+            "kubectl",
+            "get",
+            "pods",
+            "-n",
+            kube_namespace,
+            "-l",
+            "app=prometheus",
+            "-o",
+            "jsonpath={.items[0].metadata.name}",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0 or not result.stdout.strip():
@@ -31,8 +37,15 @@ class TestPrometheusScraping:
     def test_prometheus_targets(self, prometheus_pod, kube_namespace):
         """Test that Prometheus has active targets"""
         cmd = [
-            "kubectl", "exec", "-n", kube_namespace, prometheus_pod,
-            "--", "curl", "-s", "http://localhost:9090/api/v1/targets"
+            "kubectl",
+            "exec",
+            "-n",
+            kube_namespace,
+            prometheus_pod,
+            "--",
+            "curl",
+            "-s",
+            "http://localhost:9090/api/v1/targets",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         assert result.returncode == 0
@@ -44,9 +57,15 @@ class TestPrometheusScraping:
     def test_spark_target_is_up(self, prometheus_pod, kube_namespace):
         """Test that Spark application target is 'up' in Prometheus"""
         cmd = [
-            "kubectl", "exec", "-n", kube_namespace, prometheus_pod,
-            "--", "curl", "-s",
-            "http://localhost:9090/api/v1/query?query=up{job=~\"spark.*\"}"
+            "kubectl",
+            "exec",
+            "-n",
+            kube_namespace,
+            prometheus_pod,
+            "--",
+            "curl",
+            "-s",
+            'http://localhost:9090/api/v1/query?query=up{job=~"spark.*"}',
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         assert result.returncode == 0
@@ -62,9 +81,15 @@ class TestSparkMetrics:
     def prometheus_pod(self, kube_namespace):
         """Get Prometheus pod"""
         cmd = [
-            "kubectl", "get", "pods", "-n", kube_namespace,
-            "-l", "app=prometheus",
-            "-o", "jsonpath={.items[0].metadata.name}"
+            "kubectl",
+            "get",
+            "pods",
+            "-n",
+            kube_namespace,
+            "-l",
+            "app=prometheus",
+            "-o",
+            "jsonpath={.items[0].metadata.name}",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0 or not result.stdout.strip():
@@ -74,9 +99,15 @@ class TestSparkMetrics:
     def test_executor_memory_metrics(self, prometheus_pod, kube_namespace):
         """Test that executor memory metrics are collected"""
         cmd = [
-            "kubectl", "exec", "-n", kube_namespace, prometheus_pod,
-            "--", "curl", "-s",
-            "http://localhost:9090/api/v1/query?query=spark_executor_memoryUsed"
+            "kubectl",
+            "exec",
+            "-n",
+            kube_namespace,
+            prometheus_pod,
+            "--",
+            "curl",
+            "-s",
+            "http://localhost:9090/api/v1/query?query=spark_executor_memoryUsed",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         assert result.returncode == 0
@@ -85,9 +116,15 @@ class TestSparkMetrics:
     def test_task_metrics(self, prometheus_pod, kube_namespace):
         """Test that task metrics are collected"""
         cmd = [
-            "kubectl", "exec", "-n", kube_namespace, prometheus_pod,
-            "--", "curl", "-s",
-            "http://localhost:9090/api/v1/query?query=spark_executor_tasks"
+            "kubectl",
+            "exec",
+            "-n",
+            kube_namespace,
+            prometheus_pod,
+            "--",
+            "curl",
+            "-s",
+            "http://localhost:9090/api/v1/query?query=spark_executor_tasks",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         assert result.returncode == 0
@@ -96,9 +133,15 @@ class TestSparkMetrics:
     def test_jvm_metrics(self, prometheus_pod, kube_namespace):
         """Test that JVM metrics are collected"""
         cmd = [
-            "kubectl", "exec", "-n", kube_namespace, prometheus_pod,
-            "--", "curl", "-s",
-            "http://localhost:9090/api/v1/query?query=jvm_memory_used_bytes"
+            "kubectl",
+            "exec",
+            "-n",
+            kube_namespace,
+            prometheus_pod,
+            "--",
+            "curl",
+            "-s",
+            "http://localhost:9090/api/v1/query?query=jvm_memory_used_bytes",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         assert result.returncode == 0
@@ -136,6 +179,7 @@ class TestMetricsAlerts:
 def kube_namespace():
     """Get Kubernetes namespace for tests"""
     import os
+
     return os.getenv("KUBE_NAMESPACE", "spark-operations")
 
 

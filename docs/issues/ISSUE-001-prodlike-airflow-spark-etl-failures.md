@@ -31,4 +31,3 @@
 
 - In `spark-sa-prodlike` namespace:
   - `spark_etl_synthetic` DAG run reaches `success`
-

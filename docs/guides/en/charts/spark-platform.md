@@ -1,7 +1,7 @@
 # Spark Platform Chart Guide
 
-**Chart:** `charts/spark-platform`  
-**Tested on:** Minikube  
+**Chart:** `charts/spark-platform`
+**Tested on:** Minikube
 **Prepared for:** OpenShift-like constraints (PSS `restricted` / SCC `restricted`)
 
 ## Overview

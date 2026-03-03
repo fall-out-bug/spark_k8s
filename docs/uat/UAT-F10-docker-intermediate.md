@@ -1,6 +1,6 @@
 # UAT: F10 Phase 4 — Docker Intermediate Layers
 
-**Feature:** F10 - Phase 4 Docker Intermediate Layers  
+**Feature:** F10 - Phase 4 Docker Intermediate Layers
 **Review Date:** 2026-02-10
 
 ---

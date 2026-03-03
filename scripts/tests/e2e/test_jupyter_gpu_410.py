@@ -4,6 +4,7 @@ Jupyter GPU E2E tests for Spark 4.1.0.
 Tests validate Spark 4.1.0 execution via Jupyter with GPU acceleration (RAPIDS).
 Tests use Spark 4.1.0 which includes native GPU support.
 """
+
 import pytest
 
 test_spark_version = "4.1.0"
@@ -31,7 +32,7 @@ class TestJupyterGPU410:
 
         metrics = query_metrics(
             "SELECT COUNT(*) AS total_trips FROM nyc_taxi WHERE total_amount > 0 AND trip_distance > 0",
-            f"{test_component}_{test_mode}_{test_feature}_{test_spark_version}_q1_count"
+            f"{test_component}_{test_mode}_{test_feature}_{test_spark_version}_q1_count",
         )
 
         assert metrics["success"], f"Query failed: {metrics.get('error')}"
@@ -55,7 +56,7 @@ class TestJupyterGPU410:
                WHERE passenger_count > 0 AND passenger_count <= 10 AND total_amount > 0
                GROUP BY passenger_count
                ORDER BY passenger_count""",
-            f"{test_component}_{test_mode}_{test_feature}_{test_spark_version}_q2_aggregation"
+            f"{test_component}_{test_mode}_{test_feature}_{test_spark_version}_q2_aggregation",
         )
 
         assert metrics["success"], f"Query failed: {metrics.get('error')}"
@@ -79,7 +80,7 @@ class TestJupyterGPU410:
             WHERE a.pickup_count > 10 AND b.pickup_count > 10
             ORDER BY a.pickup_count DESC
             LIMIT 100""",
-            f"{test_component}_{test_mode}_{test_feature}_{test_spark_version}_q3_join"
+            f"{test_component}_{test_mode}_{test_feature}_{test_spark_version}_q3_join",
         )
 
         assert metrics["success"], f"Query failed: {metrics.get('error')}"
@@ -96,7 +97,7 @@ class TestJupyterGPU410:
             WHERE total_amount > 0 AND fare_amount > 0
             ORDER BY fare_amount DESC, total_amount DESC
             LIMIT 1000""",
-            f"{test_component}_{test_mode}_{test_feature}_{test_spark_version}_q4_sort"
+            f"{test_component}_{test_mode}_{test_feature}_{test_spark_version}_q4_sort",
         )
 
         assert metrics["success"], f"Query failed: {metrics.get('error')}"
@@ -118,7 +119,7 @@ class TestJupyterGPU410FullDataset:
 
         metrics = query_metrics(
             "SELECT COUNT(*) AS total_trips FROM nyc_taxi WHERE total_amount > 0",
-            f"{test_component}_{test_mode}_{test_feature}_{test_spark_version}_full_q1_count"
+            f"{test_component}_{test_mode}_{test_feature}_{test_spark_version}_full_q1_count",
         )
 
         assert metrics["success"], f"Query failed: {metrics.get('error')}"
@@ -137,7 +138,7 @@ class TestJupyterGPU410FullDataset:
                WHERE passenger_count > 0 AND total_amount > 0
                GROUP BY passenger_count
                ORDER BY passenger_count""",
-            f"{test_component}_{test_mode}_{test_feature}_{test_spark_version}_full_q2_aggregation"
+            f"{test_component}_{test_mode}_{test_feature}_{test_spark_version}_full_q2_aggregation",
         )
 
         assert metrics["success"], f"Query failed: {metrics.get('error')}"

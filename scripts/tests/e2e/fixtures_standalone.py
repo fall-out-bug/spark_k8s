@@ -4,6 +4,7 @@ Standalone cluster-specific fixtures for E2E tests.
 This module provides fixtures for Spark standalone cluster deployment,
 Master/Worker pod verification, and standalone-specific metrics.
 """
+
 import os
 import time
 import subprocess
@@ -21,11 +22,7 @@ def _check_kubectl() -> bool:
         bool: True if kubectl is available, False otherwise.
     """
     try:
-        result = subprocess.run(
-            ["kubectl", "version", "--client"],
-            capture_output=True,
-            timeout=5
-        )
+        result = subprocess.run(["kubectl", "version", "--client"], capture_output=True, timeout=5)
         return result.returncode == 0
     except (FileNotFoundError, subprocess.TimeoutExpired):
         return False
@@ -43,12 +40,12 @@ def _get_pods_by_selector(selector: str, namespace: str = "default") -> list:
         list: List of pod names.
     """
     try:
-        result = subprocess.run([
-            "kubectl", "get", "pods",
-            "-l", selector,
-            "-n", namespace,
-            "-o", "jsonpath={.items[*].metadata.name}"
-        ], capture_output=True, text=True, timeout=30)
+        result = subprocess.run(
+            ["kubectl", "get", "pods", "-l", selector, "-n", namespace, "-o", "jsonpath={.items[*].metadata.name}"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
 
         if result.returncode == 0 and result.stdout.strip():
             return result.stdout.strip().split()
@@ -57,11 +54,7 @@ def _get_pods_by_selector(selector: str, namespace: str = "default") -> list:
         return []
 
 
-def _wait_for_pods_ready(
-    selector: str,
-    namespace: str = "default",
-    timeout: int = 120
-) -> bool:
+def _wait_for_pods_ready(selector: str, namespace: str = "default", timeout: int = 120) -> bool:
     """
     Wait for pods matching selector to be ready.
 
@@ -74,12 +67,22 @@ def _wait_for_pods_ready(
         bool: True if pods are ready, False otherwise.
     """
     try:
-        result = subprocess.run([
-            "kubectl", "wait", "--for=condition=ready",
-            "pod", "-l", selector,
-            "-n", namespace,
-            "--timeout", f"{timeout}s"
-        ], capture_output=True, timeout=timeout + 10)
+        result = subprocess.run(
+            [
+                "kubectl",
+                "wait",
+                "--for=condition=ready",
+                "pod",
+                "-l",
+                selector,
+                "-n",
+                namespace,
+                "--timeout",
+                f"{timeout}s",
+            ],
+            capture_output=True,
+            timeout=timeout + 10,
+        )
 
         return result.returncode == 0
     except (FileNotFoundError, subprocess.TimeoutExpired):
@@ -103,10 +106,7 @@ def kubectl_available() -> bool:
 
 
 @pytest.fixture(scope="function")
-def standalone_cluster(
-    kubectl_available: bool,
-    request
-) -> Generator[Dict[str, Any], None, None]:
+def standalone_cluster(kubectl_available: bool, request) -> Generator[Dict[str, Any], None, None]:
     """
     Deploy Spark standalone cluster for testing.
 
@@ -127,10 +127,7 @@ def standalone_cluster(
     namespace = "default"
 
     # Check if cluster already exists
-    master_pods = _get_pods_by_selector(
-        f"app=spark-master,app.kubernetes.io/instance={release_name}",
-        namespace
-    )
+    master_pods = _get_pods_by_selector(f"app=spark-master,app.kubernetes.io/instance={release_name}", namespace)
 
     if master_pods:
         # Cluster exists, use it
@@ -138,38 +135,40 @@ def standalone_cluster(
     else:
         # Try to deploy cluster (requires helm)
         try:
-            subprocess.run([
-                "helm", "upgrade", "--install", release_name,
-                "charts/spark-standalone",
-                "--namespace", namespace,
-                "--create-namespace",
-                "--set", "spark.worker.replicas=2",
-                "--wait", "--timeout", "300s"
-            ], check=True, capture_output=True, timeout=320)
+            subprocess.run(
+                [
+                    "helm",
+                    "upgrade",
+                    "--install",
+                    release_name,
+                    "charts/spark-standalone",
+                    "--namespace",
+                    namespace,
+                    "--create-namespace",
+                    "--set",
+                    "spark.worker.replicas=2",
+                    "--wait",
+                    "--timeout",
+                    "300s",
+                ],
+                check=True,
+                capture_output=True,
+                timeout=320,
+            )
 
             # Wait for master
-            if not _wait_for_pods_ready(
-                f"app=spark-master,app.kubernetes.io/instance={release_name}",
-                namespace, 120
-            ):
+            if not _wait_for_pods_ready(f"app=spark-master,app.kubernetes.io/instance={release_name}", namespace, 120):
                 pytest.skip("Standalone master not ready")
 
             # Wait for workers
-            if not _wait_for_pods_ready(
-                f"app=spark-worker,app.kubernetes.io/instance={release_name}",
-                namespace, 120
-            ):
+            if not _wait_for_pods_ready(f"app=spark-worker,app.kubernetes.io/instance={release_name}", namespace, 120):
                 pytest.skip("Standalone workers not ready")
 
             master_url = f"spark://{release_name}-spark-master:7077"
         except (FileNotFoundError, subprocess.TimeoutExpired, subprocess.CalledProcessError):
             pytest.skip("Cannot deploy standalone cluster (helm not available)")
 
-    yield {
-        "master_url": master_url,
-        "release": release_name,
-        "namespace": namespace
-    }
+    yield {"master_url": master_url, "release": release_name, "namespace": namespace}
 
     # Note: We don't cleanup the cluster as it may be shared across tests
 
@@ -188,28 +187,19 @@ def standalone_metrics(standalone_cluster: Dict[str, Any]) -> Dict[str, Any]:
     release = standalone_cluster["release"]
     namespace = standalone_cluster["namespace"]
 
-    worker_pods = _get_pods_by_selector(
-        f"app=spark-worker,app.kubernetes.io/instance={release}",
-        namespace
-    )
+    worker_pods = _get_pods_by_selector(f"app=spark-worker,app.kubernetes.io/instance={release}", namespace)
 
-    master_pods = _get_pods_by_selector(
-        f"app=spark-master,app.kubernetes.io/instance={release}",
-        namespace
-    )
+    master_pods = _get_pods_by_selector(f"app=spark-master,app.kubernetes.io/instance={release}", namespace)
 
     return {
         "worker_count": len(worker_pods),
         "master_count": len(master_pods),
-        "master_url": standalone_cluster["master_url"]
+        "master_url": standalone_cluster["master_url"],
     }
 
 
 @pytest.fixture(scope="function")
-def standalone_executor_distribution(
-    spark_session: Any,
-    standalone_cluster: Dict[str, Any]
-) -> Dict[str, Any]:
+def standalone_executor_distribution(spark_session: Any, standalone_cluster: Dict[str, Any]) -> Dict[str, Any]:
     """
     Get executor distribution across workers.
 
@@ -228,16 +218,9 @@ def standalone_executor_distribution(
         # Filter out driver
         worker_executors = [e for e in executors if e.id() != "<driver>"]
 
-        return {
-            "executor_count": len(worker_executors),
-            "worker_hosts": len(set(e.host() for e in worker_executors))
-        }
+        return {"executor_count": len(worker_executors), "worker_hosts": len(set(e.host() for e in worker_executors))}
     except Exception as e:
-        return {
-            "executor_count": 0,
-            "worker_hosts": 0,
-            "error": str(e)
-        }
+        return {"executor_count": 0, "worker_hosts": 0, "error": str(e)}
 
 
 # Type alias for Spark session

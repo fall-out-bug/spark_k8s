@@ -3,6 +3,7 @@ NYC Taxi dataset fixtures for E2E tests.
 
 This module provides fixtures for loading and managing the NYC Taxi dataset.
 """
+
 import os
 import subprocess
 import tempfile
@@ -12,10 +13,7 @@ from typing import Optional
 import pytest
 
 
-def generate_sample_dataset(
-    output_path: str = "/tmp/nyc-taxi-sample.parquet",
-    rows: int = 10000
-) -> str:
+def generate_sample_dataset(output_path: str = "/tmp/nyc-taxi-sample.parquet", rows: int = 10000) -> str:
     """
     Generate a sample NYC Taxi dataset for testing.
 
@@ -31,12 +29,7 @@ def generate_sample_dataset(
     if script_path.exists():
         # Call the existing dataset generation script
         size = "large" if rows >= 100000 else "medium" if rows >= 10000 else "small"
-        result = subprocess.run(
-            ["bash", str(script_path), size],
-            capture_output=True,
-            text=True,
-            timeout=300
-        )
+        result = subprocess.run(["bash", str(script_path), size], capture_output=True, text=True, timeout=300)
         if result.returncode == 0:
             # Find the generated file
             expected_path = Path(output_path)
@@ -64,14 +57,8 @@ def _generate_with_python(output_path: str, rows: int) -> str:
 
         data = {
             "VendorID": np.random.choice([1, 2], rows),
-            "tpep_pickup_datetime": [
-                base_time + timedelta(minutes=np.random.randint(0, 1440))
-                for _ in range(rows)
-            ],
-            "tpep_dropoff_datetime": [
-                base_time + timedelta(minutes=np.random.randint(15, 1440))
-                for _ in range(rows)
-            ],
+            "tpep_pickup_datetime": [base_time + timedelta(minutes=np.random.randint(0, 1440)) for _ in range(rows)],
+            "tpep_dropoff_datetime": [base_time + timedelta(minutes=np.random.randint(15, 1440)) for _ in range(rows)],
             "passenger_count": np.random.randint(1, 7, rows),
             "trip_distance": np.random.uniform(0.5, 15.0, rows),
             "RatecodeID": np.random.choice([1, 2, 3, 4, 5, 6], rows),
@@ -89,8 +76,12 @@ def _generate_with_python(output_path: str, rows: int) -> str:
 
         df = pd.DataFrame(data)
         df["total_amount"] = (
-            df["fare_amount"] + df["extra"] + df["mta_tax"] +
-            df["tip_amount"] + df["tolls_amount"] + df["improvement_surcharge"]
+            df["fare_amount"]
+            + df["extra"]
+            + df["mta_tax"]
+            + df["tip_amount"]
+            + df["tolls_amount"]
+            + df["improvement_surcharge"]
         )
 
         # Ensure output directory exists
@@ -107,10 +98,7 @@ def _generate_with_python(output_path: str, rows: int) -> str:
         pytest.skip(f"Cannot generate dataset: {e}")
 
 
-def ensure_dataset_available(
-    full_path: Optional[str] = None,
-    sample_path: Optional[str] = None
-) -> str:
+def ensure_dataset_available(full_path: Optional[str] = None, sample_path: Optional[str] = None) -> str:
     """
     Ensure a dataset is available, generate if needed.
 

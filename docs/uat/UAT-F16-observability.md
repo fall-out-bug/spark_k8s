@@ -1,7 +1,7 @@
 # UAT Guide: F16 — Observability Stack (Monitoring & Tracing)
 
-**Feature:** F16  
-**Date:** 2026-02-10  
+**Feature:** F16
+**Date:** 2026-02-10
 
 ---
 

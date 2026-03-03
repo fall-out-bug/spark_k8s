@@ -1,7 +1,7 @@
 # UAT Guide: F14 — Phase 8 Advanced Security
 
-**Feature:** F14  
-**Date:** 2026-02-10  
+**Feature:** F14
+**Date:** 2026-02-10
 
 ---
 

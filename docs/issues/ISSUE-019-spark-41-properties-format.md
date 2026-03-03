@@ -1,8 +1,8 @@
 # ISSUE-019: Spark 4.1 Spark Connect config uses non‑properties format
 
-**Created:** 2026-01-20  
-**Status:** Open  
-**Severity:** 🔴 CRITICAL (master not set)  
+**Created:** 2026-01-20
+**Status:** Open
+**Severity:** 🔴 CRITICAL (master not set)
 **Feature:** F06 - Spark Connect Standalone Parity
 
 ---

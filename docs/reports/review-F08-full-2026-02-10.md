@@ -1,8 +1,8 @@
 # F08 Full Review Report (per prompts/commands/review.md)
 
-**Feature:** F08 - Phase 2 Complete Smoke Tests  
-**Review Date:** 2026-02-10  
-**Reviewer:** Cursor Composer  
+**Feature:** F08 - Phase 2 Complete Smoke Tests
+**Review Date:** 2026-02-10
+**Reviewer:** Cursor Composer
 **Verdict:** ✅ **APPROVED**
 
 ---

@@ -4,6 +4,7 @@ Pytest configuration and fixtures for E2E tests.
 This module provides fixtures for dataset loading, Spark session creation,
 and metrics collection for end-to-end testing.
 """
+
 import os
 import time
 import json
@@ -32,10 +33,7 @@ def dataset_path() -> str:
     Yields:
         None: Skips test if dataset not found.
     """
-    path = os.environ.get(
-        "NYC_TAXI_FULL_PATH",
-        "/tmp/nyc-taxi-full.parquet"
-    )
+    path = os.environ.get("NYC_TAXI_FULL_PATH", "/tmp/nyc-taxi-full.parquet")
     if not Path(path).exists():
         pytest.skip(f"Dataset not found at {path}. Set NYC_TAXI_FULL_PATH env variable.")
     return path
@@ -52,10 +50,7 @@ def sample_dataset_path() -> str:
     Yields:
         None: Skips test if dataset not found.
     """
-    path = os.environ.get(
-        "NYC_TAXI_SAMPLE_PATH",
-        "/tmp/nyc-taxi-sample.parquet"
-    )
+    path = os.environ.get("NYC_TAXI_SAMPLE_PATH", "/tmp/nyc-taxi-sample.parquet")
     if not Path(path).exists():
         # Try to generate it
         script_path = Path(__file__).parent.parent / "data" / "generate-dataset.sh"
@@ -84,11 +79,12 @@ def spark_session(request) -> Any:
     """
     from pyspark.sql import SparkSession
 
-    builder = SparkSession.builder \
-        .appName("e2e-test") \
-        .config("spark.sql.adaptive.enabled", "true") \
-        .config("spark.sql.adaptive.coalescePartitions.enabled", "true") \
+    builder = (
+        SparkSession.builder.appName("e2e-test")
+        .config("spark.sql.adaptive.enabled", "true")
+        .config("spark.sql.adaptive.coalescePartitions.enabled", "true")
         .config("spark.sql.execution.arrow.pyspark.enabled", "true")
+    )
 
     spark = builder.getOrCreate()
 
@@ -141,15 +137,12 @@ def metrics_collector() -> Generator[Dict[str, Any], None, Dict[str, Any]]:
     return {
         "execution_time": end_time - start_time,
         "memory_used_bytes": end_memory - start_memory,
-        "memory_used_mb": (end_memory - start_memory) / (1024 * 1024)
+        "memory_used_mb": (end_memory - start_memory) / (1024 * 1024),
     }
 
 
 @pytest.fixture(scope="function")
-def query_metrics(
-    spark_session: Any,
-    query_results_dir: Path
-) -> Generator[Dict[str, Any], None, None]:
+def query_metrics(spark_session: Any, query_results_dir: Path) -> Generator[Dict[str, Any], None, None]:
     """
     Execute a SQL query and collect metrics.
 
@@ -162,11 +155,7 @@ def query_metrics(
     """
     metrics_data = {}
 
-    def execute_query(
-        sql: str,
-        query_name: str,
-        dataset_path: str = None
-    ) -> Dict[str, Any]:
+    def execute_query(sql: str, query_name: str, dataset_path: str = None) -> Dict[str, Any]:
         """
         Execute a SQL query and collect performance metrics.
 
@@ -180,6 +169,7 @@ def query_metrics(
         """
         start_time = time.time()
         import psutil
+
         process = psutil.Process()
         start_memory = process.memory_info().rss
 
@@ -198,7 +188,7 @@ def query_metrics(
                 "execution_time": end_time - start_time,
                 "memory_used_bytes": end_memory - start_memory,
                 "row_count": row_count,
-                "success": True
+                "success": True,
             }
 
             # Calculate throughput
@@ -213,7 +203,7 @@ def query_metrics(
                 "execution_time": end_time - start_time,
                 "memory_used_bytes": end_memory - start_memory,
                 "success": False,
-                "error": str(e)
+                "error": str(e),
             }
 
         metrics_data[query_name] = metrics
@@ -253,16 +243,12 @@ def nyc_taxi_schema() -> Dict[str, str]:
         "tip_amount": "double",
         "tolls_amount": "double",
         "improvement_surcharge": "double",
-        "total_amount": "double"
+        "total_amount": "double",
     }
 
 
 @pytest.fixture(scope="function")
-def load_dataset(
-    spark_session: Any,
-    dataset_path: str,
-    nyc_taxi_schema: Dict[str, str]
-) -> Any:
+def load_dataset(spark_session: Any, dataset_path: str, nyc_taxi_schema: Dict[str, str]) -> Any:
     """
     Load NYC Taxi dataset into Spark.
 
@@ -279,10 +265,7 @@ def load_dataset(
 
 
 @pytest.fixture(scope="function")
-def temp_view(
-    spark_session: Any,
-    load_dataset: Any
-) -> None:
+def temp_view(spark_session: Any, load_dataset: Any) -> None:
     """
     Create a temporary view for SQL queries.
 
@@ -300,15 +283,7 @@ def temp_view(
 
 def pytest_configure(config):
     """Configure pytest with custom markers."""
-    config.addinivalue_line(
-        "markers", "e2e: mark test as E2E test"
-    )
-    config.addinivalue_line(
-        "markers", "gpu: mark test as requiring GPU"
-    )
-    config.addinivalue_line(
-        "markers", "iceberg: mark test as requiring Iceberg"
-    )
-    config.addinivalue_line(
-        "markers", "slow: mark test as slow (full dataset)"
-    )
+    config.addinivalue_line("markers", "e2e: mark test as E2E test")
+    config.addinivalue_line("markers", "gpu: mark test as requiring GPU")
+    config.addinivalue_line("markers", "iceberg: mark test as requiring Iceberg")
+    config.addinivalue_line("markers", "slow: mark test as slow (full dataset)")

@@ -1,8 +1,8 @@
 # F13 Full Review Report (per prompts/commands/review.md)
 
-**Feature:** F13 - Phase 7 Load Tests  
-**Review Date:** 2026-02-10  
-**Reviewer:** Cursor Composer  
+**Feature:** F13 - Phase 7 Load Tests
+**Review Date:** 2026-02-10
+**Reviewer:** Cursor Composer
 **Verdict:** ✅ **APPROVED**
 
 ---

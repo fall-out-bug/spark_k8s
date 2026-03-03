@@ -35,8 +35,7 @@ class TestSecretVolumeMounts:
             for volume in volumes:
                 if "secret" in volume:
                     secret = volume["secret"]
-                    assert "secretName" in secret, \
-                        f"Volume secret should have secretName, got {secret}"
+                    assert "secretName" in secret, f"Volume secret should have secretName, got {secret}"
 
     def test_volume_mount_paths_are_valid(self, chart_35_path, preset_35_baseline):
         """Test that secret volume mount paths are valid"""
@@ -55,8 +54,7 @@ class TestSecretVolumeMounts:
                     # Mount path should be absolute
                     mount_path = mount.get("mountPath", "")
                     if mount_path:
-                        assert mount_path.startswith("/"), \
-                            f"Volume mount path should be absolute, got {mount_path}"
+                        assert mount_path.startswith("/"), f"Volume mount path should be absolute, got {mount_path}"
 
     def test_volume_mounts_read_only(self, chart_35_path, preset_35_baseline):
         """Test that secret volume mounts are read-only"""
@@ -110,16 +108,11 @@ class TestSecretVolumeMounts:
                         if "items" in secret:
                             items = secret["items"]
                             for item in items:
-                                assert "key" in item and "path" in item, \
-                                    "Secret items should have key and path"
+                                assert "key" in item and "path" in item, "Secret items should have key and path"
 
     def test_tls_secrets_can_be_mounted(self, chart_35_path, preset_35_baseline):
         """Test that TLS secrets can be mounted for HTTPS"""
-        output = helm_template(
-            chart_35_path,
-            [preset_35_baseline],
-            set_values={"connect.tls.enabled": "true"}
-        )
+        output = helm_template(chart_35_path, [preset_35_baseline], set_values={"connect.tls.enabled": "true"})
 
         if output is None:
             pytest.skip("TLS configuration may not be supported")

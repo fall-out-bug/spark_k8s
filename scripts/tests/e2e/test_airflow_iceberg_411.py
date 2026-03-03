@@ -3,6 +3,7 @@ Airflow Iceberg E2E tests for Spark 4.1.1.
 
 Tests validate Apache Iceberg table operations via Airflow with Spark 4.1.1.
 """
+
 import pytest
 
 test_spark_version = "4.1.1"
@@ -17,13 +18,7 @@ test_feature = "iceberg"
 class TestAirflowIceberg411:
     """E2E tests for Airflow with Iceberg on Spark 4.1.1."""
 
-    def test_iceberg_create_table(
-        self,
-        spark_session,
-        sample_dataset_path,
-        iceberg_catalog,
-        iceberg_metrics
-    ):
+    def test_iceberg_create_table(self, spark_session, sample_dataset_path, iceberg_catalog, iceberg_metrics):
         """Test Iceberg table creation."""
         catalog_name = iceberg_catalog["catalog_name"]
         table_name = f"{catalog_name}.nyc_taxi"
@@ -37,12 +32,7 @@ class TestAirflowIceberg411:
         metrics = iceberg_metrics
         assert metrics["snapshot_count"] >= 1
 
-    def test_iceberg_read_table(
-        self,
-        spark_session,
-        sample_dataset_path,
-        iceberg_catalog
-    ):
+    def test_iceberg_read_table(self, spark_session, sample_dataset_path, iceberg_catalog):
         """Test Iceberg table reading."""
         catalog_name = iceberg_catalog["catalog_name"]
         table_name = f"{catalog_name}.test_read"
@@ -56,18 +46,12 @@ class TestAirflowIceberg411:
 
         spark_session.sql(f"DROP TABLE {table_name}")
 
-    def test_iceberg_insert_append(
-        self,
-        spark_session,
-        iceberg_catalog
-    ):
+    def test_iceberg_insert_append(self, spark_session, iceberg_catalog):
         """Test Iceberg append operation."""
         catalog_name = iceberg_catalog["catalog_name"]
         table_name = f"{catalog_name}.test_append"
 
-        spark_session.sql(
-            f"CREATE TABLE {table_name} (id INT, value STRING) USING iceberg"
-        )
+        spark_session.sql(f"CREATE TABLE {table_name} (id INT, value STRING) USING iceberg")
 
         spark_session.sql(f"INSERT INTO {table_name} VALUES (1, 'a'), (2, 'b')")
         spark_session.sql(f"INSERT INTO {table_name} VALUES (3, 'c'), (4, 'd')")
@@ -78,18 +62,12 @@ class TestAirflowIceberg411:
 
         spark_session.sql(f"DROP TABLE {table_name}")
 
-    def test_iceberg_update(
-        self,
-        spark_session,
-        iceberg_catalog
-    ):
+    def test_iceberg_update(self, spark_session, iceberg_catalog):
         """Test Iceberg UPDATE operation."""
         catalog_name = iceberg_catalog["catalog_name"]
         table_name = f"{catalog_name}.test_update"
 
-        spark_session.sql(
-            f"CREATE TABLE {table_name} (id INT, value STRING) USING iceberg"
-        )
+        spark_session.sql(f"CREATE TABLE {table_name} (id INT, value STRING) USING iceberg")
         spark_session.sql(f"INSERT INTO {table_name} VALUES (1, 'a'), (2, 'b')")
         spark_session.sql(f"UPDATE {table_name} SET value = 'updated' WHERE id = 1")
 
@@ -99,18 +77,12 @@ class TestAirflowIceberg411:
 
         spark_session.sql(f"DROP TABLE {table_name}")
 
-    def test_iceberg_delete(
-        self,
-        spark_session,
-        iceberg_catalog
-    ):
+    def test_iceberg_delete(self, spark_session, iceberg_catalog):
         """Test Iceberg DELETE operation."""
         catalog_name = iceberg_catalog["catalog_name"]
         table_name = f"{catalog_name}.test_delete"
 
-        spark_session.sql(
-            f"CREATE TABLE {table_name} (id INT, value STRING) USING iceberg"
-        )
+        spark_session.sql(f"CREATE TABLE {table_name} (id INT, value STRING) USING iceberg")
         spark_session.sql(f"INSERT INTO {table_name} VALUES (1, 'a'), (2, 'b'), (3, 'c')")
         spark_session.sql(f"DELETE FROM {table_name} WHERE id = 2")
 
@@ -120,22 +92,14 @@ class TestAirflowIceberg411:
 
         spark_session.sql(f"DROP TABLE {table_name}")
 
-    def test_iceberg_merge(
-        self,
-        spark_session,
-        iceberg_catalog
-    ):
+    def test_iceberg_merge(self, spark_session, iceberg_catalog):
         """Test Iceberg MERGE operation."""
         catalog_name = iceberg_catalog["catalog_name"]
         table_name = f"{catalog_name}.test_merge"
         source_name = f"{catalog_name}.test_merge_source"
 
-        spark_session.sql(
-            f"CREATE TABLE {table_name} (id INT, value STRING) USING iceberg"
-        )
-        spark_session.sql(
-            f"CREATE TABLE {source_name} (id INT, value STRING) USING iceberg"
-        )
+        spark_session.sql(f"CREATE TABLE {table_name} (id INT, value STRING) USING iceberg")
+        spark_session.sql(f"CREATE TABLE {source_name} (id INT, value STRING) USING iceberg")
 
         spark_session.sql(f"INSERT INTO {table_name} VALUES (1, 'a'), (2, 'b')")
         spark_session.sql(f"INSERT INTO {source_name} VALUES (2, 'b_updated'), (3, 'c')")
@@ -155,12 +119,7 @@ class TestAirflowIceberg411:
         spark_session.sql(f"DROP TABLE {table_name}")
         spark_session.sql(f"DROP TABLE {source_name}")
 
-    def test_iceberg_time_travel(
-        self,
-        spark_session,
-        iceberg_catalog,
-        iceberg_table
-    ):
+    def test_iceberg_time_travel(self, spark_session, iceberg_catalog, iceberg_table):
         """Test Iceberg time travel queries."""
         table_name = iceberg_table["table_name"]
 
@@ -171,18 +130,12 @@ class TestAirflowIceberg411:
 
         assert snapshot_count >= 2
 
-    def test_iceberg_schema_evolution(
-        self,
-        spark_session,
-        iceberg_catalog
-    ):
+    def test_iceberg_schema_evolution(self, spark_session, iceberg_catalog):
         """Test Iceberg schema evolution."""
         catalog_name = iceberg_catalog["catalog_name"]
         table_name = f"{catalog_name}.test_schema"
 
-        spark_session.sql(
-            f"CREATE TABLE {table_name} (id INT, value STRING) USING iceberg"
-        )
+        spark_session.sql(f"CREATE TABLE {table_name} (id INT, value STRING) USING iceberg")
         spark_session.sql(f"INSERT INTO {table_name} VALUES (1, 'a'), (2, 'b')")
         spark_session.sql(f"ALTER TABLE {table_name} ADD COLUMN new_col INT")
         spark_session.sql(f"INSERT INTO {table_name} VALUES (3, 'c', 100)")

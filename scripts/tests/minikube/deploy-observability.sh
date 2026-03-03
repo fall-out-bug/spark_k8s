@@ -6,6 +6,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 NAMESPACE="${OBSERVABILITY_NS:-observability}"
 
 echo "=== Deploying Observability (OTEL Collector + Grafana) into ${NAMESPACE} ==="
@@ -35,6 +36,8 @@ spec:
         ports:
         - containerPort: 4317
           name: grpc
+        - containerPort: 8889
+          name: prometheus
         volumeMounts:
         - name: config
           mountPath: /etc/otel
@@ -57,6 +60,9 @@ data:
     exporters:
       logging:
         verbosity: normal
+      prometheus:
+        endpoint: "0.0.0.0:8889"
+        namespace: otel
     service:
       pipelines:
         traces:
@@ -64,7 +70,7 @@ data:
           exporters: [logging]
         metrics:
           receivers: [otlp]
-          exporters: [logging]
+          exporters: [prometheus, logging]
 ---
 apiVersion: v1
 kind: Service
@@ -77,8 +83,25 @@ spec:
   - name: grpc
     port: 4317
     targetPort: 4317
+  - name: prometheus
+    port: 8889
+    targetPort: 8889
 EOF
 kubectl wait --for=condition=available deployment/otel-collector -n "${NAMESPACE}" --timeout=120s 2>/dev/null || true
+
+# Prometheus + demo-metrics-exporter + Grafana dashboard ConfigMaps
+kubectl apply -f "$PROJECT_ROOT/tests/observability/prometheus-demo.yaml"
+kubectl apply -f "$PROJECT_ROOT/tests/observability/demo-metrics-exporter.yaml"
+kubectl apply -f "$PROJECT_ROOT/tests/observability/grafana-dashboards.yaml"
+kubectl apply -f "$PROJECT_ROOT/tests/observability/grafana-dashboards-spark.yaml"
+kubectl apply -f "$PROJECT_ROOT/tests/observability/grafana-dashboard-tech-lead.yaml"
+kubectl apply -f "$PROJECT_ROOT/tests/observability/grafana-dashboard-logs-explorer.yaml"
+
+# Loki + Promtail for log aggregation (Spark, Airflow)
+kubectl apply -f "$PROJECT_ROOT/tests/observability/loki.yaml"
+kubectl apply -f "$PROJECT_ROOT/tests/observability/promtail.yaml"
+kubectl wait deployment/loki -n "${NAMESPACE}" --for=condition=available --timeout=120s 2>/dev/null || true
+kubectl wait deployment/prometheus -n "${NAMESPACE}" --for=condition=available --timeout=120s 2>/dev/null || true
 
 # Grafana with sidecar to load dashboards from ConfigMaps (label grafana_dashboard=1)
 # Set spark-infra with monitoring.grafanaDashboards.namespace=observability so dashboards land here
@@ -88,16 +111,20 @@ helm upgrade --install grafana grafana/grafana \
   -n "${NAMESPACE}" \
   --set adminPassword=admin \
   --set service.type=NodePort \
+  --set service.nodePort=30030 \
   --set persistence.enabled=false \
   --set sidecar.dashboards.enabled=true \
   --set sidecar.dashboards.label="grafana_dashboard" \
   --set sidecar.dashboards.labelValue="1" \
   --set sidecar.dashboards.searchNamespace=ALL \
+  --set-json 'datasources.datasources.yaml={"apiVersion":1,"datasources":[{"name":"Prometheus","type":"prometheus","uid":"PBFA97CFB590B2093","access":"proxy","url":"http://prometheus.observability.svc.cluster.local:9090","isDefault":true},{"name":"Loki","type":"loki","uid":"loki","access":"proxy","url":"http://loki.observability.svc.cluster.local:3100","editable":false}]}' \
   --wait --timeout 120s 2>/dev/null || echo "Grafana install skipped (add grafana helm repo if needed)."
 
 echo ""
 echo "=== Observability deployed ==="
 echo "  OTEL Collector: otel-collector.${NAMESPACE}.svc.cluster.local:4317"
-echo "  Grafana: kubectl port-forward svc/grafana 3000:3000 -n ${NAMESPACE}  -> http://localhost:3000 (admin/admin)"
-echo "  Spark dashboards: enable in spark-infra with monitoring.grafanaDashboards.enabled=true and monitoring.grafanaDashboards.namespace=${NAMESPACE}; Grafana sidecar will load them."
+echo "  Prometheus: NodePort 30090"
+echo "  Grafana: NodePort 30030 (admin/admin)"
+echo "  Loki: http://loki.${NAMESPACE}.svc.cluster.local:3100"
+echo "  demo-metrics-exporter: scrapes Spark Master + History + Airflow (requires spark-infra with standalone+airflow)"
 kubectl get pods -n "${NAMESPACE}"

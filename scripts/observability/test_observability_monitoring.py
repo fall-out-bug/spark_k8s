@@ -9,7 +9,12 @@ def run_command(cmd: list, description: str) -> dict:
     """Run a command and return result."""
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-        return {"success": result.returncode == 0, "stdout": result.stdout.strip(), "stderr": result.stderr.strip(), "returncode": result.returncode}
+        return {
+            "success": result.returncode == 0,
+            "stdout": result.stdout.strip(),
+            "stderr": result.stderr.strip(),
+            "returncode": result.returncode,
+        }
     except subprocess.TimeoutExpired:
         return {"success": False, "stdout": "", "stderr": "Command timed out after 30s", "returncode": -1}
     except Exception as e:
@@ -19,19 +24,31 @@ def run_command(cmd: list, description: str) -> dict:
 def test_prometheus_deployment() -> dict:
     """Test if Prometheus is deployed and accessible."""
     print("Testing Prometheus deployment...")
-    result = run_command(["kubectl", "get", "pods", "-n", "observability", "-l", "app=prometheus-operator"], "Prometheus pod check")
+    result = run_command(
+        ["kubectl", "get", "pods", "-n", "observability", "-l", "app=prometheus-operator"], "Prometheus pod check"
+    )
 
     if not result["success"]:
-        return {"name": "Prometheus Deployment", "status": "failed", "message": f"Failed to get pods: {result['stderr']}"}
+        return {
+            "name": "Prometheus Deployment",
+            "status": "failed",
+            "message": f"Failed to get pods: {result['stderr']}",
+        }
 
     pods = result["stdout"]
     if "prometheus-operator" not in pods:
         return {"name": "Prometheus Deployment", "status": "failed", "message": "No prometheus-operator pod found"}
 
-    result = run_command(["kubectl", "get", "svc", "-n", "observability", "prometheus-operator"], "Prometheus service check")
+    result = run_command(
+        ["kubectl", "get", "svc", "-n", "observability", "prometheus-operator"], "Prometheus service check"
+    )
 
     if not result["success"]:
-        return {"name": "Prometheus Service", "status": "failed", "message": f"Failed to get service: {result['stderr']}"}
+        return {
+            "name": "Prometheus Service",
+            "status": "failed",
+            "message": f"Failed to get service: {result['stderr']}",
+        }
 
     return {"name": "Prometheus Deployment", "status": "passed", "message": "Prometheus is deployed and accessible"}
 
@@ -39,16 +56,27 @@ def test_prometheus_deployment() -> dict:
 def test_service_monitors() -> dict:
     """Test if Spark ServiceMonitors are deployed."""
     print("Testing ServiceMonitors...")
-    result = run_command(["kubectl", "get", "servicemonitors", "-n", "observability", "-o", "json"], "List ServiceMonitors")
+    result = run_command(
+        ["kubectl", "get", "servicemonitors", "-n", "observability", "-o", "json"], "List ServiceMonitors"
+    )
 
     if not result["success"]:
-        return {"name": "ServiceMonitors", "status": "failed", "message": f"Failed to list ServiceMonitors: {result['stderr']}"}
+        return {
+            "name": "ServiceMonitors",
+            "status": "failed",
+            "message": f"Failed to list ServiceMonitors: {result['stderr']}",
+        }
 
     import json
+
     try:
         monitors = json.loads(result["stdout"])
     except json.JSONDecodeError:
-        return {"name": "ServiceMonitors", "status": "error", "message": f"Failed to parse ServiceMonitors JSON: {result['stdout']}"}
+        return {
+            "name": "ServiceMonitors",
+            "status": "error",
+            "message": f"Failed to parse ServiceMonitors JSON: {result['stdout']}",
+        }
 
     expected_monitors = ["spark-driver", "spark-executor", "spark-3.5-driver", "spark-4.1-driver", "spark-4.1-executor"]
 
@@ -59,7 +87,11 @@ def test_service_monitors() -> dict:
             missing.append(monitor)
 
     if missing:
-        return {"name": "ServiceMonitors", "status": "failed", "message": f"Missing ServiceMonitors: {', '.join(missing)}"}
+        return {
+            "name": "ServiceMonitors",
+            "status": "failed",
+            "message": f"Missing ServiceMonitors: {', '.join(missing)}",
+        }
 
     return {"name": "ServiceMonitors", "status": "passed", "message": f"Found {len(monitors)} ServiceMonitors"}
 
@@ -67,15 +99,32 @@ def test_service_monitors() -> dict:
 def test_prometheus_metrics() -> dict:
     """Test if Prometheus is scraping metrics."""
     print("Testing Prometheus metrics scraping...")
-    result = run_command([
-        "kubectl", "exec", "-n", "observability", "prometheus-operator-0", "--wget", "-q", "-O", "-",
-        "http://localhost:9090/api/v1/targets", "--timeout=10"
-    ], "Prometheus targets query")
+    result = run_command(
+        [
+            "kubectl",
+            "exec",
+            "-n",
+            "observability",
+            "prometheus-operator-0",
+            "--wget",
+            "-q",
+            "-O",
+            "-",
+            "http://localhost:9090/api/v1/targets",
+            "--timeout=10",
+        ],
+        "Prometheus targets query",
+    )
 
     if not result["success"]:
-        return {"name": "Prometheus Targets", "status": "error", "message": f"Failed to query targets: {result['stderr']}"}
+        return {
+            "name": "Prometheus Targets",
+            "status": "error",
+            "message": f"Failed to query targets: {result['stderr']}",
+        }
 
     import json
+
     try:
         data = json.loads(result["stdout"])
     except json.JSONDecodeError:
@@ -88,7 +137,11 @@ def test_prometheus_metrics() -> dict:
         return {"name": "Prometheus Targets", "status": "failed", "message": "No active targets found"}
 
     if len(active_targets) < total_targets:
-        return {"name": "Prometheus Targets", "status": "failed", "message": f"Only {len(active_targets)}/{total_targets} targets are up"}
+        return {
+            "name": "Prometheus Targets",
+            "status": "failed",
+            "message": f"Only {len(active_targets)}/{total_targets} targets are up",
+        }
 
     return {"name": "Prometheus Targets", "status": "passed", "message": f"All {total_targets} targets are up"}
 

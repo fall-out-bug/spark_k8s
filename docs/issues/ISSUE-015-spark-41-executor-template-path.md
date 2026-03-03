@@ -1,8 +1,8 @@
 # ISSUE-015: Spark 4.1 executor pod template path mismatch
 
-**Created:** 2026-01-20  
-**Status:** Open  
-**Severity:** 🔴 CRITICAL (Connect crashloop)  
+**Created:** 2026-01-20
+**Status:** Open
+**Severity:** 🔴 CRITICAL (Connect crashloop)
 **Feature:** F06 - Spark Connect Standalone Parity
 
 ---

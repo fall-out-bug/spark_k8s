@@ -1,8 +1,8 @@
 # F07 Full Review Report (per prompts/commands/review.md)
 
-**Feature:** F07 - Phase 01 Security (PSS/SCC)  
-**Review Date:** 2026-02-10  
-**Reviewer:** Cursor Composer  
+**Feature:** F07 - Phase 01 Security (PSS/SCC)
+**Review Date:** 2026-02-10
+**Reviewer:** Cursor Composer
 **Verdict:** ✅ **APPROVED**
 
 ---

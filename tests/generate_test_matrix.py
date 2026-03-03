@@ -22,11 +22,12 @@ PLATFORMS = ["k8s", "openshift"]
 # GPU and Shuffle only apply to native K8s mode
 # Standalone: GPU=N/A, Shuffle=N/A
 
+
 def generate_scenarios():
     """Generate all 320 test scenarios"""
     scenarios = []
     scenario_id = 1
-    
+
     for version in SPARK_VERSIONS:
         for connect in CONNECT_MODES:
             for k8s_mode in K8S_MODES:
@@ -46,7 +47,7 @@ def generate_scenarios():
                                             "iceberg": iceberg,
                                             "shuffle_service": shuffle,
                                             "openlineage": openlineage,
-                                            "platform": platform
+                                            "platform": platform,
                                         }
                                         scenario["name"] = generate_name(scenario)
                                         scenario["helm_values"] = generate_helm_values(scenario)
@@ -65,14 +66,15 @@ def generate_scenarios():
                                     "iceberg": iceberg,
                                     "shuffle_service": False,  # N/A
                                     "openlineage": openlineage,
-                                    "platform": platform
+                                    "platform": platform,
                                 }
                                 scenario["name"] = generate_name(scenario)
                                 scenario["helm_values"] = generate_helm_values(scenario)
                                 scenarios.append(scenario)
                                 scenario_id += 1
-    
+
     return scenarios
+
 
 def generate_name(s):
     """Generate human-readable scenario name"""
@@ -84,17 +86,18 @@ def generate_name(s):
         "ICE" if s["iceberg"] else "NO-ICE",
         "SHUF" if s["shuffle_service"] else "NO-SHUF",
         "OL" if s["openlineage"] else "NO-OL",
-        s["platform"].upper()
+        s["platform"].upper(),
     ]
     return "-".join(parts)
+
 
 def generate_helm_values(s):
     """Generate Helm values for this scenario"""
     values = []
-    
+
     # Spark version
     values.append(f'spark.version="{s["spark_version"]}"')
-    
+
     # Connect mode
     if s["connect"]:
         values.append("connect.enabled=true")
@@ -105,39 +108,40 @@ def generate_helm_values(s):
     else:
         values.append("connect.enabled=false")
         values.append("sparkStandalone.enabled=true")
-    
+
     # GPU
     if s["gpu"]:
         values.append("features.gpu.enabled=true")
-    
+
     # Iceberg
     if s["iceberg"]:
         values.append("features.iceberg.enabled=true")
-    
+
     # Shuffle service (only for native)
     if s["shuffle_service"] and s["k8s_mode"] == "native":
         values.append("spark.shuffle.service.enabled=true")
-    
+
     # OpenLineage
     if s["openlineage"]:
         values.append("openlineage.enabled=true")
-    
+
     # Platform-specific
     if s["platform"] == "openshift":
         values.append("openshift.enabled=true")
-    
+
     # Always-on components
     values.append("monitoring.prometheus.enabled=true")
     values.append("monitoring.grafana.enabled=true")
     values.append("historyServer.enabled=true")
     values.append("core.hiveMetastore.enabled=true")
     values.append("core.minio.enabled=true")
-    
+
     return " \\\n  --set ".join(values)
+
 
 def main():
     scenarios = generate_scenarios()
-    
+
     # Build test matrix structure
     test_matrix = {
         "metadata": {
@@ -153,67 +157,91 @@ def main():
                 "iceberg_modes": ["with-iceberg", "without-iceberg"],
                 "shuffle_service_modes": ["enabled", "disabled"],
                 "openlineage_modes": ["enabled", "disabled"],
-                "platforms": ["k8s", "openshift"]
+                "platforms": ["k8s", "openshift"],
             },
-            "always_on": [
-                "metrics (Prometheus + Grafana)",
-                "history-server",
-                "hive-metastore",
-                "minio-s3"
-            ]
+            "always_on": ["metrics (Prometheus + Grafana)", "history-server", "hive-metastore", "minio-s3"],
         },
         "scenarios": scenarios,
         "test_types": {
             "smoke": {
                 "duration": "10 min",
                 "description": "Quick validation",
-                "tests": ["helm-install", "pod-startup", "service-endpoints", "simple-job", "connect-server", "minio-s3", "metrics", "history-server"]
+                "tests": [
+                    "helm-install",
+                    "pod-startup",
+                    "service-endpoints",
+                    "simple-job",
+                    "connect-server",
+                    "minio-s3",
+                    "metrics",
+                    "history-server",
+                ],
             },
             "e2e": {
                 "duration": "25 min",
                 "description": "End-to-end scenarios",
-                "tests": ["spark-sql", "dataframe-ops", "ml-pipeline", "streaming", "s3-read-write", "iceberg-crud", "gpu-detection", "shuffle-service", "openlineage-tracking", "hive-metastore"]
+                "tests": [
+                    "spark-sql",
+                    "dataframe-ops",
+                    "ml-pipeline",
+                    "streaming",
+                    "s3-read-write",
+                    "iceberg-crud",
+                    "gpu-detection",
+                    "shuffle-service",
+                    "openlineage-tracking",
+                    "hive-metastore",
+                ],
             },
             "load": {
                 "duration": "45 min",
                 "description": "Performance tests",
-                "tests": ["throughput-100k", "throughput-500k", "throughput-1m", "shuffle-50k", "sort-100k", "cache-test", "write-parquet"]
-            }
-        }
+                "tests": [
+                    "throughput-100k",
+                    "throughput-500k",
+                    "throughput-1m",
+                    "shuffle-50k",
+                    "sort-100k",
+                    "cache-test",
+                    "write-parquet",
+                ],
+            },
+        },
     }
-    
+
     # Output YAML
     with open("tests/test-matrix-full.yaml", "w") as f:
         yaml.dump(test_matrix, f, default_flow_style=False, sort_keys=False)
-    
+
     # Output summary
     print(f"Generated {len(scenarios)} scenarios")
     print(f"Total test runs: {len(scenarios) * 3}")
-    
+
     # Count by version
     by_version = {}
     for s in scenarios:
         v = s["spark_version"]
         by_version[v] = by_version.get(v, 0) + 1
-    
+
     print("\nBy Spark version:")
     for v, count in sorted(by_version.items()):
         print(f"  {v}: {count} scenarios")
-    
+
     # Count by platform
     by_platform = {}
     for s in scenarios:
         p = s["platform"]
         by_platform[p] = by_platform.get(p, 0) + 1
-    
+
     print("\nBy platform:")
     for p, count in sorted(by_platform.items()):
         print(f"  {p}: {count} scenarios")
-    
+
     # First 5 scenarios
     print("\nFirst 5 scenarios:")
     for s in scenarios[:5]:
         print(f"  {s['id']}: {s['name']}")
+
 
 if __name__ == "__main__":
     main()

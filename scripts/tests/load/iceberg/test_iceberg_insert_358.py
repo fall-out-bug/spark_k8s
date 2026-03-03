@@ -30,16 +30,18 @@ def test_iceberg_insert_load_358(spark_connect_client):
     - Stable latency
     """
     duration_sec = 1800  # 30 minutes
-    interval_sec = 0.1   # 10 inserts/sec
+    interval_sec = 0.1  # 10 inserts/sec
 
     # Create test data generator
     def generate_insert_query():
         """Generate an INSERT query with test data."""
-        test_data = spark_connect_client.createDataFrame([
-            Row(id=1, value=10.5, source="load_test"),
-            Row(id=2, value=20.3, source="load_test"),
-            Row(id=3, value=15.7, source="load_test"),
-        ])
+        test_data = spark_connect_client.createDataFrame(
+            [
+                Row(id=1, value=10.5, source="load_test"),
+                Row(id=2, value=20.3, source="load_test"),
+                Row(id=3, value=15.7, source="load_test"),
+            ]
+        )
 
         # Write to Iceberg table using append mode
         test_data.writeTo("nyc_iceberg.test_table").append()
@@ -67,11 +69,13 @@ def test_iceberg_insert_load_358(spark_connect_client):
             query_start = datetime.now()
 
             # Run INSERT operation
-            test_data = spark_connect_client.createDataFrame([
-                Row(id=metrics["queries_total"] % 100, value=10.5, source="load_test"),
-                Row(id=(metrics["queries_total"] + 1) % 100, value=20.3, source="load_test"),
-                Row(id=(metrics["queries_total"] + 2) % 100, value=15.7, source="load_test"),
-            ])
+            test_data = spark_connect_client.createDataFrame(
+                [
+                    Row(id=metrics["queries_total"] % 100, value=10.5, source="load_test"),
+                    Row(id=(metrics["queries_total"] + 1) % 100, value=20.3, source="load_test"),
+                    Row(id=(metrics["queries_total"] + 2) % 100, value=15.7, source="load_test"),
+                ]
+            )
             test_data.writeTo("nyc_iceberg.test_table").append()
 
             query_end = datetime.now()
@@ -82,8 +86,10 @@ def test_iceberg_insert_load_358(spark_connect_client):
 
             if metrics["queries_total"] % 600 == 0:
                 elapsed = (datetime.now() - start_time).total_seconds()
-                print(f"[iceberg_insert_358] Progress: {elapsed:.0f}/{duration_sec}s, "
-                      f"ops: {metrics['queries_success']/elapsed:.2f}/s")
+                print(
+                    f"[iceberg_insert_358] Progress: {elapsed:.0f}/{duration_sec}s, "
+                    f"ops: {metrics['queries_success']/elapsed:.2f}/s"
+                )
 
         except Exception as e:
             metrics["queries_failed"] += 1
@@ -91,7 +97,7 @@ def test_iceberg_insert_load_358(spark_connect_client):
         finally:
             metrics["queries_total"] += 1
 
-            query_duration = (datetime.now() - query_start).total_seconds() if 'query_start' in locals() else 0
+            query_duration = (datetime.now() - query_start).total_seconds() if "query_start" in locals() else 0
             sleep_time = max(0, interval_sec - query_duration)
             if sleep_time > 0 and datetime.now() < end_time:
                 time.sleep(sleep_time)
@@ -100,11 +106,7 @@ def test_iceberg_insert_load_358(spark_connect_client):
     actual_duration = (datetime.now() - start_time).total_seconds()
     metrics["actual_duration_sec"] = actual_duration
     metrics["throughput_qps"] = metrics["queries_total"] / actual_duration if actual_duration > 0 else 0
-    metrics["error_rate"] = (
-        metrics["queries_failed"] / metrics["queries_total"]
-        if metrics["queries_total"] > 0
-        else 0
-    )
+    metrics["error_rate"] = metrics["queries_failed"] / metrics["queries_total"] if metrics["queries_total"] > 0 else 0
 
     # Calculate percentiles
     if metrics["latencies"]:
@@ -145,7 +147,9 @@ def test_iceberg_insert_load_358(spark_connect_client):
     print(f"Inserts: {metrics['queries_success']} / {metrics['queries_total']}")
     print(f"Throughput: {metrics['throughput_qps']:.2f} ops/sec")
     print(f"Error rate: {metrics['error_rate']:.2%}")
-    print(f"Latency - Avg: {metrics['latency_avg_ms']:.1f}ms, "
-          f"P50: {metrics['latency_p50_ms']:.1f}ms, "
-          f"P95: {metrics['latency_p95_ms']:.1f}ms, "
-          f"P99: {metrics['latency_p99_ms']:.1f}ms")
+    print(
+        f"Latency - Avg: {metrics['latency_avg_ms']:.1f}ms, "
+        f"P50: {metrics['latency_p50_ms']:.1f}ms, "
+        f"P95: {metrics['latency_p95_ms']:.1f}ms, "
+        f"P99: {metrics['latency_p99_ms']:.1f}ms"
+    )

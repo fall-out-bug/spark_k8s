@@ -120,9 +120,7 @@ class MetricsCollector:
                 app_id = app.get("id")
                 if app_id:
                     try:
-                        tasks_resp = requests.get(
-                            f"{HISTORY_SERVER_URL}/api/v1/applications/{app_id}/stages"
-                        )
+                        tasks_resp = requests.get(f"{HISTORY_SERVER_URL}/api/v1/applications/{app_id}/stages")
                         tasks_resp.raise_for_status()
 
                         for stage in tasks_resp.json():
@@ -147,9 +145,7 @@ class MetricsCollector:
                 app_id = app.get("id")
                 if app_id:
                     try:
-                        stages_resp = requests.get(
-                            f"{HISTORY_SERVER_URL}/api/v1/applications/{app_id}/stages"
-                        )
+                        stages_resp = requests.get(f"{HISTORY_SERVER_URL}/api/v1/applications/{app_id}/stages")
                         stages_resp.raise_for_status()
 
                         for stage in stages_resp.json():
@@ -200,9 +196,7 @@ class MetricsCollector:
                 app_id = app.get("id")
                 if app_id:
                     try:
-                        metrics_resp = requests.get(
-                            f"{HISTORY_SERVER_URL}/api/v1/applications/{app_id}/executors"
-                        )
+                        metrics_resp = requests.get(f"{HISTORY_SERVER_URL}/api/v1/applications/{app_id}/executors")
                         metrics_resp.raise_for_bytes()
 
                         for executor in metrics_resp.json():
@@ -261,8 +255,8 @@ class MetricsCollector:
 
         metrics_file = self.output_dir / f"{self.test_name}-metrics.jsonl"
 
-        with open(metrics_file, 'a') as f:
-            f.write(json.dumps(self.collect_all()) + '\n')
+        with open(metrics_file, "a") as f:
+            f.write(json.dumps(self.collect_all()) + "\n")
 
         return metrics_file
 
@@ -283,39 +277,22 @@ def collect_metrics(test_name: str, output_dir: Optional[Path] = None) -> Dict[s
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Collect metrics from load tests"
-    )
-    subparsers = parser.add_subparsers(dest='command', help='Command to run')
+    parser = argparse.ArgumentParser(description="Collect metrics from load tests")
+    subparsers = parser.add_subparsers(dest="command", help="Command to run")
 
     # Collect command
-    collect_parser = subparsers.add_parser('collect', help='Collect metrics')
-    collect_parser.add_argument(
-        '--test-name', type=str, required=True,
-        help='Name of the test'
-    )
-    collect_parser.add_argument(
-        '--output-dir', type=str,
-        default='/tmp/load-test-metrics',
-        help='Output directory'
-    )
+    collect_parser = subparsers.add_parser("collect", help="Collect metrics")
+    collect_parser.add_argument("--test-name", type=str, required=True, help="Name of the test")
+    collect_parser.add_argument("--output-dir", type=str, default="/tmp/load-test-metrics", help="Output directory")
 
     # Aggregate command
-    aggregate_parser = subparsers.add_parser('aggregate', help='Aggregate metrics')
-    aggregate_parser.add_argument(
-        '--input-dir', type=str,
-        default='/tmp/load-test-metrics',
-        help='Input directory'
-    )
-    aggregate_parser.add_argument(
-        '--output', type=str,
-        default='/tmp/aggregated-metrics.jsonl',
-        help='Output file'
-    )
+    aggregate_parser = subparsers.add_parser("aggregate", help="Aggregate metrics")
+    aggregate_parser.add_argument("--input-dir", type=str, default="/tmp/load-test-metrics", help="Input directory")
+    aggregate_parser.add_argument("--output", type=str, default="/tmp/aggregated-metrics.jsonl", help="Output file")
 
     args = parser.parse_args()
 
-    if args.command == 'collect':
+    if args.command == "collect":
         collector = MetricsCollector(args.test_name, Path(args.output_dir))
         metrics = collector.collect_all()
         file_path = collector.save()
@@ -325,7 +302,7 @@ def main():
 
         return 0
 
-    elif args.command == 'aggregate':
+    elif args.command == "aggregate":
         input_dir = Path(args.input_dir)
         output_file = Path(args.output)
 
@@ -336,9 +313,9 @@ def main():
                     all_metrics.append(json.loads(line))
 
         output_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             for metrics in all_metrics:
-                f.write(json.dumps(metrics) + '\n')
+                f.write(json.dumps(metrics) + "\n")
 
         print(f"Aggregated {len(all_metrics)} metric records to: {output_file}")
         return 0
@@ -348,5 +325,5 @@ def main():
         return 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

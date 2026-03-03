@@ -64,7 +64,7 @@ kubectl exec -n spark-sa-prodlike deploy/spark-prodlike-spark-standalone-airflow
 
 ### Execution Report
 
-**Executed by:** GPT-5.2 (agent)  
+**Executed by:** GPT-5.2 (agent)
 **Date:** 2026-01-16
 
 #### 🎯 Goal Status
@@ -93,7 +93,7 @@ helm upgrade --install spark-prodlike charts/spark-standalone \
 
 ### Review Result
 
-**Reviewed by:** GPT-5.2 (agent)  
+**Reviewed by:** GPT-5.2 (agent)
 **Date:** 2026-01-16
 
 #### Metrics Summary
@@ -107,4 +107,3 @@ helm upgrade --install spark-prodlike charts/spark-standalone \
 | Security (PSS) | ✅ |
 
 **Verdict:** ✅ APPROVED
-

@@ -1,16 +1,16 @@
 # F06 E2E Matrix Report
 
-**Feature:** F06 - Spark Connect Standalone Parity (E2E matrix)  
-**Date:** 2026-01-25  
-**Tester:** Auto (agent) + Runtime Validation  
+**Feature:** F06 - Spark Connect Standalone Parity (E2E matrix)
+**Date:** 2026-01-25
+**Tester:** Auto (agent) + Runtime Validation
 **Cluster:** minikube (single-node, local)
 
 ---
 
 ## Summary
 
-✅ All requested E2E configurations completed for Spark 3.5 and 4.1.  
-✅ Smoke and full load variants executed for each scenario.  
+✅ All requested E2E configurations completed for Spark 3.5 and 4.1.
+✅ Smoke and full load variants executed for each scenario.
 ⚠️ Spark metrics checks are best-effort for some modes (see Notes).
 
 ---
@@ -82,4 +82,3 @@
 
 - Optionally run with `CLEANUP=true` to validate teardown.
 - If needed, re-enable strict metrics checks once minikube stability is improved.
-

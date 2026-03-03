@@ -26,9 +26,9 @@ ERRORS=""
 run_test() {
     local name="$1"
     local cmd="$2"
-    
+
     echo -n "Testing $name... "
-    
+
     if eval "$cmd" > /dev/null 2>&1; then
         echo "✓ PASS"
         ((PASSED++))

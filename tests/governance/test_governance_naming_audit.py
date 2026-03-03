@@ -10,13 +10,7 @@ class TestNamingConventionsDocs:
 
     @pytest.fixture(scope="class")
     def doc_path(self) -> Path:
-        return (
-            Path(__file__).parent.parent.parent
-            / "docs"
-            / "recipes"
-            / "governance"
-            / "naming-conventions.md"
-        )
+        return Path(__file__).parent.parent.parent / "docs" / "recipes" / "governance" / "naming-conventions.md"
 
     def test_doc_exists(self, doc_path: Path) -> None:
         """Test that naming conventions doc exists."""
@@ -53,13 +47,7 @@ class TestAuditLoggingDocs:
 
     @pytest.fixture(scope="class")
     def doc_path(self) -> Path:
-        return (
-            Path(__file__).parent.parent.parent
-            / "docs"
-            / "recipes"
-            / "governance"
-            / "audit-logging.md"
-        )
+        return Path(__file__).parent.parent.parent / "docs" / "recipes" / "governance" / "audit-logging.md"
 
     def test_doc_exists(self, doc_path: Path) -> None:
         """Test that audit logging doc exists."""

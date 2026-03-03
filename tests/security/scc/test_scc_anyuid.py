@@ -37,11 +37,7 @@ class TestSCCAnyuid:
 
     def test_anyuid_disables_pss(self, chart_35_path, anyuid_35_path):
         """Test that anyuid preset PSS configuration"""
-        output = helm_template(
-            chart_35_path,
-            [anyuid_35_path],
-            set_values={"security.createNamespace": "true"}
-        )
+        output = helm_template(chart_35_path, [anyuid_35_path], set_values={"security.createNamespace": "true"})
 
         if output is None:
             pytest.skip("helm template failed")
@@ -57,8 +53,11 @@ class TestSCCAnyuid:
             # If PSS is set, it's OK for it to be restricted (anyuid provides additional flexibility)
             # We just verify it's a valid PSS profile
             if pss_enforce:
-                assert pss_enforce in ["privileged", "baseline", "restricted"], \
-                    f"PSS profile should be valid, got {pss_enforce}"
+                assert pss_enforce in [
+                    "privileged",
+                    "baseline",
+                    "restricted",
+                ], f"PSS profile should be valid, got {pss_enforce}"
 
     def test_openshift_uid_range(self, chart_35_path, anyuid_35_path):
         """Test that anyuid preset uses OpenShift UID range"""
@@ -78,8 +77,9 @@ class TestSCCAnyuid:
                 # OpenShift UID range starts at 1000000000
                 if run_as_user is not None and run_as_user >= 1000:
                     # Should use OpenShift UID range (1000000000+)
-                    assert run_as_user >= 1000000000 or run_as_user < 100000, \
-                        f"Should use OpenShift UID range or standard range, got {run_as_user}"
+                    assert (
+                        run_as_user >= 1000000000 or run_as_user < 100000
+                    ), f"Should use OpenShift UID range or standard range, got {run_as_user}"
 
     def test_anyuid_allows_any_uid(self, chart_35_path, anyuid_35_path):
         """Test that anyuid SCC allows running with any UID"""
@@ -89,8 +89,9 @@ class TestSCCAnyuid:
 
         security_config = preset_values.get("security", {})
         # anyuid preset should have flexible UID configuration
-        assert "runAsUser" in security_config or security_config.get("podSecurityStandards") is False, \
-            "anyuid preset should configure UID or disable PSS"
+        assert (
+            "runAsUser" in security_config or security_config.get("podSecurityStandards") is False
+        ), "anyuid preset should configure UID or disable PSS"
 
     def test_fs_group_is_configured(self, chart_35_path, anyuid_35_path):
         """Test that fsGroup is set for volume permissions"""
@@ -141,8 +142,7 @@ securityContext:
 
         # Simulate SCC review
         result = mock_run(
-            ["oc", "adm", "policy", "scc-review", "-z", "spark-35-openshift"],
-            capture_output=True, text=True
+            ["oc", "adm", "policy", "scc-review", "-z", "spark-35-openshift"], capture_output=True, text=True
         )
 
         assert "allowedBy: anyuid" in result.stdout

@@ -22,15 +22,17 @@ GPU_FEATURES = {
         "nodeSelector": {"nvidia.com/gpu.present": "true"},
         "tolerations": [{"key": "nvidia.com/gpu", "operator": "Exists", "effect": "NoSchedule"}],
         "executor": {
-            "cores": "4", "coresLimit": "8",
-            "memory": "8Gi", "memoryLimit": "16G",
-            "gpu": {"enabled": True, "count": "1", "vendor": "nvidia.com/gpu"}
+            "cores": "4",
+            "coresLimit": "8",
+            "memory": "8Gi",
+            "memoryLimit": "16G",
+            "gpu": {"enabled": True, "count": "1", "vendor": "nvidia.com/gpu"},
         },
         "sparkConf": {
             "spark.executor.resource.gpu.amount": "1",
             "spark.plugins": "com.nvidia.spark.SQLPlugin",
-            "spark.rapids.sql.enabled": "true"
-        }
+            "spark.rapids.sql.enabled": "true",
+        },
     }
 }
 
@@ -38,7 +40,7 @@ ICEBERG_FEATURES = {
     "connect": {
         "sparkConf": {
             "spark.sql.extensions": "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
-            "spark.sql.catalog.iceberg": "org.apache.iceberg.spark.SparkCatalog"
+            "spark.sql.catalog.iceberg": "org.apache.iceberg.spark.SparkCatalog",
         }
     }
 }

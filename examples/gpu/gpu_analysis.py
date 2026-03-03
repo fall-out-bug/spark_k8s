@@ -10,9 +10,7 @@ def explain_gpu_plan(df) -> None:
     """Show query execution plan with GPU operators."""
     print("\n7. GPU Execution Plan")
 
-    df_explained = df.groupBy("product_id").agg(
-        avg("price").alias("avg_price")
-    )
+    df_explained = df.groupBy("product_id").agg(avg("price").alias("avg_price"))
 
     # Explain plan - look for Gpu* operators
     df_explained.explain(extended=True)

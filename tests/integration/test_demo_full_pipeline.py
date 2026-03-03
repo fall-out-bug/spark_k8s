@@ -10,9 +10,9 @@ DEMO_VALUES = "charts/spark-3.5/values-demo-full-pipeline.yaml"
 def helm_template_demo() -> str:
     """Run helm template for demo and return output."""
     result = subprocess.run(
-        ["helm", "template", "full-demo", "charts/spark-3.5",
-         "-f", DEMO_VALUES, "--namespace", "demo"],
-        capture_output=True, text=True,
+        ["helm", "template", "full-demo", "charts/spark-3.5", "-f", DEMO_VALUES, "--namespace", "demo"],
+        capture_output=True,
+        text=True,
     )
     assert result.returncode == 0, f"Template failed: {result.stderr}"
     return result.stdout

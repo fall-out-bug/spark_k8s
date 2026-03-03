@@ -213,7 +213,7 @@ Post-build checks complete: WS-001-03
 
 ### Review Result
 
-**Reviewed by:** GPT-5.2 (agent)  
+**Reviewed by:** GPT-5.2 (agent)
 **Date:** 2026-01-16
 
 #### Metrics Summary

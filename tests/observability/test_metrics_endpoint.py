@@ -19,9 +19,15 @@ class TestMetricsEndpoint:
     def spark_pod(self, kube_namespace):
         """Get a running Spark executor pod"""
         cmd = [
-            "kubectl", "get", "pods", "-n", kube_namespace,
-            "-l", "spark-role=executor",
-            "-o", "jsonpath={.items[0].metadata.name}"
+            "kubectl",
+            "get",
+            "pods",
+            "-n",
+            kube_namespace,
+            "-l",
+            "spark-role=executor",
+            "-o",
+            "jsonpath={.items[0].metadata.name}",
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0 or not result.stdout.strip():
@@ -31,15 +37,8 @@ class TestMetricsEndpoint:
     def test_metrics_port_forward(self, spark_pod, kube_namespace):
         """Test that metrics port can be forwarded"""
         # Start port-forward
-        cmd = [
-            "kubectl", "port-forward", "-n", kube_namespace,
-            spark_pod, "9090:9090"
-        ]
-        proc = subprocess.Popen(
-            cmd,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
+        cmd = ["kubectl", "port-forward", "-n", kube_namespace, spark_pod, "9090:9090"]
+        proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(2)
 
         try:
@@ -52,15 +51,8 @@ class TestMetricsEndpoint:
 
     def test_metrics_content(self, spark_pod, kube_namespace):
         """Test that metrics contain expected Spark metrics"""
-        cmd = [
-            "kubectl", "port-forward", "-n", kube_namespace,
-            spark_pod, "9090:9090"
-        ]
-        proc = subprocess.Popen(
-            cmd,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
+        cmd = ["kubectl", "port-forward", "-n", kube_namespace, spark_pod, "9090:9090"]
+        proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(2)
 
         try:
@@ -81,4 +73,5 @@ class TestMetricsEndpoint:
 def kube_namespace():
     """Get Kubernetes namespace for tests"""
     import os
+
     return os.getenv("KUBE_NAMESPACE", "spark-operations")

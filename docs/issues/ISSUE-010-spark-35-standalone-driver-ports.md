@@ -1,8 +1,8 @@
 # ISSUE-010: Spark Connect 3.5 Standalone backend lacks driver/blockmanager ports
 
-**Created:** 2026-01-20  
-**Status:** Resolved  
-**Severity:** 🔴 CRITICAL (Standalone backend unusable)  
+**Created:** 2026-01-20
+**Status:** Resolved
+**Severity:** 🔴 CRITICAL (Standalone backend unusable)
 **Feature:** F06 - Spark Connect Standalone Parity
 
 ---

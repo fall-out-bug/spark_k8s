@@ -15,4 +15,3 @@ Run the full E2E test matrix for Spark 3.5 and 4.1 across Jupyter and Airflow sc
 - Minikube as the primary test cluster.
 - Each scenario should be runnable independently.
 - Each run must verify: logs, metrics endpoint, and result output.
-

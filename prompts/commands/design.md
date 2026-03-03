@@ -353,7 +353,7 @@ git commit -m "docs(${FEATURE_SLUG}): create WS specifications for ${FEATURE_ID}
 
 Workstreams:
 - WS-060-01: domain layer
-- WS-060-02: application layer  
+- WS-060-02: application layer
 - WS-060-03: infrastructure
 - WS-060-04: presentation
 - WS-060-05: integration tests

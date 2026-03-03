@@ -96,8 +96,10 @@ with DAG(
             "spark.hadoop.fs.s3a.endpoint": "http://minio:9000",
         },
         application_args=[
-            "--table", "warehouse.fact_daily",
-            "--output-xcom", "true",
+            "--table",
+            "warehouse.fact_daily",
+            "--output-xcom",
+            "true",
         ],
         execution_timeout=timedelta(minutes=15),
     )
@@ -130,8 +132,10 @@ with DAG(
             "spark.master": "spark://spark-connect:15002",
         },
         application_args=[
-            "--date", "{{ ds }}",
-            "--output", "s3a://reports/dq/{{ ds }}/",
+            "--date",
+            "{{ ds }}",
+            "--output",
+            "s3a://reports/dq/{{ ds }}/",
         ],
         execution_timeout=timedelta(minutes=10),
     )

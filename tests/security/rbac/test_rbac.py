@@ -34,10 +34,17 @@ class TestRBAC:
         """Test that ServiceAccount is created"""
         prod_values = repository_root / "charts" / "spark-4.1" / "environments" / "prod" / "values.yaml"
         result = subprocess.run(
-            ["helm", "template", "test", str(chart_41_path),
-            "-f", str(prod_values),
-            "--show-only", "templates/rbac/serviceaccount.yaml"],
-            capture_output=True
+            [
+                "helm",
+                "template",
+                "test",
+                str(chart_41_path),
+                "-f",
+                str(prod_values),
+                "--show-only",
+                "templates/rbac/serviceaccount.yaml",
+            ],
+            capture_output=True,
         )
         assert result.returncode == 0, "ServiceAccount template should render"
         assert "ServiceAccount" in result.stdout.decode(), "ServiceAccount should be created"

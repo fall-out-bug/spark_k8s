@@ -169,7 +169,7 @@ fi
 # Check workers for standalone mode
 if [[ "$DEPLOYMENT_MODE" == "standalone" ]]; then
     WORKER_COUNT=$(kubectl get pods -n $NAMESPACE -l 'app.kubernetes.io/component=spark-worker' --no-headers 2>/dev/null | grep -c Running || echo "0")
-    
+
     echo -n "Testing: worker-pods-running... "
     if [[ $WORKER_COUNT -gt 0 ]]; then
         log_pass "worker-pods-running ($WORKER_COUNT)"
@@ -181,21 +181,21 @@ fi
 # === 4. Spark Connect Test (if enabled) ===
 if [[ "$CONNECT_ENABLED" == "true" ]]; then
     log_info "=== 4. Spark Connect Test ==="
-    
+
     CONNECT_SVC=$(kubectl get svc -n $NAMESPACE -l 'app.kubernetes.io/component=spark-connect' -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
-    
+
     echo -n "Testing: connect-service... "
     if [[ -n "$CONNECT_SVC" ]]; then
         log_pass "connect-service ($CONNECT_SVC)"
     else
         log_fail "connect-service (not found)"
     fi
-    
+
     # Test Connect endpoint if pod exists
     if [[ -n "$MASTER_POD" ]]; then
         echo -n "Testing: connect-endpoint... "
         CONNECT_PORT=$(kubectl get svc -n $NAMESPACE $CONNECT_SVC -o jsonpath='{.spec.ports[?(@.name=="connect")].port}' 2>/dev/null || echo "15002")
-        
+
         # Try connecting via Python
         CONNECT_TEST=$(kubectl exec -n $NAMESPACE $MASTER_POD -- python3 -c "
 from pyspark.sql import SparkSession
@@ -208,7 +208,7 @@ try:
 except Exception as e:
     print(f'CONNECT_TEST_ERROR: {e}')
 " 2>&1) || true
-        
+
         if echo "$CONNECT_TEST" | grep -q "CONNECT_TEST_SUCCESS"; then
             log_pass "connect-endpoint"
         else
@@ -222,7 +222,7 @@ log_info "=== 5. Basic Spark Submit Test ==="
 
 if [[ -n "$MASTER_POD" && "$DEPLOYMENT_MODE" == "standalone" ]]; then
     MASTER_URL="spark://$(get_master_service):7077"
-    
+
     cat > /tmp/smoke-test-$SCENARIO_ID.py << PYEOF
 from pyspark.sql import SparkSession
 import sys
@@ -241,16 +241,16 @@ PYEOF
 
     echo -n "Testing: spark-submit-basic... "
     kubectl cp /tmp/smoke-test-$SCENARIO_ID.py $NAMESPACE/$MASTER_POD:/tmp/smoke-test.py 2>/dev/null
-    
+
     OUTPUT=$(kubectl exec -n $NAMESPACE $MASTER_POD -- bash -c 'DRIVER_HOST=$(hostname -i) && timeout '$TIMEOUT' spark-submit --master '$MASTER_URL' --conf spark.driver.host=$DRIVER_HOST --conf spark.driver.bindAddress=0.0.0.0 /tmp/smoke-test.py' 2>&1) || true
-    
+
     if echo "$OUTPUT" | grep -q "SMOKE_TEST_RESULT: 100"; then
         log_pass "spark-submit-basic"
     else
         log_fail "spark-submit-basic"
         echo "$OUTPUT" | tail -20 >> "$RESULTS_DIR/smoke-submit-$SCENARIO_ID.log"
     fi
-    
+
     rm -f /tmp/smoke-test-$SCENARIO_ID.py
 else
     log_skip "spark-submit-basic (requires standalone mode)"
@@ -259,10 +259,10 @@ fi
 # === 6. GPU Test (if enabled) ===
 if [[ "$GPU_ENABLED" == "true" ]]; then
     log_info "=== 6. GPU Test ==="
-    
+
     echo -n "Testing: gpu-resources... "
     GPU_COUNT=$(kubectl get pods -n $NAMESPACE -o jsonpath='{.items[*].spec.containers[*].resources.requests.nvidia\.com/gpu}' 2>/dev/null | grep -c -E '[0-9]+' || echo "0")
-    
+
     if [[ $GPU_COUNT -gt 0 ]]; then
         log_pass "gpu-resources ($GPU_COUNT GPUs allocated)"
     else
@@ -273,11 +273,11 @@ fi
 # === 7. Iceberg Test (if enabled) ===
 if [[ "$ICEBERG_ENABLED" == "true" ]]; then
     log_info "=== 7. Iceberg Test ==="
-    
+
     # Check for Iceberg catalog configuration
     echo -n "Testing: iceberg-catalog... "
     ICEBERG_CONFIG=$(kubectl exec -n $NAMESPACE $MASTER_POD -- env 2>/dev/null | grep -c ICEBERG || echo "0")
-    
+
     if [[ $ICEBERG_CONFIG -gt 0 ]]; then
         log_pass "iceberg-catalog (configured)"
     else
@@ -288,10 +288,10 @@ fi
 # === 8. OpenLineage Test (if enabled) ===
 if [[ "$OPENLINEAGE_ENABLED" == "true" ]]; then
     log_info "=== 8. OpenLineage Test ==="
-    
+
     echo -n "Testing: openlineage-config... "
     OL_CONFIG=$(kubectl exec -n $NAMESPACE $MASTER_POD -- env 2>/dev/null | grep -c OPENLINEAGE || echo "0")
-    
+
     if [[ $OL_CONFIG -gt 0 ]]; then
         log_pass "openlineage-config (configured)"
     else

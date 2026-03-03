@@ -1,8 +1,8 @@
 # ISSUE-011: Connect load test scripts assume wrong service name
 
-**Created:** 2026-01-20  
-**Status:** Resolved  
-**Severity:** 🔴 CRITICAL (load tests fail immediately)  
+**Created:** 2026-01-20
+**Status:** Resolved
+**Severity:** 🔴 CRITICAL (load tests fail immediately)
 **Feature:** F06 - Spark Connect Standalone Parity
 
 ---

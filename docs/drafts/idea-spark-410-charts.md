@@ -1,7 +1,7 @@
 # Feature Draft: Apache Spark 4.1.0 Charts
 
-**Status:** Draft  
-**Created:** 2026-01-15  
+**Status:** Draft
+**Created:** 2026-01-15
 **Feature ID:** F04 (tentative)
 
 ## 📋 Overview
@@ -410,14 +410,14 @@ spark-4.1:
       limits:
         memory: "8Gi"
         cpu: "4"
-  
+
   celeborn:
     enabled: true
     workers:
       replicas: 5
       storage:
         size: "200Gi"
-  
+
   security:
     podSecurityStandards: true
     mtls:

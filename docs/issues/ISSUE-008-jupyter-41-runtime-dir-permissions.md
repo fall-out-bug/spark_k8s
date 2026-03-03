@@ -1,8 +1,8 @@
 # ISSUE-008: Jupyter 4.1 fails to start (runtime dir permission)
 
-**Created:** 2026-01-19  
-**Status:** Resolved  
-**Severity:** 🔴 CRITICAL (blocks runtime tests)  
+**Created:** 2026-01-19
+**Status:** Resolved
+**Severity:** 🔴 CRITICAL (blocks runtime tests)
 **Feature:** F04 - Spark 4.1.0 Charts
 
 ---

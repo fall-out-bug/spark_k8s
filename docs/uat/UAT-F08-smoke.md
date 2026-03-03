@@ -1,6 +1,6 @@
 # UAT: F08 Phase 2 — Complete Smoke Tests
 
-**Feature:** F08 - Phase 2 Complete Smoke Tests  
+**Feature:** F08 - Phase 2 Complete Smoke Tests
 **Review Date:** 2026-02-10
 
 ---

@@ -3,6 +3,7 @@ Library compatibility tests for PySpark with numpy.
 
 Tests validate PySpark compatibility with different numpy versions.
 """
+
 import pytest
 
 test_feature = "compatibility"
@@ -14,24 +15,16 @@ test_library = "numpy"
 class TestNumpyCompatibility:
     """Test numpy compatibility with PySpark."""
 
-    def test_numpy_conversion(
-        self,
-        spark_session,
-        numpy_compatibility,
-        library_versions
-    ):
+    def test_numpy_conversion(self, spark_session, numpy_compatibility, library_versions):
         """Test numpy array to Spark DataFrame conversion."""
         result = numpy_compatibility
 
-        assert result["conversion_success"], \
-            f"numpy conversion failed: {result.get('error', 'unknown error')}"
-        assert result["row_count"] == result["expected_count"], \
-            f"Row count mismatch: {result['row_count']} != {result['expected_count']}"
+        assert result["conversion_success"], f"numpy conversion failed: {result.get('error', 'unknown error')}"
+        assert (
+            result["row_count"] == result["expected_count"]
+        ), f"Row count mismatch: {result['row_count']} != {result['expected_count']}"
 
-    def test_numpy_version_check(
-        self,
-        library_versions
-    ):
+    def test_numpy_version_check(self, library_versions):
         """Test that numpy version is detected."""
         versions = library_versions
 
@@ -43,21 +36,20 @@ class TestNumpyCompatibility:
         parts = version.split(".")
         assert len(parts) >= 2, f"Invalid version format: {version}"
 
-    def test_numpy_dtypes(
-        self,
-        spark_session
-    ):
+    def test_numpy_dtypes(self, spark_session):
         """Test PySpark with numpy dtypes."""
         try:
             import numpy as np
             import pandas as pd
 
             # Create DataFrame with numpy dtypes
-            data = pd.DataFrame({
-                "int64": np.array([1, 2, 3], dtype=np.int64),
-                "float64": np.array([1.5, 2.5, 3.5], dtype=np.float64),
-                "bool": np.array([True, False, True], dtype=np.bool_)
-            })
+            data = pd.DataFrame(
+                {
+                    "int64": np.array([1, 2, 3], dtype=np.int64),
+                    "float64": np.array([1.5, 2.5, 3.5], dtype=np.float64),
+                    "bool": np.array([True, False, True], dtype=np.bool_),
+                }
+            )
 
             # Convert to Spark
             sdf = spark_session.createDataFrame(data)
@@ -68,20 +60,13 @@ class TestNumpyCompatibility:
         except ImportError:
             pytest.skip("numpy or pandas not installed")
 
-    def test_numpy_array_operations(
-        self,
-        spark_session
-    ):
+    def test_numpy_array_operations(self, spark_session):
         """Test PySpark operations on numpy arrays."""
         try:
             import numpy as np
 
             # Create 2D numpy array
-            arr = np.array([
-                [1, 2, 3],
-                [4, 5, 6],
-                [7, 8, 9]
-            ])
+            arr = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
             # Convert to Spark and verify
             sdf = spark_session.createDataFrame(arr, ["a", "b", "c"])

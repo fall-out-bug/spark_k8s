@@ -25,16 +25,12 @@ class TestDynamicAllocation:
         """Dynamic allocation should be enabled by default."""
         assert values_content["connect"]["dynamicAllocation"]["enabled"] is True
 
-    def test_dynamic_allocation_min_executors_configured(
-        self, values_content: dict
-    ) -> None:
+    def test_dynamic_allocation_min_executors_configured(self, values_content: dict) -> None:
         """Min executors should be configured."""
         assert "minExecutors" in values_content["connect"]["dynamicAllocation"]
         assert values_content["connect"]["dynamicAllocation"]["minExecutors"] >= 0
 
-    def test_dynamic_allocation_max_executors_configured(
-        self, values_content: dict
-    ) -> None:
+    def test_dynamic_allocation_max_executors_configured(self, values_content: dict) -> None:
         """Max executors should be configured."""
         assert "maxExecutors" in values_content["connect"]["dynamicAllocation"]
         assert values_content["connect"]["dynamicAllocation"]["maxExecutors"] > 0
@@ -73,9 +69,7 @@ class TestAutoscalingValues:
         """KEDA should be disabled by default."""
         assert values_content["autoscaling"]["keda"]["enabled"] is False
 
-    def test_cluster_autoscaler_has_scale_down_config(
-        self, values_content: dict
-    ) -> None:
+    def test_cluster_autoscaler_has_scale_down_config(self, values_content: dict) -> None:
         """Cluster Autoscaler should have scale-down config."""
         ca = values_content["autoscaling"]["clusterAutoscaler"]
         assert "scaleDown" in ca

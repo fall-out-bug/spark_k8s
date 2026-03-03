@@ -7,15 +7,14 @@ from pyspark.sql.functions import col, sum as spark_sum, count, avg
 
 def create_spark_session():
     """Create Spark session with Iceberg config."""
-    return SparkSession.builder \
-        .appName("Iceberg Compaction") \
-        .config("spark.sql.extensions",
-                "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions") \
-        .config("spark.sql.catalog.iceberg",
-                "org.apache.iceberg.spark.SparkCatalog") \
-        .config("spark.sql.catalog.iceberg.type", "hadoop") \
-        .config("spark.sql.catalog.iceberg.warehouse", "s3a://warehouse/iceberg") \
+    return (
+        SparkSession.builder.appName("Iceberg Compaction")
+        .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
+        .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog")
+        .config("spark.sql.catalog.iceberg.type", "hadoop")
+        .config("spark.sql.catalog.iceberg.warehouse", "s3a://warehouse/iceberg")
         .getOrCreate()
+    )
 
 
 def analyze_table_files(spark, table_name):
@@ -29,7 +28,7 @@ def analyze_table_files(spark, table_name):
     stats = files_df.agg(
         count("*").alias("file_count"),
         spark_sum("file_size_in_bytes").alias("total_size_bytes"),
-        avg("file_size_in_bytes").alias("avg_file_size_bytes")
+        avg("file_size_in_bytes").alias("avg_file_size_bytes"),
     ).collect()[0]
 
     return {
@@ -90,7 +89,8 @@ def compact_table(spark, table_name, target_size_bytes=256 * 1024 * 1024):
     print(f"  Reason: {reason}")
 
     # Run compaction
-    spark.sql(f"""
+    spark.sql(
+        f"""
         CALL iceberg.system.rewrite_data_files(
             table => '{table_name}',
             options => map(
@@ -98,7 +98,8 @@ def compact_table(spark, table_name, target_size_bytes=256 * 1024 * 1024):
                 'max-concurrent-file-group-rewrites', '10'
             )
         )
-    """)
+    """
+    )
 
     # Analyze after
     after = analyze_table_files(spark, table_name)
@@ -120,7 +121,8 @@ def compact_partitioned_table(spark, table_name, partition_filter=None):
 
     print(f"\nCompacting {table_name} {where_clause}...")
 
-    spark.sql(f"""
+    spark.sql(
+        f"""
         CALL iceberg.system.rewrite_data_files(
             table => '{table_name}',
             where => '{partition_filter}',
@@ -128,7 +130,8 @@ def compact_partitioned_table(spark, table_name, partition_filter=None):
                 'target-file-size-bytes', '268435456'
             )
         )
-    """)
+    """
+    )
 
 
 def remove_orphan_files(spark, table_name, older_than_days=7):
@@ -142,12 +145,14 @@ def remove_orphan_files(spark, table_name, older_than_days=7):
     """
     print(f"\nRemoving orphan files from {table_name}...")
 
-    result = spark.sql(f"""
+    result = spark.sql(
+        f"""
         CALL iceberg.system.remove_orphan_files(
             table => '{table_name}',
             older_than => timestamp('{older_than_days} days')
         )
-    """)
+    """
+    )
 
     deleted = result.collect()[0][0]
     print(f"  Deleted {deleted} orphan files")
@@ -164,12 +169,14 @@ def expire_snapshots(spark, table_name, retain_days=7):
     """
     print(f"\nExpiring snapshots for {table_name} (retain {retain_days} days)...")
 
-    result = spark.sql(f"""
+    result = spark.sql(
+        f"""
         CALL iceberg.system.expire_snapshots(
             table => '{table_name}',
             older_than => timestamp('{retain_days} days')
         )
-    """)
+    """
+    )
 
     expired = result.collect()[0][0]
     print(f"  Expired {expired} snapshots")

@@ -27,12 +27,14 @@ class TestLoadConfigs:
     def test_load_profiles_config(self, tmp_path: Path):
         """Test loading profiles config."""
         config_path = tmp_path / "profiles.yaml"
-        config_path.write_text("""
+        config_path.write_text(
+            """
 profiles:
   etl_batch:
     base_config:
       spark.sql.adaptive.enabled: "true"
-""")
+"""
+        )
         config = load_profiles_config(config_path)
         assert "profiles" in config
         assert "etl_batch" in config["profiles"]
@@ -40,12 +42,14 @@ profiles:
     def test_load_bounds_config(self, tmp_path: Path):
         """Test loading bounds config."""
         config_path = tmp_path / "bounds.yaml"
-        config_path.write_text("""
+        config_path.write_text(
+            """
 safety_bounds:
   spark.executor.memory:
     min: "1Gi"
     max: "32Gi"
-""")
+"""
+        )
         config = load_bounds_config(config_path)
         assert "safety_bounds" in config
         assert "spark.executor.memory" in config["safety_bounds"]
@@ -331,13 +335,17 @@ class TestGenerateRecommendations:
     def test_generate_from_file(self, mock_recommender_class, tmp_path: Path):
         """Test generating recommendations from analysis file."""
         analysis_file = tmp_path / "analysis.json"
-        analysis_file.write_text(json.dumps({
-            "app_id": "app-123",
-            "timestamp": "2026-02-22T12:00:00",
-            "workload_type": "etl_batch",
-            "issues": [],
-            "metrics_summary": {},
-        }))
+        analysis_file.write_text(
+            json.dumps(
+                {
+                    "app_id": "app-123",
+                    "timestamp": "2026-02-22T12:00:00",
+                    "workload_type": "etl_batch",
+                    "issues": [],
+                    "metrics_summary": {},
+                }
+            )
+        )
 
         mock_recommender = Mock()
         mock_result = Mock()

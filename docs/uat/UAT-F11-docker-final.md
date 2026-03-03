@@ -1,6 +1,6 @@
 # UAT: F11 Phase 5 — Docker Final Images
 
-**Feature:** F11 - Phase 5 Docker Final Images  
+**Feature:** F11 - Phase 5 Docker Final Images
 **Review Date:** 2026-02-10
 
 ---

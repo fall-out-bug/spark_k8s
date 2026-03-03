@@ -20,12 +20,14 @@ class TestIcebergPreset:
     def test_iceberg_preset_valid_yaml(self, preset_file: Path) -> None:
         """Preset should be valid YAML."""
         import yaml
+
         with open(preset_file) as f:
             yaml.safe_load(f)
 
     def test_iceberg_preset_has_catalog_config(self, preset_file: Path) -> None:
         """Preset should have Iceberg catalog configuration."""
         import yaml
+
         with open(preset_file) as f:
             values = yaml.safe_load(f)
         spark_conf = values["connect"]["sparkConf"]
@@ -35,6 +37,7 @@ class TestIcebergPreset:
     def test_iceberg_preset_has_warehouse_config(self, preset_file: Path) -> None:
         """Preset should have warehouse configuration."""
         import yaml
+
         with open(preset_file) as f:
             values = yaml.safe_load(f)
         spark_conf = values["connect"]["sparkConf"]
@@ -44,6 +47,7 @@ class TestIcebergPreset:
     def test_iceberg_preset_has_catalog_type(self, preset_file: Path) -> None:
         """Preset should specify catalog type."""
         import yaml
+
         with open(preset_file) as f:
             values = yaml.safe_load(f)
         keys = [k.lower() for k in values["connect"]["sparkConf"]]
@@ -65,6 +69,7 @@ class TestIcebergExamples:
     def test_example_valid_python(self, example_file: Path) -> None:
         """Example should be valid Python."""
         import ast
+
         ast.parse(example_file.read_text())
 
     def test_example_imports_pyspark(self, example_file: Path) -> None:
@@ -105,8 +110,11 @@ class TestIcebergDocumentation:
         """Guide should have required sections."""
         content = Path("docs/recipes/data-management/iceberg-guide.md").read_text()
         required = [
-            "# Apache Iceberg Integration Guide", "## Quick Start",
-            "## Time Travel", "## Schema Evolution", "## Rollback Procedures",
+            "# Apache Iceberg Integration Guide",
+            "## Quick Start",
+            "## Time Travel",
+            "## Schema Evolution",
+            "## Rollback Procedures",
             "## Best Practices",
         ]
         for section in required:

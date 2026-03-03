@@ -30,16 +30,13 @@ RECOMMENDATION_TO_HELM = {
     "spark.executor.memoryOverhead": "connect.executor.memoryOverhead",
     "spark.executor.cores": "connect.executor.cores",
     "spark.executor.instances": "connect.replicas",
-
     # Spark SQL config
     "spark.sql.shuffle.partitions": "connect.sparkConf.spark.sql.shuffle.partitions",
     "spark.sql.autoBroadcastJoinThreshold": "connect.sparkConf.spark.sql.autoBroadcastJoinThreshold",
     "spark.sql.adaptive.advisoryPartitionSizeInBytes": "connect.sparkConf.spark.sql.adaptive.advisoryPartitionSizeInBytes",
-
     # Memory config
     "spark.memory.fraction": "connect.sparkConf.spark.memory.fraction",
     "spark.memory.storageFraction": "connect.sparkConf.spark.memory.storageFraction",
-
     # Adaptive Query Execution
     "spark.sql.adaptive.enabled": "connect.sparkConf.spark.sql.adaptive.enabled",
     "spark.sql.adaptive.coalescePartitions.enabled": "connect.sparkConf.spark.sql.adaptive.coalescePartitions.enabled",
@@ -48,11 +45,9 @@ RECOMMENDATION_TO_HELM = {
     "spark.sql.adaptive.skewJoin.skewedPartitionFactor": "connect.sparkConf.spark.sql.adaptive.skewJoin.skewedPartitionFactor",
     "spark.sql.adaptive.skewJoin.skewedPartitionThresholdInBytes": "connect.sparkConf.spark.sql.adaptive.skewJoin.skewedPartitionThresholdInBytes",
     "spark.sql.adaptive.localShuffleReader.enabled": "connect.sparkConf.spark.sql.adaptive.localShuffleReader.enabled",
-
     # Driver config
     "spark.driver.memory": "connect.driver.memory",
     "spark.driver.maxResultSize": "connect.sparkConf.spark.driver.maxResultSize",
-
     # Other
     "spark.sql.execution.arrow.pyspark.enabled": "connect.sparkConf.spark.sql.execution.arrow.pyspark.enabled",
 }
@@ -178,11 +173,7 @@ def load_recommendations(rec_file: Path) -> RecommendationSet:
         recommendations=recommendations,
         overall_confidence=data.get("overall_confidence", 0.5),
         safety_issues=data.get("safety_issues", []),
-        generated_at=(
-            datetime.fromisoformat(data["generated_at"])
-            if "generated_at" in data
-            else datetime.now()
-        ),
+        generated_at=(datetime.fromisoformat(data["generated_at"]) if "generated_at" in data else datetime.now()),
         base_config=data.get("base_config", {}),
     )
 
@@ -233,9 +224,7 @@ class HelmValuesGenerator:
         # Add base config from profile
         if rec_set.base_config:
             for param, value in rec_set.base_config.items():
-                self._set_nested_value(
-                    values, get_helm_path(param), str(value)
-                )
+                self._set_nested_value(values, get_helm_path(param), str(value))
 
         # Add recommendations
         for rec in rec_set.recommendations:
@@ -272,9 +261,7 @@ class HelmValuesGenerator:
         except ValueError:
             return str(value)
 
-    def _set_nested_value(
-        self, values: dict[str, Any], path: str, value: Any
-    ) -> None:
+    def _set_nested_value(self, values: dict[str, Any], path: str, value: Any) -> None:
         """Set a value in nested dict using dot-separated path.
 
         Special handling for sparkConf: the spark config parameter name
@@ -429,17 +416,17 @@ def apply_recommendations(
 
 def main():
     """CLI entry point."""
-    parser = argparse.ArgumentParser(
-        description="Generate Helm values from autotuning recommendations"
-    )
+    parser = argparse.ArgumentParser(description="Generate Helm values from autotuning recommendations")
     parser.add_argument(
-        "--recommendations-file", "-r",
+        "--recommendations-file",
+        "-r",
         required=True,
         type=Path,
         help="Path to recommendations JSON from recommender",
     )
     parser.add_argument(
-        "--output", "-o",
+        "--output",
+        "-o",
         required=True,
         type=Path,
         help="Output path for Helm values YAML",
@@ -456,7 +443,8 @@ def main():
         help="Skip validation",
     )
     parser.add_argument(
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         action="store_true",
         help="Enable verbose logging",
     )

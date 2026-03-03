@@ -1,6 +1,6 @@
 # UAT: F09 Phase 3 — Docker Base Layers
 
-**Feature:** F09 - Phase 3 Docker Base Layers  
+**Feature:** F09 - Phase 3 Docker Base Layers
 **Review Date:** 2026-02-10
 
 ---

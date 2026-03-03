@@ -19,8 +19,7 @@ class TestRealGPUWorkload:
     def test_has_gpu_nodes(self) -> None:
         """Check if cluster has GPU nodes."""
         result = subprocess.run(
-            ["kubectl", "get", "nodes", "-o",
-             "jsonpath={.items[*].status.allocatable.nvidia\\.com/gpu}"],
+            ["kubectl", "get", "nodes", "-o", "jsonpath={.items[*].status.allocatable.nvidia\\.com/gpu}"],
             capture_output=True,
             text=True,
         )
@@ -31,10 +30,17 @@ class TestRealGPUWorkload:
         """Deploy GPU preset and verify GPU resources are requested."""
         result = subprocess.run(
             [
-                "helm", "install", "spark-gpu", "charts/spark-4.1",
-                "-f", "charts/spark-4.1/presets/gpu-values.yaml",
-                "--namespace", gpu_namespace,
-                "--wait", "--timeout", "5m"
+                "helm",
+                "install",
+                "spark-gpu",
+                "charts/spark-4.1",
+                "-f",
+                "charts/spark-4.1/presets/gpu-values.yaml",
+                "--namespace",
+                gpu_namespace,
+                "--wait",
+                "--timeout",
+                "5m",
             ],
             capture_output=True,
             text=True,
@@ -43,9 +49,17 @@ class TestRealGPUWorkload:
             pytest.skip(f"GPU deployment failed: {result.stderr}")
 
         result = subprocess.run(
-            ["kubectl", "get", "pods", "-n", gpu_namespace,
-             "-l", "app=spark-connect",
-             "-o", "jsonpath={.items[0].spec.containers[0].resources}"],
+            [
+                "kubectl",
+                "get",
+                "pods",
+                "-n",
+                gpu_namespace,
+                "-l",
+                "app=spark-connect",
+                "-o",
+                "jsonpath={.items[0].spec.containers[0].resources}",
+            ],
             capture_output=True,
             text=True,
         )
@@ -55,8 +69,17 @@ class TestRealGPUWorkload:
     def test_run_gpu_job(self, gpu_namespace: str) -> None:
         """Run a GPU-accelerated Spark job."""
         result = subprocess.run(
-            ["kubectl", "get", "pods", "-n", gpu_namespace,
-             "-l", "app=spark-connect", "-o", "jsonpath={.items[0].metadata.name}"],
+            [
+                "kubectl",
+                "get",
+                "pods",
+                "-n",
+                gpu_namespace,
+                "-l",
+                "app=spark-connect",
+                "-o",
+                "jsonpath={.items[0].metadata.name}",
+            ],
             capture_output=True,
             text=True,
         )
@@ -66,12 +89,18 @@ class TestRealGPUWorkload:
         pod_name = result.stdout.strip()
         result = subprocess.run(
             [
-                "kubectl", "exec", "-n", gpu_namespace, pod_name, "--",
-                "/bin/bash", "-c",
-                "python3 -c \""
+                "kubectl",
+                "exec",
+                "-n",
+                gpu_namespace,
+                pod_name,
+                "--",
+                "/bin/bash",
+                "-c",
+                'python3 -c "'
                 "from pyspark.sql import SparkSession; "
                 "spark = SparkSession.builder.appName('GPU-Test').getOrCreate(); "
-                "df = spark.range(1000); df.count(); spark.stop(); print('GPU_TEST_SUCCESS')\""
+                "df = spark.range(1000); df.count(); spark.stop(); print('GPU_TEST_SUCCESS')\"",
             ],
             capture_output=True,
             text=True,

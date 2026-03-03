@@ -81,13 +81,9 @@ def generate_junit_xml(results_dir: str) -> str:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Generate JUnit XML from aggregated test results"
-    )
+    parser = argparse.ArgumentParser(description="Generate JUnit XML from aggregated test results")
     parser.add_argument(
-        "--results-dir",
-        default="test-results",
-        help="Directory containing aggregated.json (default: test-results)"
+        "--results-dir", default="test-results", help="Directory containing aggregated.json (default: test-results)"
     )
 
     args = parser.parse_args()

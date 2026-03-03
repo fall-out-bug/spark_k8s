@@ -1,8 +1,8 @@
 # ISSUE-017: Spark 4.1 Spark Connect ignores properties file
 
-**Created:** 2026-01-20  
-**Status:** Resolved  
-**Severity:** 🔴 CRITICAL (Connect CrashLoopBackOff)  
+**Created:** 2026-01-20
+**Status:** Resolved
+**Severity:** 🔴 CRITICAL (Connect CrashLoopBackOff)
 **Feature:** F06 - Spark Connect Standalone Parity
 
 ---

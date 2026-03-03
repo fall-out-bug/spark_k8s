@@ -1,8 +1,8 @@
 # ISSUE-022: Spark 4.1 Connect fails when event log prefix is missing
 
-**Created:** 2026-01-20  
-**Status:** Open  
-**Severity:** 🔴 CRITICAL (Connect CrashLoopBackOff)  
+**Created:** 2026-01-20
+**Status:** Open
+**Severity:** 🔴 CRITICAL (Connect CrashLoopBackOff)
 **Feature:** F06 - Spark Connect Standalone Parity
 
 ---

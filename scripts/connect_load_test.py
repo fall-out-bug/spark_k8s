@@ -6,6 +6,7 @@ import time
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, sum as spark_sum
 
+
 def main() -> None:
     connect_url = os.environ.get("CONNECT_URL", "sc://localhost:15002")
     load_mode = os.environ.get("LOAD_MODE", "range")
@@ -16,9 +17,7 @@ def main() -> None:
     load_s3_endpoint = os.environ.get("LOAD_S3_ENDPOINT", "http://minio:9000")
     # Use S3 for event log so History Server (infra) can show this job
     event_log_dir = os.environ.get("LOAD_EVENT_LOG_DIR", "")
-    builder = (
-        SparkSession.builder.appName("ConnectStandaloneLoadTest").remote(connect_url)
-    )
+    builder = SparkSession.builder.appName("ConnectStandaloneLoadTest").remote(connect_url)
     if event_log_dir:
         builder = (
             builder.config("spark.eventLog.enabled", "true")

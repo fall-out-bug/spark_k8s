@@ -28,4 +28,3 @@ echo "2) Airflow prod-like DAG tests..."
 
 echo ""
 echo "=== ALL OK ==="
-

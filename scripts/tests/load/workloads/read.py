@@ -29,17 +29,18 @@ DATA_PATHS = {
 
 def create_spark_session() -> SparkSession:
     """Create Spark session with S3 configuration."""
-    return SparkSession.builder \
-        .appName("load-test-read") \
-        .config("spark.hadoop.fs.s3a.endpoint", "http://minio.spark-infra.svc.cluster.local:9000") \
-        .config("spark.hadoop.fs.s3a.access.key", "minioadmin") \
-        .config("spark.hadoop.fs.s3a.secret.key", "minioadmin") \
-        .config("spark.hadoop.fs.s3a.path.style.access", "true") \
-        .config("spark.eventLog.enabled", "true") \
-        .config("spark.eventLog.dir", "s3a://spark-logs/") \
-        .config("spark.history.fs.logDirectory", "s3a://spark-logs/") \
-        .config("spark.sql.shuffle.partitions", "200") \
+    return (
+        SparkSession.builder.appName("load-test-read")
+        .config("spark.hadoop.fs.s3a.endpoint", "http://minio.spark-infra.svc.cluster.local:9000")
+        .config("spark.hadoop.fs.s3a.access.key", "minioadmin")
+        .config("spark.hadoop.fs.s3a.secret.key", "minioadmin")
+        .config("spark.hadoop.fs.s3a.path.style.access", "true")
+        .config("spark.eventLog.enabled", "true")
+        .config("spark.eventLog.dir", "s3a://spark-logs/")
+        .config("spark.history.fs.logDirectory", "s3a://spark-logs/")
+        .config("spark.sql.shuffle.partitions", "200")
         .getOrCreate()
+    )
 
 
 def run_read_workload(
@@ -85,26 +86,11 @@ def run_read_workload(
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Read workload for load testing"
-    )
-    parser.add_argument(
-        '--operation', type=str, default='read',
-        help='Operation name (for compatibility)'
-    )
-    parser.add_argument(
-        '--data_size', type=str, required=True,
-        choices=['1gb', '11gb'],
-        help='Data size to read'
-    )
-    parser.add_argument(
-        '--output', type=str, required=True,
-        help='Output file for metrics (JSONL)'
-    )
-    parser.add_argument(
-        '--metadata', type=str,
-        help='Additional metadata as JSON string'
-    )
+    parser = argparse.ArgumentParser(description="Read workload for load testing")
+    parser.add_argument("--operation", type=str, default="read", help="Operation name (for compatibility)")
+    parser.add_argument("--data_size", type=str, required=True, choices=["1gb", "11gb"], help="Data size to read")
+    parser.add_argument("--output", type=str, required=True, help="Output file for metrics (JSONL)")
+    parser.add_argument("--metadata", type=str, help="Additional metadata as JSON string")
 
     args = parser.parse_args()
 
@@ -130,8 +116,8 @@ def main():
         output_path = Path(args.output)
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(output_path, 'a') as f:
-            f.write(json.dumps(metrics) + '\n')
+        with open(output_path, "a") as f:
+            f.write(json.dumps(metrics) + "\n")
 
         print(f"Read workload complete: {metrics['rows_read']:,} rows in {metrics['duration_sec']:.2f}s")
         print(f"Throughput: {metrics['throughput_rows_sec']:,.0f} rows/sec")
@@ -146,5 +132,5 @@ def main():
         spark.stop()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

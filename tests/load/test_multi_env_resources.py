@@ -26,9 +26,7 @@ class TestResourceLimits:
             prod = yaml.safe_load(f)
 
         dev_mem = int(dev["connect"]["resources"]["requests"]["memory"].rstrip("Gi"))
-        staging_mem = int(
-            staging["connect"]["resources"]["requests"]["memory"].rstrip("Gi")
-        )
+        staging_mem = int(staging["connect"]["resources"]["requests"]["memory"].rstrip("Gi"))
         prod_mem = int(prod["connect"]["resources"]["requests"]["memory"].rstrip("Gi"))
 
         assert dev_mem == 2, f"Dev should use 2Gi, got {dev_mem}Gi"
@@ -91,9 +89,7 @@ class TestSecretProviderVariants:
                     }
                 }
             }
-            with tempfile.NamedTemporaryFile(
-                mode="w", suffix=".yaml", delete=False
-            ) as f:
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
                 yaml.dump(test_values, f)
                 test_values_path = f.name
             try:
@@ -122,9 +118,7 @@ class TestSecretProviderVariants:
             "templates/secrets/vault-secrets.yaml",
         ]
         min_values = {"secrets": {"vault": {"enabled": False}}}
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yaml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             yaml.dump(min_values, f)
             test_values_path = f.name
         try:

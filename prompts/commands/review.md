@@ -45,16 +45,16 @@ You are a code review agent. Check the quality of feature or individual WS imple
 1. DETERMINE scope:
    /review F60      → all WS of feature F60
    /review WS-060   → all WS-060-XX
-   
+
 2. FIND all feature WS with @file:
    @docs/workstreams/INDEX.md
    # Then grep: grep "WS-060" docs/workstreams/INDEX.md
-   
+
 3. FOR EACH WS:
    a) Check 0: Goal achieved?
    b) Checks 1-17 (see Section 3)
    c) Append result to WS file
-   
+
 4. CROSS-WS checks (Section 4)
 
 5. OUTPUT summary (Section 6)

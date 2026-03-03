@@ -2,8 +2,8 @@
 
 ### 🎯 Goal
 
-**Bug:** Spark 4.1 components assume `s3-credentials` exists.  
-**Expected:** Secret can be created or configured safely (PSS compatible).  
+**Bug:** Spark 4.1 components assume `s3-credentials` exists.
+**Expected:** Secret can be created or configured safely (PSS compatible).
 **Actual:** Pods fail with missing secret in clean namespace.
 
 **Acceptance Criteria:**
@@ -16,8 +16,8 @@
 
 ### Context
 
-**Reported by:** Runtime validation  
-**Affected:** Spark 4.1 Connect, History Server, Jupyter, MinIO  
+**Reported by:** Runtime validation
+**Affected:** Spark 4.1 Connect, History Server, Jupyter, MinIO
 **Severity:** P1
 
 ### Root Cause Analysis
@@ -50,7 +50,7 @@ helm template spark-41 charts/spark-4.1 \
 
 ### Execution Report
 
-**Executed by:** Auto (agent)  
+**Executed by:** Auto (agent)
 **Date:** 2026-01-19
 
 #### 🎯 Goal Status

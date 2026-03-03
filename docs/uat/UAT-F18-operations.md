@@ -1,7 +1,7 @@
 # UAT Guide: F18 — Production Operations Suite
 
-**Feature:** F18  
-**Date:** 2026-02-10  
+**Feature:** F18
+**Date:** 2026-02-10
 
 ---
 

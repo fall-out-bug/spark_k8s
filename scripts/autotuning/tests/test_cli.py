@@ -74,9 +74,13 @@ class TestAnalyzerCLI:
 
         result = subprocess.run(
             [
-                sys.executable, "-m", "autotuning.analyzer",
-                "--metrics-file", str(metrics_file),
-                "--output", str(output_file),
+                sys.executable,
+                "-m",
+                "autotuning.analyzer",
+                "--metrics-file",
+                str(metrics_file),
+                "--output",
+                str(output_file),
             ],
             capture_output=True,
             text=True,
@@ -94,8 +98,11 @@ class TestAnalyzerCLI:
         """Test analyzer fails with missing file."""
         result = subprocess.run(
             [
-                sys.executable, "-m", "autotuning.analyzer",
-                "--metrics-file", "/nonexistent/metrics.json",
+                sys.executable,
+                "-m",
+                "autotuning.analyzer",
+                "--metrics-file",
+                "/nonexistent/metrics.json",
             ],
             capture_output=True,
             text=True,
@@ -129,9 +136,13 @@ class TestRecommenderCLI:
 
         result = subprocess.run(
             [
-                sys.executable, "-m", "autotuning.recommender",
-                "--analysis-file", str(analysis_file),
-                "--output", str(output_file),
+                sys.executable,
+                "-m",
+                "autotuning.recommender",
+                "--analysis-file",
+                str(analysis_file),
+                "--output",
+                str(output_file),
             ],
             capture_output=True,
             text=True,
@@ -170,9 +181,13 @@ class TestApplierCLI:
 
         result = subprocess.run(
             [
-                sys.executable, "-m", "autotuning.applier",
-                "--recommendations-file", str(rec_file),
-                "--output", str(output_file),
+                sys.executable,
+                "-m",
+                "autotuning.applier",
+                "--recommendations-file",
+                str(rec_file),
+                "--output",
+                str(output_file),
             ],
             capture_output=True,
             text=True,
@@ -189,9 +204,13 @@ class TestApplierCLI:
         """Test applier fails with missing file."""
         result = subprocess.run(
             [
-                sys.executable, "-m", "autotuning.applier",
-                "--recommendations-file", "/nonexistent/recs.json",
-                "--output", "/tmp/out.yaml",
+                sys.executable,
+                "-m",
+                "autotuning.applier",
+                "--recommendations-file",
+                "/nonexistent/recs.json",
+                "--output",
+                "/tmp/out.yaml",
             ],
             capture_output=True,
             text=True,
@@ -218,9 +237,13 @@ class TestFullPipelineCLI:
         # Step 1: Analyze metrics
         result_analyze = subprocess.run(
             [
-                sys.executable, "-m", "autotuning.analyzer",
-                "--metrics-file", str(metrics_file),
-                "--output", str(analysis_file),
+                sys.executable,
+                "-m",
+                "autotuning.analyzer",
+                "--metrics-file",
+                str(metrics_file),
+                "--output",
+                str(analysis_file),
             ],
             capture_output=True,
             text=True,
@@ -236,9 +259,13 @@ class TestFullPipelineCLI:
         # Step 2: Generate recommendations
         result_recommend = subprocess.run(
             [
-                sys.executable, "-m", "autotuning.recommender",
-                "--analysis-file", str(analysis_file),
-                "--output", str(recs_file),
+                sys.executable,
+                "-m",
+                "autotuning.recommender",
+                "--analysis-file",
+                str(analysis_file),
+                "--output",
+                str(recs_file),
             ],
             capture_output=True,
             text=True,
@@ -254,9 +281,13 @@ class TestFullPipelineCLI:
         # Step 3: Apply recommendations
         result_apply = subprocess.run(
             [
-                sys.executable, "-m", "autotuning.applier",
-                "--recommendations-file", str(recs_file),
-                "--output", str(values_file),
+                sys.executable,
+                "-m",
+                "autotuning.applier",
+                "--recommendations-file",
+                str(recs_file),
+                "--output",
+                str(values_file),
             ],
             capture_output=True,
             text=True,
@@ -281,9 +312,13 @@ class TestCLIErrors:
         """Test collector handles invalid Prometheus URL."""
         result = subprocess.run(
             [
-                sys.executable, "-m", "autotuning.collector",
-                "--app-id", "test",
-                "--prometheus-url", "not-a-valid-url",
+                sys.executable,
+                "-m",
+                "autotuning.collector",
+                "--app-id",
+                "test",
+                "--prometheus-url",
+                "not-a-valid-url",
             ],
             capture_output=True,
             text=True,
@@ -301,8 +336,11 @@ class TestCLIErrors:
 
         result = subprocess.run(
             [
-                sys.executable, "-m", "autotuning.analyzer",
-                "--metrics-file", str(invalid_file),
+                sys.executable,
+                "-m",
+                "autotuning.analyzer",
+                "--metrics-file",
+                str(invalid_file),
             ],
             capture_output=True,
             text=True,

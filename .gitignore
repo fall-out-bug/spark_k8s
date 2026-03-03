@@ -1,51 +1,47 @@
-# SDP runtime artifacts (local-only)
-/notifications/
 
-# Local Cursor/IDE artifacts
-/.cursor/
-/.cursorrules
-
-# Test artifacts
-.coverage
-htmlcov/
-
-# Common local artifacts
-.DS_Store
-*.log
-*.tmp
-tmp/
-.pytest_cache/
-__pycache__/
-
-# SDP local backups
-*.local.bak
-
-# SDP artifacts (local-only, from submodule)
 /.claude/
-.env.template
+.claude/agents
+.claude/skills
+# Common local artifacts
+.coverage
+credentials.yaml
+/.cursor/
+.cursor/agents
+/.cursorrules
+.cursor/skills
 docs/workstreams/TEMPLATE.md
-quality-gate.toml
-hooks/
-
-# Secrets and credentials (NEVER commit these)
+.DS_Store
 .env
-.env.local
 .env.*.local
-values-secrets.yaml
+.env.local
+.env.template
+hooks/
+htmlcov/
+*.key
+# Load test outputs
+*.local.bak
+# Local Cursor/IDE artifacts
+*.log
+/notifications/
+*.pem
+.prompts
+__pycache__/
+.pytest_cache/
+quality-gate.toml
+# SDP
+# SDP artifacts (local-only, from submodule)
+.sdp/.git
+# SDP local backups
+# SDP runtime artifacts (local-only)
+.secrets/
+# Secrets and credentials (NEVER commit these)
 *-secrets.yaml
 secrets.yaml
-.secrets/
-*.pem
-*.key
-credentials.yaml
-
-# SDP
-.sdp/.git
-.claude/skills
-.claude/agents
-.cursor/skills
-.cursor/agents
-.prompts
-
 # Test artifacts
-.coverage
+tests/results/e2e-failed.txt
+tests/results/failed.txt
+tests/results/junit/
+tests/results/load-test-*.csv
+*.tmp
+tmp/
+values-secrets.yaml

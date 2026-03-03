@@ -1,8 +1,8 @@
 # F25 Review Report
 
-**Feature:** F25 — Spark 3.5 Charts Production-Ready  
-**Review Date:** 2026-02-10 (updated 2026-02-10)  
-**Reviewer:** Cursor Composer  
+**Feature:** F25 — Spark 3.5 Charts Production-Ready
+**Review Date:** 2026-02-10 (updated 2026-02-10)
+**Reviewer:** Cursor Composer
 
 ---
 

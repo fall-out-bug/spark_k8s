@@ -23,11 +23,7 @@ class TestNetworkComponentRules:
 
     def test_spark_connect_ingress_allowed(self, chart_35_path, preset_35_baseline):
         """Test that Spark Connect server ingress is allowed"""
-        output = helm_template(
-            chart_35_path,
-            [preset_35_baseline],
-            set_values={"connect.enabled": "true"}
-        )
+        output = helm_template(chart_35_path, [preset_35_baseline], set_values={"connect.enabled": "true"})
 
         if output is None:
             pytest.skip("helm template failed")
@@ -59,11 +55,7 @@ class TestNetworkComponentRules:
 
     def test_jupyter_ingress_allowed(self, chart_35_path, preset_35_baseline):
         """Test that Jupyter ingress is allowed"""
-        output = helm_template(
-            chart_35_path,
-            [preset_35_baseline],
-            set_values={"jupyter.enabled": "true"}
-        )
+        output = helm_template(chart_35_path, [preset_35_baseline], set_values={"jupyter.enabled": "true"})
 
         if output is None:
             pytest.skip("helm template failed")
@@ -144,5 +136,6 @@ class TestNetworkComponentRules:
             # At least some policies should have match labels
             if match_labels:
                 for key, value in match_labels.items():
-                    assert f"{key}: {value}" in pod_labels or value in pod_labels, \
-                        f"Policy selector {key}: {value} should match pod labels"
+                    assert (
+                        f"{key}: {value}" in pod_labels or value in pod_labels
+                    ), f"Policy selector {key}: {value} should match pod labels"

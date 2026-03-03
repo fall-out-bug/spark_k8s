@@ -1,7 +1,7 @@
 # Гайд по чарту Spark Platform
 
-**Чарт:** `charts/spark-platform`  
-**Тестировалось на:** Minikube  
+**Чарт:** `charts/spark-platform`
+**Тестировалось на:** Minikube
 **Подготовлено для:** Ограничений OpenShift (PSS `restricted` / SCC `restricted`)
 
 ## Обзор

@@ -26,17 +26,14 @@ class TestS3IRSAAnnotation:
         output = helm_template(
             chart_35_path,
             [preset_35_baseline],
-            set_values={"rbac.create": "true", "rbac.irsaRoleArn": "arn:aws:iam::123456789012:role/MySparkRole"}
+            set_values={"rbac.create": "true", "rbac.irsaRoleArn": "arn:aws:iam::123456789012:role/MySparkRole"},
         )
 
         if output is None:
             pytest.skip("helm template failed")
 
         docs = parse_yaml_docs(output)
-        service_account = next(
-            (d for d in docs if d and d.get("kind") == "ServiceAccount"),
-            None
-        )
+        service_account = next((d for d in docs if d and d.get("kind") == "ServiceAccount"), None)
 
         if service_account:
             metadata = service_account.get("metadata", {})
@@ -44,27 +41,23 @@ class TestS3IRSAAnnotation:
 
             if "eks.amazonaws.com/role-arn" in annotations:
                 role_arn = annotations["eks.amazonaws.com/role-arn"]
-                assert role_arn.startswith("arn:aws:iam::"), \
-                    f"IRSA role ARN should be valid IAM role ARN, got: {role_arn}"
+                assert role_arn.startswith(
+                    "arn:aws:iam::"
+                ), f"IRSA role ARN should be valid IAM role ARN, got: {role_arn}"
 
     def test_irsa_role_arn_has_valid_format(self, chart_35_path, preset_35_baseline):
         """Test that IRSA role ARN has valid format"""
         test_role_arn = "arn:aws:iam::123456789012:role/MySparkRole"
 
         output = helm_template(
-            chart_35_path,
-            [preset_35_baseline],
-            set_values={"rbac.create": "true", "rbac.irsaRoleArn": test_role_arn}
+            chart_35_path, [preset_35_baseline], set_values={"rbac.create": "true", "rbac.irsaRoleArn": test_role_arn}
         )
 
         if output is None:
             pytest.skip("helm template failed")
 
         docs = parse_yaml_docs(output)
-        service_account = next(
-            (d for d in docs if d and d.get("kind") == "ServiceAccount"),
-            None
-        )
+        service_account = next((d for d in docs if d and d.get("kind") == "ServiceAccount"), None)
 
         if service_account:
             metadata = service_account.get("metadata", {})
@@ -74,8 +67,7 @@ class TestS3IRSAAnnotation:
                 role_arn = annotations["eks.amazonaws.com/role-arn"]
                 # Validate IAM role ARN format
                 pattern = r"^arn:aws:iam::\d{12}:role/[a-zA-Z0-9_+=,.@-]{1,64}$"
-                assert re.match(pattern, role_arn), \
-                    f"IRSA role ARN should match IAM role ARN format, got: {role_arn}"
+                assert re.match(pattern, role_arn), f"IRSA role ARN should match IAM role ARN format, got: {role_arn}"
 
     def test_irsa_configured_for_spark_connect(self, chart_35_path, preset_35_baseline):
         """Test that IRSA is configured for Spark Connect server (if needed)"""
@@ -93,8 +85,7 @@ class TestS3IRSAAnnotation:
 
         if irsa_role:
             # IRSA is configured
-            assert irsa_role.startswith("arn:aws:iam::"), \
-                f"IRSA role ARN should be valid, got: {irsa_role}"
+            assert irsa_role.startswith("arn:aws:iam::"), f"IRSA role ARN should be valid, got: {irsa_role}"
 
         # For EKS, IRSA should be configured (this is best practice)
         # But we don't fail if not configured (may be using access keys)

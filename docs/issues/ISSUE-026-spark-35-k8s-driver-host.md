@@ -1,8 +1,8 @@
 # ISSUE-026: Spark 3.5 K8s executors cannot resolve Connect driver host
 
-**Created:** 2026-01-24  
-**Status:** Resolved  
-**Severity:** 🔴 CRITICAL (executors fail, SparkContext stops)  
+**Created:** 2026-01-24
+**Status:** Resolved
+**Severity:** 🔴 CRITICAL (executors fail, SparkContext stops)
 **Feature:** F06 - Spark Connect Standalone Parity
 
 ---

@@ -135,9 +135,7 @@ class TestCompleteMatrixCoverage:
     def test_matrix_combinations_count(self) -> None:
         """Verify we have the expected number of combinations."""
         scenarios_41 = len(list(Path("charts/spark-4.1").glob("values-scenario-*.yaml")))
-        scenarios_35 = len(
-            list(Path("charts/spark-3.5").glob("charts/*/values-scenario-*.yaml"))
-        )
+        scenarios_35 = len(list(Path("charts/spark-3.5").glob("charts/*/values-scenario-*.yaml")))
         presets_41 = len(list(Path("charts/spark-4.1/presets").glob("*-values.yaml")))
         presets_35 = len(list(Path("charts/spark-3.5/presets").glob("*-values.yaml")))
         combinations_41 = scenarios_41 * (2**presets_41)

@@ -1140,6 +1140,46 @@ WS-030-03 (Iceberg guide)    (independent)
 
 ---
 
+## Feature F31: Observability as Product
+
+**Source:** `docs/drafts/idea-observability-product.md`
+**Status:** Backlog
+**Total Workstreams:** 9
+**Estimated LOC:** ~900 (docs + tests)
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-031-01 | Observability Audit — Inventory | SMALL (~150 LOC) | - | backlog |
+| WS-031-02 | DevOps Recipe — "5 min: System OK" | SMALL (~80 LOC) | WS-031-01 | backlog |
+| WS-031-03 | DataOps Recipe — Traces and Dashboards | SMALL (~100 LOC) | WS-031-01 | backlog |
+| WS-031-04 | Tech Lead Recipe — Pipeline State | SMALL (~90 LOC) | WS-031-01 | backlog |
+| WS-031-05 | Data Engineer Recipe — Data Traceability | SMALL (~100 LOC) | WS-031-01 | backlog |
+| WS-031-06 | Data Scientist Recipe — "Just Works" | SMALL (~60 LOC) | WS-031-01 | backlog |
+| WS-031-07 | PR Gate — Observability Test Scenarios | MEDIUM (~150 LOC) | WS-031-01 | backlog |
+| WS-031-08 | Example Alerts and Reports | SMALL (~120 LOC) | WS-031-01 | backlog |
+| WS-031-09 | Runbook Index — Consolidation per Persona | SMALL (~80 LOC) | WS-031-02..06, 08 | backlog |
+
+### Dependency Graph
+
+```
+WS-031-01 (Audit)
+    ├── WS-031-02 (DevOps)
+    ├── WS-031-03 (DataOps)
+    ├── WS-031-04 (Tech Lead)
+    ├── WS-031-05 (Data Engineer)
+    ├── WS-031-06 (DS)
+    ├── WS-031-07 (PR Gate)
+    └── WS-031-08 (Examples)
+            └── WS-031-09 (Runbook Index)
+```
+
+### Parallel Execution Paths
+
+1. **Critical Path:** WS-031-01 → WS-031-02..08 (parallel) → WS-031-09
+2. **PR Gate early:** WS-031-07 can run after WS-031-01 (protects infrastructure)
+
+---
+
 ## Audit → Feature Cross-Reference Map
 
 **Source:** `docs/reports/repo-audit-2026-02-13.md`

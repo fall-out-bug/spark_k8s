@@ -33,9 +33,9 @@ class TestSecretEnvVars:
             secret_key = s3_config.get("secretKey", "")
 
             # Either use existingSecret OR empty placeholders (never hardcoded values)
-            assert s3_config.get("existingSecret") != "" or \
-                   (access_key == "" and secret_key == ""), \
-                "S3 credentials should use existingSecret, not hardcoded values"
+            assert s3_config.get("existingSecret") != "" or (
+                access_key == "" and secret_key == ""
+            ), "S3 credentials should use existingSecret, not hardcoded values"
 
     def test_hive_metastore_db_uses_secret_ref(self, chart_35_path, preset_35_baseline):
         """Test that Hive Metastore DB uses secret reference"""
@@ -45,8 +45,7 @@ class TestSecretEnvVars:
         postgresql_config = preset_values.get("postgresql", {})
         if postgresql_config.get("enabled", False):
             # Check that database uses existingSecret
-            assert postgresql_config.get("existingSecret") != "", \
-                "PostgreSQL should use existingSecret for credentials"
+            assert postgresql_config.get("existingSecret") != "", "PostgreSQL should use existingSecret for credentials"
 
     def test_no_hardcoded_aws_keys_in_preset(self, preset_35_baseline):
         """Test that no AWS keys are hardcoded in preset values"""
@@ -54,14 +53,13 @@ class TestSecretEnvVars:
             preset_content = f.read()
 
         # Check for example AWS keys (AKIA...)
-        assert "AKIAIOSFODNN7EXAMPLE" not in preset_content, \
-            "Should not contain hardcoded AWS access keys"
-        assert "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" not in preset_content, \
-            "Should not contain hardcoded AWS secret keys"
+        assert "AKIAIOSFODNN7EXAMPLE" not in preset_content, "Should not contain hardcoded AWS access keys"
+        assert (
+            "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" not in preset_content
+        ), "Should not contain hardcoded AWS secret keys"
 
         # Check for other common hardcoded patterns
-        assert "AKIA" not in preset_content, \
-            "Should not contain AWS access key patterns"
+        assert "AKIA" not in preset_content, "Should not contain AWS access key patterns"
 
     def test_no_hard_passwords_in_values(self, chart_35_path):
         """Test that no hardcoded passwords are in default values"""
@@ -87,8 +85,7 @@ class TestSecretEnvVars:
 
         # Should not have hardcoded passwords (except known examples)
         for line in suspicious:
-            assert "example" in line.lower() or "test" in line.lower(), \
-                f"Should not have hardcoded passwords: {line}"
+            assert "example" in line.lower() or "test" in line.lower(), f"Should not have hardcoded passwords: {line}"
 
     def test_env_vars_use_secret_key_refs(self, chart_35_path, preset_35_baseline):
         """Test that environment variables use secretKeyRef when appropriate"""

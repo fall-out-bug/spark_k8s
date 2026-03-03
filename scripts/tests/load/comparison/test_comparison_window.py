@@ -48,7 +48,7 @@ def test_version_comparison_window_function(
     """
 
     duration_sec = 1800  # 30 minutes
-    interval_sec = 1.0   # 1 qps
+    interval_sec = 1.0  # 1 qps
 
     # Test 3.5.8
     print("\n=== Testing Spark 3.5.8 ===")
@@ -79,17 +79,17 @@ def test_version_comparison_window_function(
     )
 
     # Assertions
-    assert report["throughput"]["regression"] is False, \
-        f"Significant throughput regression: {report['throughput']['diff_pct']:.1f}%"
-    assert report["latency_p95"]["regression"] is False, \
-        f"Significant latency regression: {report['latency_p95']['diff_pct']:.1f}%"
+    assert (
+        report["throughput"]["regression"] is False
+    ), f"Significant throughput regression: {report['throughput']['diff_pct']:.1f}%"
+    assert (
+        report["latency_p95"]["regression"] is False
+    ), f"Significant latency regression: {report['latency_p95']['diff_pct']:.1f}%"
 
     # Print summary
     print(f"\n=== Version Comparison Summary (Window Function) ===")
-    print(f"Spark 3.5.8: {metrics_358['throughput_qps']:.2f} qps, "
-          f"P95: {metrics_358['latency_p95_ms']:.1f}ms")
-    print(f"Spark 4.1.1: {metrics_411['throughput_qps']:.2f} qps, "
-          f"P95: {metrics_411['latency_p95_ms']:.1f}ms")
+    print(f"Spark 3.5.8: {metrics_358['throughput_qps']:.2f} qps, " f"P95: {metrics_358['latency_p95_ms']:.1f}ms")
+    print(f"Spark 4.1.1: {metrics_411['throughput_qps']:.2f} qps, " f"P95: {metrics_411['latency_p95_ms']:.1f}ms")
     print(f"Throughput diff: {report['throughput']['diff_pct']:.1f}%")
     print(f"Latency P95 diff: {report['latency_p95']['diff_pct']:.1f}%")
 

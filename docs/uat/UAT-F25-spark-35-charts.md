@@ -1,7 +1,7 @@
 # UAT Guide: F25 — Spark 3.5 Charts Production-Ready
 
-**Feature:** F25  
-**Date:** 2026-02-10  
+**Feature:** F25
+**Date:** 2026-02-10
 
 ---
 

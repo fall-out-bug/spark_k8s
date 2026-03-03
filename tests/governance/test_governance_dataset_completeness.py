@@ -10,13 +10,7 @@ class TestDatasetReadmeTemplate:
 
     @pytest.fixture(scope="class")
     def template_path(self) -> Path:
-        return (
-            Path(__file__).parent.parent.parent
-            / "docs"
-            / "recipes"
-            / "governance"
-            / "dataset-readme-template.md"
-        )
+        return Path(__file__).parent.parent.parent / "docs" / "recipes" / "governance" / "dataset-readme-template.md"
 
     def test_template_exists(self, template_path: Path) -> None:
         """Test that dataset README template exists."""
@@ -78,9 +72,5 @@ class TestGovernanceDocsCompleteness:
         for doc in docs:
             if doc.name != "dataset-readme-template.md":
                 content = doc.read_text()
-                has_future_ref = any(
-                    term in content for term in ["Future", "future", "deferred", "Phase"]
-                )
-                assert has_future_ref, (
-                    f"{doc.name} should contain 'Future' section for deferred implementations"
-                )
+                has_future_ref = any(term in content for term in ["Future", "future", "deferred", "Phase"])
+                assert has_future_ref, f"{doc.name} should contain 'Future' section for deferred implementations"

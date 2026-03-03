@@ -37,7 +37,7 @@ WS-011-02
 
 ### Execution Report
 
-**Executed by:** GPT-5.2 (agent)  
+**Executed by:** GPT-5.2 (agent)
 **Date:** 2026-01-16
 
 #### 🎯 Goal Status
@@ -97,7 +97,7 @@ None. RU overlays use thin wrappers (README.md) referencing EN overlays to avoid
 
 ### Review Result
 
-**Reviewed by:** GPT-5.2 (agent)  
+**Reviewed by:** GPT-5.2 (agent)
 **Date:** 2026-01-16
 
 #### Metrics Summary

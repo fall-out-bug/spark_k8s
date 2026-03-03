@@ -38,4 +38,3 @@ During runtime validation, using an S3A URI (e.g. `s3a://...`) as recovery direc
 ### Notes / Follow-ups
 
 If we later need stronger HA guarantees (multi-master), consider ZooKeeper-based recovery for Standalone or migrate workloads to Spark on Kubernetes scheduler mode.
-

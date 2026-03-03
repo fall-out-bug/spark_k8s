@@ -1,8 +1,8 @@
 # ISSUE-009: Spark 3.5 Hive Metastore fails with PSS `runAsNonRoot`
 
-**Created:** 2026-01-19  
-**Status:** Resolved  
-**Severity:** 🔴 CRITICAL (blocks coexistence/benchmark tests)  
+**Created:** 2026-01-19
+**Status:** Resolved
+**Severity:** 🔴 CRITICAL (blocks coexistence/benchmark tests)
 **Feature:** F04 - Spark 4.1.0 Charts (coexistence)
 
 ---

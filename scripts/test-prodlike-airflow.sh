@@ -125,4 +125,3 @@ echo "6) Best-effort: ensure no lingering Airflow worker pods..."
 kubectl get pods -n "${NAMESPACE}" -l app=airflow-worker --no-headers 2>/dev/null || true
 
 echo "=== Done ==="
-

@@ -6,19 +6,16 @@ from pyspark.sql import SparkSession
 
 def create_spark_session():
     """Create Spark session with Iceberg configuration."""
-    return SparkSession.builder \
-        .appName("Iceberg Examples") \
-        .config("spark.sql.extensions",
-                "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions") \
-        .config("spark.sql.catalog.spark_catalog",
-                "org.apache.iceberg.spark.SparkSessionCatalog") \
-        .config("spark.sql.catalog.spark_catalog.type", "hadoop") \
-        .config("spark.sql.catalog.iceberg",
-                "org.apache.iceberg.spark.SparkCatalog") \
-        .config("spark.sql.catalog.iceberg.type", "hadoop") \
-        .config("spark.sql.catalog.iceberg.warehouse",
-                "s3a://warehouse/iceberg") \
+    return (
+        SparkSession.builder.appName("Iceberg Examples")
+        .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
+        .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog")
+        .config("spark.sql.catalog.spark_catalog.type", "hadoop")
+        .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog")
+        .config("spark.sql.catalog.iceberg.type", "hadoop")
+        .config("spark.sql.catalog.iceberg.warehouse", "s3a://warehouse/iceberg")
         .getOrCreate()
+    )
 
 
 def setup_database(spark):
@@ -29,7 +26,8 @@ def setup_database(spark):
 
 def create_iceberg_table(spark):
     """Create an Iceberg table with initial schema."""
-    spark.sql("""
+    spark.sql(
+        """
         CREATE TABLE IF NOT EXISTS iceberg.db_examples.users (
             id BIGINT,
             name STRING,
@@ -38,7 +36,8 @@ def create_iceberg_table(spark):
             updated_at TIMESTAMP
         ) USING iceberg
         PARTITIONED BY (days(created_at))
-    """)
+    """
+    )
 
 
 def insert_initial_data(spark):

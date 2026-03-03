@@ -16,6 +16,7 @@ class TestIcebergConfiguration:
     def test_extensions_enabled(self, preset_file: Path) -> None:
         """Iceberg extensions should be enabled."""
         import yaml
+
         with open(preset_file) as f:
             values = yaml.safe_load(f)
         ext = values["connect"]["sparkConf"].get("spark.sql.extensions", "")
@@ -24,6 +25,7 @@ class TestIcebergConfiguration:
     def test_catalog_configured(self, preset_file: Path) -> None:
         """Iceberg catalog should be configured."""
         import yaml
+
         with open(preset_file) as f:
             values = yaml.safe_load(f)
         keys = [k for k in values["connect"]["sparkConf"] if "spark.sql.catalog" in k]
@@ -32,6 +34,7 @@ class TestIcebergConfiguration:
     def test_warehouse_configured(self, preset_file: Path) -> None:
         """Warehouse location should be configured."""
         import yaml
+
         with open(preset_file) as f:
             values = yaml.safe_load(f)
         keys = [k for k in values["connect"]["sparkConf"] if "warehouse" in k.lower()]
@@ -40,6 +43,7 @@ class TestIcebergConfiguration:
     def test_s3_configured_for_iceberg(self, preset_file: Path) -> None:
         """S3 should be configured for Iceberg storage."""
         import yaml
+
         with open(preset_file) as f:
             values = yaml.safe_load(f)
         keys = [k for k in values["connect"]["sparkConf"] if "fs.s3a" in k]
@@ -48,21 +52,19 @@ class TestIcebergConfiguration:
     def test_vectorization_enabled(self, preset_file: Path) -> None:
         """Vectorization should be enabled for performance."""
         import yaml
+
         with open(preset_file) as f:
             values = yaml.safe_load(f)
-        val = values["connect"]["sparkConf"].get(
-            "spark.sql.iceberg.vectorization.enabled", "false"
-        )
+        val = values["connect"]["sparkConf"].get("spark.sql.iceberg.vectorization.enabled", "false")
         assert val == "true"
 
     def test_v2_enabled(self, preset_file: Path) -> None:
         """V2 should be enabled for row-level operations."""
         import yaml
+
         with open(preset_file) as f:
             values = yaml.safe_load(f)
-        val = values["connect"]["sparkConf"].get(
-            "spark.sql.iceberg.v2.enabled", "false"
-        )
+        val = values["connect"]["sparkConf"].get("spark.sql.iceberg.v2.enabled", "false")
         assert val == "true"
 
 
@@ -72,11 +74,17 @@ class TestHelmRenderIceberg:
     def test_render_with_iceberg_preset(self) -> None:
         """Should render Iceberg configuration."""
         import subprocess
+
         result = subprocess.run(
             [
-                "helm", "template", "spark-iceberg", "charts/spark-4.1",
-                "-f", "charts/spark-4.1/presets/iceberg-values.yaml",
-                "--show-only", "templates/spark-connect.yaml"
+                "helm",
+                "template",
+                "spark-iceberg",
+                "charts/spark-4.1",
+                "-f",
+                "charts/spark-4.1/presets/iceberg-values.yaml",
+                "--show-only",
+                "templates/spark-connect.yaml",
             ],
             capture_output=True,
             text=True,

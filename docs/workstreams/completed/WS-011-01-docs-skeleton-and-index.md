@@ -54,7 +54,7 @@ grep -n \"docs/guides\" README.md
 
 ### Execution Report
 
-**Executed by:** GPT-5.2 (agent)  
+**Executed by:** GPT-5.2 (agent)
 **Date:** 2026-01-16
 
 #### 🎯 Goal Status
@@ -109,7 +109,7 @@ None. Note: Some links in README point to guide files that will be created in WS
 
 ### Review Result
 
-**Reviewed by:** GPT-5.2 (agent)  
+**Reviewed by:** GPT-5.2 (agent)
 **Date:** 2026-01-16
 
 #### Metrics Summary

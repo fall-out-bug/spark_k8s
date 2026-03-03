@@ -45,9 +45,10 @@ class TestSCCPresets:
 
         # anyuid preset should bypass PSS (or use privileged)
         pss_enabled = security_config.get("podSecurityStandards", True)
-        assert pss_enabled is False or \
-               security_config.get("pssProfile") in ["privileged", "baseline"], \
-            "anyuid preset should bypass PSS or use privileged profile"
+        assert pss_enabled is False or security_config.get("pssProfile") in [
+            "privileged",
+            "baseline",
+        ], "anyuid preset should bypass PSS or use privileged profile"
 
     def test_restricted_preset_valid_for_restricted_scc(self, restricted_35_path):
         """Test that restricted preset is valid for restricted-v2 SCC"""
@@ -61,8 +62,7 @@ class TestSCCPresets:
         assert pss_enabled is True, "restricted preset should enable PSS"
 
         pss_profile = security_config.get("pssProfile", "")
-        assert pss_profile == "restricted", \
-            f"restricted preset should use PSS restricted profile, got {pss_profile}"
+        assert pss_profile == "restricted", f"restricted preset should use PSS restricted profile, got {pss_profile}"
 
     def test_anyuid_external_s3_configured(self, anyuid_35_path):
         """Test that anyuid preset uses external S3"""
@@ -119,8 +119,9 @@ class TestSCCPresets:
     def test_openshift_presets_for_spark_41(self, anyuid_41_path, restricted_41_path):
         """Test that OpenShift presets exist for Spark 4.1"""
         # At least one preset should exist
-        assert anyuid_41_path.exists() or restricted_41_path.exists(), \
-            "At least one OpenShift preset should exist for Spark 4.1"
+        assert (
+            anyuid_41_path.exists() or restricted_41_path.exists()
+        ), "At least one OpenShift preset should exist for Spark 4.1"
 
     def test_routes_enabled_in_openshift_presets(self, anyuid_35_path, restricted_35_path):
         """Test that OpenShift Routes are enabled"""
@@ -132,8 +133,7 @@ class TestSCCPresets:
             enabled = routes_config.get("enabled", False)
 
             # Routes should be enabled for OpenShift
-            assert enabled is True, \
-                f"OpenShift preset should enable Routes, got {enabled}"
+            assert enabled is True, f"OpenShift preset should enable Routes, got {enabled}"
 
     def test_openshift_uid_configuration(self, anyuid_35_path, restricted_35_path):
         """Test that OpenShift presets configure UID correctly"""
@@ -146,5 +146,6 @@ class TestSCCPresets:
 
             # Should configure UID (185 for spark-k8s or OpenShift range)
             if run_as_user is not None:
-                assert run_as_user == 185 or run_as_user >= 1000000000, \
-                    f"UID should be 185 or in OpenShift range, got {run_as_user}"
+                assert (
+                    run_as_user == 185 or run_as_user >= 1000000000
+                ), f"UID should be 185 or in OpenShift range, got {run_as_user}"

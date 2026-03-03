@@ -1,7 +1,7 @@
 # Гайд по чарту Spark Standalone
 
-**Чарт:** `charts/spark-standalone`  
-**Тестировалось на:** Minikube  
+**Чарт:** `charts/spark-standalone`
+**Тестировалось на:** Minikube
 **Подготовлено для:** Ограничений OpenShift (PSS `restricted` / SCC `restricted`)
 
 ## Обзор

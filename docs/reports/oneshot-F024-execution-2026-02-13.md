@@ -1,7 +1,7 @@
 # @oneshot F024 Execution Report
 
-**Feature:** F24 — Pre-built Docker Images  
-**Date:** 2026-02-13  
+**Feature:** F24 — Pre-built Docker Images
+**Date:** 2026-02-13
 **Status:** Completed
 
 ## Summary

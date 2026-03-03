@@ -172,25 +172,19 @@ class MetricsCollector:
                 data = response.json()
 
                 if data.get("status") != "success":
-                    raise ValueError(
-                        f"Prometheus query failed: {data.get('error', 'Unknown error')}"
-                    )
+                    raise ValueError(f"Prometheus query failed: {data.get('error', 'Unknown error')}")
 
                 return self._aggregate_result(data["data"]["result"], aggregation)
 
             except Exception as e:
                 last_error = e
                 if attempt < self.retry_count - 1:
-                    logger.warning(
-                        f"Attempt {attempt + 1} failed: {e}. Retrying in {self.retry_delay}s..."
-                    )
+                    logger.warning(f"Attempt {attempt + 1} failed: {e}. Retrying in {self.retry_delay}s...")
                     time.sleep(self.retry_delay)
 
         raise ValueError(f"Failed to fetch metric after {self.retry_count} attempts: {last_error}")
 
-    def _aggregate_result(
-        self, results: list[dict[str, Any]], aggregation: str
-    ) -> float:
+    def _aggregate_result(self, results: list[dict[str, Any]], aggregation: str) -> float:
         """Aggregate Prometheus query results.
 
         Args:
@@ -287,16 +281,11 @@ class MetricsCollector:
             raw_response={"errors": errors, "queries_count": len(queries)},
         )
 
-        logger.info(
-            f"Collected {len(metrics)} metrics in {collection_duration:.2f}s "
-            f"({len(errors)} errors)"
-        )
+        logger.info(f"Collected {len(metrics)} metrics in {collection_duration:.2f}s " f"({len(errors)} errors)")
 
         return result
 
-    def calculate_derived_metrics(
-        self, metrics: dict[str, float]
-    ) -> dict[str, float | None]:
+    def calculate_derived_metrics(self, metrics: dict[str, float]) -> dict[str, float | None]:
         """Calculate derived metrics from raw metrics.
 
         Args:
@@ -391,9 +380,7 @@ def collect_metrics(
 
 def main():
     """CLI entry point."""
-    parser = argparse.ArgumentParser(
-        description="Collect Spark metrics from Prometheus for autotuning"
-    )
+    parser = argparse.ArgumentParser(description="Collect Spark metrics from Prometheus for autotuning")
     parser.add_argument(
         "--app-id",
         required=True,
@@ -405,7 +392,8 @@ def main():
         help="Prometheus API URL (default: http://localhost:9090)",
     )
     parser.add_argument(
-        "--output", "-o",
+        "--output",
+        "-o",
         type=Path,
         help="Output file path for metrics JSON",
     )
@@ -423,7 +411,8 @@ def main():
         help="Path to metrics config YAML",
     )
     parser.add_argument(
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         action="store_true",
         help="Enable verbose logging",
     )

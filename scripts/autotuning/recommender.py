@@ -52,7 +52,7 @@ def parse_memory_value(value: str) -> int:
     # Check for unit suffix
     for unit, multiplier in MEMORY_UNITS.items():
         if value.endswith(unit):
-            num = float(value[:-len(unit)])
+            num = float(value[: -len(unit)])
             return int(num * multiplier)
 
     # Try parsing as raw number
@@ -218,9 +218,7 @@ def apply_safety_bounds(
         return BoundsCheckResult(value, "pass")
 
 
-def _apply_memory_bounds(
-    value: str, current: str, bounds: dict[str, Any]
-) -> BoundsCheckResult:
+def _apply_memory_bounds(value: str, current: str, bounds: dict[str, Any]) -> BoundsCheckResult:
     """Apply bounds to memory parameter."""
     min_val = parse_memory_value(bounds.get("min", "0"))
     max_val = parse_memory_value(bounds.get("max", "999Ti"))
@@ -261,9 +259,7 @@ def _apply_memory_bounds(
     return result
 
 
-def _apply_numeric_bounds(
-    value: str, current: str, bounds: dict[str, Any], param_format: str
-) -> BoundsCheckResult:
+def _apply_numeric_bounds(value: str, current: str, bounds: dict[str, Any], param_format: str) -> BoundsCheckResult:
     """Apply bounds to numeric parameter."""
     min_val = bounds.get("min", 0)
     max_val = bounds.get("max", float("inf"))
@@ -355,18 +351,14 @@ class ConfigRecommender:
 
         # Generate recommendations from issues
         for issue in analysis.issues:
-            issue_recs = self._generate_issue_recommendations(
-                issue, current_config, analysis
-            )
+            issue_recs = self._generate_issue_recommendations(issue, current_config, analysis)
             for rec in issue_recs:
                 if rec.parameter not in processed_params:
                     processed_params.add(rec.parameter)
                     recommendations.append(rec)
                 else:
                     # Merge with existing recommendation (keep higher confidence)
-                    existing = next(
-                        r for r in recommendations if r.parameter == rec.parameter
-                    )
+                    existing = next(r for r in recommendations if r.parameter == rec.parameter)
                     if rec.confidence > existing.confidence:
                         recommendations.remove(existing)
                         recommendations.append(rec)
@@ -380,9 +372,7 @@ class ConfigRecommender:
                 self.bounds,
             )
             if bounds_result.safety_check != "pass":
-                safety_issues.append(
-                    f"{rec.parameter}: {bounds_result.message}"
-                )
+                safety_issues.append(f"{rec.parameter}: {bounds_result.message}")
             recommendations[i] = Recommendation(
                 parameter=rec.parameter,
                 current_value=rec.current_value,
@@ -437,9 +427,7 @@ class ConfigRecommender:
                 continue
 
             current = current_config.get(param, "")
-            recommended = self._apply_operation(
-                current, action, current_config
-            )
+            recommended = self._apply_operation(current, action, current_config)
 
             if recommended is None:
                 continue
@@ -479,9 +467,7 @@ class ConfigRecommender:
             param_format = bounds.get("format", "string")
 
             if param_format == "memory":
-                current_bytes = parse_memory_value(current) if current else parse_memory_value(
-                    bounds.get("min", "1Gi")
-                )
+                current_bytes = parse_memory_value(current) if current else parse_memory_value(bounds.get("min", "1Gi"))
                 return format_memory_value(int(current_bytes * factor), "Gi")
             else:
                 try:
@@ -596,17 +582,17 @@ def generate_recommendations(
 
 def main():
     """CLI entry point."""
-    parser = argparse.ArgumentParser(
-        description="Generate Spark configuration recommendations"
-    )
+    parser = argparse.ArgumentParser(description="Generate Spark configuration recommendations")
     parser.add_argument(
-        "--analysis-file", "-a",
+        "--analysis-file",
+        "-a",
         required=True,
         type=Path,
         help="Path to analysis JSON from analyzer",
     )
     parser.add_argument(
-        "--output", "-o",
+        "--output",
+        "-o",
         type=Path,
         help="Output file path for recommendations JSON",
     )
@@ -626,7 +612,8 @@ def main():
         help="Path to bounds config YAML",
     )
     parser.add_argument(
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         action="store_true",
         help="Enable verbose logging",
     )

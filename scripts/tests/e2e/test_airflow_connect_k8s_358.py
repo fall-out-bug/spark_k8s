@@ -3,6 +3,7 @@ Airflow connect-k8s E2E tests for Spark 3.5.8.
 
 Tests validate Spark 3.5.8 execution via Airflow DAG with Spark Connect in k8s mode.
 """
+
 import pytest
 from pathlib import Path
 
@@ -16,31 +17,21 @@ test_mode = "connect-k8s"
 class TestAirflowConnectK8s358:
     """E2E tests for Airflow with Spark 3.5.8 in connect-k8s mode."""
 
-    def test_q1_count(
-        self,
-        spark_session,
-        sample_dataset_path,
-        query_metrics
-    ):
+    def test_q1_count(self, spark_session, sample_dataset_path, query_metrics):
         """Test Q1: Count query via Spark Connect."""
         df = spark_session.read.parquet(sample_dataset_path)
         df.createOrReplaceTempView("nyc_taxi")
 
         metrics = query_metrics(
             "SELECT COUNT(*) AS total_trips FROM nyc_taxi WHERE total_amount > 0 AND trip_distance > 0",
-            f"{test_component}_{test_mode}_{test_spark_version}_q1_count"
+            f"{test_component}_{test_mode}_{test_spark_version}_q1_count",
         )
 
         assert metrics["success"], f"Query failed: {metrics.get('error')}"
         assert metrics["row_count"] == 1
         assert metrics["execution_time"] < 300
 
-    def test_q2_aggregation(
-        self,
-        spark_session,
-        sample_dataset_path,
-        query_metrics
-    ):
+    def test_q2_aggregation(self, spark_session, sample_dataset_path, query_metrics):
         """Test Q2: Group By aggregation via Spark Connect."""
         df = spark_session.read.parquet(sample_dataset_path)
         df.createOrReplaceTempView("nyc_taxi")
@@ -52,19 +43,14 @@ class TestAirflowConnectK8s358:
                WHERE passenger_count > 0 AND total_amount > 0
                GROUP BY passenger_count
                ORDER BY passenger_count""",
-            f"{test_component}_{test_mode}_{test_spark_version}_q2_aggregation"
+            f"{test_component}_{test_mode}_{test_spark_version}_q2_aggregation",
         )
 
         assert metrics["success"], f"Query failed: {metrics.get('error')}"
         assert metrics["row_count"] > 0
         assert metrics["execution_time"] < 300
 
-    def test_q3_join(
-        self,
-        spark_session,
-        sample_dataset_path,
-        query_metrics
-    ):
+    def test_q3_join(self, spark_session, sample_dataset_path, query_metrics):
         """Test Q3: Join with filter via Spark Connect."""
         df = spark_session.read.parquet(sample_dataset_path)
         df.createOrReplaceTempView("nyc_taxi")
@@ -80,18 +66,13 @@ class TestAirflowConnectK8s358:
             WHERE a.pickup_count > 10
             ORDER BY a.pickup_count DESC
             LIMIT 100""",
-            f"{test_component}_{test_mode}_{test_spark_version}_q3_join"
+            f"{test_component}_{test_mode}_{test_spark_version}_q3_join",
         )
 
         assert metrics["success"], f"Query failed: {metrics.get('error')}"
         assert metrics["execution_time"] < 600
 
-    def test_q4_window(
-        self,
-        spark_session,
-        sample_dataset_path,
-        query_metrics
-    ):
+    def test_q4_window(self, spark_session, sample_dataset_path, query_metrics):
         """Test Q4: Window function via Spark Connect."""
         df = spark_session.read.parquet(sample_dataset_path)
         df.createOrReplaceTempView("nyc_taxi")
@@ -104,7 +85,7 @@ class TestAirflowConnectK8s358:
             FROM nyc_taxi
             WHERE passenger_count BETWEEN 1 AND 3 AND total_amount > 0 AND fare_amount > 0
             LIMIT 1000""",
-            f"{test_component}_{test_mode}_{test_spark_version}_q4_window"
+            f"{test_component}_{test_mode}_{test_spark_version}_q4_window",
         )
 
         assert metrics["success"], f"Query failed: {metrics.get('error')}"

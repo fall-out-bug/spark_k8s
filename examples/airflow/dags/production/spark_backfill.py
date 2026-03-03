@@ -88,10 +88,14 @@ with DAG(
             "spark.sql.shuffle.partitions": "200",
         },
         application_args=[
-            "--start-date", "{{ params.start_date }}",
-            "--end-date", "{{ params.end_date }}",
-            "--output-path", "s3a://data/historical/",
-            "--mode", "overwrite",  # Idempotent: overwrite partition
+            "--start-date",
+            "{{ params.start_date }}",
+            "--end-date",
+            "{{ params.end_date }}",
+            "--output-path",
+            "s3a://data/historical/",
+            "--mode",
+            "overwrite",  # Idempotent: overwrite partition
         ],
         execution_timeout=timedelta(hours=3),
     )

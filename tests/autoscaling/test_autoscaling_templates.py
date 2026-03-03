@@ -17,9 +17,7 @@ class TestClusterAutoscaler:
         """Cluster Autoscaler template should exist."""
         assert template_file.exists()
 
-    def test_cluster_autoscaler_template_valid_yaml(
-        self, template_file: Path
-    ) -> None:
+    def test_cluster_autoscaler_template_valid_yaml(self, template_file: Path) -> None:
         """Cluster Autoscaler template should be valid YAML template."""
         content = template_file.read_text()
         assert len(content) > 0

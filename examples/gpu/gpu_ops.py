@@ -22,11 +22,15 @@ def gpu_aggregations(df: DataFrame) -> None:
     """Demonstrate GPU-accelerated aggregations."""
     print("\n3. GPU-Accelerated Aggregations")
     start = time.time()
-    result = df.groupBy("product_id").agg(
-        count("*").alias("transaction_count"),
-        avg("price").alias("avg_price"),
-        spark_sum("price").alias("total_revenue"),
-    ).orderBy("total_revenue", ascending=False)
+    result = (
+        df.groupBy("product_id")
+        .agg(
+            count("*").alias("transaction_count"),
+            avg("price").alias("avg_price"),
+            spark_sum("price").alias("total_revenue"),
+        )
+        .orderBy("total_revenue", ascending=False)
+    )
     result.show(10, truncate=False)
     print(f"   Aggregation time: {time.time() - start:.2f}s")
 
@@ -54,9 +58,7 @@ def gpu_filter_operations(df: DataFrame) -> None:
     print("\n5. GPU-Accelerated Filter Operations")
     start = time.time()
     filtered = df.filter(
-        (col("price") > 50)
-        & (col("quantity") >= 2)
-        & (col("price") * col("quantity") > 100),
+        (col("price") > 50) & (col("quantity") >= 2) & (col("price") * col("quantity") > 100),
     )
     cnt = filtered.count()
     print(f"   Filtered {cnt:,} rows in {time.time() - start:.2f}s")

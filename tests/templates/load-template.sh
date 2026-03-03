@@ -99,36 +99,36 @@ run_load_test() {
     local data_size="${3:-$DATA_SIZE}"
     local partitions="${4:-$PARTITIONS}"
     local timeout="${5:-$TIMEOUT}"
-    
+
     log_info "Running load test: $test_name (rows=$data_size, partitions=$partitions)"
-    
+
     local MASTER_POD=$(get_master_pod)
-    
+
     if [[ -z "$MASTER_POD" ]]; then
         log_skip "$test_name (no spark pod)"
         echo "$SCENARIO_ID,$test_name,$data_size,$partitions,0,0,0,SKIP" >> "$RESULTS_FILE"
         return 0
     fi
-    
+
     kubectl cp "$script" $NAMESPACE/$MASTER_POD:/tmp/load-test.py 2>/dev/null
-    
+
     local master_url="local[*]"
     if [[ "$DEPLOYMENT_MODE" == "standalone" ]]; then
         master_url="spark://$(get_master_service):7077"
     fi
-    
+
     local start_time=$(date +%s%3N)
-    
+
     local output
     output=$(kubectl exec -n $NAMESPACE $MASTER_POD -- bash -c 'DRIVER_HOST=$(hostname -i) && timeout '$timeout' spark-submit --master '$master_url' --conf spark.driver.host=$DRIVER_HOST --conf spark.driver.bindAddress=0.0.0.0 --conf spark.sql.shuffle.partitions='$partitions' /tmp/load-test.py '$data_size' '$partitions 2>&1) || true
-    
+
     local end_time=$(date +%s%3N)
     local duration=$((end_time - start_time))
-    
+
     local status="FAIL"
     local throughput="0"
     local rows_per_sec="0"
-    
+
     if echo "$output" | grep -q "LOAD_TEST_SUCCESS"; then
         status="PASS"
         rows_per_sec=$(echo "$data_size * 1000 / $duration" | bc 2>/dev/null || echo "0")
@@ -138,7 +138,7 @@ run_load_test() {
         log_fail "$test_name failed"
         echo "$output" >> "$RESULTS_DIR/${test_name}-$SCENARIO_ID.log"
     fi
-    
+
     echo "$SCENARIO_ID,$test_name,$data_size,$partitions,$duration,$throughput,$rows_per_sec,$status" >> "$RESULTS_FILE"
 }
 
@@ -401,7 +401,7 @@ run_load_test "ml-training" /tmp/load-ml-$SCENARIO_ID.py $((DATA_SIZE / 10)) $PA
 # === 7. GPU LOAD TEST (if enabled) ===
 if [[ "$GPU_ENABLED" == "true" ]]; then
     log_info "=== 7. GPU LOAD TEST ==="
-    
+
     cat > /tmp/load-gpu-$SCENARIO_ID.py << 'PYEOF'
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, rand
@@ -430,16 +430,16 @@ throughput = data_size / duration
 spark.stop()
 print(f"LOAD_TEST_SUCCESS: {data_size} rows on GPU in {duration:.2f}s ({throughput:.0f} rows/s)")
 PYEOF
-    
+
     run_load_test "gpu-throughput" /tmp/load-gpu-$SCENARIO_ID.py $DATA_SIZE $PARTITIONS $TIMEOUT
 fi
 
 # === 8. ICEBERG LOAD TEST (if enabled) ===
 if [[ "$ICEBERG_ENABLED" == "true" ]]; then
     log_info "=== 8. ICEBERG LOAD TEST ==="
-    
+
     MINIO_SVC=$(kubectl get svc -n $NAMESPACE -l app=minio -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
-    
+
     if [[ -n "$MINIO_SVC" ]]; then
         cat > /tmp/load-iceberg-$SCENARIO_ID.py << PYEOF
 from pyspark.sql import SparkSession
@@ -482,7 +482,7 @@ throughput = data_size / duration
 spark.stop()
 print(f"LOAD_TEST_SUCCESS: {result} Iceberg rows in {duration:.2f}s ({throughput:.0f} rows/s)")
 PYEOF
-        
+
         run_load_test "iceberg-write-read" /tmp/load-iceberg-$SCENARIO_ID.py $((DATA_SIZE / 10)) $PARTITIONS $TIMEOUT
     else
         log_skip "iceberg-load (MinIO not deployed)"

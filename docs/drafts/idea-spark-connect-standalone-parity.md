@@ -1,7 +1,7 @@
 # Idea: Spark Connect parity with Standalone backend (modular constructor)
 
-**Created:** 2026-01-19  
-**Status:** Draft  
+**Created:** 2026-01-19
+**Status:** Draft
 **Author:** user + GPT-5.2 (agent)
 
 ---

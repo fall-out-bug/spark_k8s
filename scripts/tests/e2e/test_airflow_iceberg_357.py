@@ -3,6 +3,7 @@ Airflow Iceberg E2E tests for Spark 3.5.7.
 
 Tests validate Apache Iceberg table operations via Airflow with Spark 3.5.7.
 """
+
 import pytest
 from datetime import datetime, timedelta
 
@@ -18,13 +19,7 @@ test_feature = "iceberg"
 class TestAirflowIceberg357:
     """E2E tests for Airflow with Iceberg on Spark 3.5.7."""
 
-    def test_iceberg_create_table(
-        self,
-        spark_session,
-        sample_dataset_path,
-        iceberg_catalog,
-        iceberg_metrics
-    ):
+    def test_iceberg_create_table(self, spark_session, sample_dataset_path, iceberg_catalog, iceberg_metrics):
         """Test Iceberg table creation."""
         catalog_name = iceberg_catalog["catalog_name"]
         table_name = f"{catalog_name}.nyc_taxi"
@@ -41,12 +36,7 @@ class TestAirflowIceberg357:
         metrics = iceberg_metrics
         assert metrics["snapshot_count"] >= 1, "No snapshots created"
 
-    def test_iceberg_read_table(
-        self,
-        spark_session,
-        sample_dataset_path,
-        iceberg_catalog
-    ):
+    def test_iceberg_read_table(self, spark_session, sample_dataset_path, iceberg_catalog):
         """Test Iceberg table reading."""
         catalog_name = iceberg_catalog["catalog_name"]
         table_name = f"{catalog_name}.test_read"
@@ -63,19 +53,15 @@ class TestAirflowIceberg357:
         # Cleanup
         spark_session.sql(f"DROP TABLE {table_name}")
 
-    def test_iceberg_insert_append(
-        self,
-        spark_session,
-        iceberg_catalog
-    ):
+    def test_iceberg_insert_append(self, spark_session, iceberg_catalog):
         """Test Iceberg append operation."""
         catalog_name = iceberg_catalog["catalog_name"]
         table_name = f"{catalog_name}.test_append"
 
         # Create table with sample data
         spark_session.sql(
-            f"CREATE TABLE {table_name} (id INT, value STRING) " +
-            f"USING iceberg LOCATION '{iceberg_catalog['warehouse']}/test_append'"
+            f"CREATE TABLE {table_name} (id INT, value STRING) "
+            + f"USING iceberg LOCATION '{iceberg_catalog['warehouse']}/test_append'"
         )
 
         # Insert data
@@ -90,20 +76,13 @@ class TestAirflowIceberg357:
         # Cleanup
         spark_session.sql(f"DROP TABLE {table_name}")
 
-    def test_iceberg_update(
-        self,
-        spark_session,
-        iceberg_catalog
-    ):
+    def test_iceberg_update(self, spark_session, iceberg_catalog):
         """Test Iceberg UPDATE operation."""
         catalog_name = iceberg_catalog["catalog_name"]
         table_name = f"{catalog_name}.test_update"
 
         # Create table
-        spark_session.sql(
-            f"CREATE TABLE {table_name} (id INT, value STRING) " +
-            f"USING iceberg"
-        )
+        spark_session.sql(f"CREATE TABLE {table_name} (id INT, value STRING) " + f"USING iceberg")
 
         # Insert initial data
         spark_session.sql(f"INSERT INTO {table_name} VALUES (1, 'a'), (2, 'b')")
@@ -119,20 +98,13 @@ class TestAirflowIceberg357:
         # Cleanup
         spark_session.sql(f"DROP TABLE {table_name}")
 
-    def test_iceberg_delete(
-        self,
-        spark_session,
-        iceberg_catalog
-    ):
+    def test_iceberg_delete(self, spark_session, iceberg_catalog):
         """Test Iceberg DELETE operation."""
         catalog_name = iceberg_catalog["catalog_name"]
         table_name = f"{catalog_name}.test_delete"
 
         # Create table
-        spark_session.sql(
-            f"CREATE TABLE {table_name} (id INT, value STRING) " +
-            f"USING iceberg"
-        )
+        spark_session.sql(f"CREATE TABLE {table_name} (id INT, value STRING) " + f"USING iceberg")
 
         # Insert data
         spark_session.sql(f"INSERT INTO {table_name} VALUES (1, 'a'), (2, 'b'), (3, 'c')")
@@ -148,25 +120,15 @@ class TestAirflowIceberg357:
         # Cleanup
         spark_session.sql(f"DROP TABLE {table_name}")
 
-    def test_iceberg_merge(
-        self,
-        spark_session,
-        iceberg_catalog
-    ):
+    def test_iceberg_merge(self, spark_session, iceberg_catalog):
         """Test Iceberg MERGE (upsert) operation."""
         catalog_name = iceberg_catalog["catalog_name"]
         table_name = f"{catalog_name}.test_merge"
         source_name = f"{catalog_name}.test_merge_source"
 
         # Create tables
-        spark_session.sql(
-            f"CREATE TABLE {table_name} (id INT, value STRING) " +
-            f"USING iceberg"
-        )
-        spark_session.sql(
-            f"CREATE TABLE {source_name} (id INT, value STRING) " +
-            f"USING iceberg"
-        )
+        spark_session.sql(f"CREATE TABLE {table_name} (id INT, value STRING) " + f"USING iceberg")
+        spark_session.sql(f"CREATE TABLE {source_name} (id INT, value STRING) " + f"USING iceberg")
 
         # Insert initial data
         spark_session.sql(f"INSERT INTO {table_name} VALUES (1, 'a'), (2, 'b')")
@@ -174,11 +136,11 @@ class TestAirflowIceberg357:
 
         # Merge
         spark_session.sql(
-            f"MERGE INTO {table_name} AS target " +
-            f"USING {source_name} AS source " +
-            f"ON target.id = source.id " +
-            f"WHEN MATCHED THEN UPDATE SET target.value = source.value " +
-            f"WHEN NOT MATCHED THEN INSERT *"
+            f"MERGE INTO {table_name} AS target "
+            + f"USING {source_name} AS source "
+            + f"ON target.id = source.id "
+            + f"WHEN MATCHED THEN UPDATE SET target.value = source.value "
+            + f"WHEN NOT MATCHED THEN INSERT *"
         )
 
         # Verify merge
@@ -190,12 +152,7 @@ class TestAirflowIceberg357:
         spark_session.sql(f"DROP TABLE {table_name}")
         spark_session.sql(f"DROP TABLE {source_name}")
 
-    def test_iceberg_time_travel(
-        self,
-        spark_session,
-        iceberg_catalog,
-        iceberg_table
-    ):
+    def test_iceberg_time_travel(self, spark_session, iceberg_catalog, iceberg_table):
         """Test Iceberg time travel queries."""
         table_name = iceberg_table["table_name"]
 
@@ -211,20 +168,13 @@ class TestAirflowIceberg357:
 
         assert snapshot_count >= 2, f"Expected at least 2 snapshots, got {snapshot_count}"
 
-    def test_iceberg_schema_evolution(
-        self,
-        spark_session,
-        iceberg_catalog
-    ):
+    def test_iceberg_schema_evolution(self, spark_session, iceberg_catalog):
         """Test Iceberg schema evolution (ADD COLUMN)."""
         catalog_name = iceberg_catalog["catalog_name"]
         table_name = f"{catalog_name}.test_schema"
 
         # Create table
-        spark_session.sql(
-            f"CREATE TABLE {table_name} (id INT, value STRING) " +
-            f"USING iceberg"
-        )
+        spark_session.sql(f"CREATE TABLE {table_name} (id INT, value STRING) " + f"USING iceberg")
 
         # Insert data
         spark_session.sql(f"INSERT INTO {table_name} VALUES (1, 'a'), (2, 'b')")
@@ -251,13 +201,7 @@ class TestAirflowIceberg357:
 class TestAirflowIceberg357FullDataset:
     """E2E tests with full NYC Taxi dataset using Iceberg."""
 
-    def test_iceberg_full_table_operations(
-        self,
-        spark_session,
-        dataset_path,
-        iceberg_catalog,
-        iceberg_metrics
-    ):
+    def test_iceberg_full_table_operations(self, spark_session, dataset_path, iceberg_catalog, iceberg_metrics):
         """Test Iceberg operations with full dataset."""
         catalog_name = iceberg_catalog["catalog_name"]
         table_name = f"{catalog_name}.nyc_taxi_full"
@@ -268,10 +212,10 @@ class TestAirflowIceberg357FullDataset:
 
         # Perform aggregation
         result = spark_session.sql(
-            f"SELECT passenger_count, COUNT(*) AS cnt " +
-            f"FROM {table_name} " +
-            f"WHERE passenger_count > 0 " +
-            f"GROUP BY passenger_count"
+            f"SELECT passenger_count, COUNT(*) AS cnt "
+            + f"FROM {table_name} "
+            + f"WHERE passenger_count > 0 "
+            + f"GROUP BY passenger_count"
         )
 
         assert result.count() > 0, "Aggregation failed"

@@ -96,8 +96,10 @@ with DAG(
             "spark.hadoop.fs.s3a.secret.key": "{{ var.value.s3_secret_key }}",
         },
         application_args=[
-            "--date", "{{ ds }}",
-            "--output", "s3a://data/raw/{{ ds }}/",
+            "--date",
+            "{{ ds }}",
+            "--output",
+            "s3a://data/raw/{{ ds }}/",
         ],
         execution_timeout=timedelta(minutes=45),
     )
@@ -116,8 +118,10 @@ with DAG(
             "spark.sql.adaptive.enabled": "true",
         },
         application_args=[
-            "--input", "s3a://data/raw/{{ ds }}/",
-            "--output", "s3a://data/processed/{{ ds }}/",
+            "--input",
+            "s3a://data/raw/{{ ds }}/",
+            "--output",
+            "s3a://data/processed/{{ ds }}/",
         ],
         execution_timeout=timedelta(minutes=60),
     )
@@ -135,8 +139,10 @@ with DAG(
             "spark.hadoop.fs.s3a.secret.key": "{{ var.value.s3_secret_key }}",
         },
         application_args=[
-            "--input", "s3a://data/processed/{{ ds }}/",
-            "--table", "warehouse.fact_daily",
+            "--input",
+            "s3a://data/processed/{{ ds }}/",
+            "--table",
+            "warehouse.fact_daily",
         ],
         execution_timeout=timedelta(minutes=30),
     )

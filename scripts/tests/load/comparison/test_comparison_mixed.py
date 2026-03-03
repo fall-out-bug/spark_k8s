@@ -17,9 +17,9 @@ from pyspark.sql import SparkSession
 from helpers_validation import generate_comparison_report
 
 
-def run_mixed_workload(client: SparkSession, queries: list,
-                        duration_sec: int, interval_sec: float,
-                        label: str) -> Dict[str, Any]:
+def run_mixed_workload(
+    client: SparkSession, queries: list, duration_sec: int, interval_sec: float, label: str
+) -> Dict[str, Any]:
     """Run mixed workload test."""
     start_time = datetime.now()
     end_time = start_time + timedelta(seconds=duration_sec)
@@ -57,10 +57,7 @@ def run_mixed_workload(client: SparkSession, queries: list,
     actual_duration = (datetime.now() - start_time).total_seconds()
     metrics["actual_duration_sec"] = actual_duration
     metrics["throughput_qps"] = metrics["queries_total"] / actual_duration if actual_duration > 0 else 0
-    metrics["error_rate"] = (
-        metrics["queries_failed"] / metrics["queries_total"]
-        if metrics["queries_total"] > 0 else 0
-    )
+    metrics["error_rate"] = metrics["queries_failed"] / metrics["queries_total"] if metrics["queries_total"] > 0 else 0
 
     if metrics["latencies"]:
         sorted_latencies = sorted(metrics["latencies"])
@@ -121,12 +118,8 @@ def test_version_comparison_mixed_workload(
     duration_sec = 1800
     interval_sec = 1.0
 
-    metrics_358 = run_mixed_workload(
-        spark_358_client, queries, duration_sec, interval_sec, "3.5.8"
-    )
-    metrics_411 = run_mixed_workload(
-        spark_411_client, queries, duration_sec, interval_sec, "4.1.1"
-    )
+    metrics_358 = run_mixed_workload(spark_358_client, queries, duration_sec, interval_sec, "3.5.8")
+    metrics_411 = run_mixed_workload(spark_411_client, queries, duration_sec, interval_sec, "4.1.1")
 
     # Generate comparison report
     report = generate_comparison_report(
@@ -137,17 +130,17 @@ def test_version_comparison_mixed_workload(
     )
 
     # Assertions
-    assert report["throughput"]["regression"] is False, \
-        f"Significant throughput regression: {report['throughput']['diff_pct']:.1f}%"
-    assert report["latency_p95"]["regression"] is False, \
-        f"Significant latency regression: {report['latency_p95']['diff_pct']:.1f}%"
+    assert (
+        report["throughput"]["regression"] is False
+    ), f"Significant throughput regression: {report['throughput']['diff_pct']:.1f}%"
+    assert (
+        report["latency_p95"]["regression"] is False
+    ), f"Significant latency regression: {report['latency_p95']['diff_pct']:.1f}%"
 
     # Print summary
     print(f"\n=== Version Comparison Summary (Mixed Workload) ===")
-    print(f"Spark 3.5.8: {metrics_358['throughput_qps']:.2f} qps, "
-          f"P95: {metrics_358['latency_p95_ms']:.1f}ms")
-    print(f"Spark 4.1.1: {metrics_411['throughput_qps']:.2f} qps, "
-          f"P95: {metrics_411['latency_p95_ms']:.1f}ms")
+    print(f"Spark 3.5.8: {metrics_358['throughput_qps']:.2f} qps, " f"P95: {metrics_358['latency_p95_ms']:.1f}ms")
+    print(f"Spark 4.1.1: {metrics_411['throughput_qps']:.2f} qps, " f"P95: {metrics_411['latency_p95_ms']:.1f}ms")
     print(f"Throughput diff: {report['throughput']['diff_pct']:.1f}%")
     print(f"Latency P95 diff: {report['latency_p95']['diff_pct']:.1f}%")
 

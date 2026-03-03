@@ -60,19 +60,13 @@ def aggregate_results(results_dir: str) -> Dict[str, Any]:
         except json.JSONDecodeError as e:
             print(f"Error: Invalid JSON in {result_file}: {e}", file=sys.stderr)
             aggregated["failed"] += 1
-            aggregated["scenarios"].append({
-                "scenario": result_file.stem,
-                "status": "error",
-                "error": f"JSON decode error: {e}"
-            })
+            aggregated["scenarios"].append(
+                {"scenario": result_file.stem, "status": "error", "error": f"JSON decode error: {e}"}
+            )
         except Exception as e:
             print(f"Error reading {result_file}: {e}", file=sys.stderr)
             aggregated["failed"] += 1
-            aggregated["scenarios"].append({
-                "scenario": result_file.stem,
-                "status": "error",
-                "error": str(e)
-            })
+            aggregated["scenarios"].append({"scenario": result_file.stem, "status": "error", "error": str(e)})
 
     aggregated["duration"] = total_duration
 
@@ -86,13 +80,9 @@ def aggregate_results(results_dir: str) -> Dict[str, Any]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Aggregate test results from JSON files"
-    )
+    parser = argparse.ArgumentParser(description="Aggregate test results from JSON files")
     parser.add_argument(
-        "--results-dir",
-        default="test-results",
-        help="Directory containing result JSON files (default: test-results)"
+        "--results-dir", default="test-results", help="Directory containing result JSON files (default: test-results)"
     )
 
     args = parser.parse_args()
@@ -110,7 +100,9 @@ def main() -> int:
         json.dump(aggregated, f, indent=2)
 
     print(f"Aggregated results written to {output_file}")
-    print(f"Total: {aggregated['total']}, Passed: {aggregated['passed']}, Failed: {aggregated['failed']}, Skipped: {aggregated['skipped']}")
+    print(
+        f"Total: {aggregated['total']}, Passed: {aggregated['passed']}, Failed: {aggregated['failed']}, Skipped: {aggregated['skipped']}"
+    )
     print(f"Pass Rate: {aggregated['pass_rate']}%, Duration: {aggregated['duration']}s")
 
     # Exit with error code if any tests failed

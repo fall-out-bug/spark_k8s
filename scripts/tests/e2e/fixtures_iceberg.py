@@ -4,6 +4,7 @@ Iceberg-specific fixtures for E2E tests.
 This module provides fixtures for Apache Iceberg table operations,
 catalog configuration, and Iceberg-specific metrics.
 """
+
 import os
 import tempfile
 import shutil
@@ -31,10 +32,7 @@ def iceberg_warehouse() -> Generator[str, None, None]:
 
 
 @pytest.fixture(scope="function")
-def iceberg_catalog(
-    spark_session: Any,
-    iceberg_warehouse: str
-) -> Generator[Dict[str, Any], None, None]:
+def iceberg_catalog(spark_session: Any, iceberg_warehouse: str) -> Generator[Dict[str, Any], None, None]:
     """
     Configure Iceberg catalog for Spark session.
 
@@ -51,8 +49,7 @@ def iceberg_catalog(
     catalog_uri = f"file://{iceberg_warehouse}"
 
     # Configure Iceberg catalog
-    spark_session.conf.set(f"spark.sql.catalog.{catalog_name}",
-                          "org.apache.iceberg.spark.SparkCatalog")
+    spark_session.conf.set(f"spark.sql.catalog.{catalog_name}", "org.apache.iceberg.spark.SparkCatalog")
     spark_session.conf.set(f"spark.sql.catalog.{catalog_name}.type", "hadoop")
     spark_session.conf.set(f"spark.sql.catalog.{catalog_name}.warehouse", catalog_uri)
 
@@ -61,16 +58,11 @@ def iceberg_catalog(
     iceberg_extension = "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions"
     if existing_extensions:
         if iceberg_extension not in existing_extensions:
-            spark_session.conf.set("spark.sql.extensions",
-                                  f"{existing_extensions},{iceberg_extension}")
+            spark_session.conf.set("spark.sql.extensions", f"{existing_extensions},{iceberg_extension}")
     else:
         spark_session.conf.set("spark.sql.extensions", iceberg_extension)
 
-    yield {
-        "catalog_name": catalog_name,
-        "warehouse": iceberg_warehouse,
-        "catalog_uri": catalog_uri
-    }
+    yield {"catalog_name": catalog_name, "warehouse": iceberg_warehouse, "catalog_uri": catalog_uri}
 
     # Drop all tables in catalog
     try:
@@ -85,9 +77,7 @@ def iceberg_catalog(
 
 @pytest.fixture(scope="function")
 def iceberg_table(
-    spark_session: Any,
-    iceberg_catalog: Dict[str, Any],
-    sample_dataset_path: str
+    spark_session: Any, iceberg_catalog: Dict[str, Any], sample_dataset_path: str
 ) -> Generator[Dict[str, Any], None, None]:
     """
     Create Iceberg table from NYC Taxi dataset.
@@ -107,11 +97,7 @@ def iceberg_table(
     df = spark_session.read.parquet(sample_dataset_path)
     df.writeTo(table_name).using("iceberg").create()
 
-    yield {
-        "table_name": table_name,
-        "catalog_name": catalog_name,
-        "row_count": df.count()
-    }
+    yield {"table_name": table_name, "catalog_name": catalog_name, "row_count": df.count()}
 
     # Cleanup table
     try:
@@ -140,16 +126,14 @@ def iceberg_metrics(spark_session: Any, iceberg_catalog: Dict[str, Any]) -> Dict
 
     try:
         # Get snapshot history
-        snapshots = spark_session.sql(
-            f"SELECT * FROM {table_name}.snapshots"
-        )
+        snapshots = spark_session.sql(f"SELECT * FROM {table_name}.snapshots")
         metrics["snapshot_count"] = snapshots.count()
 
         # Get current snapshot
         current = spark_session.sql(
-            f"SELECT * FROM {table_name}.snapshots " +
-            "WHERE committed_at IS NOT NULL " +
-            "ORDER BY committed_at DESC LIMIT 1"
+            f"SELECT * FROM {table_name}.snapshots "
+            + "WHERE committed_at IS NOT NULL "
+            + "ORDER BY committed_at DESC LIMIT 1"
         )
         if current.count() > 0:
             metrics["current_snapshot_id"] = current.collect()[0]["snapshot_id"]
@@ -201,13 +185,9 @@ def iceberg_time_travel(spark_session: Any, iceberg_table: Dict[str, Any]) -> An
             DataFrame: Query result at specified point in time.
         """
         if timestamp:
-            return spark_session.sql(
-                f"SELECT * FROM {table_name} TIMESTAMP AS OF '{timestamp}'"
-            )
+            return spark_session.sql(f"SELECT * FROM {table_name} TIMESTAMP AS OF '{timestamp}'")
         elif snapshot_id:
-            return spark_session.sql(
-                f"SELECT * FROM {table_name} VERSION AS OF {snapshot_id}"
-            )
+            return spark_session.sql(f"SELECT * FROM {table_name} VERSION AS OF {snapshot_id}")
         else:
             return spark_session.sql(f"SELECT * FROM {table_name}")
 

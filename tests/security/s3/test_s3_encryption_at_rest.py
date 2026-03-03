@@ -75,8 +75,11 @@ class TestS3EncryptionAtRest:
                             parts = line.split("=")
                             if len(parts) > 1:
                                 algorithm = parts[1].strip()
-                                assert algorithm in ["AES256", "aws:kms", "'"], \
-                                    f"Encryption algorithm should be AES256 or aws:kms, got: {algorithm}"
+                                assert algorithm in [
+                                    "AES256",
+                                    "aws:kms",
+                                    "'",
+                                ], f"Encryption algorithm should be AES256 or aws:kms, got: {algorithm}"
 
     def test_encryption_kms_key_configured_if_using_kms(self, chart_35_path, preset_35_baseline):
         """Test that KMS key is configured if using aws:kms"""
@@ -101,8 +104,7 @@ class TestS3EncryptionAtRest:
                     kms_key_set = True
 
         if using_kms:
-            assert kms_key_set, \
-                "KMS key should be configured when using aws:kms encryption"
+            assert kms_key_set, "KMS key should be configured when using aws:kms encryption"
 
     def test_encryption_enabled_for_history_server(self, chart_35_path, preset_35_baseline):
         """Test that encryption is enabled for History Server logs"""

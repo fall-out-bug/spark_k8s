@@ -321,10 +321,10 @@ class TestE2EPerformance:
     """E2E performance benchmarks."""
 
     PERFORMANCE_BENCHMARKS = {
-        "analyzer_duration": 1.0,      # seconds, max
-        "recommender_duration": 0.5,   # seconds, max
-        "applier_duration": 0.5,       # seconds, max
-        "full_pipeline_duration": 3.0, # seconds, max (without collection)
+        "analyzer_duration": 1.0,  # seconds, max
+        "recommender_duration": 0.5,  # seconds, max
+        "applier_duration": 0.5,  # seconds, max
+        "full_pipeline_duration": 3.0,  # seconds, max (without collection)
     }
 
     @pytest.fixture
@@ -347,8 +347,9 @@ class TestE2EPerformance:
             analyzer.analyze(app_id="perf-test", metrics=sample_metrics_dict)
         duration = (time.time() - start) / 10
 
-        assert duration < self.PERFORMANCE_BENCHMARKS["analyzer_duration"], \
-            f"Analyzer too slow: {duration:.3f}s > {self.PERFORMANCE_BENCHMARKS['analyzer_duration']}s"
+        assert (
+            duration < self.PERFORMANCE_BENCHMARKS["analyzer_duration"]
+        ), f"Analyzer too slow: {duration:.3f}s > {self.PERFORMANCE_BENCHMARKS['analyzer_duration']}s"
 
     def test_recommender_performance(self, sample_metrics_dict):
         """Test recommender performance."""
@@ -363,8 +364,9 @@ class TestE2EPerformance:
             recommender.recommend(analysis, current_config)
         duration = (time.time() - start) / 10
 
-        assert duration < self.PERFORMANCE_BENCHMARKS["recommender_duration"], \
-            f"Recommender too slow: {duration:.3f}s > {self.PERFORMANCE_BENCHMARKS['recommender_duration']}s"
+        assert (
+            duration < self.PERFORMANCE_BENCHMARKS["recommender_duration"]
+        ), f"Recommender too slow: {duration:.3f}s > {self.PERFORMANCE_BENCHMARKS['recommender_duration']}s"
 
     def test_applier_performance(self, sample_metrics_dict):
         """Test applier performance."""
@@ -381,8 +383,9 @@ class TestE2EPerformance:
             generator.generate_overlay(rec_set)
         duration = (time.time() - start) / 10
 
-        assert duration < self.PERFORMANCE_BENCHMARKS["applier_duration"], \
-            f"Applier too slow: {duration:.3f}s > {self.PERFORMANCE_BENCHMARKS['applier_duration']}s"
+        assert (
+            duration < self.PERFORMANCE_BENCHMARKS["applier_duration"]
+        ), f"Applier too slow: {duration:.3f}s > {self.PERFORMANCE_BENCHMARKS['applier_duration']}s"
 
     def test_full_pipeline_performance(self, sample_metrics_dict, tmp_path: Path):
         """Test full pipeline performance (without collection)."""
@@ -404,8 +407,9 @@ class TestE2EPerformance:
 
         duration = time.time() - start
 
-        assert duration < self.PERFORMANCE_BENCHMARKS["full_pipeline_duration"], \
-            f"Full pipeline too slow: {duration:.3f}s > {self.PERFORMANCE_BENCHMARKS['full_pipeline_duration']}s"
+        assert (
+            duration < self.PERFORMANCE_BENCHMARKS["full_pipeline_duration"]
+        ), f"Full pipeline too slow: {duration:.3f}s > {self.PERFORMANCE_BENCHMARKS['full_pipeline_duration']}s"
 
 
 class TestE2EWorkloadClassification:
@@ -527,6 +531,7 @@ class TestE2ERealPrometheus:
     def prometheus_url(self):
         """Get Prometheus URL from environment."""
         import os
+
         url = os.environ.get("PROMETHEUS_URL")
         if not url:
             pytest.skip("PROMETHEUS_URL not set")

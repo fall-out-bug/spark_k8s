@@ -113,7 +113,7 @@ get_runtime_image() {
     local spark_version="$1"
     local gpu="$2"
     local iceberg="$3"
-    
+
     local variant="baseline"
     if [[ "$gpu" == "true" && "$iceberg" == "true" ]]; then
         variant="gpu-iceberg"
@@ -122,7 +122,7 @@ get_runtime_image() {
     elif [[ "$iceberg" == "true" ]]; then
         variant="iceberg"
     fi
-    
+
     # Map version to image tag
     local version_tag
     case "$spark_version" in
@@ -132,7 +132,7 @@ get_runtime_image() {
         4.1.1) version_tag="4.1-4.1.1" ;;
         *) version_tag="3.5-3.5.7" ;;
     esac
-    
+
     echo "spark-k8s-runtime:${version_tag}-${variant}"
 }
 
@@ -144,38 +144,38 @@ run_scenario() {
     local spark_version=$(echo "$scenario_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['spark_version'])")
     local gpu=$(echo "$scenario_json" | python3 -c "import json,sys; print(str(json.load(sys.stdin).get('gpu', False)).lower())")
     local iceberg=$(echo "$scenario_json" | python3 -c "import json,sys; print(str(json.load(sys.stdin).get('iceberg', False)).lower())")
-    
+
     local ns="test-${scenario_id,,}"
     local release="spark"
     local result="PASS"
     local start_time=$(date +%s)
-    
+
     # Get runtime image
     local runtime_image=$(get_runtime_image "$spark_version" "$gpu" "$iceberg")
-    
+
     log_info "Scenario: $scenario_name"
     log_info "Image: $runtime_image"
-    
+
     # Check if image exists
     if ! docker image inspect "$runtime_image" &>/dev/null; then
         log_skip "$scenario_id - Image not found: $runtime_image"
         ((SKIPPED++)) || true
         return 0
     fi
-    
+
     # Create namespace
     kubectl create namespace "$ns" --dry-run=client -o yaml | kubectl apply -f - >/dev/null 2>&1
-    
+
     # Deploy Spark using spark-standalone chart with custom image
     local chart="spark-3.5/charts/spark-standalone"
     if [[ "$spark_version" == 4.1* ]]; then
         chart="spark-4.1/charts/spark-standalone"
     fi
-    
+
     # Extract image repo and tag from runtime image
     local image_repo=$(echo "$runtime_image" | cut -d: -f1)
     local image_tag=$(echo "$runtime_image" | cut -d: -f2)
-    
+
     if ! timeout ${TIMEOUT}m helm install "$release" "$PROJECT_ROOT/charts/$chart" \
         --namespace "$ns" \
         --set master.image.repository="$image_repo" \
@@ -198,7 +198,7 @@ run_scenario() {
         else
             local master_pod=$(kubectl get pod -n "$ns" -l app.kubernetes.io/component=spark-master -o jsonpath='{.items[0].metadata.name}')
             local master_service="${release}-spark-standalone-master"
-            
+
             # Run test
             case "$TEST_TYPE" in
                 smoke)
@@ -226,14 +226,14 @@ run_scenario() {
             esac
         fi
     fi
-    
+
     # Cleanup
     helm uninstall "$release" -n "$ns" >/dev/null 2>&1 || true
     kubectl delete namespace "$ns" --ignore-not-found >/dev/null 2>&1 &
-    
+
     local end_time=$(date +%s)
     local duration=$((end_time - start_time))
-    
+
     if [[ "$result" == "PASS" ]]; then
         ((PASSED++)) || true
         log_pass "$scenario_id (${duration}s)"
@@ -241,7 +241,7 @@ run_scenario() {
         ((FAILED++)) || true
         log_fail "$scenario_id (${duration}s)"
     fi
-    
+
     generate_junit "$scenario_id" "$scenario_name" "$TEST_TYPE" "$result" "$duration"
 }
 
@@ -250,7 +250,7 @@ run_smoke_test() {
     local ns="$1"
     local master_pod="$2"
     local master_service="$3"
-    
+
     kubectl exec -n "$ns" "$master_pod" -- python3 -c "
 from pyspark.sql import SparkSession
 spark = SparkSession.builder \
@@ -270,7 +270,7 @@ run_e2e_test() {
     local ns="$1"
     local master_pod="$2"
     local master_service="$3"
-    
+
     kubectl exec -n "$ns" "$master_pod" -- python3 -c "
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
@@ -280,7 +280,7 @@ spark = SparkSession.builder \
     .config('spark.driver.host', '127.0.0.1') \
     .config('spark.driver.bindAddress', '0.0.0.0') \
     .getOrCreate()
-    
+
 # SQL test
 df = spark.range(1000).withColumn('group', col('id') % 10)
 result = df.groupBy('group').count().count()
@@ -300,7 +300,7 @@ run_load_test() {
     local ns="$1"
     local master_pod="$2"
     local master_service="$3"
-    
+
     kubectl exec -n "$ns" "$master_pod" -- python3 -c "
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
@@ -312,7 +312,7 @@ spark = SparkSession.builder \
     .config('spark.driver.host', '127.0.0.1') \
     .config('spark.driver.bindAddress', '0.0.0.0') \
     .getOrCreate()
-    
+
 start = time.time()
 df = spark.range(100000).withColumn('group', col('id') % 100)
 result = df.groupBy('group').count().count()
@@ -329,10 +329,10 @@ generate_junit() {
     local test_type="$3"
     local result="$4"
     local duration="$5"
-    
+
     local junit_dir="$RESULTS_DIR/junit"
     mkdir -p "$junit_dir"
-    
+
     cat > "$junit_dir/${scenario_id}-${test_type}.xml" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuite name="${scenario_id}" tests="1" failures="$([ "$result" = "FAIL" ] && echo 1 || echo 0)" time="${duration}">
@@ -379,9 +379,9 @@ for s in json.load(sys.stdin):
     print(s['id'])
 " | while read scenario_id; do
     ((TOTAL++)) || true
-    
+
     scenario_json=$(echo "$SCENARIOS" | python3 -c "import json,sys; print(json.dumps([s for s in json.load(sys.stdin) if s['id']=='$scenario_id'][0]))")
-    
+
     run_scenario "$scenario_json"
 done
 

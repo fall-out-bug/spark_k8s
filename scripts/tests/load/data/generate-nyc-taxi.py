@@ -23,13 +23,30 @@ from pathlib import Path
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import (
-    col, rand, when, lit, floor, date_format, substring, concat,
-    year, month, dayofmonth, hour, monotonically_increasing_id
+    col,
+    rand,
+    when,
+    lit,
+    floor,
+    date_format,
+    substring,
+    concat,
+    year,
+    month,
+    dayofmonth,
+    hour,
+    monotonically_increasing_id,
 )
 from pyspark.sql.functions import column
 from pyspark.sql.types import (
-    StructType, StructField, IntegerType, LongType, FloatType,
-    DoubleType, TimestampType, StringType
+    StructType,
+    StructField,
+    IntegerType,
+    LongType,
+    FloatType,
+    DoubleType,
+    TimestampType,
+    StringType,
 )
 
 
@@ -61,34 +78,37 @@ QUEENS_ZONES = [
 ALL_ZONES = MANHATTAN_ZONES + BRONX_ZONES + BROOKLYN_ZONES + QUEENS_ZONES
 
 # Schema matching NYC taxi data structure
-TAXI_SCHEMA = StructType([
-    StructField("VendorID", IntegerType(), nullable=True),
-    StructField("tpep_pickup_datetime", TimestampType(), nullable=False),
-    StructField("tpep_dropoff_datetime", TimestampType(), nullable=False),
-    StructField("passenger_count", IntegerType(), nullable=True),
-    StructField("trip_distance", DoubleType(), nullable=False),
-    StructField("RatecodeID", IntegerType(), nullable=True),
-    StructField("store_and_fwd_flag", StringType(), nullable=True),
-    StructField("PULocationID", IntegerType(), nullable=False),
-    StructField("DOLocationID", IntegerType(), nullable=False),
-    StructField("payment_type", IntegerType(), nullable=True),
-    StructField("fare_amount", DoubleType(), nullable=False),
-    StructField("extra", DoubleType(), nullable=True),
-    StructField("mta_tax", DoubleType(), nullable=True),
-    StructField("tip_amount", DoubleType(), nullable=True),
-    StructField("tolls_amount", DoubleType(), nullable=True),
-    StructField("improvement_surcharge", DoubleType(), nullable=True),
-    StructField("total_amount", DoubleType(), nullable=False),
-    StructField("congestion_surcharge", DoubleType(), nullable=True),
-])
+TAXI_SCHEMA = StructType(
+    [
+        StructField("VendorID", IntegerType(), nullable=True),
+        StructField("tpep_pickup_datetime", TimestampType(), nullable=False),
+        StructField("tpep_dropoff_datetime", TimestampType(), nullable=False),
+        StructField("passenger_count", IntegerType(), nullable=True),
+        StructField("trip_distance", DoubleType(), nullable=False),
+        StructField("RatecodeID", IntegerType(), nullable=True),
+        StructField("store_and_fwd_flag", StringType(), nullable=True),
+        StructField("PULocationID", IntegerType(), nullable=False),
+        StructField("DOLocationID", IntegerType(), nullable=False),
+        StructField("payment_type", IntegerType(), nullable=True),
+        StructField("fare_amount", DoubleType(), nullable=False),
+        StructField("extra", DoubleType(), nullable=True),
+        StructField("mta_tax", DoubleType(), nullable=True),
+        StructField("tip_amount", DoubleType(), nullable=True),
+        StructField("tolls_amount", DoubleType(), nullable=True),
+        StructField("improvement_surcharge", DoubleType(), nullable=True),
+        StructField("total_amount", DoubleType(), nullable=False),
+        StructField("congestion_surcharge", DoubleType(), nullable=True),
+    ]
+)
 
 
 def create_spark_session() -> SparkSession:
     """Create Spark session with S3 configuration."""
-    return SparkSession.builder \
-        .appName("nyc-taxi-data-generator") \
-        .config("spark.sql.shuffle.partitions", "200") \
+    return (
+        SparkSession.builder.appName("nyc-taxi-data-generator")
+        .config("spark.sql.shuffle.partitions", "200")
         .getOrCreate()
+    )
 
 
 def generate_trip_data(spark: SparkSession, num_rows: int, year: int, month: int) -> None:
@@ -111,98 +131,115 @@ def generate_trip_data(spark: SparkSession, num_rows: int, year: int, month: int
     else:
         end_date = datetime(year, month + 1, 1) - timedelta(seconds=1)
 
-    df = df.withColumn("pickup_seconds",
-                      floor(rand() * (end_date - start_date).total_seconds())) \
-           .withColumn("tpep_pickup_datetime",
-                      (lit(start_date.timestamp()).cast("long") + col("pickup_seconds"))
-                      .cast("timestamp")) \
-           .drop("pickup_seconds")
+    df = (
+        df.withColumn("pickup_seconds", floor(rand() * (end_date - start_date).total_seconds()))
+        .withColumn(
+            "tpep_pickup_datetime", (lit(start_date.timestamp()).cast("long") + col("pickup_seconds")).cast("timestamp")
+        )
+        .drop("pickup_seconds")
+    )
 
     # Add dropoff datetime (5-30 minutes after pickup)
-    df = df.withColumn("trip_duration_seconds",
-                      (floor(rand() * 1500) + 300)) \
-           .withColumn("tpep_dropoff_datetime",
-                      (col("tpep_pickup_datetime").cast("long") + col("trip_duration_seconds"))
-                      .cast("timestamp")) \
-           .drop("trip_duration_seconds")
+    df = (
+        df.withColumn("trip_duration_seconds", (floor(rand() * 1500) + 300))
+        .withColumn(
+            "tpep_dropoff_datetime",
+            (col("tpep_pickup_datetime").cast("long") + col("trip_duration_seconds")).cast("timestamp"),
+        )
+        .drop("trip_duration_seconds")
+    )
 
     # Add passenger count (1-6, weighted towards 1-2)
-    df = df.withColumn("passenger_count",
-                      when(rand() < 0.6, 1)
-                      .when(rand() < 0.8, 2)
-                      .when(rand() < 0.9, 3)
-                      .when(rand() < 0.95, 4)
-                      .when(rand() < 0.98, 5)
-                      .otherwise(6))
+    df = df.withColumn(
+        "passenger_count",
+        when(rand() < 0.6, 1)
+        .when(rand() < 0.8, 2)
+        .when(rand() < 0.9, 3)
+        .when(rand() < 0.95, 4)
+        .when(rand() < 0.98, 5)
+        .otherwise(6),
+    )
 
     # Add trip distance (0.5 - 20 miles, weighted towards shorter trips)
-    df = df.withColumn("trip_distance",
-                      (rand() * 19.5 + 0.5))
+    df = df.withColumn("trip_distance", (rand() * 19.5 + 0.5))
 
     # Add pickup/dropoff location IDs (1-263, NYC taxi zones)
-    df = df.withColumn("PULocationID",
-                      floor(rand() * 263) + 1) \
-           .withColumn("DOLocationID",
-                      floor(rand() * 263) + 1)
+    df = df.withColumn("PULocationID", floor(rand() * 263) + 1).withColumn("DOLocationID", floor(rand() * 263) + 1)
 
     # Add vendor ID (1 or 2)
-    df = df.withColumn("VendorID",
-                      when(rand() < 0.5, 1).otherwise(2))
+    df = df.withColumn("VendorID", when(rand() < 0.5, 1).otherwise(2))
 
     # Add rate code (1-6)
-    df = df.withColumn("RatecodeID",
-                      when(rand() < 0.9, 1)  # Standard rate
-                      .when(rand() < 0.95, 2)  # JFK
-                      .otherwise(4))  # Nassau or Westchester
+    df = df.withColumn(
+        "RatecodeID", when(rand() < 0.9, 1).when(rand() < 0.95, 2).otherwise(4)  # Standard rate  # JFK
+    )  # Nassau or Westchester
 
     # Add store and forward flag
-    df = df.withColumn("store_and_fwd_flag",
-                      when(rand() < 0.1, "Y").otherwise("N"))
+    df = df.withColumn("store_and_fwd_flag", when(rand() < 0.1, "Y").otherwise("N"))
 
     # Calculate fare based on distance and duration
-    df = df.withColumn("base_fare",
-                      (col("trip_distance") * 2.5 + 3.0))  # $2.50/mile + $3.00 base
+    df = df.withColumn("base_fare", (col("trip_distance") * 2.5 + 3.0))  # $2.50/mile + $3.00 base
 
     # Add fare amount with some variance
-    df = df.withColumn("fare_amount",
-                      col("base_fare") * (1.0 + (rand() - 0.5) * 0.2)) \
-           .drop("base_fare")
+    df = df.withColumn("fare_amount", col("base_fare") * (1.0 + (rand() - 0.5) * 0.2)).drop("base_fare")
 
     # Add tip amount (0-30% of fare, weighted towards lower tips)
-    df = df.withColumn("tip_amount",
-                      col("fare_amount") * (rand() * 0.3))
+    df = df.withColumn("tip_amount", col("fare_amount") * (rand() * 0.3))
 
     # Add other charges
-    df = df.withColumn("extra",
-                      when(hour(col("tpep_pickup_datetime")) >= 16, 1.0)  # Evening surcharge
-                      .when(hour(col("tpep_pickup_datetime")) < 6, 0.5)  # Overnight
-                      .otherwise(0.0)) \
-           .withColumn("mta_tax", lit(0.5)) \
-           .withColumn("tolls_amount", when(rand() < 0.2, rand() * 10).otherwise(0.0)) \
-           .withColumn("improvement_surcharge", lit(0.3)) \
-           .withColumn("congestion_surcharge", when(rand() < 0.3, 2.75).otherwise(0.0))
+    df = (
+        df.withColumn(
+            "extra",
+            when(hour(col("tpep_pickup_datetime")) >= 16, 1.0)  # Evening surcharge
+            .when(hour(col("tpep_pickup_datetime")) < 6, 0.5)  # Overnight
+            .otherwise(0.0),
+        )
+        .withColumn("mta_tax", lit(0.5))
+        .withColumn("tolls_amount", when(rand() < 0.2, rand() * 10).otherwise(0.0))
+        .withColumn("improvement_surcharge", lit(0.3))
+        .withColumn("congestion_surcharge", when(rand() < 0.3, 2.75).otherwise(0.0))
+    )
 
     # Calculate total amount
-    df = df.withColumn("total_amount",
-                      col("fare_amount") + col("tip_amount") +
-                      col("extra") + col("mta_tax") +
-                      col("tolls_amount") + col("improvement_surcharge") +
-                      col("congestion_surcharge"))
+    df = df.withColumn(
+        "total_amount",
+        col("fare_amount")
+        + col("tip_amount")
+        + col("extra")
+        + col("mta_tax")
+        + col("tolls_amount")
+        + col("improvement_surcharge")
+        + col("congestion_surcharge"),
+    )
 
     # Add payment type (1-6)
-    df = df.withColumn("payment_type",
-                      when(rand() < 0.6, 1)  # Credit card
-                      .when(rand() < 0.95, 2)  # Cash
-                      .otherwise(3))  # No charge
+    df = df.withColumn(
+        "payment_type", when(rand() < 0.6, 1).when(rand() < 0.95, 2).otherwise(3)  # Credit card  # Cash
+    )  # No charge
 
     # Select and order columns
-    df = df.select([
-        "VendorID", "tpep_pickup_datetime", "tpep_dropoff_datetime",
-        "passenger_count", "trip_distance", "RatecodeID", "store_and_fwd_flag",
-        "PULocationID", "DOLocationID", "payment_type", "fare_amount",
-        "extra", "mta_tax", "tip_amount", "tolls_amount",
-        "improvement_surcharge", "total_amount", "congestion_surcharge"
-    ])
+    df = df.select(
+        [
+            "VendorID",
+            "tpep_pickup_datetime",
+            "tpep_dropoff_datetime",
+            "passenger_count",
+            "trip_distance",
+            "RatecodeID",
+            "store_and_fwd_flag",
+            "PULocationID",
+            "DOLocationID",
+            "payment_type",
+            "fare_amount",
+            "extra",
+            "mta_tax",
+            "tip_amount",
+            "tolls_amount",
+            "improvement_surcharge",
+            "total_amount",
+            "congestion_surcharge",
+        ]
+    )
 
     return df
 
@@ -233,17 +270,24 @@ def upload_to_minio(local_path: str, bucket: str, prefix: str) -> dict:
         subprocess.run(["mc", "--version"], check=True, capture_output=True)
 
         # Configure Minio alias
-        subprocess.run([
-            "mc", "alias", "set", "local",
-            "http://minio.load-testing.svc.cluster.local:9000",
-            "minioadmin", "minioadmin"
-        ], check=True, capture_output=True)
+        subprocess.run(
+            [
+                "mc",
+                "alias",
+                "set",
+                "local",
+                "http://minio.load-testing.svc.cluster.local:9000",
+                "minioadmin",
+                "minioadmin",
+            ],
+            check=True,
+            capture_output=True,
+        )
 
         # Copy data
-        subprocess.run([
-            "mc", "cp", "--recursive",
-            local_path, f"local/{bucket}/{prefix}/"
-        ], check=True, capture_output=True)
+        subprocess.run(
+            ["mc", "cp", "--recursive", local_path, f"local/{bucket}/{prefix}/"], check=True, capture_output=True
+        )
 
         return {"success": True, "path": f"s3a://{bucket}/{prefix}/"}
 
@@ -252,31 +296,12 @@ def upload_to_minio(local_path: str, bucket: str, prefix: str) -> dict:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Generate NYC taxi data for load testing"
-    )
-    parser.add_argument(
-        "--size", type=str, required=True,
-        choices=["1gb", "11gb"],
-        help="Dataset size to generate"
-    )
-    parser.add_argument(
-        "--upload", action="store_true",
-        help="Upload to Minio after generation"
-    )
-    parser.add_argument(
-        "--output", type=str,
-        default="/tmp/nyc-taxi-generated",
-        help="Output directory"
-    )
-    parser.add_argument(
-        "--year", type=int, default=2025,
-        help="Year for generated data"
-    )
-    parser.add_argument(
-        "--month", type=int, default=1,
-        help="Month for generated data"
-    )
+    parser = argparse.ArgumentParser(description="Generate NYC taxi data for load testing")
+    parser.add_argument("--size", type=str, required=True, choices=["1gb", "11gb"], help="Dataset size to generate")
+    parser.add_argument("--upload", action="store_true", help="Upload to Minio after generation")
+    parser.add_argument("--output", type=str, default="/tmp/nyc-taxi-generated", help="Output directory")
+    parser.add_argument("--year", type=int, default=2025, help="Year for generated data")
+    parser.add_argument("--month", type=int, default=1, help="Month for generated data")
 
     args = parser.parse_args()
 
@@ -313,10 +338,7 @@ def main():
 
             # Partition by year/month and write
             output_path = f"{args.output}/year={year}/month={month:02d}"
-            df.write \
-              .mode("overwrite") \
-              .partitionBy("year", "month") \
-              .parquet(output_path)
+            df.write.mode("overwrite").partitionBy("year", "month").parquet(output_path)
 
             print(f"  Written to: {output_path}")
             generated_files.append(output_path)

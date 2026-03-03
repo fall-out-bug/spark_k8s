@@ -21,10 +21,17 @@ class TestRealK8sDeployment:
         """Deploy Spark Connect to K8s and verify it's ready."""
         result = subprocess.run(
             [
-                "helm", "install", "spark-e2e", "charts/spark-4.1",
-                "-f", "charts/spark-4.1/environments/dev/values.yaml",
-                "--namespace", namespace,
-                "--wait", "--timeout", "5m"
+                "helm",
+                "install",
+                "spark-e2e",
+                "charts/spark-4.1",
+                "-f",
+                "charts/spark-4.1/environments/dev/values.yaml",
+                "--namespace",
+                namespace,
+                "--wait",
+                "--timeout",
+                "5m",
             ],
             capture_output=True,
             text=True,
@@ -32,8 +39,18 @@ class TestRealK8sDeployment:
         assert result.returncode == 0, f"Failed to deploy: {result.stderr}"
 
         result = subprocess.run(
-            ["kubectl", "wait", "--for=condition=ready", "pod",
-             "-l", "app=spark-connect", "-n", namespace, "--timeout", "300s"],
+            [
+                "kubectl",
+                "wait",
+                "--for=condition=ready",
+                "pod",
+                "-l",
+                "app=spark-connect",
+                "-n",
+                namespace,
+                "--timeout",
+                "300s",
+            ],
             capture_output=True,
             text=True,
         )
@@ -51,13 +68,21 @@ class TestRealK8sDeployment:
         """Run a simple Spark job and verify it completes."""
         result = subprocess.run(
             [
-                "kubectl", "exec", "-n", namespace,
-                "deployment/spark-e2e-spark-41-connect", "--",
+                "kubectl",
+                "exec",
+                "-n",
+                namespace,
+                "deployment/spark-e2e-spark-41-connect",
+                "--",
                 "/opt/spark/bin/spark-submit",
-                "--master", "local[*]",
-                "--conf", "spark.driver.memory=512m",
-                "--conf", "spark.executor.memory=512m",
-                "local:///opt/spark/examples/src/main/python/pi.py", "10"
+                "--master",
+                "local[*]",
+                "--conf",
+                "spark.driver.memory=512m",
+                "--conf",
+                "spark.executor.memory=512m",
+                "local:///opt/spark/examples/src/main/python/pi.py",
+                "10",
             ],
             capture_output=True,
             text=True,
@@ -70,8 +95,17 @@ class TestRealK8sDeployment:
         import socket
 
         result = subprocess.run(
-            ["kubectl", "get", "pods", "-n", namespace,
-             "-l", "app=spark-connect", "-o", "jsonpath={.items[0].metadata.name}"],
+            [
+                "kubectl",
+                "get",
+                "pods",
+                "-n",
+                namespace,
+                "-l",
+                "app=spark-connect",
+                "-o",
+                "jsonpath={.items[0].metadata.name}",
+            ],
             capture_output=True,
             text=True,
         )

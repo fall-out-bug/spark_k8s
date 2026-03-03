@@ -114,9 +114,7 @@ class TestMultiEnvironmentProd:
         with open(prod_values) as f:
             values = yaml.safe_load(f)
 
-        assert values["secrets"]["externalSecrets"]["enabled"] is True, (
-            "External secrets MUST be enabled in production"
-        )
+        assert values["secrets"]["externalSecrets"]["enabled"] is True, "External secrets MUST be enabled in production"
 
     def test_prod_monitoring_always_enabled(self, environments_path: Path) -> None:
         """Test that monitoring is always enabled in prod."""

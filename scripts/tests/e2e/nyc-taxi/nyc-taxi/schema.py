@@ -3,6 +3,7 @@ NYC Taxi dataset schema definition.
 
 This module defines the schema for the NYC Taxi dataset used in E2E tests.
 """
+
 from typing import Dict, List
 
 
@@ -23,7 +24,7 @@ NYC_TAXI_SCHEMA: Dict[str, str] = {
     "tip_amount": "double",
     "tolls_amount": "double",
     "improvement_surcharge": "double",
-    "total_amount": "double"
+    "total_amount": "double",
 }
 
 NYC_TAXI_COLUMN_NAMES: List[str] = list(NYC_TAXI_SCHEMA.keys())
@@ -31,12 +32,7 @@ NYC_TAXI_COLUMN_NAMES: List[str] = list(NYC_TAXI_SCHEMA.keys())
 
 def get_sql_type(pyspark_type: str) -> str:
     """Convert PySpark type string to SQL type string."""
-    type_mapping = {
-        "bigint": "BIGINT",
-        "double": "DOUBLE",
-        "string": "STRING",
-        "timestamp": "TIMESTAMP"
-    }
+    type_mapping = {"bigint": "BIGINT", "double": "DOUBLE", "string": "STRING", "timestamp": "TIMESTAMP"}
     return type_mapping.get(pyspark_type, "STRING")
 
 
@@ -73,5 +69,5 @@ def get_sample_row() -> Dict[str, any]:
         "tip_amount": 3.0,
         "tolls_amount": 0.0,
         "improvement_surcharge": 0.3,
-        "total_amount": 19.3
+        "total_amount": 19.3,
     }

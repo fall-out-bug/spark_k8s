@@ -19,9 +19,7 @@ class TestLoadPerformance:
     def environments_path(self, helm_chart_path: Path) -> Path:
         return helm_chart_path / "environments"
 
-    def test_helm_template_performance_dev(
-        self, helm_chart_path: Path, environments_path: Path
-    ) -> None:
+    def test_helm_template_performance_dev(self, helm_chart_path: Path, environments_path: Path) -> None:
         """Test that dev template renders quickly (< 2s)."""
         dev_values = environments_path / "dev" / "values.yaml"
         start = time.time()
@@ -33,9 +31,7 @@ class TestLoadPerformance:
         assert result.returncode == 0, f"Dev template should render: {result.stderr.decode()}"
         assert duration < 2.0, f"Template rendering should be fast, took {duration:.2f}s"
 
-    def test_helm_template_performance_staging(
-        self, helm_chart_path: Path, environments_path: Path
-    ) -> None:
+    def test_helm_template_performance_staging(self, helm_chart_path: Path, environments_path: Path) -> None:
         """Test that staging template renders quickly (< 2s)."""
         staging_values = environments_path / "staging" / "values.yaml"
         start = time.time()
@@ -54,9 +50,7 @@ class TestLoadPerformance:
         assert result.returncode == 0
         assert duration < 2.0, f"Template rendering should be fast, took {duration:.2f}s"
 
-    def test_helm_template_performance_prod(
-        self, helm_chart_path: Path, environments_path: Path
-    ) -> None:
+    def test_helm_template_performance_prod(self, helm_chart_path: Path, environments_path: Path) -> None:
         """Test that prod template renders quickly (< 2s)."""
         prod_values = environments_path / "prod" / "values.yaml"
         start = time.time()
@@ -75,9 +69,7 @@ class TestLoadPerformance:
         assert result.returncode == 0
         assert duration < 2.0, f"Template rendering should be fast, took {duration:.2f}s"
 
-    def test_sequential_environment_validation(
-        self, helm_chart_path: Path, environments_path: Path
-    ) -> None:
+    def test_sequential_environment_validation(self, helm_chart_path: Path, environments_path: Path) -> None:
         """Test validating all environments sequentially."""
         environments = ["dev", "staging", "prod"]
         results = []
@@ -93,9 +85,7 @@ class TestLoadPerformance:
         assert all(r[1] for r in results), "All environments should validate"
         assert duration < 10.0, f"Sequential validation should be fast, took {duration:.2f}s"
 
-    def test_concurrent_environment_validation(
-        self, helm_chart_path: Path, environments_path: Path
-    ) -> None:
+    def test_concurrent_environment_validation(self, helm_chart_path: Path, environments_path: Path) -> None:
         """Test validating environments concurrently."""
         environments = ["dev", "staging", "prod"]
         results: dict[str, bool] = {}
@@ -123,9 +113,7 @@ class TestLoadPerformance:
         assert all(results.values()), f"All environments should validate: {errors}"
         assert duration < 5.0, f"Concurrent validation took {duration:.2f}s"
 
-    def test_all_environment_templates_together(
-        self, helm_chart_path: Path, environments_path: Path
-    ) -> None:
+    def test_all_environment_templates_together(self, helm_chart_path: Path, environments_path: Path) -> None:
         """Test rendering all templates together (simulate full deployment)."""
         start = time.time()
         for env in ["dev", "staging", "prod"]:

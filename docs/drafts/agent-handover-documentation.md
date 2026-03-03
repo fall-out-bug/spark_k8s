@@ -113,4 +113,3 @@ If updating docs, cross-check these workstreams/issues for current status:
 
 This handoff aligns with the current E2E matrix execution run on 2026-01-25.
 All results and configs are consolidated in `docs/testing/F06-e2e-matrix-report.md`.
-

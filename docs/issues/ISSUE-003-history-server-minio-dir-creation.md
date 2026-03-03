@@ -1,8 +1,8 @@
 # ISSUE-003: History Server MinIO Events Directory Creation
 
-**Created:** 2026-01-16  
-**Status:** Resolved  
-**Severity:** 🔴 CRITICAL (blocking feature)  
+**Created:** 2026-01-16
+**Status:** Resolved
+**Severity:** 🔴 CRITICAL (blocking feature)
 **Feature:** F03 - Spark History Server for Standalone Chart
 
 ---

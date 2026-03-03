@@ -1,8 +1,8 @@
 # F16 Review Report
 
-**Feature:** F16 — Observability Stack (Monitoring & Tracing)  
-**Review Date:** 2026-02-10 (updated 2026-02-10)  
-**Reviewer:** Cursor Composer  
+**Feature:** F16 — Observability Stack (Monitoring & Tracing)
+**Review Date:** 2026-02-10 (updated 2026-02-10)
+**Reviewer:** Cursor Composer
 
 ---
 
@@ -167,5 +167,5 @@ No consolidation — Spark dashboards in spark-* templates; ops dashboards in ob
 
 ---
 
-**Report ID:** review-F16-full-2026-02-10  
+**Report ID:** review-F16-full-2026-02-10
 **Updated:** 2026-02-10 (protocol review, beads sync)

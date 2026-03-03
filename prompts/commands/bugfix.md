@@ -185,9 +185,9 @@ def test_large_repo_clone_completes():
     Expected: Should complete with increased timeout
     """
     executor = GitExecutor(timeout=600)  # 10 min
-    
+
     result = executor.clone("https://github.com/large/repo.git")
-    
+
     assert result.success is True
     assert result.error is None
 ```
@@ -206,7 +206,7 @@ pytest tests/unit/test_bug_002.py -v
 class GitExecutor:
     def __init__(self, timeout: int = 300) -> None:
         self.timeout = timeout
-    
+
     def clone(self, url: str) -> CloneResult:
         # Fix: Use configurable timeout
         try:
