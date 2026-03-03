@@ -1,50 +1,56 @@
 # Spark 3.5 + Jupyter + Airflow + Observability Stack Demo
 
-## Обзор стека
+## Deployment Paths
 
-Этот демо-стек включает все компоненты для полноценной работы с Apache Spark в Kubernetes:
+| Path | Spark/Jupyter/Airflow | Observability |
+|------|-----------------------|---------------|
+| **deploy-demo-minikube** | spark-infra (single release) | observability |
+| **run-minikube-scenarios** | scenario1/scenario2 in spark-35-jupyter-sa, spark-35-airflow-sa | observability |
+| **Legacy (prometheus-stack)** | scenario1/scenario2 | spark-operations |
+
+**Primary:** Use `observability` namespace for Grafana/Prometheus. See `tests/demo-runbook-shared-infra.md` for deploy-demo-minikube flow.
+
+## Обзор стека
 
 | Компонент | Namespace | Описание |
 |-----------|-----------|----------|
-| **Spark Connect** | spark-35-jupyter-sa | Remote Spark sessions |
-| **Jupyter** | spark-35-jupyter-sa | Interactive notebooks |
-| **Spark Standalone** | spark-35-jupyter-sa | Cluster mode (master + worker) |
-| **Airflow + Spark** | spark-35-airflow-sa | Workflow orchestration |
+| **Spark Connect** | spark-35-jupyter-sa or spark-infra | Remote Spark sessions |
+| **Jupyter** | spark-35-jupyter-sa or spark-infra | Interactive notebooks |
+| **Spark Standalone** | spark-infra or scenario1/scenario2 | Cluster mode |
+| **Airflow + Spark** | spark-35-airflow-sa or spark-infra | Workflow orchestration |
 | **MinIO** | spark-infra | S3-compatible storage |
 | **Hive Metastore** | spark-infra | Table metadata |
 | **PostgreSQL** | spark-infra | Metastore database |
 | **History Server** | spark-infra | Spark job UI |
-| **Prometheus** | spark-operations | Metrics collection |
-| **Grafana** | spark-operations | Dashboards & visualization |
-| **Jaeger** | spark-operations | Distributed tracing |
-| **Pushgateway** | spark-operations | Push-based metrics |
+| **Prometheus** | observability (or spark-operations) | Metrics collection |
+| **Grafana** | observability (or spark-operations) | Dashboards & visualization |
 
 ## Доступ к UI (port-forward)
 
 ```bash
-# Jupyter Notebooks
+# Jupyter (scenario1) or deploy-demo: spark-infra, svc/spark-infra-spark-35-jupyter
 kubectl port-forward -n spark-35-jupyter-sa svc/scenario1-spark-35-jupyter 8888:8888
-# -> http://localhost:8888
+# deploy-demo: kubectl port-forward -n spark-infra svc/spark-infra-spark-35-jupyter 8888:8888
 
-# Spark Master UI
+# Spark Master (scenario1) or deploy-demo: spark-infra-spark-standalone-master
 kubectl port-forward -n spark-35-jupyter-sa svc/scenario1-spark-35-standalone-master 8080:8080
-# -> http://localhost:8080
+# deploy-demo: kubectl port-forward -n spark-infra svc/spark-infra-spark-standalone-master 8080:8080
 
 # Spark History Server
 kubectl port-forward -n spark-infra svc/spark-infra-spark-35-history 18080:18080
 # -> http://localhost:18080
 
-# Grafana (admin/prom-operator)
-kubectl port-forward -n spark-operations svc/prometheus-stack-grafana 3000:80
-# -> http://localhost:3000
+# Grafana (deploy-demo-minikube: observability; legacy: spark-operations)
+kubectl port-forward -n observability svc/grafana 3000:3000
+# or: kubectl port-forward -n spark-operations svc/prometheus-stack-grafana 3000:80
 
 # Prometheus
-kubectl port-forward -n spark-operations svc/prometheus-stack-kube-prom-prometheus 9090:9090
-# -> http://localhost:9090
+kubectl port-forward -n observability svc/prometheus 9090:9090
+# or: kubectl port-forward -n spark-operations svc/prometheus-stack-kube-prom-prometheus 9090:9090
 
-# Jaeger Tracing
-kubectl port-forward -n spark-operations svc/jaeger-query 16686:16686
-# -> http://localhost:16686
+# Jaeger (if deployed)
+kubectl port-forward -n observability svc/jaeger-query 16686:16686 2>/dev/null || \
+  kubectl port-forward -n spark-operations svc/jaeger-query 16686:16686
 
 # MinIO Console (minioadmin/minioadmin)
 kubectl port-forward -n spark-infra svc/minio 9001:9001
@@ -99,7 +105,7 @@ from prometheus_client import CollectorRegistry, Gauge, push_to_gateway
 registry = CollectorRegistry()
 g = Gauge('demo_metric', 'Demo metric', registry=registry)
 g.set(42)
-push_to_gateway('prometheus-pushgateway.spark-operations.svc.cluster.local:9091', job='demo', registry=registry)
+push_to_gateway('prometheus-pushgateway.observability.svc.cluster.local:9091', job='demo', registry=registry)
 print('Metrics pushed successfully')
 "
 ```
