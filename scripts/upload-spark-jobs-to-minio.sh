@@ -26,14 +26,14 @@ kubectl create configmap spark-jobs-upload \
 # Upload via Python pod
 kubectl run spark-jobs-upload --rm -i --restart=Never -n "$NAMESPACE" \
   --image=python:3.11-slim \
-  --env="MINIO_ENDPOINT=http://minio:9000" \
+  --env="MINIO_ENDPOINT=http://minio.${NAMESPACE}.svc.cluster.local:9000" \
   --overrides='{
   "spec": {
     "containers": [{
       "name": "upload",
       "image": "python:3.11-slim",
       "command": ["/bin/sh", "-c"],
-      "args": ["pip install -q boto3 && python3 -c \"import boto3,os; from pathlib import Path; s3=boto3.client(\\\"s3\\\",endpoint_url=os.environ.get(\\\"MINIO_ENDPOINT\\\",\\\"http://minio:9000\\\"),aws_access_key_id=\\\"minioadmin\\\",aws_secret_access_key=\\\"minioadmin\\\"); [s3.upload_file(str(f),\\\"spark-jobs\\\",\\\"dags/spark_jobs/\\\"+f.name) or print(\\\"Uploaded\\\",f.name) for f in Path(\\\"/scripts\\\").glob(\\\"*.py\\\")]\""],
+      "args": ["pip install -q boto3 && python3 -c \"import boto3,os; from pathlib import Path; s3=boto3.client(\\\"s3\\\",endpoint_url=os.environ.get(\\\"MINIO_ENDPOINT\\\",\\\"http://minio.${NAMESPACE}.svc.cluster.local:9000\\\"),aws_access_key_id=\\\"minioadmin\\\",aws_secret_access_key=\\\"minioadmin\\\"); [s3.upload_file(str(f),\\\"spark-jobs\\\",\\\"dags/spark_jobs/\\\"+f.name) or print(\\\"Uploaded\\\",f.name) for f in Path(\\\"/scripts\\\").glob(\\\"*.py\\\")]\""],
       "volumeMounts": [{"name": "scripts", "mountPath": "/scripts", "readOnly": true}]
     }],
     "volumes": [{"name": "scripts", "configMap": {"name": "spark-jobs-upload"}}]
