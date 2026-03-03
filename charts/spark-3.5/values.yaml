@@ -193,6 +193,7 @@ historyServer:
     service:
       type: ClusterIP
       port: 18080
+      nodePort: null
     resources:
       requests:
         memory: "512Mi"
@@ -440,6 +441,8 @@ routes:
 # Jupyter (Spark Connect client)
 jupyter:
   enabled: true
+  demoNotebooks:
+    enabled: true
   image:
     repository: spark-k8s-jupyter
     tag: "3.5-3.5.7"
@@ -447,6 +450,7 @@ jupyter:
   service:
     type: ClusterIP
     port: 8888
+    nodePort: null
   env:
     SPARK_CONNECT_URL: "sc://spark-connect:15002"
   resources:
@@ -560,21 +564,15 @@ monitoring:
   sparkProfiling:
     enabled: false
     datasourceUid: "prometheus"
-    
+
     # Alerting configuration (Phase 2: Monitoring & Tuning)
     alerts:
       enabled: true
       namespace: ""  # Defaults to release namespace
       severity: ["critical", "warning"]  # Which severity levels to enable
-      
+
       # Pre-configured alert rules (see templates/monitoring/prometheus-rules.yaml)
       # Categories: executor_health, streaming_health, performance, ml_training
-    
-    # Alerting configuration
-    alerts:
-      enabled: true
-      namespace: ""  # Defaults to release namespace
-      severity: ["critical", "warning"]  # Which severity levels to enable
 
 # Auto-scaling configuration
 autoscaling:

@@ -12,7 +12,7 @@ features:
   iceberg:
     enabled: true
     warehouse: "s3a://warehouse/iceberg"
-    
+
 spark:
   version: "4.0.2"
   executor:

@@ -21,61 +21,61 @@ core:
         shuffleTracking:
           enabled: true
           timeout: "30m"
-    
+
     # Driver configuration
     driver:
       cores: 2
       memory: "8g"
       memoryOverhead: "1g"
-    
+
     # Shuffle optimization for ETL
     conf:
       # Memory management
       spark.memory.fraction: "0.6"
       spark.memory.storageFraction: "0.5"
       spark.sql.shuffle.partitions: "200"
-      
+
       # Shuffle performance
       spark.shuffle.compress: "true"
       spark.shuffle.file.buffer: "1m"
       spark.reducer.maxSizeInFlight: "96m"
       spark.shuffle.io.maxRetries: "10"
       spark.shuffle.io.retryWait: "60s"
-      
+
       # Parallelism
       spark.default.parallelism: "100"
       spark.sql.adaptive.enabled: "true"
       spark.sql.adaptive.coalescePartitions.enabled: "true"
       spark.sql.adaptive.localShuffleReader.enabled: "true"
-      
+
       # Serialization
       spark.serializer: "org.apache.spark.serializer.KryoSerializer"
       spark.kryoserializer.buffer.max: "512m"
-      
+
       # Speculative execution for stragglers
       spark.speculation: "true"
       spark.speculation.multiplier: "2"
       spark.speculation.quantile: "0.75"
-      
+
       # GC tuning (G1GC recommended)
       spark.executor.extraJavaOptions: >
-        -XX:+UseG1GC 
-        -XX:MaxGCPauseMillis=200 
-        -XX:InitiatingHeapOccupancyPercent=35 
+        -XX:+UseG1GC
+        -XX:MaxGCPauseMillis=200
+        -XX:InitiatingHeapOccupancyPercent=35
         -XX:G1HeapRegionSize=32M
         -XX:+PrintGCDetails
         -XX:+PrintGCDateStamps
       spark.driver.extraJavaOptions: >
-        -XX:+UseG1GC 
+        -XX:+UseG1GC
         -XX:MaxGCPauseMillis=200
-      
+
       # S3 optimization (if using MinIO/S3)
       spark.hadoop.fs.s3a.connection.timeout: "1200000"
       spark.hadoop.fs.s3a.path.style.access: "true"
       spark.hadoop.fs.s3a.fast.upload: "true"
       spark.hadoop.fs.s3a.multipart.size: "256M"
       spark.hadoop.fs.s3a.threads.max: "20"
-      
+
       # Event log for debugging (optional)
       spark.eventLog.enabled: "true"
       spark.eventLog.dir: "s3a://spark-events/logs"
@@ -87,7 +87,7 @@ monitoring:
   podMonitor:
     enabled: true
     interval: "15s"
-  
+
   # Alert thresholds for ETL workloads
   alerts:
     executorGC:

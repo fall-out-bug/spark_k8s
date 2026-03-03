@@ -17,10 +17,12 @@ Run:
     spark-submit --master spark://master:7077 kafka_exactly_once.py
 """
 
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, from_json, to_json, struct, window, count, sum as spark_sum
-from pyspark.sql.types import StructType, StructField, StringType, TimestampType, DoubleType, LongType
 import os
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, count, from_json, struct, to_json, window
+from pyspark.sql.functions import sum as spark_sum
+from pyspark.sql.types import DoubleType, StringType, StructField, StructType, TimestampType
 
 # Configuration
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")

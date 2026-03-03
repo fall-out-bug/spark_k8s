@@ -11,7 +11,7 @@ connect:
 jupyter:
   enabled: true
   image: "jupyter/pyspark-notebook:spark-4.0.2"
-  
+
 spark:
   version: "4.0.2"
   executor:

@@ -18,22 +18,21 @@ Run:
     spark-submit --master spark://master:7077 etl_pipeline.py
 """
 
+import os
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import (
-    col,
-    when,
-    to_date,
-    year,
-    month,
-    dayofmonth,
-    upper,
-    trim,
     coalesce,
+    col,
+    dayofmonth,
     lit,
-    current_timestamp,
+    month,
+    to_date,
+    trim,
+    upper,
+    year,
 )
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType, DateType
-import os
+from pyspark.sql.types import DoubleType, IntegerType, StringType, StructField, StructType
 
 S3_ENDPOINT = os.getenv("S3_ENDPOINT", "http://minio-spark-35:9000")
 S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY", "minioadmin")

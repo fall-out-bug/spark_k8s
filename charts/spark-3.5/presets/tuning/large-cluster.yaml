@@ -13,11 +13,11 @@ core:
     spark.executor.cores: "4"
     spark.executor.memory: "16g"
     spark.executor.memoryOverhead: "4g"
-    
+
     # High shuffle parallelism
     spark.sql.shuffle.partitions: "400"
     spark.sql.files.maxPartitionBytes: "268435456"  # 256MB
-    
+
     # Dynamic allocation for efficiency
     spark.dynamicAllocation.enabled: "true"
     spark.dynamicAllocation.minExecutors: "5"
@@ -27,16 +27,16 @@ core:
     spark.dynamicAllocation.cachedExecutorIdleTimeout: "600s"
     spark.dynamicAllocation.schedulerBacklogTimeout: "30s"
     spark.dynamicAllocation.sustainedSchedulerBacklogTimeout: "60s"
-    
+
     # Enterprise memory management
     spark.memory.fraction: "0.7"
     spark.memory.storageFraction: "0.4"
     spark.memory.offHeap.enabled: "true"
     spark.memory.offHeap.size: "4g"
-    
+
     # FAIR scheduler for multi-tenant
     spark.scheduler.mode: "FAIR"
-    
+
     # Full UI and history
     spark.ui.enabled: "true"
     spark.ui.port: "4040"
@@ -46,41 +46,41 @@ core:
     spark.eventLog.dir: "s3a://spark-events/"
     spark.eventLog.rolling.enabled: "true"
     spark.eventLog.rolling.maxFilesToRetain: "10"
-    
+
     # High parallelism
     spark.default.parallelism: "100"
-    
+
     # Compression enabled
     spark.sql.inMemoryColumnarStorage.compressed: "true"
     spark.sql.parquet.compression.codec: "snappy"
     spark.sql.orc.compression.codec: "snappy"
-    
+
     # Speculation for slow tasks
     spark.speculation: "true"
     spark.speculation.multiplier: "2"
     spark.speculation.quantile: "0.75"
     spark.speculation.interval: "100ms"
-    
+
     # Network timeouts for reliability
     spark.network.timeout: "600s"
     spark.executor.heartbeatInterval: "60s"
-    
+
     # IO optimization
     spark.sql.files.openCostInBytes: "134217728"  # 128MB
     spark.sql.files.maxPartitionBytes: "268435456"  # 256MB
     spark.sql.autoBroadcastJoinThreshold: "10485760"  # 10MB
-    
+
     # RAPIDS acceleration (if GPUs available)
     spark.rapids.sql.enabled: "true"
     spark.rapids.memory.pinnedPool.size: "2g"
     spark.rapids.sql.concurrentGpuTasks: "2"
     spark.task.resource.gpu.amount: "1"
     spark.executor.resource.gpu.amount: "1"
-    
+
     # ML-specific tuning
     spark.sql.execution.arrow.pyspark.enabled: "true"
     spark.sql.execution.arrow.maxRecordsPerBatch: "10000"
-    
+
     # Fault tolerance
     spark.task.maxFailures: "4"
     spark.stage.maxConsecutiveAttempts: "4"

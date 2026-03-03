@@ -18,11 +18,12 @@ Run:
     spark-submit --master spark://master:7077 file_stream_basic.py
 """
 
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, window, count, avg, approx_count_distinct
-from pyspark.sql.types import StructType, StructField, StringType, TimestampType, DoubleType
-import time
 import os
+import time
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import approx_count_distinct, avg, col, count, window
+from pyspark.sql.types import DoubleType, StringType, StructField, StructType, TimestampType
 
 
 def create_spark_session():
@@ -200,12 +201,14 @@ def memory_sink_query_example(spark):
 
     # Count by group
     print("\nGroup counts:")
-    spark.sql("""
-        SELECT group, COUNT(*) as count 
-        FROM rate_data 
-        GROUP BY group 
+    spark.sql(
+        """
+        SELECT group, COUNT(*) as count
+        FROM rate_data
+        GROUP BY group
         ORDER BY group
-    """).show()
+    """
+    ).show()
 
     # Recent data
     print("\nRecent 10 rows:")

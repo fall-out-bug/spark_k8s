@@ -14,10 +14,10 @@ Run:
     spark-submit --master spark://master:7077 data_quality.py
 """
 
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, count, when, isnull, isnan, min, max, avg, stddev, approx_count_distinct
-from pyspark.sql.types import IntegerType, DoubleType, DateType, TimestampType
 import os
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, max, when
 
 S3_ENDPOINT = os.getenv("S3_ENDPOINT", "http://minio-spark-35:9000")
 S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY", "minioadmin")
@@ -198,7 +198,7 @@ class DataQualityChecker:
 
 
 def generate_test_data(spark, n=10000):
-    from pyspark.sql.functions import rand, when, lit
+    from pyspark.sql.functions import rand
 
     return spark.range(n).select(
         col("id").alias("customer_id"),

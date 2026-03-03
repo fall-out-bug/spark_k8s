@@ -12,7 +12,7 @@ features:
   gpu:
     enabled: true
     vendor: "nvidia.com/gpu"
-    
+
 spark:
   version: "4.0.2"
   executor:

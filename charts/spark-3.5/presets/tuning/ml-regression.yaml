@@ -15,25 +15,25 @@ core:
       memoryOverhead: "2g"
       dynamicAllocation:
         enabled: false
-    
+
     driver:
       cores: 2
       memory: "4g"
       memoryOverhead: "1g"
-    
+
     conf:
       # Memory management
       spark.memory.fraction: "0.5"
       spark.memory.storageFraction: "0.4"
-      
+
       # Adaptive query execution
       spark.sql.adaptive.enabled: "true"
       spark.sql.adaptive.coalescePartitions.enabled: "true"
-      
+
       # Parallelism
       spark.sql.shuffle.partitions: "16"
       spark.default.parallelism: "16"
-      
+
       # Event log
       spark.eventLog.enabled: "true"
       spark.eventLog.dir: "s3a://spark-events/"
@@ -42,11 +42,11 @@ core:
 ml:
   framework: "spark-ml"
   task: "regression"
-  
+
   crossValidation:
     enabled: true
     numFolds: 3
-    
+
   hyperparameters:
     maxIter: 100
     regParam: 0.1

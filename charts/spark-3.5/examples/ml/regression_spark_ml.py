@@ -13,14 +13,15 @@ Run:
     spark-submit --master spark://master:7077 regression_spark_ml.py
 """
 
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, rand, when, log, exp
-from pyspark.ml.feature import VectorAssembler, StandardScaler, PolynomialExpansion
-from pyspark.ml.regression import LinearRegression, GBTRegressor, RandomForestRegressor
-from pyspark.ml.evaluation import RegressionEvaluator
-from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
-from pyspark.ml import Pipeline
 import time
+
+from pyspark.ml import Pipeline
+from pyspark.ml.evaluation import RegressionEvaluator
+from pyspark.ml.feature import StandardScaler, VectorAssembler
+from pyspark.ml.regression import GBTRegressor, LinearRegression, RandomForestRegressor
+from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, rand, when
 
 
 def create_spark_session():
@@ -198,7 +199,7 @@ def main():
         print(f"  {metric}: {value:.4f}")
 
     gbt_model_stage = gbt_model.stages[-1]
-    print(f"\nFeature Importances:")
+    print("\nFeature Importances:")
     feature_names = ["feature_1", "feature_2", "feature_3", "feature_4", "feature_5", "categorical_1", "categorical_2"]
     for name, importance in zip(feature_names, gbt_model_stage.featureImportances):
         print(f"  {name}: {importance:.4f}")

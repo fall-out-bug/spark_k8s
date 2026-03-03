@@ -7,7 +7,7 @@ connect:
   enabled: true
   backendMode: k8s
   replicas: 1
-  
+
 spark:
   version: "4.0.2"
   executor:
@@ -20,7 +20,7 @@ core:
     enabled: true
   postgresql:
     enabled: true
-    
+
 monitoring:
   prometheus:
     enabled: true

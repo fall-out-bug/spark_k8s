@@ -19,24 +19,24 @@
 
 gcp:
   enabled: true
-  
+
   # GCP project
   projectId: ""
-  
+
   # GCS configuration
   gcs:
     bucket: "spark-bucket"
-    
+
     # Use Workload Identity (recommended)
     useWorkloadIdentity: true
-    
+
     # Service account configuration
     serviceAccount:
       # GCP service account email
       gcpServiceAccount: "spark-sa@{{ .Values.gcp.projectId }}.iam.gserviceaccount.com"
       # Kubernetes service account
       k8sServiceAccount: "spark-gcp"
-    
+
     # Alternative: Service account key (not recommended for production)
     existingSecret: ""  # Secret with key.json
 
@@ -47,18 +47,18 @@ core:
       # GCS connector configuration
       spark.hadoop.fs.gs.impl: "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem"
       spark.hadoop.fs.gs.project.id: "{{ .Values.gcp.projectId }}"
-      
+
       # Authentication via Workload Identity
       spark.hadoop.google.cloud.auth.service.account.enable: "true"
-      
+
       # GCS performance
       spark.hadoop.fs.gs.storage.root.url: "https://storage.googleapis.com"
       spark.hadoop.fs.gs.http.max.retry: "10"
-      
+
       # Event log to GCS
       spark.eventLog.enabled: "true"
       spark.eventLog.dir: "gs://{{ .Values.gcp.gcs.bucket }}/spark-events/"
-      
+
       # Warehouse directory
       spark.sql.warehouse.dir: "gs://{{ .Values.gcp.gcs.bucket }}/warehouse/"
 

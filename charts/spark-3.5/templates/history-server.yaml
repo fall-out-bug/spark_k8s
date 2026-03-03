@@ -124,6 +124,9 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
+      {{- if and (eq .Values.historyServer.service.type "NodePort") .Values.historyServer.service.nodePort }}
+      nodePort: {{ .Values.historyServer.service.nodePort }}
+      {{- end }}
   selector:
     app: spark-history-server
     {{- include "spark-3.5.selectorLabels" . | nindent 4 }}

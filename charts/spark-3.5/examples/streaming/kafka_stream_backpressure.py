@@ -16,12 +16,13 @@ Run:
     spark-submit --master spark://master:7077 kafka_stream_backpressure.py
 """
 
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, from_json, to_json, struct, window, count
-from pyspark.sql.types import StructType, StructField, StringType, TimestampType, DoubleType, LongType
 import os
 import signal
 import sys
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, count, from_json, struct, to_json, window
+from pyspark.sql.types import DoubleType, StringType, StructField, StructType, TimestampType
 
 # Kafka configuration
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
@@ -155,7 +156,9 @@ def process_stream(raw_df, schema):
         col("data.metadata.version").alias("version"),
     ).filter(
         # Filter out null events
-        col("event_id").isNotNull() & col("event_time").isNotNull() & col("value").isNotNull()
+        col("event_id").isNotNull()
+        & col("event_time").isNotNull()
+        & col("value").isNotNull()
     )
 
     return processed_df

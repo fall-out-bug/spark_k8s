@@ -37,4 +37,3 @@ serviceAccount:
 
 rbac:
   create: true
-

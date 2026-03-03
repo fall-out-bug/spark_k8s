@@ -130,8 +130,10 @@ standalone:  # Alias for spark-standalone subchart
           memory: "128Mi"
           cpu: "50m"
     dags:
-      - spark_etl_example.py
-      - spark_streaming_example.py
+      - nyc_taxi_ml_full_pipeline.py
+      - spark_standalone_load_demo.py
+      - citibike_analytics_pipeline.py
+      - movielens_recommendation_pipeline.py
     variables:
       spark_image: "spark-custom:3.5.7"
       spark_namespace: "demo-full"
@@ -172,6 +174,8 @@ connect:
 
 jupyter:
   enabled: true
+  demoNotebooks:
+    enabled: true
   image:
     repository: spark-k8s-jupyter
     tag: "3.5-3.5.7"
@@ -216,6 +220,8 @@ historyServer:
 # ===========================================
 
 monitoring:
+  prometheus:
+    datasourceUid: "PBFA97CFB590B2093"
   serviceMonitor:
     enabled: true
     interval: "15s"

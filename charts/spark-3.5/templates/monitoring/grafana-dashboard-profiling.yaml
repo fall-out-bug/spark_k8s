@@ -5,7 +5,7 @@ metadata:
   name: {{ include "spark-3.5.fullname" . }}-dashboard-profiling
   labels:
     {{- include "spark-3.5.labels" . | nindent 4 }}
-    grafana.dashboard: "1"
+    grafana_dashboard: "1"
 data:
   spark-profiling.json: |
     {

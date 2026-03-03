@@ -16,63 +16,63 @@ core:
       # Disable dynamic allocation for streaming (recommended)
       dynamicAllocation:
         enabled: false
-    
+
     # Driver configuration
     driver:
       cores: 2
       memory: "4g"
       memoryOverhead: "1g"
-    
+
     # Streaming-specific optimization
     conf:
       # Memory management
       spark.memory.fraction: "0.4"
       spark.memory.storageFraction: "0.3"
-      
+
       # Backpressure and rate limiting
       spark.streaming.backpressure.enabled: "true"
       spark.streaming.backpressure.initialRate: "1000"
       spark.streaming.kafka.maxRatePerPartition: "2000"
       spark.streaming.stopGracefullyOnShutdown: "true"
       spark.streaming.concurrentJobs: "1"
-      
+
       # Checkpointing (CRITICAL for exactly-once)
       spark.sql.streaming.checkpointLocation: "s3a://spark-streaming/checkpoints/"
       spark.sql.streaming.forceDeleteTempCheckpointLocation: "true"
-      
+
       # Kafka optimization
       spark.kafka.pollTimeoutMs: "512"
       spark.kafka.maxPartitionBytes: "134217728"  # 128MB
       spark.kafka.fetchMaxBytes: "52428800"  # 50MB
-      
+
       # Streaming query optimization
       spark.sql.streaming.stateStore.providerClass: "org.apache.spark.sql.execution.streaming.state.RocksDBStateStoreProvider"
       spark.sql.streaming.fileSource.log.compactDeletes: "true"
-      
+
       # Watermark and late data
       spark.sql.streaming.stateStore.maintenanceInterval: "60s"
       spark.sql.shuffle.partitions: "50"
-      
+
       # Serialization
       spark.serializer: "org.apache.spark.serializer.KryoSerializer"
       spark.kryoserializer.buffer.max: "256m"
-      
+
       # GC tuning for streaming (low pause)
       spark.executor.extraJavaOptions: >
-        -XX:+UseG1GC 
-        -XX:MaxGCPauseMillis=100 
-        -XX:InitiatingHeapOccupancyPercent=30 
+        -XX:+UseG1GC
+        -XX:MaxGCPauseMillis=100
+        -XX:InitiatingHeapOccupancyPercent=30
         -XX:+PrintGCDetails
         -XX:+PrintGCApplicationStoppedTime
       spark.driver.extraJavaOptions: >
-        -XX:+UseG1GC 
+        -XX:+UseG1GC
         -XX:MaxGCPauseMillis=100
-      
+
       # S3 optimization
       spark.hadoop.fs.s3a.connection.timeout: "1200000"
       spark.hadoop.fs.s3a.path.style.access: "true"
       spark.hadoop.fs.s3a.fast.upload: "true"
-      
+
       # Fault tolerance
       spark.task.maxFailures: "4"
       spark.stage.maxConsecutiveAttempts: "4"
@@ -92,13 +92,13 @@ kafka:
       truststorePassword: ""
       keystore: ""
       keystorePassword: ""
-  
+
   # Topic configuration
   topics:
     input: "spark-input-topic"
     output: "spark-output-topic"
     consumerGroupId: "spark-streaming-consumer"
-  
+
   # Consumer configuration
   consumer:
     autoOffsetReset: "latest"  # earliest, latest
@@ -111,11 +111,11 @@ monitoring:
   podMonitor:
     enabled: true
     interval: "10s"  # More frequent for streaming
-  
+
   # Streaming-specific alerts
   grafanaDashboards:
     enabled: true
-  
+
   alerts:
     enabled: true
 # Resource limits

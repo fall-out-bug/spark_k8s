@@ -17,19 +17,19 @@
 
 azure:
   enabled: true
-  
+
   # Storage account configuration
   storage:
     accountName: ""
     accountKey: ""
     container: "spark-data"
-    
+
     # Use managed identity instead of account key
     useManagedIdentity: true
-    
+
     # Reference existing secret
     existingSecret: ""
-  
+
   # ADLS Gen2 configuration (hierarchical namespace)
   adls:
     enabled: true
@@ -41,19 +41,19 @@ core:
     conf:
       # Azure Blob Storage (WASB)
       spark.hadoop.fs.azure.account.key.{{ .Values.azure.storage.accountName }}.blob.core.windows.net: "{{ .Values.azure.storage.accountKey }}"
-      
+
       # ADLS Gen2 (ABFS)
       spark.hadoop.fs.azure.account.auth.type.{{ .Values.azure.storage.accountName }}.dfs.core.windows.net: "OAuth"
       spark.hadoop.fs.azure.account.oauth.provider.type.{{ .Values.azure.storage.accountName }}.dfs.core.windows.net: "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider"
-      
+
       # For managed identity
       spark.hadoop.fs.azure.account.oauth2.msi.endpoint: "http://169.254.169.254/metadata/identity/oauth2/token"
       spark.hadoop.fs.azure.account.oauth2.msi.tenant: ""
-      
+
       # Event log to Azure Blob
       spark.eventLog.enabled: "true"
       spark.eventLog.dir: "abfss://spark-events@{{ .Values.azure.storage.accountName }}.dfs.core.windows.net/"
-      
+
       # Warehouse directory
       spark.sql.warehouse.dir: "abfss://warehouse@{{ .Values.azure.storage.accountName }}.dfs.core.windows.net/"
 

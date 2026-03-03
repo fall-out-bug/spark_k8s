@@ -21,14 +21,14 @@ Run:
         classification_catboost.py
 """
 
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, when, rand, split
-from pyspark.ml.feature import StringIndexer, VectorAssembler, StandardScaler
-from pyspark.ml.classification import RandomForestClassifier, LogisticRegression
-from pyspark.ml.evaluation import BinaryClassificationEvaluator, MulticlassClassificationEvaluator
-from pyspark.ml import Pipeline
-from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
 import time
+
+from pyspark.ml import Pipeline
+from pyspark.ml.classification import RandomForestClassifier
+from pyspark.ml.evaluation import BinaryClassificationEvaluator, MulticlassClassificationEvaluator
+from pyspark.ml.feature import StandardScaler, StringIndexer, VectorAssembler
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, rand, when
 
 
 def create_spark_session():
@@ -47,7 +47,6 @@ def create_spark_session():
 
 def generate_sample_data(spark, n_samples=100000):
     """Generate synthetic classification dataset."""
-    from pyspark.sql.functions import lit
 
     df = spark.range(n_samples).select(
         col("id").alias("customer_id"),
@@ -102,8 +101,8 @@ def build_spark_ml_pipeline():
 
 def train_catboost_model(train_pdf, test_pdf):
     """Train CatBoost model on pandas DataFrame."""
-    from catboost import CatBoostClassifier, Pool
-    from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+    from catboost import CatBoostClassifier
+    from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, roc_auc_score
 
     feature_cols = [
         "age",
@@ -187,7 +186,7 @@ def main():
     df = generate_sample_data(spark, n_samples=100000)
 
     print(f"Total samples: {df.count()}")
-    print(f"Class distribution:")
+    print("Class distribution:")
     df.groupBy("label").count().show()
 
     train_df, test_df = df.randomSplit([0.8, 0.2], seed=42)
