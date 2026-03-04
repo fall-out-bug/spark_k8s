@@ -60,6 +60,30 @@ def test_deploy_script_exists_and_has_required_behavior() -> None:
     assert "DEPLOY_TIMEOUT" in content
 
 
+def test_smoke_workload_executes_no_path_exists() -> None:
+    """Smoke workload: 1K rows, count, filter. No Path.exists()."""
+    smoke_py = PROJECT_ROOT / "scripts" / "tests" / "smoke" / "scripts" / "smoke_1k_count_filter.py"
+    assert smoke_py.exists()
+    content = smoke_py.read_text()
+    assert "Path" not in content and "exists" not in content
+    assert "spark.range(1000)" in content
+    assert "count()" in content
+    assert "filter" in content
+    assert "SMOKE_SUCCESS" in content
+
+
+def test_smoke_against_release_script_exists() -> None:
+    """run-smoke-against-release.sh exists and uses smoke workload."""
+    smoke_sh = PROJECT_ROOT / "scripts" / "tests" / "smoke" / "run-smoke-against-release.sh"
+    assert smoke_sh.exists()
+    content = smoke_sh.read_text()
+    assert "smoke_1k_count_filter.py" in content
+    assert "NAMESPACE" in content
+    assert "kubectl exec" in content
+    assert "Path" not in content
+    assert "exists" not in content
+
+
 def test_run_matrix_reads_test_matrix_yaml() -> None:
     """run-matrix reads tests/test-matrix.yaml with 320 scenarios."""
     assert MATRIX_FILE.exists()

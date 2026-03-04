@@ -145,12 +145,14 @@ def main():
                     result["deploy"] = "PASS"
 
             if not failed and "smoke" in levels:
-                script = f'''
-connect_pod=$(kubectl get pods -n {ns} -l app.kubernetes.io/component=connect -o jsonpath="{{.items[0].metadata.name}}" 2>/dev/null)
-if [[ -z "$connect_pod" ]]; then exit 1; fi
-kubectl exec -n {ns} "$connect_pod" -- /bin/sh -c "/opt/spark/bin/spark-submit --master local[*] /opt/spark/examples/src/main/python/pi.py 10"
-'''
-                r = subprocess.run(["bash", "-c", script], capture_output=True, text=True)
+                smoke_script = os.path.join(project_root, "scripts", "tests", "smoke", "run-smoke-against-release.sh")
+                r = subprocess.run(
+                    ["bash", smoke_script],
+                    capture_output=True,
+                    text=True,
+                    cwd=project_root,
+                    env={**os.environ, "NAMESPACE": ns},
+                )
                 if r.returncode != 0:
                     result["smoke"] = "FAIL"
                     result["smoke_error"] = (r.stderr or r.stdout or "")[:500]
