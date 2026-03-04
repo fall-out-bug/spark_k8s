@@ -119,7 +119,9 @@ def main():
             cmd = ["helm", "install", release, chart, "-n", ns, "--create-namespace", "--timeout", "10m", "--wait"] + helm_args
             print(f"[dry-run] {sid}: helm install {release} {chart} -n {ns} ... ({len(helm_args)} --set args)")
             if "smoke" in levels:
-                print(f"[dry-run] {sid}: kubectl exec -n {ns} <connect-pod> -- spark-submit pi.py")
+                print(f"[dry-run] {sid}: kubectl exec -n {ns} <connect-pod> -- spark-submit smoke_1k.py")
+            if "e2e" in levels:
+                print(f"[dry-run] {sid}: kubectl exec -n {ns} <connect-pod> -- spark-submit e2e_10k.py")
             out = os.path.join(results_dir, f"scenario-{sid}.json")
             with open(out, "w") as f:
                 json.dump({**result, "dry_run": True}, f, indent=2)
@@ -161,7 +163,20 @@ def main():
                     result["smoke"] = "PASS"
 
             if not failed and "e2e" in levels:
-                result["e2e"] = "SKIP"
+                e2e_script = os.path.join(project_root, "scripts", "tests", "e2e", "run-e2e-against-release.sh")
+                r = subprocess.run(
+                    ["bash", e2e_script],
+                    capture_output=True,
+                    text=True,
+                    cwd=project_root,
+                    env={**os.environ, "NAMESPACE": ns},
+                )
+                if r.returncode != 0:
+                    result["e2e"] = "FAIL"
+                    result["e2e_error"] = (r.stderr or r.stdout or "")[:500]
+                    failed = True
+                else:
+                    result["e2e"] = "PASS"
 
             if not failed and "load" in levels:
                 result["load"] = "SKIP"

@@ -84,6 +84,30 @@ def test_smoke_against_release_script_exists() -> None:
     assert "exists" not in content
 
 
+def test_e2e_workload_executes_no_path_exists() -> None:
+    """E2E workload: 10K rows, aggregations, joins. No Path.exists()."""
+    e2e_py = PROJECT_ROOT / "scripts" / "tests" / "e2e" / "scripts" / "e2e_10k_agg_join.py"
+    assert e2e_py.exists()
+    content = e2e_py.read_text()
+    assert "Path" not in content and "exists" not in content
+    assert "spark.range(10000)" in content
+    assert "groupBy" in content
+    assert "join" in content
+    assert "E2E_SUCCESS" in content
+
+
+def test_e2e_against_release_script_exists() -> None:
+    """run-e2e-against-release.sh exists and uses e2e workload."""
+    e2e_sh = PROJECT_ROOT / "scripts" / "tests" / "e2e" / "run-e2e-against-release.sh"
+    assert e2e_sh.exists()
+    content = e2e_sh.read_text()
+    assert "e2e_10k_agg_join.py" in content
+    assert "NAMESPACE" in content
+    assert "kubectl exec" in content
+    assert "Path" not in content
+    assert "exists" not in content
+
+
 def test_run_matrix_reads_test_matrix_yaml() -> None:
     """run-matrix reads tests/test-matrix.yaml with 320 scenarios."""
     assert MATRIX_FILE.exists()
