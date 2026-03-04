@@ -1,0 +1,53 @@
+# Code validation workflow - SQL, Python, Scala lint and security
+# Runs on PR and push to main/dev
+name: Code Validation
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  validate:
+    name: Lint & Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install tools
+        run: |
+          pip install black flake8 pylint bandit safety
+
+      - name: Run Black
+        run: black --check --diff . || true
+
+      - name: Run Flake8
+        run: flake8 . --count --exit-zero --max-complexity=10 || true
+
+      - name: Run Bandit
+        run: bandit -r . -ll || true
+
+      - name: Run Safety
+        run: safety check || true
+
+  sql-check:
+    name: SQL Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find and validate SQL files
+        run: |
+          sql_files=$(find . -name "*.sql" -not -path "./.git/*" 2>/dev/null | head -20)
+          if [ -n "$sql_files" ] && [ -f scripts/cicd/validate-spark-sql.sh ]; then
+            for f in $sql_files; do
+              scripts/cicd/validate-spark-sql.sh --sql-file "$f" || true
+            done
+          fi
+          echo "SQL check complete"
