@@ -112,3 +112,59 @@ class TestDemoPresetGuard:
         assert preset["hiveMetastore"]["enabled"] is True
         assert preset["spark-base"]["minio"]["enabled"] is True
         assert preset["spark-base"]["postgresql"]["enabled"] is True
+
+    def test_all_services_have_explicit_resources(self) -> None:
+        """Every service in preset must have explicit resources to prevent drift."""
+        preset = _load_preset()
+        services = {
+            "standalone.master": preset["standalone"]["master"],
+            "standalone.worker": preset["standalone"]["worker"],
+            "standalone.airflow.webserver": preset["standalone"]["airflow"]["webserver"],
+            "standalone.airflow.scheduler": preset["standalone"]["airflow"]["scheduler"],
+            "standalone.airflow.postgresql": preset["standalone"]["airflow"]["postgresql"],
+            "jupyter": preset["jupyter"],
+            "historyServer": preset["historyServer"],
+            "hiveMetastore": preset["hiveMetastore"],
+            "spark-base.minio": preset["spark-base"]["minio"],
+            "spark-base.postgresql": preset["spark-base"]["postgresql"],
+        }
+        for name, cfg in services.items():
+            assert "resources" in cfg, f"{name} missing explicit 'resources' block"
+            res = cfg["resources"]
+            assert "requests" in res, f"{name} missing resources.requests"
+            assert "limits" in res, f"{name} missing resources.limits"
+            assert "cpu" in res["requests"], f"{name} missing requests.cpu"
+            assert "memory" in res["requests"], f"{name} missing requests.memory"
+
+    def test_total_cpu_requests_fit_node(self) -> None:
+        """Total CPU requests from preset must leave headroom for system pods."""
+        preset = _load_preset()
+
+        def parse_cpu(v: str) -> int:
+            v = str(v)
+            return int(v.rstrip("m")) if v.endswith("m") else int(float(v) * 1000)
+
+        total = 0
+        for svc in [
+            preset["standalone"]["master"],
+            preset["standalone"]["airflow"]["webserver"],
+            preset["standalone"]["airflow"]["scheduler"],
+            preset["standalone"]["airflow"]["postgresql"],
+            preset["jupyter"],
+            preset["historyServer"],
+            preset["hiveMetastore"],
+            preset["spark-base"]["minio"],
+            preset["spark-base"]["postgresql"],
+        ]:
+            total += parse_cpu(svc["resources"]["requests"]["cpu"])
+
+        worker_cpu = parse_cpu(preset["standalone"]["worker"]["resources"]["requests"]["cpu"])
+        worker_replicas = preset["standalone"]["worker"]["replicas"]
+        total += worker_cpu * worker_replicas
+
+        node_cpu = 6000
+        system_reserve = 1100
+        assert total <= node_cpu - system_reserve, (
+            f"Total CPU requests {total}m exceed budget {node_cpu - system_reserve}m "
+            f"(node {node_cpu}m - system {system_reserve}m)"
+        )

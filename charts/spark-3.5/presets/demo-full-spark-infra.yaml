@@ -4,6 +4,14 @@
 #        --set global.s3.accessKey=minioadmin --set global.s3.secretKey=minioadmin
 #        --set spark-base.postgresql.auth.password=postgres
 #        --set standalone.airflow.postgresql.auth.password=airflow
+#
+# Resource budget (minikube 6 CPU / 48Gi):
+#   System (kube-system, sdp, kubeopencode): ~850m / 300Mi
+#   Observability (prometheus, grafana, loki): ~250m / 544Mi
+#   spark-infra infrastructure: ~1750m / 4Gi
+#   spark-infra workers: 3 × 800m / 8Gi = 2400m / 24Gi
+#   TOTAL requests: ~5250m (87%) / ~29Gi (60%)
+#   Free headroom: ~750m CPU, ~19Gi memory
 
 global:
   s3:
@@ -18,10 +26,19 @@ global:
     user: "postgres"
     password: "postgres"
 
+# --- Shared infrastructure ---
+
 spark-base:
   enabled: true
   minio:
     enabled: true
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
     persistence:
       enabled: true
       size: "10Gi"
@@ -39,9 +56,18 @@ spark-base:
     databases:
       - "spark_db"
     authMethod: "md5"
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
     persistence:
       enabled: true
       size: "5Gi"
+
+# --- Spark Standalone cluster ---
 
 standalone:
   enabled: true
@@ -53,11 +79,11 @@ standalone:
       pullPolicy: IfNotPresent
     resources:
       requests:
-        memory: "1Gi"
-        cpu: "500m"
+        cpu: "300m"
+        memory: "512Mi"
       limits:
-        memory: "2Gi"
         cpu: "1"
+        memory: "2Gi"
   worker:
     enabled: true
     replicas: 3
@@ -67,33 +93,64 @@ standalone:
       pullPolicy: IfNotPresent
     resources:
       requests:
-        memory: "8Gi"
         cpu: "800m"
+        memory: "8Gi"
       limits:
-        memory: "14Gi"
         cpu: "2"
+        memory: "14Gi"
     sparkConf:
       spark.worker.memory: "12g"
       spark.worker.cores: "2"
   airflow:
     enabled: true
     webserver:
+      resources:
+        requests:
+          cpu: "250m"
+          memory: "512Mi"
+        limits:
+          cpu: "1"
+          memory: "2Gi"
       service:
         type: NodePort
         nodePort: 30080
+    scheduler:
+      resources:
+        requests:
+          cpu: "200m"
+          memory: "512Mi"
+        limits:
+          cpu: "1"
+          memory: "2Gi"
     postgresql:
       enabled: true
       auth:
         password: "airflow"
+      resources:
+        requests:
+          cpu: "100m"
+          memory: "256Mi"
+        limits:
+          cpu: "500m"
+          memory: "512Mi"
 
 connect:
   enabled: false
+
+# --- User-facing services ---
 
 jupyter:
   enabled: true
   image:
     repository: jupyter/all-spark-notebook
     tag: "latest"
+  resources:
+    requests:
+      cpu: "300m"
+      memory: "1Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
   service:
     type: NodePort
     nodePort: 30088
@@ -103,6 +160,13 @@ jupyter:
 historyServer:
   enabled: true
   logDirectory: "s3a://spark-logs/events"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
   service:
     type: NodePort
     nodePort: 30081
@@ -112,6 +176,13 @@ hiveMetastore:
   warehouseDir: "s3a://warehouse/spark-35"
   database:
     name: "spark_db"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
 
 security:
   podSecurityStandards: false
