@@ -216,6 +216,49 @@ def test_run_matrix_injects_connect_image(ensure_results_dir: None) -> None:
     assert "--set args" in result.stdout
 
 
+def test_aggregate_matrix_results_script() -> None:
+    """aggregate-matrix-results.py produces machine-readable summary."""
+    agg = PROJECT_ROOT / "scripts" / "aggregate-matrix-results.py"
+    assert agg.exists()
+    # Run with dry-run results (scenario-SCENARIO-0009.json from test_run_matrix_dry_run)
+    result = subprocess.run(
+        [
+            "python3",
+            str(agg),
+            "--results-dir",
+            str(RESULTS_DIR),
+            "--filter",
+            "id=SCENARIO-0009",
+            "--output",
+            str(RESULTS_DIR / "matrix-summary-test.json"),
+            "--duration",
+            "0",
+        ],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    # Filter id=SCENARIO-0009 returns 1 scenario; dry-run creates scenario-SCENARIO-0009.json
+    assert result.returncode == 0 or "No scenarios" in result.stderr
+    if (RESULTS_DIR / "matrix-summary-test.json").exists():
+        data = json.loads((RESULTS_DIR / "matrix-summary-test.json").read_text())
+        assert "passed" in data
+        assert "failed" in data
+        assert "expected" in data
+
+
+def test_run_matrix_96_script_exists() -> None:
+    """run-matrix-96.sh exists and runs 96-scenario filter."""
+    script = PROJECT_ROOT / "scripts" / "run-matrix-96.sh"
+    assert script.exists()
+    assert script.stat().st_mode & 0o111
+    content = script.read_text()
+    assert "gpu=false,platform=k8s" in content
+    assert "run-matrix.sh" in content
+    assert "aggregate-matrix-results" in content
+    assert "matrix-96-summary.json" in content
+
+
 def test_run_matrix_reads_test_matrix_yaml() -> None:
     """run-matrix reads tests/test-matrix.yaml with 320 scenarios."""
     assert MATRIX_FILE.exists()

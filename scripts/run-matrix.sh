@@ -113,6 +113,7 @@ def main():
             tag += "-iceberg"
         return tag
 
+    any_failed = False
     for s in filtered:
         sid = s["id"]
         ns = f"spark-matrix-{sid.lower()}"
@@ -233,7 +234,10 @@ def main():
         print(json.dumps(result))
 
         if failed:
-            sys.exit(1)
+            any_failed = True
+
+    if any_failed:
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
