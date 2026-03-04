@@ -30,25 +30,25 @@ master:
 # Spark Worker Configuration
 worker:
   enabled: true
-  replicas: 1
+  replicas: 2
   image:
     repository: spark-custom
     tag: "3.5.7"
     pullPolicy: IfNotPresent
   resources:
     requests:
-      memory: "1Gi"
-      cpu: "200m"
-    limits:
       memory: "2Gi"
-      cpu: "1"
+      cpu: "500m"
+    limits:
+      memory: "4Gi"
+      cpu: "2"
   nodeSelector: {}
   tolerations: []
   affinity: {}
   # Spark Worker configuration options
   sparkConf:
-    spark.worker.memory: "1g"
-    spark.worker.cores: "1"
+    spark.worker.memory: "3g"
+    spark.worker.cores: "2"
   # Worker directories
   workDir: "/tmp/spark-worker"
 
