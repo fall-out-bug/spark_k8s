@@ -28,7 +28,12 @@ helm upgrade --install spark "$CHART" \
   -n spark --create-namespace --wait --timeout 5m
 
 echo ""
-echo "=== Success! ==="
-echo "Port-forward: kubectl port-forward -n spark svc/spark-spark-*-jupyter 8888:8888"
-echo "Jupyter: http://localhost:8888"
-echo "See docs/quick-start.md for details."
+echo "=========================================="
+echo "  Success! Spark K8s is deployed."
+echo "=========================================="
+echo ""
+echo "  Port-forward: kubectl port-forward -n spark svc/spark-spark-*-jupyter 8888:8888"
+echo "  Jupyter:      http://localhost:8888"
+echo ""
+echo "  See docs/quick-start.md for details."
+echo ""
