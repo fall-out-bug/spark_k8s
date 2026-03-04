@@ -29,6 +29,7 @@ TIMEOUT=10
 TEST_TYPE="smoke"
 SCENARIO_FILTER=""
 MAX_TEST_NAMESPACES=3
+SKIP_DEMO_CHECK="${SKIP_DEMO_CHECK:-}"
 
 # Cleanup trap: delete leftover test-scenario namespaces on exit
 cleanup_test_namespaces() {
@@ -57,6 +58,7 @@ Test Types:
 Options:
   --filter "key=value,key=value"  Filter scenarios (e.g. id=SCENARIO-0009)
   --timeout <min>                 Timeout per scenario (default: 10)
+  --skip-demo-check               Skip demo health pre/post-flight (use when demo scaled down for matrix debugging)
   --help                          Show this help
 
 Examples:
@@ -78,6 +80,10 @@ while [[ $# -gt 0 ]]; do
         --timeout)
             TIMEOUT="$2"
             shift 2
+            ;;
+        --skip-demo-check)
+            SKIP_DEMO_CHECK=1
+            shift
             ;;
         --help|-h)
             usage
@@ -190,14 +196,18 @@ run_scenario() {
 
     # Enforce max concurrent test namespaces
     local live_test_ns
-    live_test_ns=$(kubectl get ns -o name 2>/dev/null | grep -c 'test-scenario-' || echo 0)
+    live_test_ns=$(kubectl get ns -o name 2>/dev/null | grep -c 'test-scenario-' 2>/dev/null || echo "0")
+    live_test_ns=$(echo "$live_test_ns" | tr -d '[:space:]')
+    live_test_ns="${live_test_ns:-0}"
     while [[ "$live_test_ns" -ge "$MAX_TEST_NAMESPACES" ]]; do
         log_info "  $live_test_ns test namespaces alive (max $MAX_TEST_NAMESPACES). Waiting for cleanup..."
         local oldest_ns
         oldest_ns=$(kubectl get ns -o name 2>/dev/null | grep 'test-scenario-' | head -1)
         kubectl delete "$oldest_ns" --ignore-not-found --wait=true --timeout=60s 2>/dev/null || true
         sleep 3
-        live_test_ns=$(kubectl get ns -o name 2>/dev/null | grep -c 'test-scenario-' || echo 0)
+        live_test_ns=$(kubectl get ns -o name 2>/dev/null | grep -c 'test-scenario-' 2>/dev/null || echo "0")
+        live_test_ns=$(echo "$live_test_ns" | tr -d '[:space:]')
+        live_test_ns="${live_test_ns:-0}"
     done
 
     # Create namespace (delete if leftover from previous run)
@@ -381,8 +391,10 @@ log_info "Filter: ${SCENARIO_FILTER:-none}"
 log_info "Timeout: ${TIMEOUT}m per scenario"
 log_info ""
 
-# Pre-flight: verify demo health before starting matrix
-if [[ -x "$PROJECT_ROOT/scripts/check-demo-health.sh" ]]; then
+# Pre-flight: verify demo health before starting matrix (unless --skip-demo-check)
+if [[ -n "$SKIP_DEMO_CHECK" ]]; then
+    log_info "Pre-flight: skipping demo health check (--skip-demo-check)"
+elif [[ -x "$PROJECT_ROOT/scripts/check-demo-health.sh" ]]; then
     log_info "Pre-flight: checking demo health..."
     if ! "$PROJECT_ROOT/scripts/check-demo-health.sh" --quiet 2>/dev/null; then
         log_fail "Demo is unhealthy. Fix with: ./scripts/restore-demo.sh"
@@ -445,8 +457,10 @@ echo -e "Skipped: ${YELLOW}$SKIPPED${NC}"
 echo -e "Duration: ${TOTAL_DURATION}s ($((TOTAL_DURATION / 60))m)"
 echo ""
 
-# Post-flight: verify demo survived the matrix run
-if [[ -x "$PROJECT_ROOT/scripts/check-demo-health.sh" ]]; then
+# Post-flight: verify demo survived the matrix run (unless --skip-demo-check)
+if [[ -n "$SKIP_DEMO_CHECK" ]]; then
+    log_info "Post-flight: skipping demo health check (--skip-demo-check)"
+elif [[ -x "$PROJECT_ROOT/scripts/check-demo-health.sh" ]]; then
     echo ""
     log_info "Post-flight: verifying demo health..."
     if ! "$PROJECT_ROOT/scripts/check-demo-health.sh" --quiet 2>/dev/null; then
