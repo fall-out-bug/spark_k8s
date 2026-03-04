@@ -122,6 +122,8 @@ def main():
                 print(f"[dry-run] {sid}: kubectl exec -n {ns} <connect-pod> -- spark-submit smoke_1k.py")
             if "e2e" in levels:
                 print(f"[dry-run] {sid}: kubectl exec -n {ns} <connect-pod> -- spark-submit e2e_10k.py")
+            if "load" in levels:
+                print(f"[dry-run] {sid}: kubectl exec -n {ns} <connect-pod> -- spark-submit load_s3.py")
             out = os.path.join(results_dir, f"scenario-{sid}.json")
             with open(out, "w") as f:
                 json.dump({**result, "dry_run": True}, f, indent=2)
@@ -179,7 +181,20 @@ def main():
                     result["e2e"] = "PASS"
 
             if not failed and "load" in levels:
-                result["load"] = "SKIP"
+                load_script = os.path.join(project_root, "scripts", "tests", "load", "run-load-against-release.sh")
+                r = subprocess.run(
+                    ["bash", load_script],
+                    capture_output=True,
+                    text=True,
+                    cwd=project_root,
+                    env={**os.environ, "NAMESPACE": ns, "RELEASE": release},
+                )
+                if r.returncode != 0:
+                    result["load"] = "FAIL"
+                    result["load_error"] = (r.stderr or r.stdout or "")[:500]
+                    failed = True
+                else:
+                    result["load"] = "PASS"
 
         finally:
             subprocess.run(["helm", "uninstall", release, "-n", ns], capture_output=True)

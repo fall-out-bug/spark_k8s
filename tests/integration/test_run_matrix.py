@@ -108,6 +108,36 @@ def test_e2e_against_release_script_exists() -> None:
     assert "exists" not in content
 
 
+def test_load_workload_executes_no_path_exists() -> None:
+    """Load workload: S3 parquet, 3 agg. No Path.exists(), no in-memory fallback."""
+    load_py = PROJECT_ROOT / "scripts" / "tests" / "load" / "scripts" / "load_s3_parquet_3agg.py"
+    assert load_py.exists()
+    content = load_py.read_text()
+    assert "Path" not in content and "exists" not in content
+    assert "s3a://" in content
+    assert "parquet" in content
+    assert "groupBy" in content
+    assert "LOAD_SUCCESS" in content
+    assert "LOAD_THROUGHPUT" in content
+    assert "S3_ENDPOINT" in content
+    # Fail explicitly if S3 missing (no in-memory fallback)
+    assert "sys.exit" in content
+
+
+def test_load_against_release_script_exists() -> None:
+    """run-load-against-release.sh exists and uses load workload."""
+    load_sh = PROJECT_ROOT / "scripts" / "tests" / "load" / "run-load-against-release.sh"
+    assert load_sh.exists()
+    content = load_sh.read_text()
+    assert "load_s3_parquet_3agg.py" in content
+    assert "NAMESPACE" in content
+    assert "RELEASE" in content
+    assert "S3_ENDPOINT" in content
+    assert "kubectl exec" in content
+    assert "Path" not in content
+    assert "exists" not in content
+
+
 def test_run_matrix_reads_test_matrix_yaml() -> None:
     """run-matrix reads tests/test-matrix.yaml with 320 scenarios."""
     assert MATRIX_FILE.exists()
