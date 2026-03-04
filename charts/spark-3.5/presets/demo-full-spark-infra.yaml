@@ -8,10 +8,13 @@
 # Resource budget (minikube 6 CPU / 48Gi):
 #   System (kube-system, sdp, kubeopencode): ~850m / 300Mi
 #   Observability (prometheus, grafana, loki): ~250m / 544Mi
-#   spark-infra infrastructure: ~1750m / 4Gi
-#   spark-infra workers: 3 × 800m / 8Gi = 2400m / 24Gi
-#   TOTAL requests: ~5250m (87%) / ~29Gi (60%)
-#   Free headroom: ~750m CPU, ~19Gi memory
+#   spark-infra infrastructure: ~1550m / 4.5Gi
+#   spark-infra workers: 3 × 800m / 13Gi = 2400m / 39Gi
+#   TOTAL requests: ~5050m (84%) / ~44Gi (92%)
+#   Free headroom: ~950m CPU, ~4Gi memory
+#
+# Spark memory ratio: 14g / 2 cores = 7 GB/core
+# Suitable for ML workloads (CatBoost, ALS) which need 8-16 GB/core.
 
 global:
   s3:
@@ -94,12 +97,12 @@ standalone:
     resources:
       requests:
         cpu: "800m"
-        memory: "8Gi"
+        memory: "13Gi"
       limits:
         cpu: "2"
-        memory: "14Gi"
+        memory: "15Gi"
     sparkConf:
-      spark.worker.memory: "12g"
+      spark.worker.memory: "14g"
       spark.worker.cores: "2"
   airflow:
     enabled: true
@@ -147,7 +150,7 @@ jupyter:
   resources:
     requests:
       cpu: "300m"
-      memory: "1Gi"
+      memory: "2Gi"
     limits:
       cpu: "2"
       memory: "4Gi"

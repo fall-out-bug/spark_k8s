@@ -37,17 +37,17 @@ worker:
     pullPolicy: IfNotPresent
   resources:
     requests:
-      memory: "8Gi"
+      memory: "13Gi"
       cpu: "800m"
     limits:
-      memory: "14Gi"
+      memory: "15Gi"
       cpu: "2"
   nodeSelector: {}
   tolerations: []
   affinity: {}
   # Spark Worker configuration options
   sparkConf:
-    spark.worker.memory: "12g"
+    spark.worker.memory: "14g"
     spark.worker.cores: "2"
   # Worker directories
   workDir: "/tmp/spark-worker"
