@@ -28,6 +28,16 @@ TOTAL=0
 TIMEOUT=10
 TEST_TYPE="smoke"
 SCENARIO_FILTER=""
+MAX_TEST_NAMESPACES=3
+
+# Cleanup trap: delete leftover test-scenario namespaces on exit
+cleanup_test_namespaces() {
+    log_info "Cleaning up test namespaces..."
+    kubectl get ns -o name 2>/dev/null | grep 'test-scenario-' | while read -r ns; do
+        kubectl delete "$ns" --ignore-not-found --wait=false 2>/dev/null || true
+    done
+}
+trap cleanup_test_namespaces EXIT
 
 log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 log_pass() { echo -e "${GREEN}[PASS]${NC} $1"; }
@@ -177,6 +187,18 @@ run_scenario() {
         ((SKIPPED++)) || true
         return 0
     fi
+
+    # Enforce max concurrent test namespaces
+    local live_test_ns
+    live_test_ns=$(kubectl get ns -o name 2>/dev/null | grep -c 'test-scenario-' || echo 0)
+    while [[ "$live_test_ns" -ge "$MAX_TEST_NAMESPACES" ]]; do
+        log_info "  $live_test_ns test namespaces alive (max $MAX_TEST_NAMESPACES). Waiting for cleanup..."
+        local oldest_ns
+        oldest_ns=$(kubectl get ns -o name 2>/dev/null | grep 'test-scenario-' | head -1)
+        kubectl delete "$oldest_ns" --ignore-not-found --wait=true --timeout=60s 2>/dev/null || true
+        sleep 3
+        live_test_ns=$(kubectl get ns -o name 2>/dev/null | grep -c 'test-scenario-' || echo 0)
+    done
 
     # Create namespace (delete if leftover from previous run)
     kubectl delete namespace "$ns" --ignore-not-found --wait=false >/dev/null 2>&1 || true
@@ -359,6 +381,18 @@ log_info "Filter: ${SCENARIO_FILTER:-none}"
 log_info "Timeout: ${TIMEOUT}m per scenario"
 log_info ""
 
+# Pre-flight: verify demo health before starting matrix
+if [[ -x "$PROJECT_ROOT/scripts/check-demo-health.sh" ]]; then
+    log_info "Pre-flight: checking demo health..."
+    if ! "$PROJECT_ROOT/scripts/check-demo-health.sh" --quiet 2>/dev/null; then
+        log_fail "Demo is unhealthy. Fix with: ./scripts/restore-demo.sh"
+        log_fail "Matrix run aborted to prevent further damage."
+        exit 1
+    fi
+    log_pass "Demo health OK"
+    echo ""
+fi
+
 # Get scenarios
 SCENARIOS=$(get_scenarios)
 SCENARIO_COUNT=$(echo "$SCENARIOS" | python3 -c "import json,sys; print(len(json.load(sys.stdin)))")
@@ -410,6 +444,17 @@ echo -e "Failed:  ${RED}$FAILED${NC}"
 echo -e "Skipped: ${YELLOW}$SKIPPED${NC}"
 echo -e "Duration: ${TOTAL_DURATION}s ($((TOTAL_DURATION / 60))m)"
 echo ""
+
+# Post-flight: verify demo survived the matrix run
+if [[ -x "$PROJECT_ROOT/scripts/check-demo-health.sh" ]]; then
+    echo ""
+    log_info "Post-flight: verifying demo health..."
+    if ! "$PROJECT_ROOT/scripts/check-demo-health.sh" --quiet 2>/dev/null; then
+        log_fail "Demo was damaged during matrix run! Run: ./scripts/restore-demo.sh"
+    else
+        log_pass "Demo survived matrix run"
+    fi
+fi
 
 if [[ $FAILED -gt 0 ]]; then
     log_fail "Some tests failed"

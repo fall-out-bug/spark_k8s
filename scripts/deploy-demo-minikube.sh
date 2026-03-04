@@ -10,17 +10,24 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 CHART_PATH="$PROJECT_ROOT/charts/spark-3.5"
 NAMESPACE="spark-infra"
 
+# shellcheck source=lib/helm-safe.sh
+source "$SCRIPT_DIR/lib/helm-safe.sh"
+
 echo "=== Deploying Demo to Minikube ==="
 
 # Build deps
 helm dependency build "$CHART_PATH" 2>/dev/null || true
 
-# Create namespace
+# Create namespace + protect it
 kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+kubectl annotate namespace "$NAMESPACE" \
+  spark-k8s/owner-release=spark-infra \
+  spark-k8s/owner-chart=spark-3.5 \
+  spark-k8s/protected=true \
+  --overwrite 2>/dev/null || true
 
-# Deploy spark-infra with standalone + airflow + jupyter
-helm upgrade --install spark-infra "$CHART_PATH" \
-  -n "$NAMESPACE" \
+# Deploy spark-infra with standalone + airflow + jupyter (via safe wrapper)
+helm_safe_install spark-infra "$CHART_PATH" "$NAMESPACE" \
   -f "$CHART_PATH/presets/demo-full-spark-infra.yaml" \
   --set global.s3.accessKey=minioadmin \
   --set global.s3.secretKey=minioadmin \

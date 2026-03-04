@@ -82,6 +82,35 @@ spark-custom:3.5.7|3.5.8|4.1.0|4.1.1  (base)
 
 **Reports:** `docs/reports/drift-analysis-2026-03-03.md`, `docs/reports/demo-review-2026-03-03.md`
 
+### Demo Protection (NON-NEGOTIABLE)
+
+**The demo has been destroyed 3 times in one week by agent work. These rules are mandatory.**
+
+**NEVER do these:**
+- `helm install/upgrade` in namespace `spark-infra` (use `scripts/deploy-demo-minikube.sh` or `scripts/restore-demo.sh`)
+- `helm install spark-shared -n spark-infra` (creates conflicting release)
+- `helm install spark-infra charts/spark-3.5/charts/spark-standalone` (chart swap — kills History, Metastore, Jupyter)
+- `kubectl delete namespace spark-infra` or `kubectl delete namespace observability`
+- `kubectl scale --replicas=0` on any deployment in `spark-infra` without restoring
+
+**ALWAYS do these:**
+- Test scenarios go in `test-scenario-*` or `test-*` namespaces, NEVER in `spark-infra`
+- Before matrix runs: `./scripts/check-demo-health.sh`
+- After matrix runs: `./scripts/check-demo-health.sh`
+- If demo is broken: `./scripts/restore-demo.sh` (recovers in <5 min)
+- Use `source scripts/lib/helm-safe.sh && helm_safe_install` for any helm operation
+
+**Root causes of past incidents:**
+1. Agent installed subchart (`spark-standalone`) as release `spark-infra` instead of parent chart (`spark-3.5`) — silently deleted History Server, Metastore, PostgreSQL, Jupyter
+2. Two releases (`spark-infra` + `spark-shared`) in same namespace — Helm ownership deadlock
+3. Matrix tests created too many namespaces — memory exhaustion, demo pods evicted
+
+**Scripts:**
+- `scripts/check-demo-health.sh` — verify demo is healthy (exit 0 = OK)
+- `scripts/restore-demo.sh` — recover from any failure mode
+- `scripts/lib/helm-safe.sh` — helm wrapper that blocks dangerous operations
+- `scripts/deploy-demo-minikube.sh` — canonical demo deploy path
+
 ---
 
 ## Quick Reference
