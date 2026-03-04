@@ -1,0 +1,40 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: "Thanks for reporting. Please fill the form below."
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      placeholder: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. helm install ...
+        2. kubectl ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Spark / Chart Version
+      placeholder: e.g. 3.5.7, 4.1.0
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Minikube
+        - Kind
+        - EKS
+        - GKE
+        - OpenShift
+        - Other

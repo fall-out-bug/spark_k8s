@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://github.com/fall-out-bug/spark_k8s/tree/main/docs
+    about: Project documentation
