@@ -306,6 +306,11 @@ helm template test charts/spark-4.1 -f charts/spark-4.1/values-scenario-*.yaml -
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
 
+## Community
+
+- **Telegram:** [Join chat](https://t.me/spark_k8s) (link when channel is set up)
+- **Weekly digest:** Automated progress updates via GitHub Actions → Telegram
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.

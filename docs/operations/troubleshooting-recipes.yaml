@@ -1,0 +1,30 @@
+# Troubleshooting recipe data - for wizard/automation
+# Source: docs/operations/troubleshooting.md
+
+recipes:
+  - id: job-wont-start
+    symptom: "Pod stuck in Pending"
+    category: job
+    steps:
+      - action: "kubectl describe pod <pod-name>"
+      - branches:
+          "Insufficient cpu/memory": "Increase node resources or reduce resource requests"
+          "PersistentVolumeClaim is not bound": "Check storage class, create PV/PVC"
+          "ImagePullBackOff": "Check image name, registry credentials, network"
+          "Node selectors don't match": "Fix nodeSelector or taints/tolerations"
+  - id: memory-oom
+    symptom: "OOM killed"
+    category: memory
+    steps:
+      - action: "Check executor memory, increase spark.executor.memory"
+      - branches:
+          "Driver OOM": "Increase spark.driver.memory"
+          "Executor OOM": "Increase memory or enable Celeborn for shuffle"
+  - id: spark-connect-fail
+    symptom: "Can't connect to server"
+    category: connect
+    steps:
+      - action: "kubectl get pods -n spark"
+      - branches:
+          "Pod not ready": "Check pod logs, wait for ready"
+          "Port not forwarded": "kubectl port-forward svc/spark-connect 15002:15002"
