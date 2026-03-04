@@ -4,7 +4,7 @@ Prevents regression where workers get downgraded to 1 replica / 200m CPU.
 Uses helm template to validate rendered output against preset.
 """
 
-import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -12,6 +12,10 @@ import yaml
 
 PRESET = "charts/spark-3.5/presets/demo-full-spark-infra.yaml"
 CHART = "charts/spark-3.5"
+STANDALONE_VALUES = "charts/spark-3.5/charts/spark-standalone/values.yaml"
+EXPORTER_YAML = "tests/observability/demo-metrics-exporter.yaml"
+PORTFORWARD_SCRIPT = "tests/observability/start-ui-portforwards.sh"
+RELEASE_NAME = "spark-infra"
 
 
 def _load_preset() -> dict:
@@ -167,4 +171,69 @@ class TestDemoPresetGuard:
         assert total <= node_cpu - system_reserve, (
             f"Total CPU requests {total}m exceed budget {node_cpu - system_reserve}m "
             f"(node {node_cpu}m - system {system_reserve}m)"
+        )
+
+    def test_preset_overrides_chart_defaults_for_workers(self) -> None:
+        """Rendered worker Deployment with preset must meet guard minimums."""
+        output = _helm_template_preset()
+        docs = list(yaml.safe_load_all(output))
+        worker_deploys = [
+            d for d in docs if d and d.get("kind") == "Deployment" and "worker" in d.get("metadata", {}).get("name", "")
+        ]
+        assert len(worker_deploys) == 1
+        container = worker_deploys[0]["spec"]["template"]["spec"]["containers"][0]
+        cpu_req = str(container["resources"]["requests"]["cpu"])
+        mem_req = str(container["resources"]["requests"]["memory"])
+        cpu_m = int(cpu_req.rstrip("m")) if cpu_req.endswith("m") else int(float(cpu_req) * 1000)
+        mem_gi = int(mem_req.replace("Gi", "")) if "Gi" in mem_req else int(mem_req.replace("Mi", "")) // 1024
+        assert cpu_m >= 800, f"Rendered worker CPU={cpu_req}, need >=800m"
+        assert mem_gi >= 8, f"Rendered worker memory={mem_req}, need >=8Gi"
+
+    def test_postgresql_passwords_set_in_preset(self) -> None:
+        """Preset must have non-empty PostgreSQL passwords to avoid auth failures."""
+        preset = _load_preset()
+        spark_pw = preset["spark-base"]["postgresql"]["auth"]["password"]
+        assert spark_pw, "spark-base.postgresql.auth.password is empty"
+        airflow_pw = preset["standalone"]["airflow"]["postgresql"]["auth"]["password"]
+        assert airflow_pw, "standalone.airflow.postgresql.auth.password is empty"
+
+    def test_metastore_database_matches_postgresql(self) -> None:
+        """Hive Metastore database name must exist in PostgreSQL databases list."""
+        preset = _load_preset()
+        meta_db = preset["hiveMetastore"]["database"]["name"]
+        pg_dbs = preset["spark-base"]["postgresql"]["databases"]
+        assert meta_db in pg_dbs, (
+            f"hiveMetastore.database.name='{meta_db}' not in " f"spark-base.postgresql.databases={pg_dbs}"
+        )
+
+    def test_exporter_endpoints_match_release(self) -> None:
+        """demo-metrics-exporter must reference spark-infra services, not old names."""
+        content = Path(EXPORTER_YAML).read_text()
+        bad = re.findall(r"spark-shared-[a-z-]+", content)
+        assert not bad, f"Exporter references old release name: {bad}"
+        assert f"{RELEASE_NAME}-standalone-master" in content
+        assert f"{RELEASE_NAME}-spark-35-history" in content
+
+    def test_portforward_services_exist_in_rendered_output(self) -> None:
+        """Every service referenced in port-forward script must exist in helm template."""
+        output = _helm_template_preset()
+        docs = list(yaml.safe_load_all(output))
+        rendered_services = {d["metadata"]["name"] for d in docs if d and d.get("kind") == "Service"}
+        pf_content = Path(PORTFORWARD_SCRIPT).read_text()
+        pf_services = re.findall(r"svc/(spark-infra-[a-z0-9-]+)", pf_content)
+        missing = [s for s in pf_services if s not in rendered_services]
+        assert not missing, (
+            f"Port-forward references services not in rendered chart: {missing}. "
+            f"Available: {sorted(rendered_services)}"
+        )
+
+    def test_preset_and_defaults_worker_keys_align(self) -> None:
+        """Preset worker keys must exist in chart defaults (catch typos like replica vs replicas)."""
+        preset = _load_preset()
+        defaults = yaml.safe_load(Path(STANDALONE_VALUES).read_text())
+        preset_worker_keys = set(preset["standalone"]["worker"].keys())
+        defaults_worker_keys = set(defaults["worker"].keys())
+        unknown = preset_worker_keys - defaults_worker_keys
+        assert not unknown, (
+            f"Preset has worker keys not in defaults: {unknown}. " f"Possible typo or missing chart support."
         )

@@ -33,12 +33,12 @@ start_pf() {
   fi
 }
 
-start_pf "airflow" "spark-infra" "svc/spark-infra-spark-standalone-airflow-webserver" "18080" "8080"
+start_pf "airflow" "spark-infra" "svc/spark-infra-standalone-airflow-webserver" "18080" "8080"
 start_pf "jupyter" "spark-infra" "svc/spark-infra-spark-35-jupyter" "18888" "8888"
 start_pf "grafana" "observability" "svc/grafana" "13000" "3000"
 start_pf "history" "spark-infra" "svc/spark-infra-spark-35-history" "18081" "18080"
 start_pf "prometheus" "observability" "svc/prometheus" "19090" "9090"
-start_pf "spark-master" "spark-infra" "svc/spark-infra-spark-standalone-master" "18082" "8080"
+start_pf "spark-master" "spark-infra" "svc/spark-infra-standalone-master" "18082" "8080"
 start_pf "minio-api" "spark-infra" "svc/minio" "19000" "9000"
 start_pf "minio-console" "spark-infra" "svc/minio" "19001" "9001"
 

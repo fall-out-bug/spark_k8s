@@ -25,14 +25,14 @@ data:
               names: [spark-infra]
         relabel_configs:
           - source_labels: [__meta_kubernetes_service_name]
-            regex: spark-infra-spark-standalone-master
+            regex: spark-infra-standalone-master
             action: keep
           - source_labels: [__meta_kubernetes_endpoint_port_name]
             regex: http
             action: keep
           - source_labels: [__address__]
             target_label: __address__
-            replacement: spark-infra-spark-standalone-master.spark-infra.svc.cluster.local:8080
+            replacement: spark-infra-standalone-master.spark-infra.svc.cluster.local:8080
           - target_label: job
             replacement: spark-master
 
@@ -88,6 +88,13 @@ spec:
               mountPath: /etc/prometheus
             - name: data
               mountPath: /prometheus
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "300m"
       volumes:
         - name: config
           configMap:

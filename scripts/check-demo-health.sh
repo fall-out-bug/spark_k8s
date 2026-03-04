@@ -54,22 +54,67 @@ check "MinIO pod running"                check_pod_running "app=minio"
 check "Spark Master pod running"         check_pod_running "app.kubernetes.io/component=spark-master"
 check "Spark Worker pod running"         check_pod_running "app.kubernetes.io/component=spark-worker"
 check "Airflow Webserver pod running"    check_pod_running "app.kubernetes.io/component=airflow-webserver"
+check "Hive Metastore pod running"       check_pod_running "app.kubernetes.io/component=hive-metastore"
+check "History Server pod running"       check_pod_running "app.kubernetes.io/component=history-server"
+check "Jupyter pod running"              check_pod_running "app.kubernetes.io/component=jupyter"
 
-# 6. Core services exist
-# Service names depend on chart structure; check both patterns
+# 6. No CrashLoopBackOff pods
+crashloop_pods=$(kubectl get pods -n "$NAMESPACE" -o json 2>/dev/null | \
+  python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+bad = []
+for pod in data.get('items', []):
+    for cs in pod.get('status', {}).get('containerStatuses', []):
+        w = cs.get('state', {}).get('waiting', {})
+        if w.get('reason') in ('CrashLoopBackOff', 'Error', 'ImagePullBackOff'):
+            bad.append(pod['metadata']['name'])
+            break
+print('\n'.join(bad))
+" 2>/dev/null || echo "")
+crashloop_count=$(echo "$crashloop_pods" | grep -c . 2>/dev/null || echo "0")
+crashloop_count=$(echo "$crashloop_count" | tr -d '[:space:]')
+if [[ "$crashloop_count" -gt 0 && -n "$crashloop_pods" ]]; then
+  echo "  FAIL: $crashloop_count pod(s) in CrashLoopBackOff/Error: $crashloop_pods"
+  ((FAILURES++))
+else
+  [[ "$QUIET" != "--quiet" ]] && echo "  OK: No CrashLoopBackOff pods"
+fi
+
+# 7. Core services exist
 check "Master service exists" \
   bash -c "kubectl get svc -n $NAMESPACE 2>/dev/null | grep -q 'standalone-master'"
 check "Airflow service exists" \
   bash -c "kubectl get svc -n $NAMESPACE 2>/dev/null | grep -q 'airflow-webserver'"
+check "History Server service exists" \
+  bash -c "kubectl get svc -n $NAMESPACE 2>/dev/null | grep -q 'spark-35-history'"
 
-# 7. Orphan test namespaces
+# 8. Release NOT in bad state (failed, uninstalling, pending-*)
+if [[ "$release_status" =~ ^(failed|uninstalling|pending-install|pending-upgrade|pending-rollback)$ ]]; then
+  echo "  FAIL: Release in bad state: $release_status (needs restore-demo.sh)"
+  ((FAILURES++))
+else
+  [[ "$QUIET" != "--quiet" ]] && echo "  OK: Release state is clean ($release_status)"
+fi
+
+# 9. No orphan Helm secrets (leftover from failed releases)
+orphan_secrets=$(kubectl get secret -n "$NAMESPACE" -l "owner=helm" --no-headers 2>/dev/null | grep -cv "^$" || echo "0")
+orphan_secrets=$(echo "$orphan_secrets" | tr -d '[:space:]')
+if [[ "$all_count" -eq 0 && "$orphan_secrets" -gt 0 ]]; then
+  echo "  FAIL: No release but $orphan_secrets orphan Helm secrets exist"
+  ((FAILURES++))
+else
+  [[ "$QUIET" != "--quiet" ]] && echo "  OK: No orphan Helm secrets"
+fi
+
+# 10. Orphan test namespaces
 orphan_count=$(kubectl get ns -o name 2>/dev/null | grep -c 'test-scenario-' 2>/dev/null || true)
 orphan_count="${orphan_count:-0}"
 orphan_count=$(echo "$orphan_count" | tr -d '[:space:]')
 check "Orphan test namespaces ≤ 1 (got: $orphan_count)" \
   test "$orphan_count" -le 1
 
-# 8. Observability stack
+# 11. Observability stack
 check "Grafana pod running" \
   bash -c "kubectl get pod -n observability -l app.kubernetes.io/name=grafana -o jsonpath='{.items[0].status.phase}' 2>/dev/null | grep -q Running"
 check "Prometheus pod running" \
