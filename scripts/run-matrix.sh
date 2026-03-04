@@ -127,8 +127,16 @@ def main():
 
         try:
             if "deploy" in levels:
-                cmd = ["helm", "install", release, chart, "-n", ns, "--create-namespace", "--timeout", "10m", "--wait"] + helm_args
-                r = subprocess.run(cmd, capture_output=True, text=True, cwd=project_root)
+                deploy_script = os.path.join(project_root, "scripts", "tests", "lib", "deploy.sh")
+                deploy_timeout = os.environ.get("DEPLOY_TIMEOUT", "300")
+                cmd = ["bash", deploy_script, release, chart, ns] + helm_args
+                r = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    cwd=project_root,
+                    env={**os.environ, "DEPLOY_TIMEOUT": deploy_timeout},
+                )
                 if r.returncode != 0:
                     result["deploy"] = "FAIL"
                     result["deploy_error"] = (r.stderr or r.stdout or "")[:500]

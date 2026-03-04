@@ -49,6 +49,17 @@ def test_run_matrix_filter_gpu_false(ensure_results_dir: None) -> None:
     assert len(lines) >= 96  # 96 k8s/no-gpu scenarios
 
 
+def test_deploy_script_exists_and_has_required_behavior() -> None:
+    """deploy.sh exists, is executable, and defines deploy_matrix_scenario."""
+    deploy_sh = PROJECT_ROOT / "scripts" / "tests" / "lib" / "deploy.sh"
+    assert deploy_sh.exists()
+    assert deploy_sh.stat().st_mode & 0o111  # executable
+    content = deploy_sh.read_text()
+    assert "deploy_matrix_scenario" in content
+    assert "kubectl wait" in content
+    assert "DEPLOY_TIMEOUT" in content
+
+
 def test_run_matrix_reads_test_matrix_yaml() -> None:
     """run-matrix reads tests/test-matrix.yaml with 320 scenarios."""
     assert MATRIX_FILE.exists()
