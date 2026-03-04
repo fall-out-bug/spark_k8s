@@ -134,6 +134,22 @@ def test_load_against_release_script_exists() -> None:
     assert "RELEASE" in content
     assert "S3_ENDPOINT" in content
     assert "kubectl exec" in content
+    assert "spark.eventLog.enabled" in content
+    assert "spark.eventLog.dir" in content
+    assert "Path" not in content
+    assert "exists" not in content
+
+
+def test_validate_history_script_exists() -> None:
+    """run-validate-history-after-load.sh exists and curls History Server API."""
+    hist_sh = PROJECT_ROOT / "scripts" / "tests" / "load" / "run-validate-history-after-load.sh"
+    assert hist_sh.exists()
+    content = hist_sh.read_text()
+    assert "NAMESPACE" in content
+    assert "RELEASE" in content
+    assert "api/v1/applications" in content
+    assert "HISTORY_VALIDATION_SUCCESS" in content
+    assert "curl" in content
     assert "Path" not in content
     assert "exists" not in content
 

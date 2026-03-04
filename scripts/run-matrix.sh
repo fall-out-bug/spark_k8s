@@ -124,7 +124,7 @@ def main():
         img_tag = get_runtime_image(spark_ver, s.get("gpu", False), s.get("iceberg", False))
         helm_args.extend(["--set", f"connect.image.repository=spark-custom", "--set", f"connect.image.tag={img_tag}"])
 
-        result = {"id": sid, "deploy": "SKIP", "smoke": "SKIP", "e2e": "SKIP", "load": "SKIP"}
+        result = {"id": sid, "deploy": "SKIP", "smoke": "SKIP", "e2e": "SKIP", "load": "SKIP", "history": "SKIP"}
         failed = False
 
         if dry_run:
@@ -207,6 +207,21 @@ def main():
                     failed = True
                 else:
                     result["load"] = "PASS"
+                    # After load: validate application visible in History Server
+                    history_script = os.path.join(project_root, "scripts", "tests", "load", "run-validate-history-after-load.sh")
+                    r2 = subprocess.run(
+                        ["bash", history_script],
+                        capture_output=True,
+                        text=True,
+                        cwd=project_root,
+                        env={**os.environ, "NAMESPACE": ns, "RELEASE": release},
+                    )
+                    if r2.returncode != 0:
+                        result["history"] = "FAIL"
+                        result["history_error"] = (r2.stderr or r2.stdout or "")[:500]
+                        failed = True
+                    else:
+                        result["history"] = "PASS"
 
         finally:
             subprocess.run(["helm", "uninstall", release, "-n", ns], capture_output=True)

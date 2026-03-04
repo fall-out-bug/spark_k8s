@@ -26,5 +26,7 @@ kubectl exec -n "$NAMESPACE" "$connect_pod" -- /bin/sh -c "
     /opt/spark/bin/spark-submit \
         --master local[*] \
         --conf spark.driver.memory=1g \
+        --conf spark.eventLog.enabled=true \
+        --conf spark.eventLog.dir=s3a://spark-logs/events \
         /tmp/load_s3.py
 "
