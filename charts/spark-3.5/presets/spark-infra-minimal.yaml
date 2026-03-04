@@ -1,0 +1,65 @@
+# Minimal Spark Infra: MinIO + Metastore + History only (no Standalone, Airflow, Jupyter)
+# Saves ~2 CPU, ~5Gi memory for run-matrix and other workloads
+# Usage: helm upgrade --install spark-infra charts/spark-3.5 -n spark-infra -f presets/spark-infra-minimal.yaml ...
+
+global:
+  s3:
+    endpoint: "http://minio.spark-infra.svc.cluster.local:9000"
+    accessKey: "minioadmin"
+    secretKey: "minioadmin"
+    pathStyleAccess: true
+    sslEnabled: false
+  postgresql:
+    host: "spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local"
+    port: 5432
+    user: "postgres"
+    password: "postgres"
+
+spark-base:
+  enabled: true
+  minio:
+    enabled: true
+    persistence:
+      enabled: true
+      size: "10Gi"
+    buckets:
+      - warehouse
+      - spark-logs
+      - spark-jobs
+      - raw-data
+      - processed-data
+  postgresql:
+    enabled: true
+    auth:
+      username: "postgres"
+      password: "postgres"
+    databases:
+      - "spark_db"
+    authMethod: "md5"
+    persistence:
+      enabled: true
+      size: "5Gi"
+
+standalone:
+  enabled: false
+
+connect:
+  enabled: false
+
+jupyter:
+  enabled: false
+
+historyServer:
+  enabled: true
+  logDirectory: "s3a://spark-logs/events"
+  service:
+    type: ClusterIP
+
+hiveMetastore:
+  enabled: true
+  warehouseDir: "s3a://warehouse/spark-35"
+  database:
+    name: "spark_db"
+
+security:
+  podSecurityStandards: false

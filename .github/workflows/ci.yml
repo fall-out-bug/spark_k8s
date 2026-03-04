@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Helm lint spark-3.5
+        run: helm lint charts/spark-3.5
+
+      - name: Helm lint spark-4.1
+        run: helm lint charts/spark-4.1
+
+      - name: ShellCheck
+        run: |
+          sudo apt-get install -y shellcheck
+          find scripts -name "*.sh" -exec shellcheck -S warning {} +
+
+  template-tests:
+    name: Helm Template Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test deps
+        run: pip install pytest pyyaml
+
+      - name: Run template tests
+        run: pytest tests/ -v --tb=short -m "not e2e and not slow"

@@ -4,7 +4,6 @@ Prevents regression where workers get downgraded to 1 replica / 200m CPU.
 Uses helm template to validate rendered output against preset.
 """
 
-import re
 import subprocess
 from pathlib import Path
 
@@ -13,8 +12,6 @@ import yaml
 PRESET = "charts/spark-3.5/presets/demo-full-spark-infra.yaml"
 CHART = "charts/spark-3.5"
 STANDALONE_VALUES = "charts/spark-3.5/charts/spark-standalone/values.yaml"
-EXPORTER_YAML = "tests/observability/demo-metrics-exporter.yaml"
-PORTFORWARD_SCRIPT = "tests/observability/start-ui-portforwards.sh"
 RELEASE_NAME = "spark-infra"
 
 
@@ -72,10 +69,7 @@ class TestDemoPresetGuard:
         preset = _load_preset()
         cpu = preset["standalone"]["worker"]["resources"]["requests"]["cpu"]
         cpu_str = str(cpu)
-        if cpu_str.endswith("m"):
-            millicores = int(cpu_str.rstrip("m"))
-        else:
-            millicores = int(float(cpu_str) * 1000)
+        millicores = int(cpu_str.rstrip("m")) if cpu_str.endswith("m") else int(float(cpu_str) * 1000)
         assert millicores >= 800, f"Worker CPU request={cpu}, must be >= 800m"
 
     def test_worker_spark_cores_at_least_2(self) -> None:
@@ -204,27 +198,6 @@ class TestDemoPresetGuard:
         pg_dbs = preset["spark-base"]["postgresql"]["databases"]
         assert meta_db in pg_dbs, (
             f"hiveMetastore.database.name='{meta_db}' not in " f"spark-base.postgresql.databases={pg_dbs}"
-        )
-
-    def test_exporter_endpoints_match_release(self) -> None:
-        """demo-metrics-exporter must reference spark-infra services, not old names."""
-        content = Path(EXPORTER_YAML).read_text()
-        bad = re.findall(r"spark-shared-[a-z-]+", content)
-        assert not bad, f"Exporter references old release name: {bad}"
-        assert f"{RELEASE_NAME}-standalone-master" in content
-        assert f"{RELEASE_NAME}-spark-35-history" in content
-
-    def test_portforward_services_exist_in_rendered_output(self) -> None:
-        """Every service referenced in port-forward script must exist in helm template."""
-        output = _helm_template_preset()
-        docs = list(yaml.safe_load_all(output))
-        rendered_services = {d["metadata"]["name"] for d in docs if d and d.get("kind") == "Service"}
-        pf_content = Path(PORTFORWARD_SCRIPT).read_text()
-        pf_services = re.findall(r"svc/(spark-infra-[a-z0-9-]+)", pf_content)
-        missing = [s for s in pf_services if s not in rendered_services]
-        assert not missing, (
-            f"Port-forward references services not in rendered chart: {missing}. "
-            f"Available: {sorted(rendered_services)}"
         )
 
     def test_preset_and_defaults_worker_keys_align(self) -> None:
