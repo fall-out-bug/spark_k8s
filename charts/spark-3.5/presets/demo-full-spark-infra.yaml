@@ -60,20 +60,20 @@ standalone:
         cpu: "1"
   worker:
     enabled: true
-    replicas: 2
+    replicas: 3
     image:
       repository: spark-custom
       tag: "3.5.7"
       pullPolicy: IfNotPresent
     resources:
       requests:
-        memory: "2Gi"
-        cpu: "500m"
+        memory: "8Gi"
+        cpu: "800m"
       limits:
-        memory: "4Gi"
+        memory: "14Gi"
         cpu: "2"
     sparkConf:
-      spark.worker.memory: "3g"
+      spark.worker.memory: "12g"
       spark.worker.cores: "2"
   airflow:
     enabled: true
