@@ -181,6 +181,15 @@ run_scenario() {
     local result="PASS"
     local start_time=$(date +%s)
 
+    # Skip connect scenarios: run-matrix uses spark-standalone chart only
+    local connect_mode
+    connect_mode=$(echo "$scenario_json" | python3 -c "import json,sys; print(str(json.load(sys.stdin).get('connect', False)).lower())" 2>/dev/null || echo "false")
+    if [[ "$connect_mode" == "true" ]]; then
+        log_skip "$scenario_id - Connect mode requires spark-3.5 chart (run-matrix uses spark-standalone)"
+        ((SKIPPED++)) || true
+        return 0
+    fi
+
     # Get runtime image
     local runtime_image=$(get_runtime_image "$spark_version" "$gpu" "$iceberg")
 
@@ -192,6 +201,16 @@ run_scenario() {
         log_skip "$scenario_id - Image not found: $runtime_image"
         ((SKIPPED++)) || true
         return 0
+    fi
+
+    # Ensure image is in minikube (host docker != minikube's containerd)
+    local image_tag
+    image_tag=$(echo "$runtime_image" | cut -d: -f2)
+    if command -v minikube &>/dev/null && minikube status &>/dev/null; then
+        if [[ "$image_tag" != "3.5.7" ]]; then
+            log_info "  Loading $runtime_image into minikube..."
+            minikube image load "$runtime_image" 2>/dev/null || true
+        fi
     fi
 
     # Enforce max concurrent test namespaces
