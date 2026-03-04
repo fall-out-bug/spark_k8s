@@ -481,6 +481,45 @@ WS-034-02 (Beads) ──► WS-034-05
 
 ---
 
+## Feature F35: Test Matrix Rebuild (Execute, Not Check)
+
+**Source:** `docs/drafts/idea-test-matrix-tdd.md`, `docs/drafts/idea-test-matrix-tdd-design.md`
+**Status:** Backlog
+**Total Workstreams:** 8
+**Estimated LOC:** ~1200
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-035-01 | Matrix Runner Core | MEDIUM (~200 LOC) | - | backlog |
+| WS-035-02 | Deploy Level | SMALL (~100 LOC) | WS-035-01 | backlog |
+| WS-035-03 | Smoke Level — Execute Workload | MEDIUM (~150 LOC) | WS-035-01 | backlog |
+| WS-035-04 | E2E Level — Execute Workload | MEDIUM (~150 LOC) | WS-035-01 | backlog |
+| WS-035-05 | Load Level — Execute S3 Workload | MEDIUM (~150 LOC) | WS-035-01 | backlog |
+| WS-035-06 | Image Pyramid + get_runtime_image | SMALL (~100 LOC) | WS-035-01 | backlog |
+| WS-035-07 | Metrics Validation (History Server) | SMALL (~100 LOC) | WS-035-05 | backlog |
+| WS-035-08 | Matrix Integration — 96 k8s/no-gpu Green | LARGE (~500 LOC) | WS-035-01..06 | backlog |
+
+### Context
+
+Матрица перестраивается с нуля. **Критическое правило:** тест проходит только если **выполнил** проверку (helm install, workload), а не проверил наличие файла. Запрещено: Path.exists(), "string" in content.
+
+### Dependency Graph
+
+```
+WS-035-01 (Runner Core)
+    ├── WS-035-02 (Deploy)
+    ├── WS-035-03 (Smoke)
+    ├── WS-035-04 (E2E)
+    ├── WS-035-05 (Load)
+    └── WS-035-06 (Image Pyramid)
+            │
+            └── WS-035-08 (96 Green)
+
+WS-035-05 ──► WS-035-07 (Metrics)
+```
+
+---
+
 ## Feature F08: Phase 2 — Complete Smoke Tests
 
 **Source:** `docs/phases/phase-02-smoke.md`

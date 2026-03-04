@@ -42,6 +42,7 @@ tests/results/e2e-failed.txt
 tests/results/failed.txt
 tests/results/junit/
 tests/results/load-test-*.csv
+tests/results/scenario-*.json
 *.tmp
 tmp/
 values-secrets.yaml
