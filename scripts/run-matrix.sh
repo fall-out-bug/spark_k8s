@@ -104,6 +104,15 @@ def main():
         print("No scenarios match filter", file=sys.stderr)
         sys.exit(1)
 
+    def get_runtime_image(spark_ver, gpu, iceberg):
+        """Return image tag from pyramid: gpu -> -gpu, iceberg -> -iceberg, both -> -gpu-iceberg."""
+        tag = str(spark_ver)
+        if gpu:
+            tag += "-gpu"
+        if iceberg:
+            tag += "-iceberg"
+        return tag
+
     for s in filtered:
         sid = s["id"]
         ns = f"spark-matrix-{sid.lower()}"
@@ -111,6 +120,9 @@ def main():
         spark_ver = str(s.get("spark_version", "3.5.7"))
         chart = f"{project_root}/charts/spark-4.1" if spark_ver.startswith("4.1") else f"{project_root}/charts/spark-3.5"
         helm_args = parse_helm_values(s.get("helm_values", ""))
+        # Inject runtime image from pyramid (gpu, iceberg dimensions)
+        img_tag = get_runtime_image(spark_ver, s.get("gpu", False), s.get("iceberg", False))
+        helm_args.extend(["--set", f"connect.image.repository=spark-custom", "--set", f"connect.image.tag={img_tag}"])
 
         result = {"id": sid, "deploy": "SKIP", "smoke": "SKIP", "e2e": "SKIP", "load": "SKIP"}
         failed = False

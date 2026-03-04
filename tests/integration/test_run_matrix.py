@@ -138,6 +138,68 @@ def test_load_against_release_script_exists() -> None:
     assert "exists" not in content
 
 
+def test_get_runtime_image_baseline() -> None:
+    """get_runtime_image: gpu=false, iceberg=false -> no suffix."""
+    result = subprocess.run(
+        [str(PROJECT_ROOT / "scripts/tests/lib/get_runtime_image.sh"), "3.5.7", "false", "false"],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    assert result.returncode == 0
+    assert result.stdout.strip() == "3.5.7"
+
+
+def test_get_runtime_image_gpu() -> None:
+    """get_runtime_image: gpu=true -> -gpu suffix."""
+    result = subprocess.run(
+        [str(PROJECT_ROOT / "scripts/tests/lib/get_runtime_image.sh"), "3.5.7", "true", "false"],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    assert result.returncode == 0
+    assert result.stdout.strip() == "3.5.7-gpu"
+
+
+def test_get_runtime_image_iceberg() -> None:
+    """get_runtime_image: iceberg=true -> -iceberg suffix."""
+    result = subprocess.run(
+        [str(PROJECT_ROOT / "scripts/tests/lib/get_runtime_image.sh"), "3.5.7", "false", "true"],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    assert result.returncode == 0
+    assert result.stdout.strip() == "3.5.7-iceberg"
+
+
+def test_get_runtime_image_gpu_iceberg() -> None:
+    """get_runtime_image: gpu+iceberg -> -gpu-iceberg suffix."""
+    result = subprocess.run(
+        [str(PROJECT_ROOT / "scripts/tests/lib/get_runtime_image.sh"), "3.5.7", "true", "true"],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    assert result.returncode == 0
+    assert result.stdout.strip() == "3.5.7-gpu-iceberg"
+
+
+def test_run_matrix_injects_connect_image(ensure_results_dir: None) -> None:
+    """run-matrix deploy dry-run succeeds with image pyramid (gpu+iceberg scenario)."""
+    result = subprocess.run(
+        [str(RUN_MATRIX), "--filter", "id=SCENARIO-0001", "--dry-run", "deploy"],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    assert result.returncode == 0
+    assert "helm install" in result.stdout
+    # Image pyramid adds 2 --set args (connect.image.repository, connect.image.tag)
+    assert "--set args" in result.stdout
+
+
 def test_run_matrix_reads_test_matrix_yaml() -> None:
     """run-matrix reads tests/test-matrix.yaml with 320 scenarios."""
     assert MATRIX_FILE.exists()
