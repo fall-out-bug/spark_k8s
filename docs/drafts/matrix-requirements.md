@@ -41,7 +41,7 @@ deploy → smoke → e2e → load
 | deploy timeout | connect=false (160) | deploy.sh ждёт connect pod, его нет |
 | smoke/e2e/load fail | connect=false (160) | скрипты ищут connect pod |
 | image не инжектится | connect=false | run-matrix ставит только connect.image |
-| spark-4.1 connect=false | 80 сценариев (4.1.x) | chart spark-4.1 без sparkStandalone — только connect |
+| spark-4.1 connect=false | 80 сценариев (4.1.x) | chart spark-4.1 без standalone — только connect |
 
 Распределение: 160 connect=true, 160 connect=false. Среди connect=false: 80×3.5.x, 80×4.1.x.
 

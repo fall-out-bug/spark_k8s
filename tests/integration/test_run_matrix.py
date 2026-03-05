@@ -822,6 +822,19 @@ def test_no_stale_naming_in_tests() -> None:
     assert not violations, "Stale naming in tests:\n" + "\n".join(violations[:20])
 
 
+def test_no_stale_naming_in_docs() -> None:
+    """F036-10: docs/ must not contain sparkStandalone or sparkK8sNative as active references."""
+    stale_patterns = ["sparkStandalone", "sparkK8sNative"]
+    docs_dir = PROJECT_ROOT / "docs"
+    violations: list[str] = []
+    for doc in sorted(docs_dir.rglob("*.md")):
+        content = doc.read_text()
+        for line_no, line in enumerate(content.splitlines(), 1):
+            if any(pat in line for pat in stale_patterns):
+                violations.append(f"{doc.relative_to(PROJECT_ROOT)}:{line_no}: {line.strip()[:80]}")
+    assert not violations, "Stale naming in docs:\n" + "\n".join(violations[:30])
+
+
 def test_aggregate_matrix_results_script() -> None:
     """aggregate-matrix-results.py produces machine-readable summary."""
     agg = PROJECT_ROOT / "scripts" / "aggregate-matrix-results.py"

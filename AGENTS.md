@@ -11,9 +11,8 @@ This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get sta
 ```
 spark_k8s/
 ├── charts/                    # Helm charts
-│   ├── spark-3.5/            # Spark 3.5.x (has spark-standalone subchart)
-│   ├── spark-4.1/            # Spark 4.1.x (no spark-standalone; use charts/spark-standalone)
-│   ├── spark-standalone -> spark-3.5/charts/spark-standalone  # Canonical path
+│   ├── spark-3.5/            # Spark 3.5.x (standalone, airflow, kubernetes as inline templates)
+│   ├── spark-4.1/            # Spark 4.1.x
 │   └── spark-base/           # Shared (MinIO, RBAC)
 ├── docker/
 │   ├── docker-base/          # jdk-17, python-3.10, cuda-12.1
@@ -57,10 +56,10 @@ spark-custom:3.5.7|3.5.8|4.1.0|4.1.1  (base)
 | get_runtime_image | Ignores gpu, iceberg | WS-034-01 (image pyramid) |
 | Event logs | Was disabled | S3 config + MinIO spark-logs/4.1/events |
 | Load test | Had in-memory fallback | Per-file parquet read, S3 only |
-| spark-4.1 | No spark-standalone | Use charts/spark-standalone |
+| spark-4.1 | No standalone templates | Use charts/spark-3.5 standalone pattern |
 | stash@{1} | Deleted tests (wrong) | Never apply; use split |
 | **F08** | WS 00-008-* in backlog, INDEX says completed | Move to completed or align ROADMAP |
-| **F01/F03** | Expected charts/spark-standalone at root | Actual: spark-3.5/charts/spark-standalone |
+| **F01/F03** | Expected standalone at root | Actual: inline templates in spark-3.5 (F036 refactor) |
 | **F28** | ROADMAP says 1, INDEX says 3 completed | Align counts |
 | **WS-011-*** | F02 (docs) and F11 (Docker) ID collision | Note: F02 uses WS-011-01..04 (docs), F11 uses 00-011-01..03 (Docker) in completed/ |
 
@@ -106,7 +105,7 @@ spark-custom:3.5.7|3.5.8|4.1.0|4.1.1  (base)
 **Helm/Kubectl:**
 - `helm install/upgrade` in `spark-infra` — use `scripts/deploy-demo-minikube.sh` or `scripts/restore-demo.sh`
 - `helm install spark-shared -n spark-infra` — conflicting release
-- `helm install spark-infra charts/spark-3.5/charts/spark-standalone` — chart swap, kills History/Metastore/Jupyter
+- `helm install spark-infra` with wrong chart — chart swap, kills History/Metastore/Jupyter
 - `helm uninstall spark-infra -n spark-infra` — use `restore-demo.sh`
 - `kubectl delete namespace spark-infra` or `kubectl delete namespace observability`
 - `kubectl delete pvc` in `spark-infra` — breaks PostgreSQL auth, Airflow state
@@ -132,7 +131,7 @@ spark-custom:3.5.7|3.5.8|4.1.0|4.1.1  (base)
 
 #### Root causes (9 documented incidents)
 
-1. Subchart (`spark-standalone`) installed as `spark-infra` instead of parent chart (`spark-3.5`) — killed History/Metastore/PostgreSQL/Jupyter
+1. Wrong chart installed as `spark-infra` instead of parent chart (`spark-3.5`) — killed History/Metastore/PostgreSQL/Jupyter
 2. Two releases (`spark-infra` + `spark-shared`) in same namespace — Helm ownership deadlock
 3. Too many test namespaces — memory exhaustion, demo pods evicted
 4. Config drift: agent edited `values.yaml` instead of preset → 200m/1Gi workers

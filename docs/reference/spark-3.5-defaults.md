@@ -251,7 +251,7 @@ features:
 
 # Spark Standalone master/worker (3.5.3)
 # Alternative to Spark Connect for Spark 3.5
-sparkStandalone:
+standalone:
   enabled: false
   serviceAccountName: "spark-35"
   image:

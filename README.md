@@ -272,10 +272,18 @@ Spark Connect supports three backend modes:
 
 **Example (Standalone mode):**
 ```bash
-helm install spark charts/spark-4.1 -n spark \
+helm install spark charts/spark-3.5 -n spark \
   --set connect.enabled=true \
   --set connect.backendMode=standalone \
   --set standalone.enabled=true
+```
+
+**Example (Kubernetes Native mode):**
+```bash
+helm install spark charts/spark-3.5 -n spark \
+  --set kubernetes.enabled=true \
+  --set kubernetes.image.repository=spark-custom \
+  --set kubernetes.image.tag=3.5.7
 ```
 
 ---

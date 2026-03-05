@@ -3,14 +3,14 @@
 ## Problem Statement
 
 chart spark-3.5 имеет дублированную архитектуру Standalone:
-- **Parent template** (`sparkStandalone`) — master+workers, без Airflow
+- **Parent template** (`standalone`) — master+workers, без Airflow
 - **Subchart** (`standalone` alias) — master+workers + Airflow + PostgreSQL + DAGs
 
 Это приводит к:
 1. Дублированию кода (master+worker в двух местах)
-2. Путанице в нейминге (`sparkStandalone` vs `standalone` vs `spark-standalone`)
+2. Путанице в нейминге (`standalone` vs `standalone` vs `spark-standalone`)
 3. Helm condition gotcha: subchart грузится по умолчанию когда ключ отсутствует
-4. Костылю в run-matrix: `standalone.enabled=false` при `sparkStandalone.enabled=true`
+4. Костылю в run-matrix: `standalone.enabled=false` при `standalone.enabled=true`
 5. 9 инцидентов поломки demo из-за путаницы в именах и конфигурации
 
 ## Target State
@@ -24,7 +24,7 @@ kubernetes:   { enabled: false }   # Spark on K8s (spark-submit --master k8s://)
 airflow:      { enabled: false }   # Airflow orchestrator (independent)
 ```
 
-Subchart `spark-standalone` удаляется. `sparkStandalone` и `sparkK8sNative` удаляются.
+Subchart `spark-standalone` удаляется. `standalone` и `kubernetes` удаляются.
 
 ## Матрица сценариев
 
@@ -40,8 +40,8 @@ Subchart `spark-standalone` удаляется. `sparkStandalone` и `sparkK8sNa
 
 | Категория | Файлов |
 |-----------|--------|
-| `sparkStandalone` references | ~20 |
-| `sparkK8sNative` references | ~6 |
+| `standalone` references | ~20 |
+| `kubernetes` references | ~6 |
 | `standalone` subchart refs | ~45 |
 | `spark-standalone` subchart name | ~35 |
 | Airflow templates (subchart) | 5 |

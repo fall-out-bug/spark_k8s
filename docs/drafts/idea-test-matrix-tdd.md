@@ -106,7 +106,7 @@ Level 3: Jupyter (docker/runtime/jupyter) — extends Level 2
 
 | Область | Roadmap/Требование | Реальность | Причина |
 |---------|-------------------|------------|---------|
-| **F04 Spark 4.1** | 24 WS, backlog | Charts есть, standalone — через spark-3.5 | spark-4.1 не имеет spark-standalone subchart |
+| **F04 Spark 4.1** | 24 WS, backlog | Charts есть, standalone — через spark-3.5 | spark-4.1 не имеет standalone component |
 | **get_runtime_image** | gpu, iceberg dimensions | Игнорирует gpu/iceberg | Упрощение для быстрого smoke |
 | **Event logs** | Всегда включены | SPARK_EVENTLOG_ENABLED=false (откат) | 4.1.1 image default s3a без credentials |
 | **MinIO init** | spark-logs bucket | spark-logs/4.1/events/ отсутствовал | Только events/, не 4.1/events/ |

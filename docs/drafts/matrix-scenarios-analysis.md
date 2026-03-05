@@ -5,7 +5,7 @@
 | Размерность | Значения | Влияет на helm_values? |
 |-------------|----------|------------------------|
 | spark_version | 3.5.7, 3.5.8, 4.1.0, 4.1.1 | Да (spark.version) |
-| connection_mode | connect, standalone | Да (connect.enabled, sparkStandalone.enabled) |
+| connection_mode | connect, standalone | Да (connect.enabled, standalone.enabled) |
 | k8s_mode | native, standalone | **Только при connect=true** |
 | gpu | true, false | Да (features.gpu.enabled) |
 | iceberg | true, false | Да (features.iceberg.enabled) |
@@ -18,9 +18,9 @@
 | Тип | connect | k8s_mode | helm | Что поднимается | Сценариев |
 |-----|---------|----------|------|-----------------|-----------|
 | **A** | true | native | connect.enabled=true, connect.backendMode=k8s | Connect server, executors как K8s pods | 128 |
-| **B** | true | standalone | connect.enabled=true, sparkStandalone.enabled=true | Connect server + standalone master+workers | 32 |
-| **C** | false | native | connect.enabled=false, sparkK8sNative.enabled=true | Submitter pod, spark-submit --master k8s://... | 128 |
-| **D** | false | standalone | connect.enabled=false, sparkStandalone.enabled=true | Только standalone master+workers | 32 |
+| **B** | true | standalone | connect.enabled=true, standalone.enabled=true | Connect server + standalone master+workers | 32 |
+| **C** | false | native | connect.enabled=false, kubernetes.enabled=true | Submitter pod, spark-submit --master k8s://... | 128 |
+| **D** | false | standalone | connect.enabled=false, standalone.enabled=true | Только standalone master+workers | 32 |
 
 ## k8s_mode при connect=false — различие
 
