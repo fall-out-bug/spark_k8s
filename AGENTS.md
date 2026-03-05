@@ -10,24 +10,95 @@ This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get sta
 
 ```
 spark_k8s/
-├── charts/                    # Helm charts
-│   ├── spark-3.5/            # Spark 3.5.x (standalone, airflow, kubernetes as inline templates)
-│   ├── spark-4.1/            # Spark 4.1.x
-│   └── spark-base/           # Shared (MinIO, RBAC)
+├── charts/
+│   ├── spark-3.5/            # Primary Spark 3.5 chart (standalone, airflow, connect)
+│   │   ├── templates/        # K8s templates (standalone, connect, core/)
+│   │   ├── presets/           # Scenario + infra presets
+│   │   ├── dags/              # Airflow DAGs
+│   │   └── examples/          # ML examples
+│   ├── spark-4.0/            # Spark 4.0 chart (connect scenarios)
+│   ├── spark-4.1/            # Spark 4.1 chart (connect, environments, autoscaling)
+│   ├── spark-base/           # Shared subchart (PostgreSQL, MinIO, RBAC, backup)
+│   ├── spark-operator/       # Spark Operator CRDs
+│   └── observability/        # Grafana, Prometheus, Loki, Jaeger
 ├── docker/
-│   ├── docker-base/          # jdk-17, python-3.10, cuda-12.1
+│   ├── docker-base/          # jdk-17, python-3.10, cuda-12.1, python-deps
+│   ├── docker-intermediate/  # jars-iceberg, jars-rapids, jdbc-drivers
 │   ├── spark-custom/         # Custom Spark builds (3.5.7, 3.5.8, 4.1.0, 4.1.1)
 │   ├── runtime/spark/        # spark-k8s-runtime: baseline, iceberg, gpu, gpu-iceberg
 │   └── runtime/jupyter/      # Jupyter extends runtime
 ├── tests/
-│   ├── test-matrix.yaml      # 320 scenarios (dimensions: spark_version, gpu, iceberg, etc.)
-│   ├── run-matrix.sh         # Runner: helm install + smoke/e2e/load
-│   └── scripts/nyc_taxi_pipeline.py  # Pipeline for all levels
-└── docs/
-    ├── drafts/idea-*.md      # Requirements
-    ├── workstreams/          # WS-XXX-YY.md
-    └── issues/               # ISSUE-XXX.md
+│   ├── integration/          # Helm template rendering tests
+│   ├── security/             # 24 tests: pss/, scc/, network/, rbac/, secrets/, container/, s3/
+│   ├── e2e/                  # Live cluster tests
+│   ├── load/                 # Load tests
+│   └── evidence/             # Provenance snapshots (baseline, final, post-036-*)
+├── scripts/
+│   ├── deploy-demo-minikube.sh, restore-demo.sh, check-demo-health.sh  # Demo ops
+│   ├── run-matrix-96.sh, run-matrix-320.sh                             # Test matrix
+│   ├── tests/                # Test runners (smoke, e2e, load, minikube)
+│   └── cicd/                 # CI tooling
+├── examples/                  # airflow/, gpu/, iceberg/, streaming/
+├── dags/                      # Airflow DAGs
+├── docs/
+│   ├── workstreams/           # MEMORIES.md (summary), completed/, backlog/, cancelled/, _archived/
+│   ├── guides/en/, guides/ru/ # User guides (bilingual)
+│   ├── recipes/               # How-to recipes by domain
+│   ├── operations/            # Runbooks, procedures
+│   ├── architecture/          # Architecture docs
+│   └── drafts/                # Requirements (idea-*.md)
+├── .github/workflows/         # ci-charts, ci-docker, ci-e2e, ci-lint, ci-sdp, build-spark-dist
+├── pyproject.toml             # Python tooling config (pytest, ruff, black, mypy)
+└── .pre-commit-config.yaml    # Pre-commit hooks
 ```
+
+### Implemented Features Index
+
+> Source of truth: `docs/workstreams/MEMORIES.md`
+
+| Feature | Status | Primary Codebase Location |
+|---------|--------|--------------------------|
+| **F01** Spark Standalone Chart | Done | `charts/spark-3.5/` |
+| **F02** Repository Documentation | Done | `docs/guides/en/`, `docs/guides/ru/` |
+| **F03** History Server | Done | `charts/spark-3.5/templates/` |
+| **F04** Spark 4.1.0 Charts | Done (gap: Celeborn) | `charts/spark-4.1/`, `charts/spark-base/`, `charts/spark-operator/` |
+| **F06** Core Components + Presets | Done | `charts/spark-3.5/templates/core/`, `charts/spark-3.5/presets/` |
+| **F07** Security + Chart Updates | Done | PSS/SCC in `charts/spark-3.5/` |
+| **F08** Smoke Tests | Done (weak evidence) | `tests/integration/` |
+| **F09** Docker Base Layers | Done | `docker/docker-base/` |
+| **F10** Docker Intermediate | Done | `docker/docker-intermediate/`, `docker/spark-custom/` |
+| **F11** Docker Final Images | Done | `docker/runtime/spark/`, `docker/runtime/jupyter/` |
+| **F12** E2E Tests | Done | `tests/e2e/` |
+| **F13** Load Tests | Done | `tests/load/` |
+| **F14** Advanced Security | Done | `tests/security/` (24 files, 7 subdirs) |
+| **F15** Parallel Execution | Done | `scripts/run-matrix-96.sh` |
+| **F17** Go Client | Done | (external) |
+| **F22** Progress Automation | Done | `scripts/cicd/` |
+| **F24** Docker Images CI | Done | `.github/workflows/build-spark-dist.yml` |
+| **F25** Spark 3.5 Production | Done (10/12) | `charts/spark-3.5/` |
+| **F26** Performance Defaults | Done | `charts/*/values.yaml` |
+| **F27** Code Quality | Done | `pyproject.toml`, `.pre-commit-config.yaml` |
+| **F28** Chart Architecture DRY | Done | `charts/spark-base/`, `values.schema.json` |
+| **F29** CI/CD Hardening | Partial (3/4) | `.github/workflows/ci-*.yml`, `.github/CODEOWNERS` |
+| **F30** Data Engineering | Done | `examples/airflow/`, `examples/iceberg/`, `docs/recipes/` |
+| **F35** Test Matrix Rebuild | Done | `scripts/run-matrix-*.sh`, `tests/integration/test_run_matrix.py` |
+| **F36** Chart Refactor | Done | All charts, scripts, tests, docs |
+
+### Backlog (active)
+
+| Feature | WS Count | Location |
+|---------|----------|----------|
+| **F16** Observability Stack | 6 | `docs/workstreams/backlog/00-016-*` |
+| **F31** Observability as Product | 9 | `docs/workstreams/backlog/00-031-*` |
+
+### Open Gaps
+
+| Gap | Priority | Notes |
+|-----|----------|-------|
+| F04: Celeborn chart | P2 | Docs exist, chart missing |
+| F18: 14+ operations WS | P2 | Runbooks partial |
+| F25: Load tests + tracing | P2 | WS-025-11, 025-12 |
+| F29: `minioadmin` hardcoded | P1 | WS-029-04 not done |
 
 ### Principles
 
@@ -47,39 +118,29 @@ spark-custom:3.5.7|3.5.8|4.1.0|4.1.1  (base)
 
 `get_runtime_image(spark_version, gpu, iceberg)` must map dimensions to pyramid.
 
-### Known Drift (2026-03-03)
+### Known Drift (2026-03-06, post-cleanup)
 
-**Full report:** `docs/reports/drift-analysis-2026-03-03.md` — сверка каждой закрытой фичи с репо.
-
-| Area | Drift | Fix |
-|------|-------|-----|
-| get_runtime_image | Ignores gpu, iceberg | WS-034-01 (image pyramid) |
-| Event logs | Was disabled | S3 config + MinIO spark-logs/4.1/events |
-| Load test | Had in-memory fallback | Per-file parquet read, S3 only |
-| spark-4.1 | No standalone templates | Use charts/spark-3.5 standalone pattern |
-| stash@{1} | Deleted tests (wrong) | Never apply; use split |
-| **F08** | WS 00-008-* in backlog, INDEX says completed | Move to completed or align ROADMAP |
-| **F01/F03** | Expected standalone at root | Actual: inline templates in spark-3.5 (F036 refactor) |
-| **F28** | ROADMAP says 1, INDEX says 3 completed | Align counts |
-| **WS-011-*** | F02 (docs) and F11 (Docker) ID collision | Note: F02 uses WS-011-01..04 (docs), F11 uses 00-011-01..03 (Docker) in completed/ |
-
-**GPU:** Не исключается. Кластер перезапускается с GPU support.
-
-### Test Matrix Success
-
-- **Target:** Green matrix (96 k8s/no-gpu or 320 full)
-- **Path:** Beads per scenario with RGR plan → fix → verify
-- **Docs:** `docs/drafts/idea-test-matrix-tdd.md`, `docs/workstreams/backlog/00-034-*.md`
-
-### Beads: Drift + Demo (2026-03-03)
-
-| Epic | ID | Scope |
-|------|-----|-------|
-| **Stable build** | spark_k8s-6sh | Depends on drift + demo; goal: no break on each run |
-| **Drift fixes** | spark_k8s-vle | 4 tasks: F08, F01/F03, F28, WS-011 collision |
-| **Demo stability** | spark_k8s-1xt | 14 issues: 4 P0, 6 P1, 4 P2 (demo-review-2026-03-03) |
+| Area | Status | Notes |
+|------|--------|-------|
+| get_runtime_image | Fixed (F35) | Image pyramid implemented in WS-035-06 |
+| Event logs | Fixed | S3 config + MinIO spark-logs/4.1/events |
+| Load test | Fixed | Per-file parquet read, S3 only |
+| F36 refactor | Done | Standalone flattened into spark-3.5 parent chart |
+| F08 evidence gap | Open | 7 WS have blank execution reports; code exists |
+| F12 evidence gap | Open | 5/6 WS have blank execution reports; code exists |
+| F29 minioadmin | Open (P1) | `minioadmin` still in 49+ files |
+| F04 Celeborn | Open (P2) | Docs exist, chart missing |
+| WS-011 ID collision | Documented | F02 uses WS-011-01..04 (docs), F11 uses 00-011-01..03 (Docker) |
+| F22/F31 ID collision | Documented | F22 uses WS-031-01..04, F31 uses 00-031-01..09 |
 
 **Reports:** `docs/reports/drift-analysis-2026-03-03.md`, `docs/reports/demo-review-2026-03-03.md`
+
+### Test Matrix
+
+- **Status:** F35 completed (8/8 WS). Runner: `scripts/run-matrix-96.sh`
+- **Target:** Green 96 k8s/no-gpu, then 320 full
+- **Docs:** `docs/drafts/idea-test-matrix-tdd.md`
+- **F34 cancelled** (superseded by F35, files in `docs/workstreams/cancelled/`)
 
 ### Demo Protection (NON-NEGOTIABLE)
 

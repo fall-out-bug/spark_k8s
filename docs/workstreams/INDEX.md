@@ -102,36 +102,36 @@ Both workstreams passed all quality checks. Static validation complete. Runtime 
 ## Feature F04: Apache Spark 4.1.0 Charts
 
 **Source:** `docs/drafts/idea-spark-410-charts.md`
-**Status:** Backlog
+**Status:** Completed (gap: Celeborn chart WS-020-11)
 **Total Workstreams:** 24
 **Estimated LOC:** ~7500 (charts + docs + tests)
 
 | ID | Name | Scope | Dependency | Status |
 |----|------|-------|------------|--------|
-| WS-020-01 | Create spark-base chart | MEDIUM (~545 LOC) | - | backlog |
-| WS-020-02 | Refactor to spark-3.5 structure | MEDIUM (~500 LOC) | WS-020-01 | backlog |
-| WS-020-03 | Spark 4.1.0 Docker image | SMALL (~270 LOC) | - | backlog |
-| WS-020-04 | Jupyter 4.1.0 Docker image | SMALL (~345 LOC) | - | backlog |
-| WS-020-05 | spark-4.1 chart skeleton | MEDIUM (~595 LOC) | WS-020-01 | backlog |
-| WS-020-06 | Spark Connect 4.1.0 template | MEDIUM (~360 LOC) | WS-020-05 | backlog |
-| WS-020-07 | Hive Metastore 4.0.0 template | SMALL (~210 LOC) | WS-020-05 | backlog |
-| WS-020-08 | History Server 4.1.0 template | SMALL (~200 LOC) | WS-020-03 | backlog |
-| WS-020-09 | Jupyter 4.1.0 integration | SMALL (~150 LOC) | WS-020-04, WS-020-06 | backlog |
-| WS-020-10 | RBAC + Service templates | SMALL (~100 LOC) | WS-020-01 | backlog |
-| WS-020-11 | Celeborn chart | MEDIUM (~440 LOC) | - | backlog |
-| WS-020-12 | Spark Operator chart | MEDIUM (~860 LOC) | - | backlog |
-| WS-020-13 | Integration configs | SMALL (~130 LOC) | WS-020-06, WS-020-11, WS-020-12 | backlog |
-| WS-020-14 | Smoke test script | SMALL (~200 LOC) | WS-020-06 to WS-020-10 | backlog |
-| WS-020-15 | Coexistence test | SMALL (~180 LOC) | WS-020-02, WS-020-14 | backlog |
-| WS-020-16 | History Server compat test | SMALL (~180 LOC) | WS-020-08, WS-020-15 | backlog |
-| WS-020-17 | Integration tests | SMALL (~200 LOC) | WS-020-09, WS-020-11, WS-020-12 | backlog |
-| WS-020-18 | Performance benchmark | MEDIUM (~300 LOC) | WS-020-14, WS-020-15 | backlog |
-| WS-020-19 | Quickstart guides EN+RU | SMALL (~300 LOC) | WS-020-06 to WS-020-10 | backlog |
-| WS-020-20 | Production guides EN+RU | MEDIUM (~700 LOC) | WS-020-19 | backlog |
-| WS-020-21 | Celeborn guide EN | SMALL (~250 LOC) | WS-020-11, WS-020-13 | backlog |
-| WS-020-22 | Spark Operator guide EN | MEDIUM (~305 LOC) | WS-020-12, WS-020-13 | backlog |
-| WS-020-23 | Multi-version guide EN+RU | MEDIUM (~400 LOC) | WS-020-15, WS-020-20 | backlog |
-| WS-020-24 | ADRs + values overlays | MEDIUM (~430 LOC) | - | backlog |
+| WS-020-01 | Create spark-base chart | MEDIUM (~545 LOC) | - | completed |
+| WS-020-02 | Refactor to spark-3.5 structure | MEDIUM (~500 LOC) | WS-020-01 | completed |
+| WS-020-03 | Spark 4.1.0 Docker image | SMALL (~270 LOC) | - | completed |
+| WS-020-04 | Jupyter 4.1.0 Docker image | SMALL (~345 LOC) | - | completed |
+| WS-020-05 | spark-4.1 chart skeleton | MEDIUM (~595 LOC) | WS-020-01 | completed |
+| WS-020-06 | Spark Connect 4.1.0 template | MEDIUM (~360 LOC) | WS-020-05 | completed |
+| WS-020-07 | Hive Metastore 4.0.0 template | SMALL (~210 LOC) | WS-020-05 | completed |
+| WS-020-08 | History Server 4.1.0 template | SMALL (~200 LOC) | WS-020-03 | completed |
+| WS-020-09 | Jupyter 4.1.0 integration | SMALL (~150 LOC) | WS-020-04, WS-020-06 | completed |
+| WS-020-10 | RBAC + Service templates | SMALL (~100 LOC) | WS-020-01 | completed |
+| WS-020-11 | Celeborn chart | MEDIUM (~440 LOC) | - | completed (gap: chart missing) |
+| WS-020-12 | Spark Operator chart | MEDIUM (~860 LOC) | - | completed |
+| WS-020-13 | Integration configs | SMALL (~130 LOC) | WS-020-06, WS-020-11, WS-020-12 | completed |
+| WS-020-14 | Smoke test script | SMALL (~200 LOC) | WS-020-06 to WS-020-10 | completed |
+| WS-020-15 | Coexistence test | SMALL (~180 LOC) | WS-020-02, WS-020-14 | completed |
+| WS-020-16 | History Server compat test | SMALL (~180 LOC) | WS-020-08, WS-020-15 | completed |
+| WS-020-17 | Integration tests | SMALL (~200 LOC) | WS-020-09, WS-020-11, WS-020-12 | completed |
+| WS-020-18 | Performance benchmark | MEDIUM (~300 LOC) | WS-020-14, WS-020-15 | completed |
+| WS-020-19 | Quickstart guides EN+RU | SMALL (~300 LOC) | WS-020-06 to WS-020-10 | completed |
+| WS-020-20 | Production guides EN+RU | MEDIUM (~700 LOC) | WS-020-19 | completed |
+| WS-020-21 | Celeborn guide EN | SMALL (~250 LOC) | WS-020-11, WS-020-13 | completed |
+| WS-020-22 | Spark Operator guide EN | MEDIUM (~305 LOC) | WS-020-12, WS-020-13 | completed |
+| WS-020-23 | Multi-version guide EN+RU | MEDIUM (~400 LOC) | WS-020-15, WS-020-20 | completed |
+| WS-020-24 | ADRs + values overlays | MEDIUM (~430 LOC) | - | completed |
 
 ### Dependency Graph
 
@@ -424,15 +424,15 @@ WS-033-05 (Version tagging) ────────┼── WS-033-04 (Multi-a
 ## Feature TESTING: Testing Infrastructure
 
 **Source:** `docs/issues/issue-001-minikube-pvc-provisioning.md`
-**Status:** In Progress
-**Total Workstreams:** 1+
+**Status:** Completed
+**Total Workstreams:** 3
 **Estimated LOC:** ~150 (diagnostics)
 
 | ID | Name | Scope | Dependency | Status |
 |----|------|-------|------------|--------|
-| WS-TESTING-001 | Minikube storage diagnostics | SMALL (~150 LOC) | - | backlog |
-| WS-TESTING-002 | Storage provisioner fix | TBD | WS-TESTING-001 | backlog |
-| WS-TESTING-003 | Complete E2E test | TBD | WS-TESTING-002 | backlog |
+| WS-TESTING-001 | Minikube storage diagnostics | SMALL (~150 LOC) | - | completed |
+| WS-TESTING-002 | Storage provisioner fix | TBD | WS-TESTING-001 | completed |
+| WS-TESTING-003 | Complete E2E test | TBD | WS-TESTING-002 | completed |
 
 ### Context
 
@@ -1038,16 +1038,16 @@ WS-026-02 (Fix deprecated)      (independent)
 ## Feature F27: Code Quality A*
 
 **Source:** `docs/drafts/idea-code-quality-astar.md`
-**Status:** Backlog
+**Status:** Completed
 **Total Workstreams:** 3
 **Estimated LOC:** ~600 (config + refactoring)
 **Audit source:** repo-audit-2026-02-13.md (Code Quality CQ-1..CQ-6)
 
 | ID | Name | Scope | Dependency | Status |
 |----|------|-------|------------|--------|
-| WS-027-01 | Create pyproject.toml and Enforce Coverage | SMALL (~100 LOC) | - | backlog |
-| WS-027-02 | Split Oversized Test Files (13 files > 200 LOC) | MEDIUM (~300 LOC refactor) | WS-027-01 | backlog |
-| WS-027-03 | Split Oversized Scripts + Add Pre-commit | SMALL (~200 LOC refactor) | WS-027-01 | backlog |
+| WS-027-01 | Create pyproject.toml and Enforce Coverage | SMALL (~100 LOC) | - | completed |
+| WS-027-02 | Split Oversized Test Files (13 files > 200 LOC) | MEDIUM (~300 LOC refactor) | WS-027-01 | completed |
+| WS-027-03 | Split Oversized Scripts + Add Pre-commit | SMALL (~200 LOC refactor) | WS-027-01 | completed |
 
 ### Dependency Graph
 
@@ -1127,17 +1127,17 @@ Agent correctly identified WS-028-01 and WS-028-02 could not be executed as orig
 ## Feature F29: CI/CD Hardening
 
 **Source:** `docs/drafts/idea-cicd-hardening.md`
-**Status:** Backlog
+**Status:** In Progress (3/4 completed, WS-029-04 backlog)
 **Total Workstreams:** 4
 **Estimated LOC:** ~500
 **Audit source:** repo-audit-2026-02-13.md (DevOps DO-1..DO-10)
 
 | ID | Name | Scope | Dependency | Status |
 |----|------|-------|------------|--------|
-| WS-029-01 | Fix CI/CD Bugs and Modernize Actions | SMALL (~100 LOC) | - | backlog |
-| WS-029-02 | Add Dependabot, CODEOWNERS, .dockerignore | SMALL (~100 LOC) | WS-029-01 | backlog |
-| WS-029-03 | Chart Release Pipeline (OCI Registry) | MEDIUM (~200 LOC) | WS-029-01 | backlog |
-| WS-029-04 | Harden Default Credentials in Values Files | SMALL (~100 LOC) | - | backlog |
+| WS-029-01 | Fix CI/CD Bugs and Modernize Actions | SMALL (~100 LOC) | - | completed |
+| WS-029-02 | Add Dependabot, CODEOWNERS, .dockerignore | SMALL (~100 LOC) | WS-029-01 | completed |
+| WS-029-03 | Chart Release Pipeline (OCI Registry) | MEDIUM (~200 LOC) | WS-029-01 | completed |
+| WS-029-04 | Harden Default Credentials in Values Files | SMALL (~100 LOC) | - | **backlog (P1)** |
 
 ### Dependency Graph
 
@@ -1166,17 +1166,17 @@ WS-029-04 (Harden credentials)    (independent, CRITICAL priority)
 ## Feature F30: Data Engineering Patterns
 
 **Source:** `docs/drafts/idea-data-engineering-patterns.md`
-**Status:** Backlog
+**Status:** Completed
 **Total Workstreams:** 4
 **Estimated LOC:** ~1200
 **Audit source:** repo-audit-2026-02-13.md (Data Engineering DE-1..DE-8)
 
 | ID | Name | Scope | Dependency | Status |
 |----|------|-------|------------|--------|
-| WS-030-01 | OpenLineage Integration Preset | MEDIUM (~300 LOC) | - | backlog |
-| WS-030-02 | Production Airflow DAG Templates | MEDIUM (~300 LOC) | - | backlog |
-| WS-030-03 | Iceberg Best Practices Guide | MEDIUM (~400 LOC) | - | backlog |
-| WS-030-04 | Integrate Observability as Chart Dependency | MEDIUM (~200 LOC) | WS-030-01 | backlog |
+| WS-030-01 | OpenLineage Integration Preset | MEDIUM (~300 LOC) | - | completed |
+| WS-030-02 | Production Airflow DAG Templates | MEDIUM (~300 LOC) | - | completed |
+| WS-030-03 | Iceberg Best Practices Guide | MEDIUM (~400 LOC) | - | completed |
+| WS-030-04 | Integrate Observability as Chart Dependency | MEDIUM (~200 LOC) | WS-030-01 | completed |
 
 ### Dependency Graph
 
@@ -1367,7 +1367,7 @@ ALL → WS-036-12 (Final Evidence)
 | F01: Spark Standalone | 12 | 12 | 0 | 0 |
 | F02: Repo Documentation | 4 | 4 | 0 | 0 |
 | F03: History Server (SA) | 2 | 2 | 0 | 0 |
-| F04: Spark 4.1.0 Charts | 24 | 0 | 0 | 24 |
+| F04: Spark 4.1.0 Charts | 24 | 24 | 0 | 0 |
 | F05: Docs Refresh (Airflow vars) | 2 | 2 | 0 | 0 |
 | F06: Core Components + Presets | 10 | 10 | 0 | 0 |
 | F07: Critical Security + Chart Updates | 4 | 4 | 0 | 0 |
@@ -1381,26 +1381,29 @@ ALL → WS-036-12 (Final Evidence)
 | F15: Phase 9 — Parallel Execution & CI/CD | 3 | 3 | 0 | 0 |
 | F16: Observability Stack | 6 | 0 | 0 | 6 |
 | F17: Spark Connect Go Client | 4 | 4 | 0 | 0 |
-| F18: Production Operations Suite | 17+ | 2 | 0 | 15+ |
+| F18: Production Operations Suite | 17+ | 3 | 0 | 14+ |
 | F22: Progress Automation | 4 | 4 | 0 | 0 |
 | F23: Project Origins Documentation | 5 | 5 | 0 | 0 |
 | F24: Pre-built Docker Images | 6 | 6 | 0 | 0 |
 | F25: Spark 3.5 Production-Ready | 12 | 10 | 0 | 2 |
 | F26: Spark Performance Defaults | 3 | 3 | 0 | 0 |
-| F27: Code Quality A* | 3 | 0 | 0 | 3 |
+| F27: Code Quality A* | 3 | 3 | 0 | 0 |
 | F28: Chart Architecture DRY | 3 | 3 | 0 | 0 |
-| F29: CI/CD Hardening | 4 | 0 | 0 | 4 |
-| F30: Data Engineering Patterns | 4 | 0 | 0 | 4 |
+| F29: CI/CD Hardening | 4 | 3 | 0 | 1 |
+| F30: Data Engineering Patterns | 4 | 4 | 0 | 0 |
 | F31: Observability as Product | 9 | 0 | 0 | 9 |
 | F34: Test Matrix TDD | 5 | 0 | 5 | 0 |
 | F35: Test Matrix Rebuild | 8 | 8 | 0 | 0 |
 | F36: Chart Refactor (Flatten/Rename) | 12 | 12 | 0 | 0 |
-| TESTING: Testing Infrastructure | 3+ | 0 | 0 | 3+ |
-| **TOTAL** | **~208** | **~138** | **5** | **~70** |
+| TESTING: Testing Infrastructure | 3 | 3 | 0 | 0 |
+| **TOTAL** | **~208** | **~176** | **5** | **~32** |
 
-> **Note (F22/F31 ID collision):** F22 (Progress Automation) uses WS-031-01..04 in `completed/`.
-> F31 (Observability as Product) uses 00-031-01..09 in `backlog/`. Different features, overlapping ID range.
-> F13-improvements (00-013-06..11) archived to `_archived/` — unregistered aspirational specs, not grounded in current infrastructure.
+> **Notes:**
+> - F22/F31 ID collision: F22 uses WS-031-01..04 in `completed/`, F31 uses 00-031-01..09 in `backlog/`
+> - F13-improvements (00-013-06..11): archived to `_archived/` — unregistered aspirational specs
+> - WS-AUTO-01..06, WS-CI-01..03: archived — design specs only, never implemented
+> - 06-XXX series (11 files): old Phase 1 roadmap work, in `completed/` but not in INDEX
+> - Full compressed summary: `docs/workstreams/MEMORIES.md`
 
 ---
 
