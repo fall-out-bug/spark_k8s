@@ -1,0 +1,133 @@
+{{- if .Values.airflow.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-airflow-webserver
+  labels:
+    {{- include "spark-3.5.airflowWebserverLabels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.airflow.webserver.replicas }}
+  selector:
+    matchLabels:
+      {{- include "spark-3.5.airflowWebserverLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "spark-3.5.airflowWebserverLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "spark-3.5.serviceAccountName" . }}
+      initContainers:
+        - name: wait-for-db
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z {{ include "spark-3.5.airflowDbHost" . }} {{ include "spark-3.5.airflowDbPort" . }}; do echo waiting for db; sleep 2; done']
+        - name: prepare-dags
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /opt/airflow/dags
+              cp -L /opt/airflow/dags-src/*.py /opt/airflow/dags/ 2>/dev/null || true
+          volumeMounts:
+            - name: airflow-dags-src
+              mountPath: /opt/airflow/dags-src
+            - name: airflow-dags
+              mountPath: /opt/airflow/dags
+        - name: init-db
+          image: "{{ .Values.airflow.image.repository }}:{{ .Values.airflow.image.tag }}"
+          imagePullPolicy: {{ .Values.airflow.image.pullPolicy }}
+          command: ['airflow', 'db', 'init']
+          env:
+            - name: AIRFLOW__CORE__DAGS_FOLDER
+              value: /opt/airflow/dags
+            - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+              value: {{ include "spark-3.5.airflowDbConn" . | quote }}
+          volumeMounts:
+            - name: airflow-config
+              mountPath: /opt/airflow/airflow.cfg
+              subPath: airflow.cfg
+            - name: airflow-dags
+              mountPath: /opt/airflow/dags
+      containers:
+        - name: webserver
+          image: "{{ .Values.airflow.image.repository }}:{{ .Values.airflow.image.tag }}"
+          imagePullPolicy: {{ .Values.airflow.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: AIRFLOW__CORE__DAGS_FOLDER
+              value: /opt/airflow/dags
+            - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+              value: {{ include "spark-3.5.airflowDbConn" . | quote }}
+            - name: AIRFLOW__WEBSERVER__SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-airflow-secret
+                  key: secret-key
+          command: ['airflow', 'webserver']
+          args: ['--port', '8080']
+          resources:
+            {{- toYaml .Values.airflow.webserver.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          volumeMounts:
+            - name: airflow-config
+              mountPath: /opt/airflow/airflow.cfg
+              subPath: airflow.cfg
+            - name: airflow-dags
+              mountPath: /opt/airflow/dags
+            - name: airflow-logs
+              mountPath: /opt/airflow/logs
+      volumes:
+        - name: airflow-config
+          configMap:
+            name: {{ .Release.Name }}-airflow-config
+        - name: airflow-dags-src
+          configMap:
+            name: {{ .Release.Name }}-airflow-dags
+        - name: airflow-dags
+          emptyDir: {}
+        - name: airflow-logs
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Release.Name }}-airflow-secret
+  labels:
+    {{- include "spark-3.5.airflowWebserverLabels" . | nindent 4 }}
+type: Opaque
+stringData:
+  secret-key: "{{ randAlphaNum 32 }}"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-airflow-webserver
+  labels:
+    {{- include "spark-3.5.airflowWebserverLabels" . | nindent 4 }}
+spec:
+  type: {{ .Values.airflow.webserver.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.airflow.webserver.service.port }}
+      targetPort: http
+      protocol: TCP
+      {{- if and (eq .Values.airflow.webserver.service.type "NodePort") .Values.airflow.webserver.service.nodePort }}
+      nodePort: {{ .Values.airflow.webserver.service.nodePort }}
+      {{- end }}
+  selector:
+    {{- include "spark-3.5.airflowWebserverLabels" . | nindent 4 }}
+{{- end }}

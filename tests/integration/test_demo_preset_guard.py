@@ -105,6 +105,7 @@ class TestDemoPresetGuard:
         preset = _load_preset()
         assert preset["standalone"]["enabled"] is True
         assert preset["standalone"]["worker"]["enabled"] is True
+        assert preset["airflow"]["enabled"] is True
         assert preset["jupyter"]["enabled"] is True
         assert preset["historyServer"]["enabled"] is True
         assert preset["hiveMetastore"]["enabled"] is True
@@ -117,6 +118,8 @@ class TestDemoPresetGuard:
         services = {
             "standalone.master": preset["standalone"]["master"],
             "standalone.worker": preset["standalone"]["worker"],
+            "airflow.webserver": preset["airflow"]["webserver"],
+            "airflow.scheduler": preset["airflow"]["scheduler"],
             "jupyter": preset["jupyter"],
             "historyServer": preset["historyServer"],
             "hiveMetastore": preset["hiveMetastore"],
@@ -142,6 +145,8 @@ class TestDemoPresetGuard:
         total = 0
         for svc in [
             preset["standalone"]["master"],
+            preset["airflow"]["webserver"],
+            preset["airflow"]["scheduler"],
             preset["jupyter"],
             preset["historyServer"],
             preset["hiveMetastore"],

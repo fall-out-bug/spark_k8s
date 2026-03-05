@@ -357,6 +357,175 @@ def test_no_subchart_dependency() -> None:
     assert "spark-standalone" not in dep_names
 
 
+def test_airflow_parent_templates_render() -> None:
+    """F036-03: airflow.enabled=true renders webserver, scheduler, config, dags from parent."""
+    chart = PROJECT_ROOT / "charts" / "spark-3.5"
+    result = subprocess.run(
+        [
+            "helm",
+            "template",
+            "test036",
+            str(chart),
+            "--set",
+            "airflow.enabled=true",
+            "--set",
+            "airflow.postgresql.enabled=true",
+            "--set",
+            "airflow.postgresql.auth.password=test",
+            "--set",
+            "standalone.enabled=true",
+            "--set",
+            "standalone.image.repository=spark-custom",
+            "--set",
+            "standalone.image.tag=3.5.7",
+            "--set",
+            "global.s3.accessKey=x",
+            "--set",
+            "global.s3.secretKey=x",
+        ],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    assert result.returncode == 0, f"helm template failed: {result.stderr}"
+    out = result.stdout
+    assert "test036-airflow-webserver" in out
+    assert "test036-airflow-scheduler" in out
+    assert "test036-airflow-config" in out
+    assert "test036-airflow-dags" in out
+
+
+def test_airflow_disabled_by_default() -> None:
+    """F036-03: airflow.enabled defaults to false, no airflow resources rendered."""
+    chart = PROJECT_ROOT / "charts" / "spark-3.5"
+    result = subprocess.run(
+        [
+            "helm",
+            "template",
+            "test036",
+            str(chart),
+            "--set",
+            "standalone.enabled=true",
+            "--set",
+            "standalone.image.repository=spark-custom",
+            "--set",
+            "standalone.image.tag=3.5.7",
+            "--set",
+            "global.s3.accessKey=x",
+            "--set",
+            "global.s3.secretKey=x",
+        ],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    assert result.returncode == 0, f"helm template failed: {result.stderr}"
+    assert "airflow" not in result.stdout.lower()
+
+
+def test_airflow_independent_of_standalone() -> None:
+    """F036-03: airflow.enabled=true works without standalone.enabled."""
+    chart = PROJECT_ROOT / "charts" / "spark-3.5"
+    result = subprocess.run(
+        [
+            "helm",
+            "template",
+            "test036",
+            str(chart),
+            "--set",
+            "airflow.enabled=true",
+            "--set",
+            "airflow.postgresql.enabled=true",
+            "--set",
+            "airflow.postgresql.auth.password=test",
+            "--set",
+            "standalone.enabled=false",
+            "--set",
+            "global.s3.accessKey=x",
+            "--set",
+            "global.s3.secretKey=x",
+        ],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    assert result.returncode == 0, f"helm template failed: {result.stderr}"
+    out = result.stdout
+    assert "airflow-webserver" in out
+    assert "name: test036-standalone-master" not in out
+
+
+def test_airflow_postgresql_disabled_by_default() -> None:
+    """F036-03: airflow.postgresql.enabled defaults to false (external DB)."""
+    import yaml
+
+    values_path = PROJECT_ROOT / "charts" / "spark-3.5" / "values.yaml"
+    with open(values_path) as f:
+        vals = yaml.safe_load(f)
+    assert vals["airflow"]["postgresql"]["enabled"] is False
+
+
+def test_airflow_postgresql_renders_when_enabled() -> None:
+    """F036-03: airflow.postgresql.enabled=true renders StatefulSet + Service."""
+    chart = PROJECT_ROOT / "charts" / "spark-3.5"
+    result = subprocess.run(
+        [
+            "helm",
+            "template",
+            "test036",
+            str(chart),
+            "--set",
+            "airflow.enabled=true",
+            "--set",
+            "airflow.postgresql.enabled=true",
+            "--set",
+            "airflow.postgresql.auth.password=test",
+            "--set",
+            "global.s3.accessKey=x",
+            "--set",
+            "global.s3.secretKey=x",
+        ],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    assert result.returncode == 0, f"helm template failed: {result.stderr}"
+    assert "test036-airflow-postgresql" in result.stdout
+    assert "kind: StatefulSet" in result.stdout
+
+
+def test_airflow_dags_in_configmap() -> None:
+    """F036-03: DAGs (nyc_taxi, citibike, movielens, load_demo) in dags-configmap."""
+    chart = PROJECT_ROOT / "charts" / "spark-3.5"
+    result = subprocess.run(
+        [
+            "helm",
+            "template",
+            "test036",
+            str(chart),
+            "--set",
+            "airflow.enabled=true",
+            "--set",
+            "airflow.postgresql.enabled=true",
+            "--set",
+            "airflow.postgresql.auth.password=test",
+            "--set",
+            "global.s3.accessKey=x",
+            "--set",
+            "global.s3.secretKey=x",
+        ],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    assert result.returncode == 0, f"helm template failed: {result.stderr}"
+    out = result.stdout
+    assert "nyc_taxi_ml_full_pipeline.py" in out
+    assert "citibike_analytics_pipeline.py" in out
+    assert "movielens_recommendation_pipeline.py" in out
+    assert "spark_standalone_load_demo.py" in out
+
+
 def test_aggregate_matrix_results_script() -> None:
     """aggregate-matrix-results.py produces machine-readable summary."""
     agg = PROJECT_ROOT / "scripts" / "aggregate-matrix-results.py"

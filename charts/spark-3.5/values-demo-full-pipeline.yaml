@@ -83,6 +83,73 @@ standalone:
     workDir: "/tmp/spark-worker"
 
 # ===========================================
+# Airflow Orchestration
+# ===========================================
+
+airflow:
+  enabled: true
+  image:
+    repository: spark-k8s/airflow
+    tag: "2.11.0"
+    pullPolicy: IfNotPresent
+  webserver:
+    replicas: 1
+    service:
+      type: ClusterIP
+      port: 8080
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "50m"
+      limits:
+        memory: "512Mi"
+        cpu: "200m"
+  scheduler:
+    replicas: 1
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "50m"
+      limits:
+        memory: "512Mi"
+        cpu: "200m"
+  postgresql:
+    enabled: true
+    image:
+      repository: postgres
+      tag: "15-alpine"
+    auth:
+      database: "airflow"
+      username: "airflow"
+      password: "airflow"
+    service:
+      port: 5432
+    persistence:
+      enabled: false
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "25m"
+      limits:
+        memory: "256Mi"
+        cpu: "100m"
+  config:
+    core:
+      dags_folder: "/opt/airflow/dags"
+      load_examples: "False"
+      executor: "LocalExecutor"
+    webserver:
+      expose_config: "True"
+      rbac: "True"
+    scheduler:
+      catchup_by_default: "False"
+  dags:
+    - nyc_taxi_ml_full_pipeline.py
+    - spark_standalone_load_demo.py
+    - citibike_analytics_pipeline.py
+    - movielens_recommendation_pipeline.py
+
+# ===========================================
 # Spark Connect (Interactive Analytics)
 # ===========================================
 

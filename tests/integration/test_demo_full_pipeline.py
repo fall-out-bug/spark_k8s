@@ -3,8 +3,6 @@
 import subprocess
 from pathlib import Path
 
-import pytest
-
 # Common helm command for demo tests
 DEMO_VALUES = "charts/spark-3.5/values-demo-full-pipeline.yaml"
 
@@ -38,17 +36,14 @@ class TestDemoFullPipeline:
         output = helm_template_demo()
         assert "standalone-worker" in output or "spark-worker" in output
 
-    @pytest.mark.xfail(reason="Airflow templates pending WS 036-04", strict=True)
     def test_demo_has_airflow_webserver(self) -> None:
         """Full pipeline demo should include Airflow Webserver."""
         assert "airflow-webserver" in helm_template_demo()
 
-    @pytest.mark.xfail(reason="Airflow templates pending WS 036-04", strict=True)
     def test_demo_has_airflow_scheduler(self) -> None:
         """Full pipeline demo should include Airflow Scheduler."""
         assert "airflow-scheduler" in helm_template_demo()
 
-    @pytest.mark.xfail(reason="Airflow templates pending WS 036-04", strict=True)
     def test_demo_has_airflow_postgresql(self) -> None:
         """Full pipeline demo should include Airflow PostgreSQL."""
         assert "airflow-postgresql" in helm_template_demo()
@@ -74,12 +69,10 @@ class TestDemoFullPipeline:
         output = helm_template_demo()
         assert "ServiceMonitor" in output or "PodMonitor" in output
 
-    @pytest.mark.xfail(reason="Airflow templates pending WS 036-04", strict=True)
     def test_demo_has_airflow_dags(self) -> None:
         """Full pipeline demo should include Airflow DAGs ConfigMap."""
         assert "airflow-dags" in helm_template_demo()
 
-    @pytest.mark.xfail(reason="Airflow templates pending WS 036-04", strict=True)
     def test_demo_has_airflow_config(self) -> None:
         """Full pipeline demo should include Airflow config ConfigMap."""
         assert "airflow-config" in helm_template_demo()
@@ -88,13 +81,13 @@ class TestDemoFullPipeline:
         """Full pipeline demo should have expected number of Deployments."""
         output = helm_template_demo()
         deployment_count = output.count("kind: Deployment")
-        assert deployment_count >= 5, f"Expected at least 5 Deployments, got {deployment_count}"
+        assert deployment_count >= 7, f"Expected at least 7 Deployments, got {deployment_count}"
 
     def test_demo_counts_services(self) -> None:
         """Full pipeline demo should have expected number of Services."""
         output = helm_template_demo()
         service_count = output.count("kind: Service")
-        assert service_count >= 5, f"Expected at least 5 Services, got {service_count}"
+        assert service_count >= 7, f"Expected at least 7 Services, got {service_count}"
 
     def test_demo_values_file_exists(self) -> None:
         """Demo values file should exist."""

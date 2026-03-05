@@ -322,6 +322,87 @@ standalone:
     sparkConf: {}
     workDir: "/tmp/spark-worker"
 
+# Airflow Orchestration (independent of standalone)
+airflow:
+  enabled: false
+  image:
+    repository: spark-k8s/airflow
+    tag: "2.11.0"
+    pullPolicy: IfNotPresent
+  webserver:
+    replicas: 1
+    service:
+      type: ClusterIP
+      port: 8080
+      nodePort: null
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "1"
+    nodeSelector: {}
+    tolerations: []
+  scheduler:
+    replicas: 1
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "200m"
+      limits:
+        memory: "2Gi"
+        cpu: "1"
+    nodeSelector: {}
+    tolerations: []
+  postgresql:
+    enabled: false
+    externalHost: ""
+    externalPort: 5432
+    image:
+      repository: postgres
+      tag: "15-alpine"
+      pullPolicy: IfNotPresent
+    auth:
+      database: "airflow"
+      username: "airflow"
+      password: ""
+    service:
+      port: 5432
+    persistence:
+      enabled: true
+      size: "5Gi"
+      storageClass: ""
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+  config:
+    core:
+      dags_folder: "/opt/airflow/dags"
+      load_examples: "False"
+      executor: "LocalExecutor"
+    webserver:
+      expose_config: "True"
+      rbac: "True"
+    scheduler:
+      catchup_by_default: "False"
+  dags:
+    - nyc_taxi_ml_full_pipeline.py
+    - spark_standalone_load_demo.py
+    - citibike_analytics_pipeline.py
+    - movielens_recommendation_pipeline.py
+  variables:
+    spark_image: "spark-custom:3.5.7"
+    spark_namespace: "spark"
+    s3_endpoint: "http://minio:9000"
+    s3_access_key: "minioadmin"
+    s3_secret_key: "minioadmin"
+  connections: []
+
 # Spark Connect server (3.5.7)
 connect:
   enabled: true

@@ -101,42 +101,69 @@ standalone:
       spark.worker.memory: "14g"
       spark.worker.cores: "2"
     workDir: "/tmp/spark-worker"
-  airflow:
-    enabled: true
+
+# --- Airflow Orchestration (independent of standalone) ---
+
+airflow:
+  enabled: true
+  image:
+    repository: spark-k8s/airflow
+    tag: "2.11.0"
+    pullPolicy: IfNotPresent
+  webserver:
+    replicas: 1
+    resources:
+      requests:
+        cpu: "250m"
+        memory: "512Mi"
+      limits:
+        cpu: "1"
+        memory: "2Gi"
+    service:
+      type: NodePort
+      port: 8080
+      nodePort: 30080
+  scheduler:
+    replicas: 1
+    resources:
+      requests:
+        cpu: "200m"
+        memory: "512Mi"
+      limits:
+        cpu: "1"
+        memory: "2Gi"
+  postgresql:
+    enabled: false
+    externalHost: "spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local"
+    externalPort: 5432
+    auth:
+      database: "airflow"
+      username: "postgres"
+      password: "postgres"
+    service:
+      port: 5432
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+  config:
+    core:
+      dags_folder: "/opt/airflow/dags"
+      load_examples: "False"
+      executor: "LocalExecutor"
     webserver:
-      resources:
-        requests:
-          cpu: "250m"
-          memory: "512Mi"
-        limits:
-          cpu: "1"
-          memory: "2Gi"
-      service:
-        type: NodePort
-        nodePort: 30080
+      expose_config: "True"
+      rbac: "True"
     scheduler:
-      resources:
-        requests:
-          cpu: "200m"
-          memory: "512Mi"
-        limits:
-          cpu: "1"
-          memory: "2Gi"
-    postgresql:
-      enabled: false  # Use shared spark-base PostgreSQL
-      externalHost: "spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local"
-      externalPort: 5432
-      auth:
-        database: "airflow"
-        username: "postgres"
-        password: "postgres"  # Same as spark-base.postgresql
-      resources:
-        requests:
-          cpu: "100m"
-          memory: "256Mi"
-        limits:
-          cpu: "500m"
-          memory: "512Mi"
+      catchup_by_default: "False"
+  dags:
+    - nyc_taxi_ml_full_pipeline.py
+    - spark_standalone_load_demo.py
+    - citibike_analytics_pipeline.py
+    - movielens_recommendation_pipeline.py
 
 connect:
   enabled: false

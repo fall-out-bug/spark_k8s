@@ -1,0 +1,13 @@
+{{- if .Values.airflow.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-airflow-dags
+  labels:
+    {{- include "spark-3.5.airflowWebserverLabels" . | nindent 4 }}
+data:
+  {{- range $dag := .Values.airflow.dags }}
+  {{ $dag }}: |
+    {{- $.Files.Get (printf "dags/%s" $dag) | nindent 4 }}
+  {{- end }}
+{{- end }}
