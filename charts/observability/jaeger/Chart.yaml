@@ -24,8 +24,8 @@ sources:
 
 dependencies:
   - name: jaeger
-    version: ">=0.50.0"
-    repository: https://jaegertracing.io/helm-charts
+    version: ">=4.0.0"
+    repository: https://jaegertracing.github.io/helm-charts
 
 annotations:
   artifacthub.io/category: tracing

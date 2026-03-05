@@ -1,0 +1,19 @@
+{{/*
+Spark OpenTelemetry endpoint for Jaeger (WS-016-03)
+AC2: OTel for Spark, AC3: trace propagation, AC4: SQL, AC5: shuffle
+Use with: connect.openTelemetry.endpoint
+*/}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-spark-otel-endpoint
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: jaeger-spark
+    app.kubernetes.io/component: spark-otel-config
+    chart: {{ .Chart.Name }}
+    release: {{ .Release.Name }}
+data:
+  endpoint: "http://{{ .Release.Name }}-jaeger:4317"
+  protocol: "grpc"
+  samplingRatio: "0.1"
