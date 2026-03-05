@@ -1,0 +1,84 @@
+name: "CI: Charts"
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - "charts/**"
+      - "tests/security/**"
+      - "tests/integration/**"
+      - "pyproject.toml"
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - "charts/**"
+      - "tests/security/**"
+      - "tests/integration/**"
+      - "pyproject.toml"
+
+jobs:
+  helm-lint:
+    name: Helm Lint
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint spark-3.5
+        run: helm lint charts/spark-3.5
+      - name: Lint spark-4.1
+        run: helm lint charts/spark-4.1
+      - name: Lint spark-operator
+        run: helm lint charts/spark-operator || true
+
+  template-tests:
+    name: Template Tests
+    runs-on: self-hosted
+    needs: helm-lint
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install deps
+        run: pip install --quiet pytest pyyaml
+      - name: Helm template tests
+        run: pytest tests/ -v --tb=short -m "not e2e and not slow and not security" --ignore=tests/load --ignore=tests/e2e
+
+  security-tests:
+    name: Security Template Tests
+    runs-on: self-hosted
+    needs: helm-lint
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install deps
+        run: pip install --quiet pytest pyyaml
+      - name: Security tests (PSS, RBAC, network, secrets)
+        run: pytest tests/security/ -v --tb=short
+
+  chart-modes:
+    name: Chart Mode Validation
+    runs-on: self-hosted
+    needs: helm-lint
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate all deploy modes
+        run: ./scripts/validate-chart-modes.sh
+
+  preset-validation:
+    name: Preset Validation
+    runs-on: self-hosted
+    needs: helm-lint
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate presets render cleanly
+        run: |
+          ERRORS=0
+          for preset in charts/spark-3.5/presets/*.yaml charts/spark-3.5/presets/**/*.yaml; do
+            [ -f "$preset" ] || continue
+            if ! helm template test-preset charts/spark-3.5 -f "$preset" > /dev/null 2>&1; then
+              echo "FAIL: $preset"
+              helm template test-preset charts/spark-3.5 -f "$preset" 2>&1 | tail -5
+              ERRORS=$((ERRORS + 1))
+            fi
+          done
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "$ERRORS preset(s) failed to render"
+            exit 1
+          fi
+          echo "All presets render cleanly"

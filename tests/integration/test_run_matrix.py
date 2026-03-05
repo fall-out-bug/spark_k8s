@@ -835,6 +835,35 @@ def test_no_stale_naming_in_docs() -> None:
     assert not violations, "Stale naming in docs:\n" + "\n".join(violations[:30])
 
 
+def test_validate_chart_modes_script_exists_and_runs() -> None:
+    """F036-11: validate-chart-modes.sh must exist and pass all 6 deploy modes."""
+    script = PROJECT_ROOT / "scripts" / "validate-chart-modes.sh"
+    assert script.exists(), "scripts/validate-chart-modes.sh not found"
+    result = subprocess.run(
+        ["bash", str(script)],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    assert result.returncode == 0, f"validate-chart-modes.sh failed:\n{result.stderr}\n{result.stdout}"
+    for mode in [
+        "connect-only",
+        "connect-standalone",
+        "kubernetes",
+        "standalone",
+        "demo",
+        "all-disabled",
+    ]:
+        assert mode in result.stdout, f"Missing mode '{mode}' in output"
+
+
+def test_ci_charts_has_mode_validation_job() -> None:
+    """F036-11: ci-charts.yml must include chart-modes validation job."""
+    ci = PROJECT_ROOT / ".github" / "workflows" / "ci-charts.yml"
+    content = ci.read_text()
+    assert "validate-chart-modes" in content, "ci-charts.yml missing validate-chart-modes reference"
+
+
 def test_aggregate_matrix_results_script() -> None:
     """aggregate-matrix-results.py produces machine-readable summary."""
     agg = PROJECT_ROOT / "scripts" / "aggregate-matrix-results.py"
