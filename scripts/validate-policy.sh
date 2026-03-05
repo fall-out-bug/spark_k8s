@@ -29,7 +29,7 @@ fi
 CHARTS=(
   "charts/spark-4.1"
   "charts/spark-3.5/charts/spark-connect"
-  "charts/spark-3.5/charts/spark-standalone"
+  "charts/spark-3.5"
 )
 
 FAILED=0

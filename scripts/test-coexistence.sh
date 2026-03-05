@@ -32,9 +32,9 @@ fi
 echo "1) Deploying Spark 3.5.7..."
 helm install "${RELEASE_35}" charts/spark-3.5 \
   --namespace "${NAMESPACE}" \
-  --set spark-standalone.enabled=true \
-  --set spark-standalone.hiveMetastore.enabled=true \
-  --set spark-standalone.historyServer.enabled=true \
+  --set standalone.enabled=true \
+  --set core.hiveMetastore.enabled=true \
+  --set historyServer.enabled=true \
   --wait --timeout=5m
 
 echo "2) Deploying Spark 4.1.0..."
@@ -92,7 +92,7 @@ fi
 echo "✓ History Server isolation OK"
 
 echo "6) Running Spark 3.5.7 test..."
-./scripts/test-spark-standalone.sh "${NAMESPACE}" "${RELEASE_35}"
+./scripts/test-standalone.sh "${NAMESPACE}" "${RELEASE_35}"
 
 echo "7) Running Spark 4.1.0 smoke test..."
 ./scripts/test-spark-41-smoke.sh "${NAMESPACE}" "${RELEASE_41}"

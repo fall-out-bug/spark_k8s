@@ -52,14 +52,14 @@ if [[ -d "${CHART_35_CONNECT}" ]]; then
   echo ""
 fi
 
-# Spark 3.5 spark-standalone presets
-CHART_35_STANDALONE="charts/spark-3.5/charts/spark-standalone"
-if [[ -d "${CHART_35_STANDALONE}" ]]; then
-  echo "Chart: ${CHART_35_STANDALONE}"
-  for values_file in "${CHART_35_STANDALONE}"/values-scenario-*.yaml; do
+# Spark 3.5 scenario presets
+CHART_35="charts/spark-3.5"
+if [[ -d "${CHART_35}/presets/scenarios" ]]; then
+  echo "Chart: ${CHART_35} (scenario presets)"
+  for values_file in "${CHART_35}"/presets/scenarios/*.yaml; do
     if [[ -f "${values_file}" ]]; then
       echo -n "  Validating: $(basename "${values_file}")... "
-      if helm template test "${CHART_35_STANDALONE}" -f "${values_file}" --dry-run >/dev/null 2>&1; then
+      if helm template test "${CHART_35}" -f "${values_file}" --set global.s3.accessKey=x --set global.s3.secretKey=x --dry-run >/dev/null 2>&1; then
         echo "✅ PASSED"
         ((PASSED++))
       else

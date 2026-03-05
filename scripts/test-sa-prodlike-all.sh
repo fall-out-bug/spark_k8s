@@ -17,7 +17,7 @@ echo "=== SA prod-like ALL tests (${RELEASE} in ${NAMESPACE}) ==="
 
 echo ""
 echo "1) Spark Standalone E2E..."
-./scripts/test-spark-standalone.sh "${NAMESPACE}" "${RELEASE}"
+./scripts/test-standalone.sh "${NAMESPACE}" "${RELEASE}"
 
 echo ""
 echo "2) Airflow prod-like DAG tests..."

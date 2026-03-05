@@ -31,7 +31,7 @@ METRICS_FILE="/tmp/spark_metrics_${APP_ID}.prom"
 
 echo "Collecting metrics for application: $APP_ID"
 
-MASTER_POD=$(kubectl get pods -n $NAMESPACE -l app=spark-standalone-master -o jsonpath='{.items[0].metadata.name}')
+MASTER_POD=$(kubectl get pods -n $NAMESPACE -l app.kubernetes.io/component=standalone-master -o jsonpath='{.items[0].metadata.name}')
 
 if [[ -z "$MASTER_POD" ]]; then
     echo "Error: Spark master pod not found"

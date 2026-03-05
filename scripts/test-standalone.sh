@@ -5,7 +5,7 @@ NAMESPACE="${1:-default}"
 RELEASE="${2:-spark-sa}"
 
 # Install example (Spark 3.5 umbrella chart):
-# helm install "${RELEASE}" charts/spark-3.5 --set spark-standalone.enabled=true
+# helm install "${RELEASE}" charts/spark-3.5 --set standalone.enabled=true
 
 MASTER_SELECTOR="app=spark-master,app.kubernetes.io/instance=${RELEASE}"
 WORKER_SELECTOR="app=spark-worker,app.kubernetes.io/instance=${RELEASE}"
@@ -34,7 +34,7 @@ fi
 echo "4) Running SparkPi via spark-submit (best-effort)..."
 kubectl exec -n "${NAMESPACE}" "${MASTER_POD}" -- sh -lc "\
   POD_IP=\$(hostname -i) && \
-  timeout 300s spark-submit --master spark://${RELEASE}-spark-standalone-master:7077 \
+  timeout 300s spark-submit --master spark://${RELEASE}-standalone-master:7077 \
     --conf spark.driver.bindAddress=0.0.0.0 \
     --conf spark.driver.host=\$POD_IP \
     --conf spark.sql.catalogImplementation=in-memory \
@@ -45,12 +45,12 @@ kubectl exec -n "${NAMESPACE}" "${MASTER_POD}" -- sh -lc "\
 echo "   OK"
 
 echo "5) Checking Airflow and MLflow services exist (if enabled)..."
-kubectl get svc -n "${NAMESPACE}" "${RELEASE}-spark-standalone-airflow-webserver" >/dev/null 2>&1 || true
-kubectl get svc -n "${NAMESPACE}" "${RELEASE}-spark-standalone-mlflow" >/dev/null 2>&1 || true
+kubectl get svc -n "${NAMESPACE}" "${RELEASE}-airflow-webserver" >/dev/null 2>&1 || true
+kubectl get svc -n "${NAMESPACE}" "${RELEASE}-mlflow" >/dev/null 2>&1 || true
 echo "   OK"
 
 echo "6) Checking History Server (if deployed)..."
-HISTORY_SVC="${RELEASE}-spark-standalone-history-server"
+HISTORY_SVC="${RELEASE}-spark-35-history"
 if kubectl get svc "$HISTORY_SVC" -n "$NAMESPACE" &>/dev/null; then
   echo "   History Server service found, waiting for pod..."
   kubectl wait --for=condition=ready pod \

@@ -7,6 +7,7 @@ SPARK_VERSION="${3:-3.5}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "${SCRIPT_DIR}")"
+export PROJECT_DIR
 source "${SCRIPT_DIR}/test-e2e-lib.sh"
 
 SETUP="${SETUP:-true}"
@@ -209,7 +210,7 @@ install_airflow_stack() {
   local ns="$1"
   local rel="$2"
   local fernet_key="${FERNET_KEY:-9_jzOiAmnzfASdT81H2Epx6R56z3XQP9N8vr3W76wro=}"
-  helm upgrade --install "${rel}" charts/spark-standalone -n "${ns}" \
+  helm upgrade --install "${rel}" charts/spark-3.5 -n "${ns}" \
     --set airflow.enabled=true \
     --set airflow.fernetKey="${fernet_key}" \
     --set airflow.kubernetesExecutor.deleteWorkerPods=false \
@@ -231,8 +232,8 @@ install_airflow_stack() {
     --set airflow.webserver.resources.limits.cpu=500m \
     --set airflow.webserver.resources.limits.memory=1Gi \
     --set security.podSecurityStandards=false >/dev/null
-  kubectl rollout restart -n "${ns}" "deploy/${rel}-spark-standalone-airflow-scheduler" >/dev/null 2>&1 || true
-  kubectl rollout restart -n "${ns}" "deploy/${rel}-spark-standalone-airflow-webserver" >/dev/null 2>&1 || true
+  kubectl rollout restart -n "${ns}" "deploy/${rel}-airflow-scheduler" >/dev/null 2>&1 || true
+  kubectl rollout restart -n "${ns}" "deploy/${rel}-airflow-webserver" >/dev/null 2>&1 || true
 }
 
 cleanup_all() {
@@ -255,7 +256,7 @@ wait_for_minio "${NAMESPACE}"
 wait_for_pod "app=postgresql-airflow" "${NAMESPACE}"
 
 echo "1) Waiting for Airflow scheduler..."
-kubectl rollout status -n "${NAMESPACE}" "deploy/${RELEASE}-spark-standalone-airflow-scheduler" --timeout=180s
+kubectl rollout status -n "${NAMESPACE}" "deploy/${RELEASE}-airflow-scheduler" --timeout=180s
 SCHEDULER_POD="$(wait_for_airflow_scheduler_pod "${NAMESPACE}" "${RELEASE}")"
 echo "   Scheduler pod: ${SCHEDULER_POD}"
 wait_for_airflow_db "${NAMESPACE}" "${SCHEDULER_POD}"

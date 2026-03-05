@@ -9,6 +9,7 @@ CONNECT_RELEASE="${5:-${RELEASE}-connect}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "${SCRIPT_DIR}")"
+export PROJECT_DIR
 source "${SCRIPT_DIR}/test-e2e-lib.sh"
 
 BACKEND_MODE="${BACKEND_MODE:-k8s}" # k8s|standalone
@@ -220,7 +221,7 @@ install_airflow_stack() {
     )
   fi
 
-  helm upgrade --install "${rel}" charts/spark-standalone -n "${ns}" \
+  helm upgrade --install "${rel}" charts/spark-3.5 -n "${ns}" \
     --set airflow.enabled=true \
     --set airflow.fernetKey="${fernet_key}" \
     --set minio.enabled=true \
@@ -246,8 +247,8 @@ install_airflow_stack() {
     --set airflow.webserver.resources.limits.memory=1Gi \
     --set airflow.kubernetesExecutor.deleteWorkerPods=false \
     --set security.podSecurityStandards=false >/dev/null
-  kubectl rollout restart -n "${ns}" "deploy/${rel}-spark-standalone-airflow-scheduler" >/dev/null 2>&1 || true
-  kubectl rollout restart -n "${ns}" "deploy/${rel}-spark-standalone-airflow-webserver" >/dev/null 2>&1 || true
+  kubectl rollout restart -n "${ns}" "deploy/${rel}-airflow-scheduler" >/dev/null 2>&1 || true
+  kubectl rollout restart -n "${ns}" "deploy/${rel}-airflow-webserver" >/dev/null 2>&1 || true
 }
 
 install_connect() {
@@ -404,9 +405,9 @@ if [[ "${SETUP}" == "true" ]]; then
 
   ensure_event_log_prefix "${NAMESPACE}" "${MINIO_ENDPOINT}" "${EVENTLOG_PREFIX}"
   if [[ "${BACKEND_MODE}" == "standalone" ]]; then
-    STANDALONE_MASTER_FQDN="${RELEASE}-spark-standalone-master-hl.${NAMESPACE}.svc.cluster.local"
+    STANDALONE_MASTER_FQDN="${RELEASE}-standalone-master-hl.${NAMESPACE}.svc.cluster.local"
   else
-    STANDALONE_MASTER_FQDN="${RELEASE}-spark-standalone-master.${NAMESPACE}.svc.cluster.local"
+    STANDALONE_MASTER_FQDN="${RELEASE}-standalone-master.${NAMESPACE}.svc.cluster.local"
   fi
   CONNECT_DRIVER_HOST="${CONNECT_SERVICE_NAME}.${CONNECT_NAMESPACE}.svc.cluster.local"
   install_connect "${CONNECT_NAMESPACE}" "${CONNECT_RELEASE}" "${BACKEND_MODE}" "${CONNECT_DRIVER_HOST}" "${STANDALONE_MASTER_FQDN}" "${MINIO_ENDPOINT}" "${CONNECT_MINIO_ENABLED}"
@@ -416,7 +417,7 @@ wait_for_minio "${NAMESPACE}"
 wait_for_pod "app=postgresql-airflow" "${NAMESPACE}"
 
 echo "1) Waiting for Airflow scheduler..."
-kubectl rollout status -n "${NAMESPACE}" "deploy/${RELEASE}-spark-standalone-airflow-scheduler" --timeout=180s
+kubectl rollout status -n "${NAMESPACE}" "deploy/${RELEASE}-airflow-scheduler" --timeout=180s
 SCHEDULER_POD="$(wait_for_airflow_scheduler_pod "${NAMESPACE}" "${RELEASE}")"
 echo "   Scheduler pod: ${SCHEDULER_POD}"
 wait_for_airflow_db "${NAMESPACE}" "${SCHEDULER_POD}"

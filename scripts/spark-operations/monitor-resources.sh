@@ -25,7 +25,7 @@ echo "Time: $(date)"
 echo ""
 
 echo "--- Master Pod ---"
-MASTER_POD=$(kubectl get pods -n $NAMESPACE -l app=spark-standalone-master -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+MASTER_POD=$(kubectl get pods -n $NAMESPACE -l app.kubernetes.io/component=standalone-master -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
 if [[ -n "$MASTER_POD" ]]; then
     kubectl get pod -n $NAMESPACE $MASTER_POD -o custom-columns=\
 NAME:.metadata.name,\
@@ -39,7 +39,7 @@ fi
 
 echo ""
 echo "--- Worker Pods ---"
-kubectl get pods -n $NAMESPACE -l app=spark-standalone-worker -o custom-columns=\
+kubectl get pods -n $NAMESPACE -l app.kubernetes.io/component=standalone-worker -o custom-columns=\
 NAME:.metadata.name,\
 STATUS:.status.phase,\
 CPU:.spec.containers[0].resources.requests.cpu,\

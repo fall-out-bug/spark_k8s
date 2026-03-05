@@ -45,16 +45,16 @@ run_scenario_1() {
     --set global.s3.enabled=true \
     --set global.s3.endpoint=http://minio.spark-infra.svc.cluster.local:9000 \
     --set spark-base.minio.enabled=false \
-    --set sparkStandalone.enabled=true \
+    --set standalone.enabled=true \
     --set connect.image.repository=spark-custom \
     --set connect.image.tag="${SPARK_VERSION}-new" \
     --set connect.image.pullPolicy=IfNotPresent \
     --set connect.eventLog.enabled=true \
     --set connect.eventLog.dir=s3a://spark-logs/events \
     --set connect.openTelemetry.enabled=false \
-    --set sparkStandalone.image.repository=spark-custom \
-    --set sparkStandalone.image.tag="${SPARK_VERSION}-new" \
-    --set sparkStandalone.image.pullPolicy=IfNotPresent \
+    --set standalone.image.repository=spark-custom \
+    --set standalone.image.tag="${SPARK_VERSION}-new" \
+    --set standalone.image.pullPolicy=IfNotPresent \
     --set historyServer.enabled=false \
     --set hiveMetastore.enabled=false \
     --timeout 15m \
@@ -73,7 +73,7 @@ run_scenario_2() {
     --set global.s3.enabled=true \
     --set global.s3.endpoint=http://minio.spark-infra.svc.cluster.local:9000 \
     --set spark-base.minio.enabled=false \
-    --set sparkStandalone.enabled=true \
+    --set standalone.enabled=true \
     --set connect.image.repository=spark-custom \
     --set connect.image.tag="${SPARK_VERSION}-new" \
     --set connect.image.pullPolicy=IfNotPresent \
@@ -83,9 +83,9 @@ run_scenario_2() {
     --set airflow.image.repository=apache/airflow \
     --set airflow.image.tag="2.11.0" \
     --set airflow.image.pullPolicy=IfNotPresent \
-    --set sparkStandalone.image.repository=spark-custom \
-    --set sparkStandalone.image.tag="${SPARK_VERSION}-new" \
-    --set sparkStandalone.image.pullPolicy=IfNotPresent \
+    --set standalone.image.repository=spark-custom \
+    --set standalone.image.tag="${SPARK_VERSION}-new" \
+    --set standalone.image.pullPolicy=IfNotPresent \
     --set historyServer.enabled=false \
     --set hiveMetastore.enabled=false \
     --timeout 15m \

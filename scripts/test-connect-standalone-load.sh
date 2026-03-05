@@ -8,7 +8,7 @@ set -euo pipefail
 
 NAMESPACE="${1:-default}"
 RELEASE="${2:-spark-connect-standalone}"
-STANDALONE_MASTER="${3:-spark-sa-spark-standalone-master:7077}"
+STANDALONE_MASTER="${3:-spark-sa-standalone-master:7077}"
 
 LOAD_MODE="${LOAD_MODE:-range}"
 LOAD_ROWS="${LOAD_ROWS:-1000000}"

@@ -89,6 +89,7 @@ PY
 run_query() {
   local version="$1"
   local query="$2"
+  # shellcheck disable=SC2034
   local rows="$3"
   local app_name="$4"
 
@@ -146,8 +147,8 @@ fi
 echo "1) Deploying Spark 3.5.7 history server..."
 helm install "${RELEASE_35}" charts/spark-3.5 \
   --namespace "${NAMESPACE}" \
-  --set spark-standalone.enabled=true \
-  --set spark-standalone.historyServer.enabled=true \
+  --set standalone.enabled=true \
+  --set historyServer.enabled=true \
   --wait --timeout=5m
 
 echo "2) Deploying Spark 4.1.0 history server..."
@@ -210,7 +211,8 @@ for q in ["count","groupby","join"]:
     t41 = rows.get(q, {}).get("4.1.0", 0)
     delta = t41 - t35
     print(f"| {q} | {t35} | {t41} | {delta} |")
-PY)
+PY
+)
 
 ## Shuffle + Memory Metrics
 
@@ -230,7 +232,8 @@ with open("${METRICS_CSV}") as f:
 for v in ["3.5.7","4.1.0"]:
     t=totals.get(v, {"read":0,"write":0,"mem":0})
     print(f"| {v} | {t['read']} | {t['write']} | {t['mem']} |")
-PY)
+PY
+)
 
 ## Conclusion
 

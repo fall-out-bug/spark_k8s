@@ -4,7 +4,7 @@ set -euo pipefail
 NAMESPACE="${1:-spark-sa-prodlike}"
 RELEASE="${2:-spark-prodlike}"
 
-SCHEDULER_DEPLOY="${RELEASE}-spark-standalone-airflow-scheduler"
+SCHEDULER_DEPLOY="${RELEASE}-airflow-scheduler"
 DAGS=("${@:3}")
 if [ ${#DAGS[@]} -eq 0 ]; then
   DAGS=("example_bash_operator" "spark_etl_synthetic")
@@ -34,7 +34,7 @@ if [ "${SET_AIRFLOW_VARIABLES}" = "true" ]; then
 
   SPARK_IMAGE_VALUE="${SPARK_IMAGE_VALUE:-spark-custom:3.5.7}"
   SPARK_NAMESPACE_VALUE="${SPARK_NAMESPACE_VALUE:-${NAMESPACE}}"
-  SPARK_MASTER_VALUE="${SPARK_MASTER_VALUE:-spark://${RELEASE}-spark-standalone-master:7077}"
+  SPARK_MASTER_VALUE="${SPARK_MASTER_VALUE:-spark://${RELEASE}-standalone-master:7077}"
 
   S3_ENDPOINT_VALUE="${S3_ENDPOINT_VALUE:-http://minio:9000}"
   S3_ACCESS_KEY_VALUE="${S3_ACCESS_KEY_VALUE:-}"

@@ -26,10 +26,10 @@ helm template evidence-ck "$CHART" \
   > "$OUT/connect-k8s.yaml"
 echo "  connect-k8s: $(grep -c '^kind:' "$OUT/connect-k8s.yaml") resources"
 
-# 2. connect-sa (connect + sparkStandalone)
+# 2. connect-sa (connect + standalone)
 helm template evidence-cs "$CHART" \
   --set connect.enabled=true \
-  --set sparkStandalone.enabled=true \
+  --set standalone.enabled=true \
   --set standalone.enabled=false \
   "${COMMON[@]}" \
   > "$OUT/connect-sa.yaml"
@@ -38,15 +38,15 @@ echo "  connect-sa: $(grep -c '^kind:' "$OUT/connect-sa.yaml") resources"
 # 3. k8s-native
 helm template evidence-kn "$CHART" \
   --set connect.enabled=false \
-  --set sparkK8sNative.enabled=true \
+  --set kubernetes.enabled=true \
   "${COMMON[@]}" \
   > "$OUT/k8s-native.yaml"
 echo "  k8s-native: $(grep -c '^kind:' "$OUT/k8s-native.yaml") resources"
 
-# 4. standalone (sparkStandalone + subchart disabled)
+# 4. standalone (standalone + subchart disabled)
 helm template evidence-sa "$CHART" \
   --set connect.enabled=false \
-  --set sparkStandalone.enabled=true \
+  --set standalone.enabled=true \
   --set standalone.enabled=false \
   "${COMMON[@]}" \
   > "$OUT/standalone.yaml"

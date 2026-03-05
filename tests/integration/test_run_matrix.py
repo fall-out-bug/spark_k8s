@@ -738,6 +738,66 @@ def test_no_standalone_enabled_false_hack_in_run_matrix() -> None:
     assert not lines, f"run-matrix.sh still has standalone.enabled=false hack: {lines}"
 
 
+def test_no_stale_naming_in_scripts() -> None:
+    """F036-08: scripts/ must not contain sparkStandalone or sparkK8sNative value refs."""
+    stale_patterns = ["sparkStandalone", "sparkK8sNative"]
+    allowed_contexts = [
+        "# ",
+        "NOT spark-standalone",
+        "check-dangerous-patterns",
+    ]
+    scripts_dir = PROJECT_ROOT / "scripts"
+    violations: list[str] = []
+    for script in sorted(scripts_dir.rglob("*")):
+        if script.is_dir() or script.suffix == ".pyc":
+            continue
+        try:
+            content = script.read_text()
+        except UnicodeDecodeError:
+            continue
+        for line_no, line in enumerate(content.splitlines(), 1):
+            if any(pat in line for pat in stale_patterns) and not any(ctx in line for ctx in allowed_contexts):
+                violations.append(f"{script.relative_to(PROJECT_ROOT)}:{line_no}: {line.strip()}")
+    assert not violations, "Stale naming found in scripts:\n" + "\n".join(violations[:20])
+
+
+def test_scripts_bash_syntax() -> None:
+    """F036-08: scope .sh files in scripts/ must pass bash -n."""
+    scope_scripts = [
+        "scripts/test-standalone.sh",
+        "scripts/test-standalone-load.sh",
+        "scripts/test-connect-standalone-load.sh",
+        "scripts/test-prodlike-airflow.sh",
+        "scripts/test-sa-prodlike-all.sh",
+        "scripts/test-coexistence.sh",
+        "scripts/benchmark-spark-versions.sh",
+        "scripts/validate-presets.sh",
+        "scripts/validate-policy.sh",
+        "scripts/generate-helm-evidence.sh",
+        "scripts/spark-operations/monitor-resources.sh",
+        "scripts/spark-operations/collect-metrics.sh",
+        "scripts/test-e2e-airflow-connect.sh",
+        "scripts/test-e2e-airflow-k8s-submit.sh",
+        "scripts/test-e2e-airflow-operator.sh",
+        "scripts/test-e2e-jupyter-connect.sh",
+        "scripts/tests/integration/test-spark-35-minikube.sh",
+        "scripts/tests/minikube/run-minikube-scenarios.sh",
+        "scripts/restore-demo.sh",
+        "scripts/check-demo-health.sh",
+        "scripts/deploy-demo-minikube.sh",
+        "scripts/run-matrix.sh",
+    ]
+    failures: list[str] = []
+    for rel in scope_scripts:
+        script = PROJECT_ROOT / rel
+        if not script.exists():
+            continue
+        result = subprocess.run(["bash", "-n", str(script)], capture_output=True, text=True)
+        if result.returncode != 0:
+            failures.append(f"{rel}: {result.stderr.strip()}")
+    assert not failures, "bash -n failures:\n" + "\n".join(failures)
+
+
 def test_aggregate_matrix_results_script() -> None:
     """aggregate-matrix-results.py produces machine-readable summary."""
     agg = PROJECT_ROOT / "scripts" / "aggregate-matrix-results.py"

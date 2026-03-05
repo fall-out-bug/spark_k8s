@@ -5,8 +5,8 @@ set -euo pipefail
 # Runs inside the cluster using spark-submit --master spark://master:7077
 
 NAMESPACE="${1:-default}"
-RELEASE="${2:-spark-standalone}"
-STANDALONE_MASTER="${3:-spark-standalone-master:7077}"
+RELEASE="${2:-spark-sa}"
+STANDALONE_MASTER="${3:-${RELEASE}-standalone-master:7077}"
 
 LOAD_MODE="${LOAD_MODE:-range}"
 LOAD_ROWS="${LOAD_ROWS:-1000000}"
@@ -52,12 +52,12 @@ else
 fi
 
 # Check master pod is ready
-kubectl wait --for=condition=ready pod -l "app=spark-standalone-master" -n "${NAMESPACE}" --timeout=60s 2>/dev/null || \
+kubectl wait --for=condition=ready pod -l "app.kubernetes.io/component=standalone-master" -n "${NAMESPACE}" --timeout=60s 2>/dev/null || \
   kubectl wait --for=condition=ready pod -l "app.kubernetes.io/component=standalone-master" -n "${NAMESPACE}" --timeout=60s || true
 
 echo ""
 echo "2) Checking worker pods..."
-WORKER_COUNT=$(kubectl get pods -n "${NAMESPACE}" -l "app=spark-standalone-worker" --no-headers 2>/dev/null | grep -c Running || true)
+WORKER_COUNT=$(kubectl get pods -n "${NAMESPACE}" -l "app.kubernetes.io/component=standalone-worker" --no-headers 2>/dev/null | grep -c Running || true)
 if [[ "${WORKER_COUNT}" -lt 1 ]]; then
   WORKER_COUNT=$(kubectl get pods -n "${NAMESPACE}" -l "app.kubernetes.io/component=standalone-worker" --no-headers 2>/dev/null | grep -c Running || true)
 fi

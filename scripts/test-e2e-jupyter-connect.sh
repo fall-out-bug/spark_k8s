@@ -7,6 +7,7 @@ SPARK_VERSION="${3:-3.5}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "${SCRIPT_DIR}")"
+export PROJECT_DIR
 source "${SCRIPT_DIR}/test-e2e-lib.sh"
 
 BACKEND_MODE="${BACKEND_MODE:-k8s}" # k8s|standalone
@@ -169,7 +170,7 @@ install_standalone() {
   if [[ "${ns}" == "${NAMESPACE}" ]]; then
     extra_args+=(--set s3.existingSecret=s3-credentials)
   fi
-  helm upgrade --install "${rel}" charts/spark-standalone -n "${ns}" \
+  helm upgrade --install "${rel}" charts/spark-3.5 -n "${ns}" \
     --set minio.enabled=false \
     --set airflow.enabled=false \
     --set mlflow.enabled=false \
@@ -300,7 +301,7 @@ if [[ "${SETUP}" == "true" ]]; then
     install_standalone "${SA_NAMESPACE}" "${SA_RELEASE}" "${SA_SPARK_TAG}"
   fi
 
-  STANDALONE_MASTER_FQDN="${SA_RELEASE}-spark-standalone-master-hl.${SA_NAMESPACE}.svc.cluster.local"
+  STANDALONE_MASTER_FQDN="${SA_RELEASE}-standalone-master-hl.${SA_NAMESPACE}.svc.cluster.local"
   CONNECT_DRIVER_HOST="${CONNECT_SERVICE_NAME}.${NAMESPACE}.svc.cluster.local"
   install_connect "${NAMESPACE}" "${RELEASE}" "${BACKEND_MODE}" "${STANDALONE_MASTER_FQDN}" "${CONNECT_DRIVER_HOST}"
 fi

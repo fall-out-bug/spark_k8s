@@ -5,11 +5,9 @@ This module provides fixtures for Spark standalone cluster deployment,
 Master/Worker pod verification, and standalone-specific metrics.
 """
 
-import os
-import time
 import subprocess
-from typing import Dict, Any, Generator, Optional
-from pathlib import Path
+from collections.abc import Generator
+from typing import Any
 
 import pytest
 
@@ -33,7 +31,7 @@ def _get_pods_by_selector(selector: str, namespace: str = "default") -> list:
     Get pods matching a label selector.
 
     Args:
-        selector: Label selector (e.g., "app=spark-master").
+        selector: Label selector (e.g., "app.kubernetes.io/component=standalone-master").
         namespace: Kubernetes namespace.
 
     Returns:
@@ -106,7 +104,7 @@ def kubectl_available() -> bool:
 
 
 @pytest.fixture(scope="function")
-def standalone_cluster(kubectl_available: bool, request) -> Generator[Dict[str, Any], None, None]:
+def standalone_cluster(kubectl_available: bool, request) -> Generator[dict[str, Any], None, None]:
     """
     Deploy Spark standalone cluster for testing.
 
@@ -118,20 +116,22 @@ def standalone_cluster(kubectl_available: bool, request) -> Generator[Dict[str, 
         request: Pytest fixture request object.
 
     Yields:
-        Dict: Cluster information including master URL and release name.
+        dict: Cluster information including master URL and release name.
 
     Cleans up:
         Removes cluster if deployed by fixture.
     """
-    release_name = "spark-standalone-e2e"
+    release_name = "standalone-e2e"
     namespace = "default"
 
     # Check if cluster already exists
-    master_pods = _get_pods_by_selector(f"app=spark-master,app.kubernetes.io/instance={release_name}", namespace)
+    master_pods = _get_pods_by_selector(
+        f"app.kubernetes.io/component=standalone-master,app.kubernetes.io/instance={release_name}", namespace
+    )
 
     if master_pods:
         # Cluster exists, use it
-        master_url = f"spark://{release_name}-spark-master:7077"
+        master_url = f"spark://{release_name}-standalone-master:7077"
     else:
         # Try to deploy cluster (requires helm)
         try:
@@ -141,12 +141,14 @@ def standalone_cluster(kubectl_available: bool, request) -> Generator[Dict[str, 
                     "upgrade",
                     "--install",
                     release_name,
-                    "charts/spark-standalone",
+                    "charts/spark-3.5",
                     "--namespace",
                     namespace,
                     "--create-namespace",
                     "--set",
-                    "spark.worker.replicas=2",
+                    "standalone.enabled=true",
+                    "--set",
+                    "standalone.sparkWorker.replicas=2",
                     "--wait",
                     "--timeout",
                     "300s",
@@ -157,14 +159,22 @@ def standalone_cluster(kubectl_available: bool, request) -> Generator[Dict[str, 
             )
 
             # Wait for master
-            if not _wait_for_pods_ready(f"app=spark-master,app.kubernetes.io/instance={release_name}", namespace, 120):
+            if not _wait_for_pods_ready(
+                f"app.kubernetes.io/component=standalone-master,app.kubernetes.io/instance={release_name}",
+                namespace,
+                120,
+            ):
                 pytest.skip("Standalone master not ready")
 
             # Wait for workers
-            if not _wait_for_pods_ready(f"app=spark-worker,app.kubernetes.io/instance={release_name}", namespace, 120):
+            if not _wait_for_pods_ready(
+                f"app.kubernetes.io/component=standalone-worker,app.kubernetes.io/instance={release_name}",
+                namespace,
+                120,
+            ):
                 pytest.skip("Standalone workers not ready")
 
-            master_url = f"spark://{release_name}-spark-master:7077"
+            master_url = f"spark://{release_name}-standalone-master:7077"
         except (FileNotFoundError, subprocess.TimeoutExpired, subprocess.CalledProcessError):
             pytest.skip("Cannot deploy standalone cluster (helm not available)")
 
@@ -174,7 +184,7 @@ def standalone_cluster(kubectl_available: bool, request) -> Generator[Dict[str, 
 
 
 @pytest.fixture(scope="function")
-def standalone_metrics(standalone_cluster: Dict[str, Any]) -> Dict[str, Any]:
+def standalone_metrics(standalone_cluster: dict[str, Any]) -> dict[str, Any]:
     """
     Collect standalone cluster metrics.
 
@@ -182,14 +192,18 @@ def standalone_metrics(standalone_cluster: Dict[str, Any]) -> Dict[str, Any]:
         standalone_cluster: Standalone cluster fixture.
 
     Returns:
-        Dict: Cluster metrics including worker count.
+        dict: Cluster metrics including worker count.
     """
     release = standalone_cluster["release"]
     namespace = standalone_cluster["namespace"]
 
-    worker_pods = _get_pods_by_selector(f"app=spark-worker,app.kubernetes.io/instance={release}", namespace)
+    worker_pods = _get_pods_by_selector(
+        f"app.kubernetes.io/component=standalone-worker,app.kubernetes.io/instance={release}", namespace
+    )
 
-    master_pods = _get_pods_by_selector(f"app=spark-master,app.kubernetes.io/instance={release}", namespace)
+    master_pods = _get_pods_by_selector(
+        f"app.kubernetes.io/component=standalone-master,app.kubernetes.io/instance={release}", namespace
+    )
 
     return {
         "worker_count": len(worker_pods),
@@ -199,7 +213,7 @@ def standalone_metrics(standalone_cluster: Dict[str, Any]) -> Dict[str, Any]:
 
 
 @pytest.fixture(scope="function")
-def standalone_executor_distribution(spark_session: Any, standalone_cluster: Dict[str, Any]) -> Dict[str, Any]:
+def standalone_executor_distribution(spark_session: Any, standalone_cluster: dict[str, Any]) -> dict[str, Any]:
     """
     Get executor distribution across workers.
 
@@ -208,7 +222,7 @@ def standalone_executor_distribution(spark_session: Any, standalone_cluster: Dic
         standalone_cluster: Standalone cluster fixture.
 
     Returns:
-        Dict: Executor distribution metrics.
+        dict: Executor distribution metrics.
     """
     try:
         # Get executor info from SparkContext

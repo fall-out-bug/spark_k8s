@@ -30,6 +30,7 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../../" && pwd)"
 
 # Save original directory
 ORIGINAL_DIR="$(pwd)"
+export ORIGINAL_DIR
 
 # Change to project root for consistent paths
 cd "$PROJECT_ROOT" || exit 1
@@ -301,6 +302,7 @@ validate_standalone_workers() {
 run_spark_pi_job() {
     local namespace="$1"
     local connect_pod="$2"
+    # shellcheck disable=SC2034
     local backend_mode="$3"
 
     log_step "Running spark-submit pi.py through Connect..."
@@ -396,8 +398,8 @@ test_jupyter_connect_standalone() {
         --set connect.image.repository="${IMAGE_REPOSITORY}" \
         --set connect.image.tag="${IMAGE_TAG}" \
         --set jupyter.image.tag="${JUPYTER_IMAGE_TAG}" \
-        --set sparkStandalone.image.repository="${IMAGE_REPOSITORY}" \
-        --set sparkStandalone.image.tag="${IMAGE_TAG}" \
+        --set standalone.image.repository="${IMAGE_REPOSITORY}" \
+        --set standalone.image.tag="${IMAGE_TAG}" \
         --timeout 15m \
         --wait || return 1
 
@@ -488,8 +490,8 @@ test_airflow_connect_standalone() {
         --values "$preset_path" \
         --set connect.image.repository="${IMAGE_REPOSITORY}" \
         --set connect.image.tag="${IMAGE_TAG}" \
-        --set sparkStandalone.image.repository="${IMAGE_REPOSITORY}" \
-        --set sparkStandalone.image.tag="${IMAGE_TAG}" \
+        --set standalone.image.repository="${IMAGE_REPOSITORY}" \
+        --set standalone.image.tag="${IMAGE_TAG}" \
         --timeout 15m \
         --wait || return 1
 
