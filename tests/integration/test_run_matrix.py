@@ -653,6 +653,66 @@ def test_demo_mode_renders_all() -> None:
     assert "airflow-scheduler" in out
 
 
+def test_dags_no_hardcoded_standalone_master() -> None:
+    """F036-06: DAGs must not hardcode spark-infra-spark-standalone-master."""
+    dags_dir = PROJECT_ROOT / "charts" / "spark-3.5" / "dags"
+    for dag_file in dags_dir.glob("*.py"):
+        content = dag_file.read_text()
+        assert (
+            "spark-infra-spark-standalone-master" not in content
+        ), f"{dag_file.name} contains hardcoded 'spark-infra-spark-standalone-master'"
+
+
+def test_restore_script_uses_new_names() -> None:
+    """F036-06: restore-demo.sh must use new resource naming (no spark-standalone prefix)."""
+    script = PROJECT_ROOT / "scripts" / "restore-demo.sh"
+    content = script.read_text()
+    assert (
+        "spark-standalone-master" not in content
+    ), "restore-demo.sh still references old subchart name 'spark-standalone-master'"
+    assert (
+        "spark-standalone-airflow" not in content
+    ), "restore-demo.sh still references old subchart name 'spark-standalone-airflow'"
+
+
+def test_demo_preset_renders_all_components() -> None:
+    """F036-06: demo preset renders standalone, airflow, jupyter, history, metastore, minio, pg."""
+    chart = PROJECT_ROOT / "charts" / "spark-3.5"
+    result = subprocess.run(
+        [
+            "helm",
+            "template",
+            "spark-infra",
+            str(chart),
+            "-f",
+            str(chart / "presets" / "demo-full-spark-infra.yaml"),
+            "--set",
+            "global.s3.accessKey=x",
+            "--set",
+            "global.s3.secretKey=x",
+            "--set",
+            "spark-base.postgresql.auth.password=x",
+        ],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    assert result.returncode == 0, f"helm template failed: {result.stderr}"
+    out = result.stdout
+    for component in [
+        "standalone-master",
+        "standalone-worker",
+        "airflow-webserver",
+        "airflow-scheduler",
+        "jupyter",
+        "history",
+        "metastore",
+        "minio",
+        "postgresql",
+    ]:
+        assert component in out, f"Missing component '{component}' in demo render"
+
+
 def test_aggregate_matrix_results_script() -> None:
     """aggregate-matrix-results.py produces machine-readable summary."""
     agg = PROJECT_ROOT / "scripts" / "aggregate-matrix-results.py"

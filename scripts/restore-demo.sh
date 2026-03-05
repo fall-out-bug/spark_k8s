@@ -87,10 +87,11 @@ elif [[ "$release_status" == "deployed" ]]; then
   echo "[4/5] Release deployed with correct chart. Checking replicas..."
   scaled_down=false
   for deploy in \
-    "${RELEASE}-spark-standalone-master" \
-    "${RELEASE}-spark-standalone-worker" \
-    "${RELEASE}-spark-standalone-airflow-webserver" \
-    "${RELEASE}-spark-standalone-airflow-scheduler"; do
+    "${RELEASE}-standalone-master" \
+    "${RELEASE}-standalone-worker" \
+    "${RELEASE}-airflow-webserver" \
+    "${RELEASE}-airflow-scheduler" \
+    "${RELEASE}-spark-35-jupyter"; do
     replicas=$(kubectl get deployment "$deploy" -n "$NAMESPACE" -o jsonpath='{.spec.replicas}' 2>/dev/null || echo "0")
     if [[ "$replicas" == "0" ]]; then
       echo "  Scaling up $deploy..."
@@ -98,13 +99,16 @@ elif [[ "$release_status" == "deployed" ]]; then
       scaled_down=true
     fi
   done
-  sts="${RELEASE}-spark-standalone-airflow-postgresql"
-  replicas=$(kubectl get statefulset "$sts" -n "$NAMESPACE" -o jsonpath='{.spec.replicas}' 2>/dev/null || echo "0")
-  if [[ "$replicas" == "0" ]]; then
-    echo "  Scaling up $sts..."
-    kubectl scale statefulset "$sts" -n "$NAMESPACE" --replicas=1
-    scaled_down=true
+  sts="${RELEASE}-airflow-postgresql"
+  if kubectl get statefulset "$sts" -n "$NAMESPACE" &>/dev/null; then
+    replicas=$(kubectl get statefulset "$sts" -n "$NAMESPACE" -o jsonpath='{.spec.replicas}' 2>/dev/null || echo "0")
+    if [[ "$replicas" == "0" ]]; then
+      echo "  Scaling up $sts..."
+      kubectl scale statefulset "$sts" -n "$NAMESPACE" --replicas=1
+      scaled_down=true
+    fi
   fi
+  # Note: When using shared PostgreSQL, airflow-postgresql StatefulSet is not deployed
   if [[ "$scaled_down" == "false" ]]; then
     echo "  All replicas OK. Running helm upgrade to sync..."
   fi
@@ -129,7 +133,7 @@ if [[ "$needs_reinstall" == "true" ]]; then
     --set global.s3.accessKey=minioadmin \
     --set global.s3.secretKey=minioadmin \
     --set spark-base.postgresql.auth.password=postgres \
-    --set standalone.airflow.postgresql.auth.password=airflow \
+    --set standalone.airflow.postgresql.auth.password=postgres \
     --timeout 10m \
     --wait
 else
@@ -140,14 +144,29 @@ else
     --set global.s3.accessKey=minioadmin \
     --set global.s3.secretKey=minioadmin \
     --set spark-base.postgresql.auth.password=postgres \
-    --set standalone.airflow.postgresql.auth.password=airflow \
+    --set standalone.airflow.postgresql.auth.password=postgres \
     --timeout 10m \
     --wait 2>/dev/null || echo "  Helm upgrade skipped or failed (pods may already be starting)"
 fi
 
-# Step 5: Wait and verify
+# Step 5: Ensure PostgreSQL databases exist (spark_db, airflow)
+# Required when PVC was initialized before these DBs were in postgresql.databases
+pg_pod=$(kubectl get pod -n "$NAMESPACE" -l app=postgresql -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+if [[ -n "$pg_pod" ]]; then
+  echo "[5/6] Ensuring PostgreSQL databases (spark_db, airflow)..."
+  kubectl wait --for=condition=ready pod -n "$NAMESPACE" "$pg_pod" --timeout=120s 2>/dev/null || true
+  for db in spark_db airflow; do
+    kubectl exec -n "$NAMESPACE" "$pg_pod" -- psql -U postgres -c "CREATE DATABASE $db;" 2>/dev/null || true
+  done
+  # Restart metastore so it picks up spark_db
+  kubectl delete pod -n "$NAMESPACE" -l app=hive-metastore --ignore-not-found 2>/dev/null || true
+else
+  echo "[5/6] No shared PostgreSQL pod (using external or airflow-postgresql)."
+fi
+
+# Step 6: Wait and verify
 echo ""
-echo "[5/5] Waiting for core pods..."
+echo "[6/6] Waiting for core pods..."
 kubectl wait --for=condition=ready pod -l app=minio -n "$NAMESPACE" --timeout=120s 2>/dev/null || true
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=spark-master -n "$NAMESPACE" --timeout=180s 2>/dev/null || true
 

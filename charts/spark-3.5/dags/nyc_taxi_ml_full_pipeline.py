@@ -1,6 +1,7 @@
 """NYC Taxi ML full pipeline (Airflow + Spark Standalone via KPO)."""
 
 import logging
+import os
 from datetime import datetime, timedelta
 
 from airflow import DAG
@@ -9,9 +10,11 @@ from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperato
 
 logger = logging.getLogger(__name__)
 
+_MASTER_HOST = os.environ.get("SPARK_MASTER_HOST", "spark-infra-standalone-master")
+
 CONFIG = {
     "namespace": "spark-infra",
-    "spark_master": "spark://spark-infra-spark-standalone-master:7077",
+    "spark_master": f"spark://{_MASTER_HOST}:7077",
     "minio_endpoint": "http://minio.spark-infra.svc.cluster.local:9000",
     # Pushgateway (9091); empty = disabled. Prometheus (9090) does not accept push.
     "pushgateway_url": "",  # Set via PUSHGATEWAY_URL if Pushgateway deployed

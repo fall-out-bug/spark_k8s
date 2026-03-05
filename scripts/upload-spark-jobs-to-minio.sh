@@ -8,7 +8,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 NAMESPACE="${1:-spark-infra}"
-SPARK_JOBS_DIR="$PROJECT_ROOT/charts/spark-3.5/charts/spark-standalone/dags/spark_jobs"
+SPARK_JOBS_DIR="$PROJECT_ROOT/charts/spark-3.5/dags"
 
 if [[ ! -d "$SPARK_JOBS_DIR" ]]; then
   echo "Error: spark_jobs dir not found: $SPARK_JOBS_DIR"
