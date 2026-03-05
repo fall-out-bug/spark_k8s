@@ -45,28 +45,18 @@ spark-base:
   postgresql:
     enabled: false
 
-sparkStandalone:
-  enabled: false
-
 standalone:
   enabled: true
-
   serviceAccount:
     create: true
     name: spark-standalone
-
   rbac:
     create: true
-
-  security:
-    podSecurityStandards: false
-
+  image:
+    repository: spark-custom
+    tag: "3.5.7"
+    pullPolicy: IfNotPresent
   master:
-    enabled: true
-    image:
-      repository: spark-custom
-      tag: "3.5.7"
-      pullPolicy: IfNotPresent
     service:
       type: ClusterIP
       rpcPort: 7077
@@ -78,13 +68,8 @@ standalone:
       limits:
         memory: "1Gi"
         cpu: "500m"
-
   worker:
     enabled: true
-    image:
-      repository: spark-custom
-      tag: "3.5.7"
-      pullPolicy: IfNotPresent
     replicas: 1
     resources:
       requests:
@@ -97,47 +82,47 @@ standalone:
       spark.worker.memory: "1g"
       spark.worker.cores: "1"
 
-  airflow:
+airflow:
+  enabled: true
+  image:
+    repository: spark-k8s/airflow
+    tag: "2.11.0"
+    pullPolicy: IfNotPresent
+  dags:
+    - nyc_taxi_ml_full_pipeline.py
+  webserver:
+    replicas: 1
+    service:
+      type: ClusterIP
+      port: 8080
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "1"
+  scheduler:
+    replicas: 1
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "200m"
+      limits:
+        memory: "2Gi"
+        cpu: "1"
+  postgresql:
     enabled: true
-    image:
-      repository: spark-k8s/airflow
-      tag: "2.11.0"
-      pullPolicy: IfNotPresent
-    dags:
-      - nyc_taxi_ml_full_pipeline.py
-    webserver:
-      replicas: 1
-      service:
-        type: ClusterIP
-        port: 8080
-      resources:
-        requests:
-          memory: "1Gi"
-          cpu: "500m"
-        limits:
-          memory: "2Gi"
-          cpu: "1"
-    scheduler:
-      replicas: 1
-      resources:
-        requests:
-          memory: "1Gi"
-          cpu: "200m"
-        limits:
-          memory: "2Gi"
-          cpu: "1"
-    postgresql:
-      enabled: true
-      auth:
-        database: airflow
-        username: airflow
-        password: airflow123
-      persistence:
-        enabled: false
-      resources:
-        requests:
-          memory: "128Mi"
-          cpu: "50m"
-        limits:
-          memory: "256Mi"
-          cpu: "200m"
+    auth:
+      database: airflow
+      username: airflow
+      password: airflow123
+    persistence:
+      enabled: false
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "50m"
+      limits:
+        memory: "256Mi"
+        cpu: "200m"

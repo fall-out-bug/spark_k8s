@@ -17,7 +17,7 @@ jupyter:
 airflow:
   enabled: false
 
-sparkStandalone:
+standalone:
   enabled: false
 
 # Enable infrastructure components

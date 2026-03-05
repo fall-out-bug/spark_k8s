@@ -598,6 +598,61 @@ def test_kubernetes_disabled_by_default() -> None:
     assert "k8s-native-submitter" not in result.stdout
 
 
+def test_no_sparkstandalone_in_chart() -> None:
+    """F036-05: sparkStandalone key must be gone from charts/spark-3.5/."""
+    chart_dir = PROJECT_ROOT / "charts" / "spark-3.5"
+    result = subprocess.run(
+        ["grep", "-r", "sparkStandalone", str(chart_dir)],
+        capture_output=True,
+        text=True,
+    )
+    assert result.stdout == "", f"sparkStandalone still referenced:\n{result.stdout}"
+
+
+def test_archived_subchart_deleted() -> None:
+    """F036-05: _spark-standalone-archived directory must be deleted."""
+    archived = PROJECT_ROOT / "charts" / "spark-3.5" / "charts" / "_spark-standalone-archived"
+    assert not archived.exists(), f"Archived subchart still exists: {archived}"
+
+
+def test_demo_mode_renders_all() -> None:
+    """F036-05: standalone+airflow renders all resources for demo mode."""
+    chart = PROJECT_ROOT / "charts" / "spark-3.5"
+    result = subprocess.run(
+        [
+            "helm",
+            "template",
+            "test036",
+            str(chart),
+            "--set",
+            "standalone.enabled=true",
+            "--set",
+            "standalone.image.repository=spark-custom",
+            "--set",
+            "standalone.image.tag=3.5.7",
+            "--set",
+            "airflow.enabled=true",
+            "--set",
+            "airflow.postgresql.enabled=true",
+            "--set",
+            "airflow.postgresql.auth.password=test",
+            "--set",
+            "global.s3.accessKey=x",
+            "--set",
+            "global.s3.secretKey=x",
+        ],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    assert result.returncode == 0, f"helm template failed: {result.stderr}"
+    out = result.stdout
+    assert "standalone-master" in out
+    assert "standalone-worker" in out
+    assert "airflow-webserver" in out
+    assert "airflow-scheduler" in out
+
+
 def test_aggregate_matrix_results_script() -> None:
     """aggregate-matrix-results.py produces machine-readable summary."""
     agg = PROJECT_ROOT / "scripts" / "aggregate-matrix-results.py"

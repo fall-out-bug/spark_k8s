@@ -1,7 +1,7 @@
 # Scenario Preset: Jupyter + Spark Connect (Standalone backend) - Minimal Resources
 #
 # Self-contained deployment: standalone + connect + jupyter in one release
-# Uses parent chart sparkStandalone for backend
+# Uses parent chart standalone for backend
 #
 # Usage:
 #   helm install jupyter-sc charts/spark-3.5 -n spark-jupyter-sa \
@@ -31,7 +31,7 @@ rbac:
   serviceAccountName: "spark"
 
 # Spark Standalone Cluster (backend for Connect)
-sparkStandalone:
+standalone:
   enabled: true
   serviceAccountName: "spark"
   image:
@@ -92,10 +92,15 @@ connect:
     port: 7078
   standalone:
     # Will be set dynamically based on release name
-    masterService: ""  # Uses default from sparkStandalone
+    masterService: ""  # Uses default from standalone
     masterPort: 7077
   eventLog:
     enabled: false
+  metrics:
+    enabled: true
+    port: 8080
+  service:
+    metricsPort: 8080
   sparkConf:
     spark.executor.instances: "1"
     spark.executor.cores: "1"
@@ -152,14 +157,3 @@ monitoring:
   grafana:
     dashboards:
       enabled: true
-
-connect:
-  metrics:
-    enabled: true
-    port: 8080
-  service:
-    metricsPort: 8080
-
-# DISABLE subchart to avoid conflict with parent sparkStandalone
-standalone:
-  enabled: false

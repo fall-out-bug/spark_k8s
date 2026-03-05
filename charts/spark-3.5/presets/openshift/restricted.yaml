@@ -132,7 +132,7 @@ core:
     enabled: false  # Use external
 
 # Disable other components
-sparkStandalone:
+standalone:
   enabled: false
 
 jupyter:

@@ -51,7 +51,7 @@ connect:
     masterService: "spark-3.5-spark-35-standalone-master"
     masterPort: 7077
 
-sparkStandalone:
+standalone:
   enabled: true
   image:
     repository: spark-custom

@@ -58,7 +58,7 @@ connect:
     "spark.openTelemetry.resource.attributes": "service.name=spark-connect-35"
     "spark.openTelemetry.sampling.ratio": "1.0"
 
-sparkStandalone:
+standalone:
   enabled: true
   image:
     repository: spark-custom

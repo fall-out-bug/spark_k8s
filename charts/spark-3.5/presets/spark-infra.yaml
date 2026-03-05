@@ -78,7 +78,7 @@ jupyter:
 airflow:
   enabled: false
 
-sparkStandalone:
+standalone:
   enabled: false
 
 jupyterGateway:

@@ -57,7 +57,7 @@ connect:
     dir: "/spark-logs/events"
   sparkConf: {}
 
-sparkStandalone:
+standalone:
   enabled: false
 
 jupyter:

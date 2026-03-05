@@ -48,7 +48,7 @@ connect:
     dir: "/spark-logs/events"
   sparkConf: {}
 
-sparkStandalone:
+standalone:
   enabled: true
   image:
     repository: spark-custom

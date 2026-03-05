@@ -58,7 +58,7 @@ rbac:
   serviceAccountName: "spark"
 
 # Spark Standalone Cluster (direct access)
-sparkStandalone:
+standalone:
   enabled: true
   serviceAccountName: "spark"
   image:

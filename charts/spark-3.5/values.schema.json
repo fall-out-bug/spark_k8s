@@ -150,7 +150,7 @@
         }
       }
     },
-    "sparkStandalone": {
+    "standalone": {
       "type": "object",
       "properties": {
         "enabled": {"type": "boolean"},
