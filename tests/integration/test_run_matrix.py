@@ -283,6 +283,80 @@ def test_run_matrix_standalone_scenario_no_airflow() -> None:
     assert "airflow" not in result.stdout.lower()
 
 
+def test_standalone_parent_templates_render() -> None:
+    """F036-02: standalone.enabled=true renders master+worker from parent templates (no subchart)."""
+    chart = PROJECT_ROOT / "charts" / "spark-3.5"
+    result = subprocess.run(
+        [
+            "helm",
+            "template",
+            "test036",
+            str(chart),
+            "--set",
+            "standalone.enabled=true",
+            "--set",
+            "standalone.image.repository=spark-custom",
+            "--set",
+            "standalone.image.tag=3.5.7",
+            "--set",
+            "connect.enabled=false",
+            "--set",
+            "global.s3.accessKey=x",
+            "--set",
+            "global.s3.secretKey=x",
+        ],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    assert result.returncode == 0, f"helm template failed: {result.stderr}"
+    # Must render standalone master and worker from parent templates
+    assert "test036-standalone-master" in result.stdout
+    assert "test036-standalone-worker" in result.stdout
+    # Resource names: {RELEASE}-standalone-master, not {RELEASE}-spark-standalone-master (subchart)
+    assert "spark-standalone-master" not in result.stdout
+    # Must have Deployment + Service for master, Deployment for worker
+    assert "kind: Deployment" in result.stdout
+    assert "kind: Service" in result.stdout
+
+
+def test_standalone_disabled_by_default() -> None:
+    """F036-02: standalone.enabled defaults to false, no standalone resources rendered."""
+    chart = PROJECT_ROOT / "charts" / "spark-3.5"
+    result = subprocess.run(
+        [
+            "helm",
+            "template",
+            "test036",
+            str(chart),
+            "--set",
+            "connect.enabled=true",
+            "--set",
+            "global.s3.accessKey=x",
+            "--set",
+            "global.s3.secretKey=x",
+        ],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    assert result.returncode == 0, f"helm template failed: {result.stderr}"
+    assert "standalone-master" not in result.stdout
+    assert "standalone-worker" not in result.stdout
+
+
+def test_no_subchart_dependency() -> None:
+    """F036-02: Chart.yaml must not contain spark-standalone dependency."""
+    import yaml
+
+    chart_yaml = PROJECT_ROOT / "charts" / "spark-3.5" / "Chart.yaml"
+    with open(chart_yaml) as f:
+        chart = yaml.safe_load(f)
+    deps = chart.get("dependencies", [])
+    dep_names = [d["name"] for d in deps]
+    assert "spark-standalone" not in dep_names
+
+
 def test_aggregate_matrix_results_script() -> None:
     """aggregate-matrix-results.py produces machine-readable summary."""
     agg = PROJECT_ROOT / "scripts" / "aggregate-matrix-results.py"

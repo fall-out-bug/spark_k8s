@@ -279,17 +279,21 @@ sparkK8sNative:
       memory: "1Gi"
       cpu: "1"
 
-# Spark Standalone master/worker (3.5.3)
-# Alternative to Spark Connect for Spark 3.5
-sparkStandalone:
+# Spark Standalone master/worker
+standalone:
   enabled: false
-  serviceAccountName: "spark-35"
+  serviceAccountName: ""
+  serviceAccount:
+    create: false
+    name: ""
+    annotations: {}
+  rbac:
+    create: false
   image:
     repository: spark-custom
     tag: "3.5.7"
     pullPolicy: IfNotPresent
   master:
-    enabled: true
     service:
       type: ClusterIP
       rpcPort: 7077
@@ -316,8 +320,7 @@ sparkStandalone:
     nodeSelector: {}
     tolerations: []
     sparkConf: {}
-    # spark.worker.memory: "2g"
-    # spark.worker.cores: "2"
+    workDir: "/tmp/spark-worker"
 
 # Spark Connect server (3.5.7)
 connect:

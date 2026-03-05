@@ -3,7 +3,7 @@
 # Usage: helm install spark-infra charts/spark-3.5 -n spark-infra -f charts/spark-3.5/presets/demo-full-spark-infra.yaml
 #        --set global.s3.accessKey=minioadmin --set global.s3.secretKey=minioadmin
 #        --set spark-base.postgresql.auth.password=postgres
-#        --set standalone.airflow.postgresql.auth.password=airflow
+#        (Airflow uses shared PostgreSQL, same password)
 #
 # Resource budget (minikube 6 CPU / 48Gi):
 #   System (kube-system, sdp, kubeopencode): ~850m / 300Mi
@@ -58,6 +58,7 @@ spark-base:
       password: "postgres"
     databases:
       - "spark_db"
+      - "airflow"  # Shared with Airflow (single PostgreSQL instance)
     authMethod: "md5"
     resources:
       requests:
@@ -74,12 +75,11 @@ spark-base:
 
 standalone:
   enabled: true
+  image:
+    repository: spark-custom
+    tag: "3.5.7"
+    pullPolicy: IfNotPresent
   master:
-    enabled: true
-    image:
-      repository: spark-custom
-      tag: "3.5.7"
-      pullPolicy: IfNotPresent
     resources:
       requests:
         cpu: "300m"
@@ -90,10 +90,6 @@ standalone:
   worker:
     enabled: true
     replicas: 3
-    image:
-      repository: spark-custom
-      tag: "3.5.7"
-      pullPolicy: IfNotPresent
     resources:
       requests:
         cpu: "800m"
@@ -104,6 +100,7 @@ standalone:
     sparkConf:
       spark.worker.memory: "14g"
       spark.worker.cores: "2"
+    workDir: "/tmp/spark-worker"
   airflow:
     enabled: true
     webserver:
@@ -126,9 +123,13 @@ standalone:
           cpu: "1"
           memory: "2Gi"
     postgresql:
-      enabled: true
+      enabled: false  # Use shared spark-base PostgreSQL
+      externalHost: "spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local"
+      externalPort: 5432
       auth:
-        password: "airflow"
+        database: "airflow"
+        username: "postgres"
+        password: "postgres"  # Same as spark-base.postgresql
       resources:
         requests:
           cpu: "100m"

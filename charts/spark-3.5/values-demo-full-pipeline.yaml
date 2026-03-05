@@ -46,24 +46,16 @@ spark-base:
   enabled: true
 
 # ===========================================
-# Spark Standalone Cluster (ETL Backend) - DISABLED
-# Using subchart instead (see 'standalone' section below)
+# Spark Standalone Cluster (parent templates)
 # ===========================================
 
-sparkStandalone:
-  enabled: false  # Use subchart instead for full Airflow integration
-
-# ===========================================
-# Spark Standalone Subchart with Airflow
-# ===========================================
-
-standalone:  # Alias for spark-standalone subchart
+standalone:
   enabled: true
+  image:
+    repository: spark-custom
+    tag: "3.5.7"
+    pullPolicy: IfNotPresent
   master:
-    enabled: true
-    image:
-      repository: spark-custom
-      tag: "3.5.7"
     service:
       type: ClusterIP
       rpcPort: 7077
@@ -88,58 +80,7 @@ standalone:  # Alias for spark-standalone subchart
     sparkConf:
       spark.worker.memory: "512m"
       spark.worker.cores: "1"
-  airflow:
-    enabled: true
-    image:
-      repository: spark-k8s/airflow
-      tag: "2.11.0"
-    webserver:
-      replicas: 1
-      service:
-        type: ClusterIP
-        port: 8080
-      resources:
-        requests:
-          memory: "256Mi"
-          cpu: "50m"
-        limits:
-          memory: "512Mi"
-          cpu: "200m"
-    scheduler:
-      replicas: 1
-      resources:
-        requests:
-          memory: "128Mi"
-          cpu: "25m"
-        limits:
-          memory: "256Mi"
-          cpu: "100m"
-    postgresql:
-      enabled: true
-      auth:
-        database: "airflow"
-        username: "airflow"
-        password: ""  # REQUIRED
-      persistence:
-        enabled: false
-      resources:
-        requests:
-          memory: "64Mi"
-          cpu: "25m"
-        limits:
-          memory: "128Mi"
-          cpu: "50m"
-    dags:
-      - nyc_taxi_ml_full_pipeline.py
-      - spark_standalone_load_demo.py
-      - citibike_analytics_pipeline.py
-      - movielens_recommendation_pipeline.py
-    variables:
-      spark_image: "spark-custom:3.5.7"
-      spark_namespace: "demo-full"
-      s3_endpoint: "http://demo-full-spark-35-minio:9000"
-      s3_access_key: "minioadmin"
-      s3_secret_key: "minioadmin"
+    workDir: "/tmp/spark-worker"
 
 # ===========================================
 # Spark Connect (Interactive Analytics)

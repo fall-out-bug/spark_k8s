@@ -105,6 +105,35 @@ app.kubernetes.io/component: airflow-postgresql
 {{- end }}
 
 {{/*
+Airflow DB host (internal or external)
+*/}}
+{{- define "spark-standalone.airflowDbHost" -}}
+{{- if .Values.airflow.postgresql.enabled -}}
+{{ include "spark-standalone.fullname" . }}-airflow-postgresql
+{{- else -}}
+{{ .Values.airflow.postgresql.externalHost | required "airflow.postgresql.externalHost required when postgresql.enabled=false" }}
+{{- end -}}
+{{- end }}
+
+{{/*
+Airflow DB port
+*/}}
+{{- define "spark-standalone.airflowDbPort" -}}
+{{- if .Values.airflow.postgresql.enabled -}}
+{{ .Values.airflow.postgresql.service.port }}
+{{- else -}}
+{{ .Values.airflow.postgresql.externalPort | default 5432 }}
+{{- end -}}
+{{- end }}
+
+{{/*
+Airflow SQLAlchemy connection string
+*/}}
+{{- define "spark-standalone.airflowDbConn" -}}
+postgresql://{{ .Values.airflow.postgresql.auth.username }}:{{ .Values.airflow.postgresql.auth.password }}@{{ include "spark-standalone.airflowDbHost" . }}:{{ include "spark-standalone.airflowDbPort" . }}/{{ .Values.airflow.postgresql.auth.database }}
+{{- end }}
+
+{{/*
 Create the name of the service account to use
 */}}
 {{- define "spark-standalone.serviceAccountName" -}}

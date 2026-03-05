@@ -13,7 +13,7 @@ data:
     executor = {{ .Values.airflow.config.core.executor }}
 
     [database]
-    sql_alchemy_conn = postgresql://{{ .Values.airflow.postgresql.auth.username }}:{{ .Values.airflow.postgresql.auth.password }}@{{ include "spark-standalone.fullname" . }}-airflow-postgresql/{{ .Values.airflow.postgresql.auth.database }}
+    sql_alchemy_conn = {{ include "spark-standalone.airflowDbConn" . | quote }}
 
     [webserver]
     expose_config = {{ .Values.airflow.config.webserver.expose_config }}

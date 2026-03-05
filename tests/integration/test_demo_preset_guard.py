@@ -11,7 +11,7 @@ import yaml
 
 PRESET = "charts/spark-3.5/presets/demo-full-spark-infra.yaml"
 CHART = "charts/spark-3.5"
-STANDALONE_VALUES = "charts/spark-3.5/charts/spark-standalone/values.yaml"
+CHART_VALUES = "charts/spark-3.5/values.yaml"
 RELEASE_NAME = "spark-infra"
 
 
@@ -37,7 +37,9 @@ def _helm_template_preset() -> str:
             "--set",
             "spark-base.postgresql.auth.password=test",
             "--set",
-            "standalone.airflow.postgresql.auth.password=test",
+            "standalone.image.repository=spark-custom",
+            "--set",
+            "standalone.image.tag=3.5.7",
         ],
         capture_output=True,
         text=True,
@@ -102,9 +104,7 @@ class TestDemoPresetGuard:
     def test_all_core_components_enabled(self) -> None:
         preset = _load_preset()
         assert preset["standalone"]["enabled"] is True
-        assert preset["standalone"]["master"]["enabled"] is True
         assert preset["standalone"]["worker"]["enabled"] is True
-        assert preset["standalone"]["airflow"]["enabled"] is True
         assert preset["jupyter"]["enabled"] is True
         assert preset["historyServer"]["enabled"] is True
         assert preset["hiveMetastore"]["enabled"] is True
@@ -117,9 +117,6 @@ class TestDemoPresetGuard:
         services = {
             "standalone.master": preset["standalone"]["master"],
             "standalone.worker": preset["standalone"]["worker"],
-            "standalone.airflow.webserver": preset["standalone"]["airflow"]["webserver"],
-            "standalone.airflow.scheduler": preset["standalone"]["airflow"]["scheduler"],
-            "standalone.airflow.postgresql": preset["standalone"]["airflow"]["postgresql"],
             "jupyter": preset["jupyter"],
             "historyServer": preset["historyServer"],
             "hiveMetastore": preset["hiveMetastore"],
@@ -145,9 +142,6 @@ class TestDemoPresetGuard:
         total = 0
         for svc in [
             preset["standalone"]["master"],
-            preset["standalone"]["airflow"]["webserver"],
-            preset["standalone"]["airflow"]["scheduler"],
-            preset["standalone"]["airflow"]["postgresql"],
             preset["jupyter"],
             preset["historyServer"],
             preset["hiveMetastore"],
@@ -188,8 +182,6 @@ class TestDemoPresetGuard:
         preset = _load_preset()
         spark_pw = preset["spark-base"]["postgresql"]["auth"]["password"]
         assert spark_pw, "spark-base.postgresql.auth.password is empty"
-        airflow_pw = preset["standalone"]["airflow"]["postgresql"]["auth"]["password"]
-        assert airflow_pw, "standalone.airflow.postgresql.auth.password is empty"
 
     def test_metastore_database_matches_postgresql(self) -> None:
         """Hive Metastore database name must exist in PostgreSQL databases list."""
@@ -203,9 +195,9 @@ class TestDemoPresetGuard:
     def test_preset_and_defaults_worker_keys_align(self) -> None:
         """Preset worker keys must exist in chart defaults (catch typos like replica vs replicas)."""
         preset = _load_preset()
-        defaults = yaml.safe_load(Path(STANDALONE_VALUES).read_text())
+        defaults = yaml.safe_load(Path(CHART_VALUES).read_text())
         preset_worker_keys = set(preset["standalone"]["worker"].keys())
-        defaults_worker_keys = set(defaults["worker"].keys())
+        defaults_worker_keys = set(defaults["standalone"]["worker"].keys())
         unknown = preset_worker_keys - defaults_worker_keys
         assert not unknown, (
             f"Preset has worker keys not in defaults: {unknown}. " f"Possible typo or missing chart support."

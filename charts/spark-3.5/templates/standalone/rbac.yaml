@@ -1,0 +1,35 @@
+{{- if and .Values.standalone.enabled .Values.standalone.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Release.Name }}-standalone
+  labels:
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+    app.kubernetes.io/component: standalone
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "pods/status", "services", "configmaps", "secrets"]
+    verbs: ["create", "get", "list", "watch", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "get", "list", "watch"]
+  - apiGroups: ["sparkoperator.k8s.io"]
+    resources: ["sparkapplications", "sparkapplications/status", "scheduledsparkapplications", "scheduledsparkapplications/status"]
+    verbs: ["create", "get", "list", "watch", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Release.Name }}-standalone
+  labels:
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+    app.kubernetes.io/component: standalone
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ .Release.Name }}-standalone
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.standalone.serviceAccount.name | default (printf "%s-standalone" .Release.Name) }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}

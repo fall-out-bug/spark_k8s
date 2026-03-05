@@ -1,4 +1,4 @@
-{{- if and .Values.airflow.enabled .Values.airflow.postgresql.enabled }}
+{{- if and .Values.airflow.enabled (and .Values.airflow.postgresql.enabled (not .Values.airflow.postgresql.externalHost)) }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:

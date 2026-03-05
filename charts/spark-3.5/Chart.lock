@@ -2,14 +2,11 @@ dependencies:
 - name: spark-base
   repository: file://../spark-base
   version: 0.1.0
-- name: spark-standalone
-  repository: file://./charts/spark-standalone
-  version: 0.1.0
 - name: prometheus
   repository: https://prometheus-community.github.io/helm-charts
   version: 25.30.2
 - name: grafana
   repository: https://grafana.github.io/helm-charts
   version: 8.15.0
-digest: sha256:67717192fac750c2eee15a895efc0103364bd9313f13ac40e0132203b7766b3a
-generated: "2026-03-03T01:50:59.1236611+03:00"
+digest: sha256:6b5b17dec89abb9612811815151eb1afa7214169fd71d77ff9a878145ba5f279
+generated: "2026-03-05T23:04:01.707747484+03:00"

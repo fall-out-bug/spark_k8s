@@ -1,0 +1,122 @@
+{{- if .Values.standalone.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-standalone-master
+  labels:
+    app: standalone-master
+    app.kubernetes.io/component: standalone-master
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: standalone-master
+      app.kubernetes.io/component: standalone-master
+  template:
+    metadata:
+      labels:
+        app: standalone-master
+        app.kubernetes.io/component: standalone-master
+        {{- include "spark-3.5.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ .Values.standalone.serviceAccountName | default (include "spark-3.5.serviceAccountName" .) }}
+      {{- if .Values.security.podSecurityStandards }}
+      securityContext:
+        {{- include "spark-base.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.standalone.master.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.standalone.master.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: spark-logs
+          emptyDir: {}
+      containers:
+        - name: spark-master
+          image: "{{ .Values.standalone.image.repository }}:{{ .Values.standalone.image.tag }}"
+          imagePullPolicy: {{ .Values.standalone.image.pullPolicy }}
+          command: ["/opt/spark/sbin/start-master.sh"]
+          args: ["--host", "0.0.0.0", "--port", "{{ .Values.standalone.master.service.rpcPort }}", "--webui-port", "{{ .Values.standalone.master.service.uiPort }}"]
+          env:
+            - name: SPARK_MODE
+              value: "master"
+            - name: SPARK_MASTER_HOST
+              value: {{ .Release.Name }}-standalone-master
+            - name: SPARK_MASTER_PORT
+              value: {{ .Values.standalone.master.service.rpcPort | quote }}
+            - name: SPARK_MASTER_WEBUI_PORT
+              value: {{ .Values.standalone.master.service.uiPort | quote }}
+            {{- if .Values.global.s3.enabled }}
+            {{- if .Values.global.s3.existingSecret }}
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.s3.existingSecret }}
+                  key: access-key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.s3.existingSecret }}
+                  key: secret-key
+            {{- else }}
+            - name: AWS_ACCESS_KEY_ID
+              value: {{ .Values.global.s3.accessKey | quote }}
+            - name: AWS_SECRET_ACCESS_KEY
+              value: {{ .Values.global.s3.secretKey | quote }}
+            {{- end }}
+            {{- end }}
+          {{- if .Values.security.podSecurityStandards }}
+          securityContext:
+            {{- include "spark-base.containerSecurityContext" . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: rpc
+              containerPort: {{ .Values.standalone.master.service.rpcPort }}
+              protocol: TCP
+            - name: ui
+              containerPort: {{ .Values.standalone.master.service.uiPort }}
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.standalone.master.service.uiPort }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.standalone.master.service.uiPort }}
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 3
+          volumeMounts:
+            - name: spark-logs
+              mountPath: /opt/spark/logs
+          resources:
+            {{- toYaml .Values.standalone.master.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-standalone-master
+  labels:
+    app: standalone-master
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.standalone.master.service.type }}
+  ports:
+    - name: rpc
+      port: {{ .Values.standalone.master.service.rpcPort }}
+      targetPort: rpc
+    - name: ui
+      port: {{ .Values.standalone.master.service.uiPort }}
+      targetPort: ui
+  selector:
+    app: standalone-master
+{{- end }}

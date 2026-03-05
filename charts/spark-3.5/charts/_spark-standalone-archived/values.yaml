@@ -91,8 +91,13 @@ airflow:
     tolerations: []
 
   # Airflow PostgreSQL Database
+  # Set enabled=false + externalHost to use shared PostgreSQL (e.g. spark-base)
   postgresql:
     enabled: true
+    # When enabled=false, use external PostgreSQL (host must be FQDN)
+    externalHost: ""
+    externalPort: 5432
+    # When using external, auth must match the external DB (e.g. postgres/postgres for spark-base)
     image:
       repository: postgres
       tag: "15-alpine"
@@ -100,7 +105,7 @@ airflow:
     auth:
       database: "airflow"
       username: "airflow"
-      password: ""  # REQUIRED
+      password: ""  # REQUIRED when enabled=true
     service:
       port: 5432
     persistence:
