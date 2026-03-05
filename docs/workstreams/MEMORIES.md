@@ -154,13 +154,13 @@
 
 ---
 
-## F16: Observability Stack — PARTIAL (1/6 WS)
+## F16: Observability Stack — PARTIAL (2/6 WS)
 
-**Deliverables completed:** Prometheus metrics collection (WS-016-01).
-**Key paths:** `charts/observability/prometheus/`, `tests/integration/test_observability_prometheus.py`
-**Evidence:** Strong. 5 tests for AC1–AC6; scrape 15s, retention 15d, kube-state-metrics enabled.
-**Remaining:** WS-016-02..06 (Loki, Jaeger, Grafana, Alerting, Spark UI).
-**WS files:** `00-016-01` (completed)
+**Deliverables completed:** Prometheus metrics (WS-016-01), Loki log aggregation (WS-016-02).
+**Key paths:** `charts/observability/prometheus/`, `charts/observability/loki/`, `tests/integration/test_observability_*.py`
+**Evidence:** Strong. Loki: Promtail ConfigMap with JSON, trace_id, sampling (INFO 10%, ERROR/WARN 100%); 7 tests.
+**Remaining:** WS-016-03..06 (Jaeger, Grafana, Alerting, Spark UI).
+**WS files:** `00-016-01`, `00-016-02` (completed)
 
 ---
 

@@ -1,16 +1,17 @@
 {{/*
-Promtail configuration for Spark pods
-
-This Promtail configuration scrapes Spark logs from pods and sends them to Loki.
+Promtail configuration for Spark pods (WS-016-02)
+AC2: Promtail collects logs, AC3: JSON, AC4: trace_id, AC5: sampling
+Uses .Values.targetNamespace (not hardcoded spark.name)
 */}}
-
+{{- if .Values.promtail.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-promtail-config
   namespace: {{ .Release.Namespace }}
   labels:
-    app: spark
+    app.kubernetes.io/name: promtail
+    app.kubernetes.io/component: log-collector
     chart: {{ .Chart.Name }}
     release: {{ .Release.Name }}
 data:
@@ -20,48 +21,56 @@ data:
       http_listen_port: 3101
 
     clients:
-      - url: http://loki:3100/loki/api/v1/push
+      - url: http://{{ .Release.Name }}-loki:3100/loki/api/v1/push
         external_labels:
           cluster: s7-spark-k8s
-          namespace: spark-operations
+          namespace: {{ .Values.targetNamespace | default "spark-operations" }}
 
-        snippets:
-          # Driver logs
-          - job_name: spark-driver
-            kubernetes_sd_configs:
-              - role:
-                  value: pod
-                selector:
-                  app: spark
-                  spark-role: driver
-                relabel_configs:
-                  - source_labels:
-                      app: spark
-                      spark_role: driver
-                  - regex:
-                      source: __path__
-                    replacement: /var/log/spark/*
-
-          # Executor logs
-          - job_name: spark-executor
-            kubernetes_sd_configs:
-              - role:
-                  value: pod
-                selector:
-                  app: spark
-                  spark-role: executor
-                relabel_configs:
-                  - source_labels:
-                      app: spark
-                      spark_role: executor
-                  - regex:
-                      source: __path__
-                    replacement: /var/log/spark/*
+    scrape_configs:
+      - job_name: spark-pods
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_namespace]
+            action: keep
+            regex: {{ .Values.targetNamespace | default "spark-operations" }}
+          - source_labels: [__meta_kubernetes_pod_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            target_label: app
+          - source_labels: [__meta_kubernetes_pod_label_component]
+            target_label: component
+          - source_labels: [__meta_kubernetes_pod_annotation_opentelemetry_io_trace_id]
+            target_label: trace_id
+            regex: (.+)
+            action: replace
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: node
+          - source_labels: [__meta_kubernetes_pod_uid, __meta_kubernetes_pod_container_name]
+            target_label: __path__
+            separator: /
+            replacement: /var/log/pods/$1/$2/*.log
 
         pipeline_stages:
           - json:
               expressions:
-                - expression: "(?i<(level|LEVEL>)=(?P<INFO|D|E>W>)(?:\\s+(?P< TRACE|DEBUG|INFO>WARN>ERROR)?)(?:\\s+)"
-                  labels:
-                    level:
----
+                level: level
+                msg: message
+                trace_id: trace_id
+                timestamp: timestamp
+          - labels:
+              level:
+          - timestamp:
+              source: timestamp
+              format: RFC3339
+          - match:
+              selector: '{level=~"INFO"}'
+              stages:
+                - sampling:
+                    rate: 0.1
+          - match:
+              selector: '{level=~"ERROR|WARN"}'
+              stages: []
+{{- end }}
