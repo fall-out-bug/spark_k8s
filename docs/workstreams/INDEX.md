@@ -835,7 +835,7 @@ See `docs/reports/review-F15-full-2026-02-13.md`. UAT guide: `docs/uat/UAT-F15-p
 
 | ID | Name | Scope | Dependencies | Status |
 |----|------|-------|-------------|--------|
-| WS-016-01 | Metrics collection (Prometheus) | MEDIUM (~700 LOC) | F06 | backlog |
+| WS-016-01 | Metrics collection (Prometheus) | MEDIUM (~700 LOC) | F06 | completed |
 | WS-016-02 | Logging aggregation (Loki) | MEDIUM (~600 LOC) | F06 | backlog |
 | WS-016-03 | Distributed tracing (Jaeger/OTel) | MEDIUM (~600 LOC) | F06 | backlog |
 | WS-016-04 | Dashboards (Grafana) | MEDIUM (~500 LOC) | WS-016-01, WS-016-02 | backlog |

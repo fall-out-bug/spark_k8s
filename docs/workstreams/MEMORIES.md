@@ -154,6 +154,16 @@
 
 ---
 
+## F16: Observability Stack — PARTIAL (1/6 WS)
+
+**Deliverables completed:** Prometheus metrics collection (WS-016-01).
+**Key paths:** `charts/observability/prometheus/`, `tests/integration/test_observability_prometheus.py`
+**Evidence:** Strong. 5 tests for AC1–AC6; scrape 15s, retention 15d, kube-state-metrics enabled.
+**Remaining:** WS-016-02..06 (Loki, Jaeger, Grafana, Alerting, Spark UI).
+**WS files:** `00-016-01` (completed)
+
+---
+
 ## F17: Spark Connect Go Client — DONE (4/4 WS)
 
 **Deliverables:** Go client library, smoke/E2E/load tests.
