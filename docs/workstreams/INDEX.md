@@ -452,52 +452,41 @@ WS-TESTING-001 (Diagnostics)
 ## Feature F34: Test Matrix TDD
 
 **Source:** `docs/drafts/idea-test-matrix-tdd.md`
-**Status:** Backlog
+**Status:** Cancelled (superseded by F35)
 **Total Workstreams:** 5
 **Estimated LOC:** ~500
 
 | ID | Name | Scope | Dependency | Status |
 |----|------|-------|------------|--------|
-| WS-034-01 | Image Pyramid + get_runtime_image | MEDIUM (~150 LOC) | - | backlog |
-| WS-034-02 | Beads Generator (RGR plan) | SMALL (~100 LOC) | - | backlog |
-| WS-034-03 | Full Critical Path (Deploy+Smoke+E2E+Load) | MEDIUM (~200 LOC) | WS-034-01 | backlog |
-| WS-034-04 | Metrics Validation (History Server) | SMALL (~100 LOC) | WS-034-03 | backlog |
-| WS-034-05 | Green 96 k8s/no-gpu Scenarios | LARGE (~500 LOC) | WS-034-01, 02, 03 | backlog |
+| WS-034-01 | Image Pyramid + get_runtime_image | MEDIUM (~150 LOC) | - | cancelled |
+| WS-034-02 | Beads Generator (RGR plan) | SMALL (~100 LOC) | - | cancelled |
+| WS-034-03 | Full Critical Path (Deploy+Smoke+E2E+Load) | MEDIUM (~200 LOC) | WS-034-01 | cancelled |
+| WS-034-04 | Metrics Validation (History Server) | SMALL (~100 LOC) | WS-034-03 | cancelled |
+| WS-034-05 | Green 96 k8s/no-gpu Scenarios | LARGE (~500 LOC) | WS-034-01, 02, 03 | cancelled |
 
 ### Context
 
-Матрица 320 сценариев в плачевном состоянии. TDD: каждый тест доказывает требование. Red → Green → Refactor. Beads на каждый сценарий. **GPU не исключается** — кластер перезапускается с GPU support.
-
-### Dependency Graph
-
-```
-WS-034-01 (Image pyramid)
-    ├── WS-034-03 (Critical path)
-    │       └── WS-034-04 (Metrics)
-    └── WS-034-05 (Green 96)
-
-WS-034-02 (Beads) ──► WS-034-05
-```
+**Cancelled 2026-03-06:** F35 (Test Matrix Rebuild) covers same scope with better specificity. WS-034-01→035-06, WS-034-03→035-02..05, WS-034-04→035-07, WS-034-05→035-08. Files moved to `docs/workstreams/cancelled/`.
 
 ---
 
 ## Feature F35: Test Matrix Rebuild (Execute, Not Check)
 
 **Source:** `docs/drafts/idea-test-matrix-tdd.md`, `docs/drafts/idea-test-matrix-tdd-design.md`
-**Status:** Backlog
+**Status:** Completed (8/8)
 **Total Workstreams:** 8
 **Estimated LOC:** ~1200
 
 | ID | Name | Scope | Dependency | Status |
 |----|------|-------|------------|--------|
-| WS-035-01 | Matrix Runner Core | MEDIUM (~200 LOC) | - | backlog |
-| WS-035-02 | Deploy Level | SMALL (~100 LOC) | WS-035-01 | backlog |
-| WS-035-03 | Smoke Level — Execute Workload | MEDIUM (~150 LOC) | WS-035-01 | backlog |
-| WS-035-04 | E2E Level — Execute Workload | MEDIUM (~150 LOC) | WS-035-01 | backlog |
-| WS-035-05 | Load Level — Execute S3 Workload | MEDIUM (~150 LOC) | WS-035-01 | backlog |
-| WS-035-06 | Image Pyramid + get_runtime_image | SMALL (~100 LOC) | WS-035-01 | backlog |
-| WS-035-07 | Metrics Validation (History Server) | SMALL (~100 LOC) | WS-035-05 | backlog |
-| WS-035-08 | Matrix Integration — 96 k8s/no-gpu Green | LARGE (~500 LOC) | WS-035-01..06 | backlog |
+| WS-035-01 | Matrix Runner Core | MEDIUM (~200 LOC) | - | completed |
+| WS-035-02 | Deploy Level | SMALL (~100 LOC) | WS-035-01 | completed |
+| WS-035-03 | Smoke Level — Execute Workload | MEDIUM (~150 LOC) | WS-035-01 | completed |
+| WS-035-04 | E2E Level — Execute Workload | MEDIUM (~150 LOC) | WS-035-01 | completed |
+| WS-035-05 | Load Level — Execute S3 Workload | MEDIUM (~150 LOC) | WS-035-01 | completed |
+| WS-035-06 | Image Pyramid + get_runtime_image | SMALL (~100 LOC) | WS-035-01 | completed |
+| WS-035-07 | Metrics Validation (History Server) | SMALL (~100 LOC) | WS-035-05 | completed |
+| WS-035-08 | Matrix Integration — 96 k8s/no-gpu Green | LARGE (~500 LOC) | WS-035-01..06 | completed |
 
 ### Context
 
@@ -1373,8 +1362,8 @@ ALL → WS-036-12 (Final Evidence)
 
 ## Summary
 
-| Feature | Total WS | Completed | In Progress | Backlog |
-|---------|----------|-----------|-------------|---------|
+| Feature | Total WS | Completed | Cancelled | Backlog |
+|---------|----------|-----------|-----------|---------|
 | F01: Spark Standalone | 12 | 12 | 0 | 0 |
 | F02: Repo Documentation | 4 | 4 | 0 | 0 |
 | F03: History Server (SA) | 2 | 2 | 0 | 0 |
@@ -1382,9 +1371,6 @@ ALL → WS-036-12 (Final Evidence)
 | F05: Docs Refresh (Airflow vars) | 2 | 2 | 0 | 0 |
 | F06: Core Components + Presets | 10 | 10 | 0 | 0 |
 | F07: Critical Security + Chart Updates | 4 | 4 | 0 | 0 |
-| F22: Progress Automation | 4 | 4 | 0 | 0 |
-| F23: Project Origins Documentation | 5 | 5 | 0 | 0 |
-| F24: Pre-built Docker Images | 6 | 6 | 0 | 0 |
 | F08: Phase 2 — Smoke Tests | 7 | 7 | 0 | 0 |
 | F09: Phase 3 — Docker Base Layers | 3 | 3 | 0 | 0 |
 | F10: Phase 4 — Docker Intermediate Layers | 4 | 4 | 0 | 0 |
@@ -1396,16 +1382,26 @@ ALL → WS-036-12 (Final Evidence)
 | F16: Observability Stack | 6 | 0 | 0 | 6 |
 | F17: Spark Connect Go Client | 4 | 4 | 0 | 0 |
 | F18: Production Operations Suite | 17+ | 2 | 0 | 15+ |
+| F22: Progress Automation | 4 | 4 | 0 | 0 |
+| F23: Project Origins Documentation | 5 | 5 | 0 | 0 |
+| F24: Pre-built Docker Images | 6 | 6 | 0 | 0 |
 | F25: Spark 3.5 Production-Ready | 12 | 10 | 0 | 2 |
-| **F26: Spark Performance Defaults** | **3** | **3** | **0** | **0** |
-| **F27: Code Quality A*** | **3** | **0** | **0** | **3** |
-| **F28: Chart Architecture DRY** | **3** | **3** | **0** | **0** |
-| **F29: CI/CD Hardening** | **4** | **0** | **0** | **4** |
-| **F30: Data Engineering Patterns** | **4** | **0** | **0** | **4** |
-| **F36: Chart Refactor (Flatten/Rename)** | **12** | **0** | **0** | **12** |
+| F26: Spark Performance Defaults | 3 | 3 | 0 | 0 |
+| F27: Code Quality A* | 3 | 0 | 0 | 3 |
+| F28: Chart Architecture DRY | 3 | 3 | 0 | 0 |
+| F29: CI/CD Hardening | 4 | 0 | 0 | 4 |
+| F30: Data Engineering Patterns | 4 | 0 | 0 | 4 |
+| F31: Observability as Product | 9 | 0 | 0 | 9 |
+| F34: Test Matrix TDD | 5 | 0 | 5 | 0 |
+| F35: Test Matrix Rebuild | 8 | 8 | 0 | 0 |
+| F36: Chart Refactor (Flatten/Rename) | 12 | 12 | 0 | 0 |
 | TESTING: Testing Infrastructure | 3+ | 0 | 0 | 3+ |
-| **TOTAL** | **150+** | **87** | **0** | **113+** |
+| **TOTAL** | **~208** | **~138** | **5** | **~70** |
+
+> **Note (F22/F31 ID collision):** F22 (Progress Automation) uses WS-031-01..04 in `completed/`.
+> F31 (Observability as Product) uses 00-031-01..09 in `backlog/`. Different features, overlapping ID range.
+> F13-improvements (00-013-06..11) archived to `_archived/` — unregistered aspirational specs, not grounded in current infrastructure.
 
 ---
 
-*Last updated: 2026-03-05*
+*Last updated: 2026-03-06*
