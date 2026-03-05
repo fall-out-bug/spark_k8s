@@ -16,9 +16,6 @@ global:
 security:
   podSecurityStandards: false
 
-standalone:
-  enabled: false
-
 spark-base:
   enabled: true
   s3:
@@ -58,7 +55,7 @@ historyServer:
     tag: "3.5.7"
   logDirectory: "s3a://spark-logs/events"
 
-sparkStandalone:
+standalone:
   enabled: true
   image:
     repository: "spark-custom"

@@ -259,15 +259,12 @@ def test_run_matrix_standalone_scenario_no_airflow() -> None:
         part = part.strip().strip('"')
         if part and "=" in part:
             args.extend(["--set", part])
-    # run-matrix injects for standalone
     args.extend(
         [
             "--set",
-            "standalone.enabled=false",
+            "standalone.image.repository=spark-custom",
             "--set",
-            "sparkStandalone.image.repository=spark-custom",
-            "--set",
-            "sparkStandalone.image.tag=3.5.7",
+            "standalone.image.tag=3.5.7",
         ]
     )
     chart = PROJECT_ROOT / "charts" / "spark-3.5"
@@ -796,6 +793,33 @@ def test_scripts_bash_syntax() -> None:
         if result.returncode != 0:
             failures.append(f"{rel}: {result.stderr.strip()}")
     assert not failures, "bash -n failures:\n" + "\n".join(failures)
+
+
+def test_no_stale_naming_in_tests() -> None:
+    """F036-09: test files must not contain sparkStandalone or sparkK8sNative as values keys."""
+    stale_patterns = ["sparkStandalone", "sparkK8sNative"]
+    allowed_contexts = [
+        "grep",
+        "assert",
+        "stale_patterns",
+        "not in content",
+        "not in result",
+        "F036-",
+        "allowed_contexts",
+    ]
+    tests_dir = PROJECT_ROOT / "tests"
+    violations: list[str] = []
+    for tf in sorted(tests_dir.rglob("*")):
+        if tf.is_dir() or tf.suffix == ".pyc" or "evidence" in str(tf):
+            continue
+        try:
+            content = tf.read_text()
+        except UnicodeDecodeError:
+            continue
+        for line_no, line in enumerate(content.splitlines(), 1):
+            if any(pat in line for pat in stale_patterns) and not any(ctx in line for ctx in allowed_contexts):
+                violations.append(f"{tf.relative_to(PROJECT_ROOT)}:{line_no}: {line.strip()}")
+    assert not violations, "Stale naming in tests:\n" + "\n".join(violations[:20])
 
 
 def test_aggregate_matrix_results_script() -> None:
