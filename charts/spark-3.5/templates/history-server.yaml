@@ -61,7 +61,7 @@ spec:
             - name: SPARK_HISTORY_LOG_DIR
               value: {{ .Values.historyServer.logDirectory | quote }}
             - name: SPARK_HISTORY_OPTS
-              value: "-Dspark.history.fs.logDirectory={{ .Values.historyServer.logDirectory }}"
+              value: "-Dspark.history.fs.logDirectory={{ .Values.historyServer.logDirectory }}{{ if index .Values.historyServer "observability" }}{{ if index (index .Values.historyServer "observability") "metrics" }}{{ if index (index (index .Values.historyServer "observability") "metrics") "enabled" }} -Dspark.ui.prometheus.enabled=true{{ end }}{{ end }}{{ end }}"
             {{- if .Values.global.s3.enabled }}
             - name: S3_ENDPOINT
               value: {{ .Values.global.s3.endpoint | quote }}
@@ -85,6 +85,14 @@ spec:
             {{- end }}
             - name: HADOOP_USER_NAME
               value: "spark"
+            {{- if and .Values.historyServer.observability.enabled .Values.historyServer.observability.tracing.enabled }}
+            - name: SPARK_UI_JAEGER_URL
+              value: {{ .Values.historyServer.observability.tracing.jaegerUrl | default "http://jaeger-query:16686" | quote }}
+            {{- end }}
+            {{- if and .Values.historyServer.observability.enabled .Values.historyServer.observability.logging.enabled }}
+            - name: SPARK_UI_LOKI_URL
+              value: {{ .Values.historyServer.observability.logging.lokiUrl | default "http://loki:3100" | quote }}
+            {{- end }}
           command:
             - /bin/bash
             - -c

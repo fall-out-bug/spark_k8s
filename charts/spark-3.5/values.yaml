@@ -201,6 +201,19 @@ historyServer:
       limits:
         memory: "2Gi"
         cpu: "1000m"
+    # WS-016-06: Spark UI observability integration
+    observability:
+      enabled: false
+      metrics:
+        enabled: false
+        port: 18080
+        path: /metrics
+      tracing:
+        enabled: false
+        jaegerUrl: "http://jaeger-query:16686"
+      logging:
+        enabled: false
+        lokiUrl: "http://loki:3100"
 
 # Feature flags and configuration
 features:

@@ -76,8 +76,13 @@ grafana:
           type: file
           allowUiUpdates: true
 
-  # Dashboards (AC5: 5+ dashboards)
+  # Dashboards (AC5: 5+ dashboards, AC5 WS-016-06: spark-overview unified view)
   dashboards:
+    spark:
+      spark-overview:
+        file: dashboards/spark-overview.json
+      performance-analysis:
+        file: dashboards/performance-analysis.json
     ops:
       backup-status:
         file: dashboards/backup-status.json
