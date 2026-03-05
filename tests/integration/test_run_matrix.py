@@ -713,6 +713,31 @@ def test_demo_preset_renders_all_components() -> None:
         assert component in out, f"Missing component '{component}' in demo render"
 
 
+def test_no_sparkstandalone_in_run_matrix_scripts() -> None:
+    """F036-07: run-matrix*.sh must not reference sparkStandalone."""
+    for script in PROJECT_ROOT.glob("scripts/run-matrix*.sh"):
+        content = script.read_text()
+        assert "sparkStandalone" not in content, f"{script.name} still references 'sparkStandalone'"
+
+
+def test_no_sparkstandalone_in_test_matrix() -> None:
+    """F036-07: test-matrix.yaml must not reference sparkStandalone."""
+    matrix = PROJECT_ROOT / "tests" / "test-matrix.yaml"
+    content = matrix.read_text()
+    assert "sparkStandalone" not in content, "test-matrix.yaml still references 'sparkStandalone'"
+
+
+def test_no_standalone_enabled_false_hack_in_run_matrix() -> None:
+    """F036-07: run-matrix.sh must not contain the standalone.enabled=false workaround."""
+    script = PROJECT_ROOT / "scripts" / "run-matrix.sh"
+    lines = [
+        ln
+        for ln in script.read_text().splitlines()
+        if "standalone.enabled=false" in ln and not ln.strip().startswith("#")
+    ]
+    assert not lines, f"run-matrix.sh still has standalone.enabled=false hack: {lines}"
+
+
 def test_aggregate_matrix_results_script() -> None:
     """aggregate-matrix-results.py produces machine-readable summary."""
     agg = PROJECT_ROOT / "scripts" / "aggregate-matrix-results.py"
