@@ -1,20 +1,14 @@
-# Prometheus values for Spark monitoring on Kubernetes
+# Prometheus values for Spark monitoring on Kubernetes (WS-016-01)
+# AC5: scrape 15s, AC6: retention 15d, AC4: kube-state-metrics
 
-# This chart deploys Prometheus ServiceMonitors and PodMonitors
-# to scrape metrics from Spark pods' existing ServiceMonitor endpoints
-
-# Global namespace configuration for Spark metrics
 targetNamespace: spark-operations
 
+# Values for our ServiceMonitor template
 prometheus:
-  # Enable Prometheus deployment
   enabled: true
-
-  # Namespace where Spark pods are running
   serviceMonitors:
     namespace: spark-operations
-    interval: 30s
-    # List of ServiceMonitor definitions (used by templates if iterating)
+    interval: 15s
     items:
       - name: spark-driver
         namespace: spark-operations
@@ -24,7 +18,7 @@ prometheus:
         endpoints:
           - port: metrics
             path: /metrics/prometheus
-        interval: 30s
+        interval: 15s
       - name: spark-executor
         namespace: spark-operations
         selector:
@@ -33,9 +27,8 @@ prometheus:
         endpoints:
           - port: metrics
             path: /metrics/prometheus
-        interval: 30s
+        interval: 15s
 
-  # PodMonitor for Spark driver pods
   podMonitors:
     - name: spark-driver-pods
       namespace: spark-operations
@@ -45,7 +38,7 @@ prometheus:
       podMetricsEndpoints:
         - port: metrics
           path: /metrics/prometheus
-      interval: 30s
+      interval: 15s
 
     - name: spark-executor-pods
       namespace: spark-operations
@@ -55,26 +48,35 @@ prometheus:
       podMetricsEndpoints:
         - port: metrics
           path: /metrics/prometheus
-      interval: 30s
+      interval: 15s
 
-  # Additional scrape configs
-  scrapeInterval: 30s
+  scrapeInterval: 15s
   scrapeTimeout: 10s
-  evaluationInterval: 30s
+  evaluationInterval: 15s
 
-# Prometheus server configuration
+# Pass to prometheus-operator subchart (AC4, AC5, AC6)
+prometheus-operator:
+  prometheus:
+    prometheusSpec:
+      scrapeInterval: 15s
+      retention: 15d
+      retentionSize: ""
+  kubeStateMetrics:
+    enabled: true
+    serviceMonitor:
+      interval: 15s
+  nodeExporter:
+    enabled: true
+
 server:
   global:
-    scrape_interval: 30s
+    scrape_interval: 15s
     scrape_timeout: 10s
-    evaluation_interval: 30s
-
-  # Service for prometheus-operator
+    evaluation_interval: 15s
   service:
     port: 9090
     targetPort: 9090
 
-# Resource configuration
 resources:
   limits:
     cpu: 500m
@@ -83,7 +85,6 @@ resources:
     cpu: 100m
     memory: 256Mi
 
-# Storage configuration
 storage:
   volumeClaimTemplate:
     spec:
