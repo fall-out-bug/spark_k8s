@@ -314,6 +314,19 @@ Real deliverables for: multi-environment (`charts/spark-4.1/environments/`), obs
 
 ---
 
+## Cancelled
+
+### F34: Test Matrix TDD — CANCELLED (5/5 WS, superseded by F35)
+
+All 5 workstreams cancelled 2026-03-06. F35 covers same scope with better specificity:
+- WS-034-01 (Image Pyramid) → replaced by WS-035-06
+- WS-034-02 (Beads Generator) → replaced by matrix runner approach
+- WS-034-03 (Full Critical Path) → replaced by WS-035-02..05
+- WS-034-04 (Metrics Validation) → replaced by WS-035-07
+- WS-034-05 (Green 96 Scenarios) → replaced by WS-035-08
+
+---
+
 ## Known Gaps
 
 | Area | Gap | Severity |
