@@ -1,4 +1,4 @@
-{{- if .Values.sparkK8sNative.enabled }}
+{{- if .Values.kubernetes.enabled }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -28,11 +28,11 @@ spec:
       {{- end }}
       containers:
         - name: submitter
-          image: "{{ .Values.sparkK8sNative.image.repository }}:{{ .Values.sparkK8sNative.image.tag }}"
-          imagePullPolicy: {{ .Values.sparkK8sNative.image.pullPolicy }}
+          image: "{{ .Values.kubernetes.image.repository }}:{{ .Values.kubernetes.image.tag }}"
+          imagePullPolicy: {{ .Values.kubernetes.image.pullPolicy }}
           command: ["sleep", "infinity"]
           resources:
-            {{- toYaml .Values.sparkK8sNative.resources | nindent 12 }}
+            {{- toYaml .Values.kubernetes.resources | nindent 12 }}
           {{- if .Values.security.podSecurityStandards }}
           securityContext:
             {{- include "spark-base.containerSecurityContext" . | nindent 12 }}

@@ -263,9 +263,9 @@ features:
       file:
         path: "/tmp/openlineage/events.json"
 
-# Spark K8s Native submitter (connect=false, k8s_mode=native)
+# Kubernetes native submitter (connect=false, k8s_mode=native)
 # Pod with Spark image for spark-submit --master k8s://...
-sparkK8sNative:
+kubernetes:
   enabled: false
   image:
     repository: spark-custom

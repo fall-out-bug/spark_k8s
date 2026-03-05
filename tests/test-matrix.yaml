@@ -486,7 +486,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 3.5.7-NC-N-GPU-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0042
   spark_version: 3.5.7
   connect: false
@@ -497,7 +497,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 3.5.7-NC-N-GPU-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0043
   spark_version: 3.5.7
   connect: false
@@ -508,7 +508,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 3.5.7-NC-N-GPU-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0044
   spark_version: 3.5.7
   connect: false
@@ -519,7 +519,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 3.5.7-NC-N-GPU-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0045
   spark_version: 3.5.7
   connect: false
@@ -530,7 +530,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 3.5.7-NC-N-GPU-NO-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0046
   spark_version: 3.5.7
   connect: false
@@ -541,7 +541,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 3.5.7-NC-N-GPU-NO-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0047
   spark_version: 3.5.7
   connect: false
@@ -552,7 +552,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 3.5.7-NC-N-GPU-NO-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0048
   spark_version: 3.5.7
   connect: false
@@ -563,7 +563,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 3.5.7-NC-N-GPU-NO-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0049
   spark_version: 3.5.7
   connect: false
@@ -574,7 +574,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 3.5.7-NC-N-CPU-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0050
   spark_version: 3.5.7
   connect: false
@@ -585,7 +585,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 3.5.7-NC-N-CPU-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0051
   spark_version: 3.5.7
   connect: false
@@ -596,7 +596,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 3.5.7-NC-N-CPU-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0052
   spark_version: 3.5.7
   connect: false
@@ -607,7 +607,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 3.5.7-NC-N-CPU-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0053
   spark_version: 3.5.7
   connect: false
@@ -618,7 +618,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 3.5.7-NC-N-CPU-NO-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0054
   spark_version: 3.5.7
   connect: false
@@ -629,7 +629,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 3.5.7-NC-N-CPU-NO-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0055
   spark_version: 3.5.7
   connect: false
@@ -640,7 +640,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 3.5.7-NC-N-CPU-NO-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0056
   spark_version: 3.5.7
   connect: false
@@ -651,7 +651,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 3.5.7-NC-N-CPU-NO-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0057
   spark_version: 3.5.7
   connect: false
@@ -662,7 +662,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 3.5.7-NC-N-GPU-ICE-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0058
   spark_version: 3.5.7
   connect: false
@@ -673,7 +673,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 3.5.7-NC-N-GPU-ICE-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0059
   spark_version: 3.5.7
   connect: false
@@ -684,7 +684,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 3.5.7-NC-N-GPU-ICE-NO-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0060
   spark_version: 3.5.7
   connect: false
@@ -695,7 +695,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 3.5.7-NC-N-GPU-ICE-NO-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0061
   spark_version: 3.5.7
   connect: false
@@ -706,7 +706,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 3.5.7-NC-N-GPU-NO-ICE-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0062
   spark_version: 3.5.7
   connect: false
@@ -717,7 +717,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 3.5.7-NC-N-GPU-NO-ICE-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0063
   spark_version: 3.5.7
   connect: false
@@ -728,7 +728,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 3.5.7-NC-N-GPU-NO-ICE-NO-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0064
   spark_version: 3.5.7
   connect: false
@@ -739,7 +739,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 3.5.7-NC-N-GPU-NO-ICE-NO-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0065
   spark_version: 3.5.7
   connect: false
@@ -750,7 +750,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 3.5.7-NC-N-CPU-ICE-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0066
   spark_version: 3.5.7
   connect: false
@@ -761,7 +761,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 3.5.7-NC-N-CPU-ICE-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0067
   spark_version: 3.5.7
   connect: false
@@ -772,7 +772,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 3.5.7-NC-N-CPU-ICE-NO-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0068
   spark_version: 3.5.7
   connect: false
@@ -783,7 +783,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 3.5.7-NC-N-CPU-ICE-NO-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0069
   spark_version: 3.5.7
   connect: false
@@ -794,7 +794,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 3.5.7-NC-N-CPU-NO-ICE-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0070
   spark_version: 3.5.7
   connect: false
@@ -805,7 +805,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 3.5.7-NC-N-CPU-NO-ICE-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0071
   spark_version: 3.5.7
   connect: false
@@ -816,7 +816,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 3.5.7-NC-N-CPU-NO-ICE-NO-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0072
   spark_version: 3.5.7
   connect: false
@@ -827,7 +827,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 3.5.7-NC-N-CPU-NO-ICE-NO-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.7\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0073
   spark_version: 3.5.7
   connect: false
@@ -1366,7 +1366,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 3.5.8-NC-N-GPU-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0122
   spark_version: 3.5.8
   connect: false
@@ -1377,7 +1377,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 3.5.8-NC-N-GPU-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0123
   spark_version: 3.5.8
   connect: false
@@ -1388,7 +1388,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 3.5.8-NC-N-GPU-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0124
   spark_version: 3.5.8
   connect: false
@@ -1399,7 +1399,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 3.5.8-NC-N-GPU-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0125
   spark_version: 3.5.8
   connect: false
@@ -1410,7 +1410,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 3.5.8-NC-N-GPU-NO-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0126
   spark_version: 3.5.8
   connect: false
@@ -1421,7 +1421,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 3.5.8-NC-N-GPU-NO-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0127
   spark_version: 3.5.8
   connect: false
@@ -1432,7 +1432,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 3.5.8-NC-N-GPU-NO-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0128
   spark_version: 3.5.8
   connect: false
@@ -1443,7 +1443,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 3.5.8-NC-N-GPU-NO-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0129
   spark_version: 3.5.8
   connect: false
@@ -1454,7 +1454,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 3.5.8-NC-N-CPU-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0130
   spark_version: 3.5.8
   connect: false
@@ -1465,7 +1465,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 3.5.8-NC-N-CPU-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0131
   spark_version: 3.5.8
   connect: false
@@ -1476,7 +1476,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 3.5.8-NC-N-CPU-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0132
   spark_version: 3.5.8
   connect: false
@@ -1487,7 +1487,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 3.5.8-NC-N-CPU-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0133
   spark_version: 3.5.8
   connect: false
@@ -1498,7 +1498,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 3.5.8-NC-N-CPU-NO-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0134
   spark_version: 3.5.8
   connect: false
@@ -1509,7 +1509,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 3.5.8-NC-N-CPU-NO-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0135
   spark_version: 3.5.8
   connect: false
@@ -1520,7 +1520,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 3.5.8-NC-N-CPU-NO-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0136
   spark_version: 3.5.8
   connect: false
@@ -1531,7 +1531,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 3.5.8-NC-N-CPU-NO-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0137
   spark_version: 3.5.8
   connect: false
@@ -1542,7 +1542,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 3.5.8-NC-N-GPU-ICE-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0138
   spark_version: 3.5.8
   connect: false
@@ -1553,7 +1553,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 3.5.8-NC-N-GPU-ICE-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0139
   spark_version: 3.5.8
   connect: false
@@ -1564,7 +1564,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 3.5.8-NC-N-GPU-ICE-NO-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0140
   spark_version: 3.5.8
   connect: false
@@ -1575,7 +1575,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 3.5.8-NC-N-GPU-ICE-NO-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0141
   spark_version: 3.5.8
   connect: false
@@ -1586,7 +1586,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 3.5.8-NC-N-GPU-NO-ICE-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0142
   spark_version: 3.5.8
   connect: false
@@ -1597,7 +1597,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 3.5.8-NC-N-GPU-NO-ICE-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0143
   spark_version: 3.5.8
   connect: false
@@ -1608,7 +1608,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 3.5.8-NC-N-GPU-NO-ICE-NO-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0144
   spark_version: 3.5.8
   connect: false
@@ -1619,7 +1619,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 3.5.8-NC-N-GPU-NO-ICE-NO-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0145
   spark_version: 3.5.8
   connect: false
@@ -1630,7 +1630,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 3.5.8-NC-N-CPU-ICE-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0146
   spark_version: 3.5.8
   connect: false
@@ -1641,7 +1641,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 3.5.8-NC-N-CPU-ICE-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0147
   spark_version: 3.5.8
   connect: false
@@ -1652,7 +1652,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 3.5.8-NC-N-CPU-ICE-NO-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0148
   spark_version: 3.5.8
   connect: false
@@ -1663,7 +1663,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 3.5.8-NC-N-CPU-ICE-NO-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0149
   spark_version: 3.5.8
   connect: false
@@ -1674,7 +1674,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 3.5.8-NC-N-CPU-NO-ICE-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0150
   spark_version: 3.5.8
   connect: false
@@ -1685,7 +1685,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 3.5.8-NC-N-CPU-NO-ICE-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0151
   spark_version: 3.5.8
   connect: false
@@ -1696,7 +1696,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 3.5.8-NC-N-CPU-NO-ICE-NO-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0152
   spark_version: 3.5.8
   connect: false
@@ -1707,7 +1707,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 3.5.8-NC-N-CPU-NO-ICE-NO-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"3.5.8\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0153
   spark_version: 3.5.8
   connect: false
@@ -2246,7 +2246,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 4.1.0-NC-N-GPU-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0202
   spark_version: 4.1.0
   connect: false
@@ -2257,7 +2257,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 4.1.0-NC-N-GPU-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0203
   spark_version: 4.1.0
   connect: false
@@ -2268,7 +2268,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 4.1.0-NC-N-GPU-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0204
   spark_version: 4.1.0
   connect: false
@@ -2279,7 +2279,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 4.1.0-NC-N-GPU-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0205
   spark_version: 4.1.0
   connect: false
@@ -2290,7 +2290,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 4.1.0-NC-N-GPU-NO-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0206
   spark_version: 4.1.0
   connect: false
@@ -2301,7 +2301,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 4.1.0-NC-N-GPU-NO-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0207
   spark_version: 4.1.0
   connect: false
@@ -2312,7 +2312,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 4.1.0-NC-N-GPU-NO-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0208
   spark_version: 4.1.0
   connect: false
@@ -2323,7 +2323,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 4.1.0-NC-N-GPU-NO-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0209
   spark_version: 4.1.0
   connect: false
@@ -2334,7 +2334,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 4.1.0-NC-N-CPU-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0210
   spark_version: 4.1.0
   connect: false
@@ -2345,7 +2345,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 4.1.0-NC-N-CPU-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0211
   spark_version: 4.1.0
   connect: false
@@ -2356,7 +2356,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 4.1.0-NC-N-CPU-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0212
   spark_version: 4.1.0
   connect: false
@@ -2367,7 +2367,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 4.1.0-NC-N-CPU-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0213
   spark_version: 4.1.0
   connect: false
@@ -2378,7 +2378,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 4.1.0-NC-N-CPU-NO-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0214
   spark_version: 4.1.0
   connect: false
@@ -2389,7 +2389,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 4.1.0-NC-N-CPU-NO-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0215
   spark_version: 4.1.0
   connect: false
@@ -2400,7 +2400,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 4.1.0-NC-N-CPU-NO-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0216
   spark_version: 4.1.0
   connect: false
@@ -2411,7 +2411,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 4.1.0-NC-N-CPU-NO-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0217
   spark_version: 4.1.0
   connect: false
@@ -2422,7 +2422,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 4.1.0-NC-N-GPU-ICE-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0218
   spark_version: 4.1.0
   connect: false
@@ -2433,7 +2433,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 4.1.0-NC-N-GPU-ICE-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0219
   spark_version: 4.1.0
   connect: false
@@ -2444,7 +2444,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 4.1.0-NC-N-GPU-ICE-NO-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0220
   spark_version: 4.1.0
   connect: false
@@ -2455,7 +2455,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 4.1.0-NC-N-GPU-ICE-NO-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0221
   spark_version: 4.1.0
   connect: false
@@ -2466,7 +2466,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 4.1.0-NC-N-GPU-NO-ICE-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0222
   spark_version: 4.1.0
   connect: false
@@ -2477,7 +2477,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 4.1.0-NC-N-GPU-NO-ICE-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0223
   spark_version: 4.1.0
   connect: false
@@ -2488,7 +2488,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 4.1.0-NC-N-GPU-NO-ICE-NO-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0224
   spark_version: 4.1.0
   connect: false
@@ -2499,7 +2499,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 4.1.0-NC-N-GPU-NO-ICE-NO-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0225
   spark_version: 4.1.0
   connect: false
@@ -2510,7 +2510,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 4.1.0-NC-N-CPU-ICE-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0226
   spark_version: 4.1.0
   connect: false
@@ -2521,7 +2521,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 4.1.0-NC-N-CPU-ICE-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0227
   spark_version: 4.1.0
   connect: false
@@ -2532,7 +2532,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 4.1.0-NC-N-CPU-ICE-NO-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0228
   spark_version: 4.1.0
   connect: false
@@ -2543,7 +2543,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 4.1.0-NC-N-CPU-ICE-NO-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0229
   spark_version: 4.1.0
   connect: false
@@ -2554,7 +2554,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 4.1.0-NC-N-CPU-NO-ICE-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0230
   spark_version: 4.1.0
   connect: false
@@ -2565,7 +2565,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 4.1.0-NC-N-CPU-NO-ICE-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0231
   spark_version: 4.1.0
   connect: false
@@ -2576,7 +2576,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 4.1.0-NC-N-CPU-NO-ICE-NO-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0232
   spark_version: 4.1.0
   connect: false
@@ -2587,7 +2587,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 4.1.0-NC-N-CPU-NO-ICE-NO-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.0\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0233
   spark_version: 4.1.0
   connect: false
@@ -3126,7 +3126,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 4.1.1-NC-N-GPU-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0282
   spark_version: 4.1.1
   connect: false
@@ -3137,7 +3137,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 4.1.1-NC-N-GPU-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0283
   spark_version: 4.1.1
   connect: false
@@ -3148,7 +3148,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 4.1.1-NC-N-GPU-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0284
   spark_version: 4.1.1
   connect: false
@@ -3159,7 +3159,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 4.1.1-NC-N-GPU-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0285
   spark_version: 4.1.1
   connect: false
@@ -3170,7 +3170,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 4.1.1-NC-N-GPU-NO-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0286
   spark_version: 4.1.1
   connect: false
@@ -3181,7 +3181,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 4.1.1-NC-N-GPU-NO-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0287
   spark_version: 4.1.1
   connect: false
@@ -3192,7 +3192,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 4.1.1-NC-N-GPU-NO-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0288
   spark_version: 4.1.1
   connect: false
@@ -3203,7 +3203,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 4.1.1-NC-N-GPU-NO-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0289
   spark_version: 4.1.1
   connect: false
@@ -3214,7 +3214,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 4.1.1-NC-N-CPU-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0290
   spark_version: 4.1.1
   connect: false
@@ -3225,7 +3225,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 4.1.1-NC-N-CPU-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0291
   spark_version: 4.1.1
   connect: false
@@ -3236,7 +3236,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 4.1.1-NC-N-CPU-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0292
   spark_version: 4.1.1
   connect: false
@@ -3247,7 +3247,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 4.1.1-NC-N-CPU-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0293
   spark_version: 4.1.1
   connect: false
@@ -3258,7 +3258,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 4.1.1-NC-N-CPU-NO-ICE-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0294
   spark_version: 4.1.1
   connect: false
@@ -3269,7 +3269,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 4.1.1-NC-N-CPU-NO-ICE-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0295
   spark_version: 4.1.1
   connect: false
@@ -3280,7 +3280,7 @@ scenarios:
   openlineage: true
   platform: k8s
   name: 4.1.1-NC-N-CPU-NO-ICE-NO-SHUF-OL-K8S
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0296
   spark_version: 4.1.1
   connect: false
@@ -3291,7 +3291,7 @@ scenarios:
   openlineage: false
   platform: k8s
   name: 4.1.1-NC-N-CPU-NO-ICE-NO-SHUF-NO-OL-K8S
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0297
   spark_version: 4.1.1
   connect: false
@@ -3302,7 +3302,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 4.1.1-NC-N-GPU-ICE-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0298
   spark_version: 4.1.1
   connect: false
@@ -3313,7 +3313,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 4.1.1-NC-N-GPU-ICE-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0299
   spark_version: 4.1.1
   connect: false
@@ -3324,7 +3324,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 4.1.1-NC-N-GPU-ICE-NO-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0300
   spark_version: 4.1.1
   connect: false
@@ -3335,7 +3335,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 4.1.1-NC-N-GPU-ICE-NO-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0301
   spark_version: 4.1.1
   connect: false
@@ -3346,7 +3346,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 4.1.1-NC-N-GPU-NO-ICE-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0302
   spark_version: 4.1.1
   connect: false
@@ -3357,7 +3357,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 4.1.1-NC-N-GPU-NO-ICE-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0303
   spark_version: 4.1.1
   connect: false
@@ -3368,7 +3368,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 4.1.1-NC-N-GPU-NO-ICE-NO-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0304
   spark_version: 4.1.1
   connect: false
@@ -3379,7 +3379,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 4.1.1-NC-N-GPU-NO-ICE-NO-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.gpu.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0305
   spark_version: 4.1.1
   connect: false
@@ -3390,7 +3390,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 4.1.1-NC-N-CPU-ICE-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0306
   spark_version: 4.1.1
   connect: false
@@ -3401,7 +3401,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 4.1.1-NC-N-CPU-ICE-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0307
   spark_version: 4.1.1
   connect: false
@@ -3412,7 +3412,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 4.1.1-NC-N-CPU-ICE-NO-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0308
   spark_version: 4.1.1
   connect: false
@@ -3423,7 +3423,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 4.1.1-NC-N-CPU-ICE-NO-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set features.iceberg.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0309
   spark_version: 4.1.1
   connect: false
@@ -3434,7 +3434,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 4.1.1-NC-N-CPU-NO-ICE-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0310
   spark_version: 4.1.1
   connect: false
@@ -3445,7 +3445,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 4.1.1-NC-N-CPU-NO-ICE-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set spark.shuffle.service.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0311
   spark_version: 4.1.1
   connect: false
@@ -3456,7 +3456,7 @@ scenarios:
   openlineage: true
   platform: restricted
   name: 4.1.1-NC-N-CPU-NO-ICE-NO-SHUF-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set openlineage.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0312
   spark_version: 4.1.1
   connect: false
@@ -3467,7 +3467,7 @@ scenarios:
   openlineage: false
   platform: restricted
   name: 4.1.1-NC-N-CPU-NO-ICE-NO-SHUF-NO-OL-RESTRICTED
-  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set sparkK8sNative.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
+  helm_values: "spark.version=\"4.1.1\" \\\n  --set connect.enabled=false \\\n  --set sparkStandalone.enabled=false \\\n  --set kubernetes.enabled=true \\\n  --set security.podSecurityStandards=true \\\n  --set monitoring.prometheus.enabled=true \\\n  --set monitoring.grafana.enabled=true \\\n  --set historyServer.enabled=true \\\n  --set core.hiveMetastore.enabled=true \\\n  --set core.minio.enabled=true"
 - id: SCENARIO-0313
   spark_version: 4.1.1
   connect: false

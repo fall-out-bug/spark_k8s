@@ -526,6 +526,78 @@ def test_airflow_dags_in_configmap() -> None:
     assert "spark_standalone_load_demo.py" in out
 
 
+def test_no_sparkk8snative_in_chart() -> None:
+    """F036-04: sparkK8sNative must be fully renamed to kubernetes."""
+    chart_dir = PROJECT_ROOT / "charts" / "spark-3.5"
+    result = subprocess.run(
+        ["grep", "-r", "sparkK8sNative", str(chart_dir)],
+        capture_output=True,
+        text=True,
+    )
+    assert result.stdout == "", f"sparkK8sNative still referenced:\n{result.stdout}"
+
+
+def test_kubernetes_values_key_exists() -> None:
+    """F036-04: values.yaml must have kubernetes: { enabled: false }."""
+    import yaml
+
+    values_path = PROJECT_ROOT / "charts" / "spark-3.5" / "values.yaml"
+    with open(values_path) as f:
+        vals = yaml.safe_load(f)
+    assert "kubernetes" in vals, "Missing 'kubernetes' key in values.yaml"
+    assert vals["kubernetes"]["enabled"] is False
+
+
+def test_kubernetes_enabled_renders_submitter() -> None:
+    """F036-04: kubernetes.enabled=true renders submitter Deployment."""
+    chart = PROJECT_ROOT / "charts" / "spark-3.5"
+    result = subprocess.run(
+        [
+            "helm",
+            "template",
+            "test036",
+            str(chart),
+            "--set",
+            "kubernetes.enabled=true",
+            "--set",
+            "kubernetes.image.repository=spark-custom",
+            "--set",
+            "kubernetes.image.tag=3.5.7",
+            "--set",
+            "global.s3.accessKey=x",
+            "--set",
+            "global.s3.secretKey=x",
+        ],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    assert result.returncode == 0, f"helm template failed: {result.stderr}"
+    assert "k8s-native-submitter" in result.stdout
+
+
+def test_kubernetes_disabled_by_default() -> None:
+    """F036-04: default render has no kubernetes submitter resources."""
+    chart = PROJECT_ROOT / "charts" / "spark-3.5"
+    result = subprocess.run(
+        [
+            "helm",
+            "template",
+            "test036",
+            str(chart),
+            "--set",
+            "global.s3.accessKey=x",
+            "--set",
+            "global.s3.secretKey=x",
+        ],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    assert result.returncode == 0, f"helm template failed: {result.stderr}"
+    assert "k8s-native-submitter" not in result.stdout
+
+
 def test_aggregate_matrix_results_script() -> None:
     """aggregate-matrix-results.py produces machine-readable summary."""
     agg = PROJECT_ROOT / "scripts" / "aggregate-matrix-results.py"

@@ -141,7 +141,7 @@ def main():
         if is_connect:
             helm_args.extend(["--set", f"connect.image.repository=spark-custom", "--set", f"connect.image.tag={img_tag}"])
         elif k8s_mode == "native":
-            helm_args.extend(["--set", f"sparkK8sNative.image.repository=spark-custom", "--set", f"sparkK8sNative.image.tag={img_tag}"])
+            helm_args.extend(["--set", f"kubernetes.image.repository=spark-custom", "--set", f"kubernetes.image.tag={img_tag}"])
         else:
             # Use parent sparkStandalone (master+workers only), NOT subchart (Helm loads subchart by default when condition unset)
             helm_args.extend([
