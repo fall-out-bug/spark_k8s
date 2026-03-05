@@ -49,25 +49,50 @@ grafana:
             timeInterval: 30s
             deriveField: true
 
-        # Jaeger datasource for traces
+        # Jaeger datasource for traces (all-in-one service)
         - name: Jaeger
           type: jaeger
           access: proxy
-          url: http://jaeger-query:16686
+          url: http://jaeger:16686
           editable: false
 
-  # Dashboard providers
+  # Dashboard providers (AC6: auto-provision)
   dashboardProviders:
     dashboardproviders.yaml:
       apiVersion: 1
       providers:
         - disableDeletion: false
-          folder: ""
+          folder: "Spark"
           name: spark
           options:
             path: /var/lib/grafana/dashboards/spark
           type: file
           allowUiUpdates: true
+        - disableDeletion: false
+          folder: "Operations"
+          name: ops
+          options:
+            path: /var/lib/grafana/dashboards/ops
+          type: file
+          allowUiUpdates: true
+
+  # Dashboards (AC5: 5+ dashboards)
+  dashboards:
+    ops:
+      backup-status:
+        file: dashboards/backup-status.json
+      budget-status:
+        file: dashboards/budget-status.json
+      chaos-metrics:
+        file: dashboards/chaos-metrics.json
+      cost-by-job:
+        file: dashboards/cost-by-job.json
+      cost-by-team:
+        file: dashboards/cost-by-team.json
+      incident-metrics:
+        file: dashboards/incident-metrics.json
+      slo-forecast:
+        file: dashboards/slo-forecast.json
 
   # Resource configuration
   resources:
@@ -91,7 +116,7 @@ grafana:
 env:
   # Grafana environment
   GF_SECURITY_ALLOW_EMBEDDING: "true"
-  GF_SERVER_ROOT_URL: "http://prometheus-operator:9090"
+  GF_SERVER_ROOT_URL: "http://grafana:3000"
   GF_INSTALL_PLUGINS: "grafana-piechart-panel,grafana-worldmap-panel"
 
 # Ingress configuration
