@@ -1,0 +1,40 @@
+{{- if .Values.sparkK8sNative.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "spark-3.5.fullname" . }}-k8s-native-submitter
+  labels:
+    app: spark-k8s-native-submitter
+    app.kubernetes.io/component: k8s-native-submitter
+    {{- include "spark-3.5.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-k8s-native-submitter
+      app.kubernetes.io/component: k8s-native-submitter
+  template:
+    metadata:
+      labels:
+        app: spark-k8s-native-submitter
+        app.kubernetes.io/component: k8s-native-submitter
+        {{- include "spark-3.5.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "spark-3.5.serviceAccountName" . }}
+      {{- if .Values.security.podSecurityStandards }}
+      securityContext:
+        {{- include "spark-base.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: submitter
+          image: "{{ .Values.sparkK8sNative.image.repository }}:{{ .Values.sparkK8sNative.image.tag }}"
+          imagePullPolicy: {{ .Values.sparkK8sNative.image.pullPolicy }}
+          command: ["sleep", "infinity"]
+          resources:
+            {{- toYaml .Values.sparkK8sNative.resources | nindent 12 }}
+          {{- if .Values.security.podSecurityStandards }}
+          securityContext:
+            {{- include "spark-base.containerSecurityContext" . | nindent 12 }}
+          {{- end }}
+{{- end }}

@@ -216,6 +216,73 @@ def test_run_matrix_injects_connect_image(ensure_results_dir: None) -> None:
     assert "--set args" in result.stdout
 
 
+def test_run_matrix_injects_standalone_image(ensure_results_dir: None) -> None:
+    """run-matrix deploy dry-run for standalone scenario uses spark-3.5 and worker-pod."""
+    result = subprocess.run(
+        [str(RUN_MATRIX), "--filter", "id=SCENARIO-0073", "--dry-run", "all"],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    assert result.returncode == 0
+    assert "spark-3.5" in result.stdout
+    assert "worker-pod" in result.stdout
+
+
+def test_run_matrix_injects_k8s_native_image(ensure_results_dir: None) -> None:
+    """run-matrix deploy dry-run for k8s-native scenario uses spark-3.5 and k8s-native-submitter."""
+    result = subprocess.run(
+        [str(RUN_MATRIX), "--filter", "id=SCENARIO-0041", "--dry-run", "all"],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    assert result.returncode == 0
+    assert "spark-3.5" in result.stdout
+    assert "k8s-native-submitter" in result.stdout
+
+
+def test_run_matrix_standalone_scenario_no_airflow() -> None:
+    """Standalone scenario with run-matrix injects (standalone.enabled=false) renders no Airflow."""
+    import yaml
+
+    with open(MATRIX_FILE) as f:
+        data = yaml.safe_load(f)
+    scenario = next(s for s in data["scenarios"] if s["id"] == "SCENARIO-0076")
+    helm_str = scenario.get("helm_values", "")
+    # Parse --set args from helm_values string
+    import re
+
+    parts = re.split(r"\s+--set\s+", helm_str.replace("\\n", " ").replace("\\", "").strip())
+    args = []
+    for part in parts:
+        part = part.strip().strip('"')
+        if part and "=" in part:
+            args.extend(["--set", part])
+    # run-matrix injects for standalone
+    args.extend(
+        [
+            "--set",
+            "standalone.enabled=false",
+            "--set",
+            "sparkStandalone.image.repository=spark-custom",
+            "--set",
+            "sparkStandalone.image.tag=3.5.7",
+        ]
+    )
+    chart = PROJECT_ROOT / "charts" / "spark-3.5"
+    shared = PROJECT_ROOT / "tests" / "shared-infra-values.yaml"
+    result = subprocess.run(
+        ["helm", "template", "test", str(chart), "-f", str(shared)] + args,
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    assert result.returncode == 0, result.stderr
+    # No Airflow resources (subchart disabled)
+    assert "airflow" not in result.stdout.lower()
+
+
 def test_aggregate_matrix_results_script() -> None:
     """aggregate-matrix-results.py produces machine-readable summary."""
     agg = PROJECT_ROOT / "scripts" / "aggregate-matrix-results.py"
@@ -245,6 +312,7 @@ def test_aggregate_matrix_results_script() -> None:
         assert "passed" in data
         assert "failed" in data
         assert "expected" in data
+        assert data.get("filter") == "id=SCENARIO-0009"
 
 
 def test_run_matrix_96_script_exists() -> None:
@@ -257,6 +325,18 @@ def test_run_matrix_96_script_exists() -> None:
     assert "run-matrix.sh" in content
     assert "aggregate-matrix-results" in content
     assert "matrix-96-summary.json" in content
+
+
+def test_run_matrix_320_script_exists() -> None:
+    """run-matrix-320.sh exists and runs all 320 scenarios."""
+    script = PROJECT_ROOT / "scripts" / "run-matrix-320.sh"
+    assert script.exists()
+    assert script.stat().st_mode & 0o111
+    content = script.read_text()
+    assert "320" in content
+    assert "run-matrix.sh" in content
+    assert "aggregate-matrix-results" in content
+    assert "matrix-320-summary.json" in content
 
 
 def test_run_matrix_reads_test_matrix_yaml() -> None:

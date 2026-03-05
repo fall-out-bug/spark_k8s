@@ -1,0 +1,40 @@
+# Shared infra overrides for matrix scenarios.
+# Use with: run-matrix.sh --shared-infra ...
+# Prerequisites: spark-infra + observability deployed (deploy-demo-minikube.sh or equivalent)
+#
+# Shared components:
+#   - MinIO: minio.spark-infra.svc.cluster.local:9000
+#   - History Server: spark-infra-spark-35-history.spark-infra.svc.cluster.local:18080
+#   - Hive Metastore: spark-infra-spark-35-metastore.spark-infra.svc.cluster.local:9083
+#   - PostgreSQL: spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local:5432
+#   - OTEL Collector: otel-collector.observability.svc.cluster.local:4317
+
+global:
+  s3:
+    enabled: true
+    endpoint: "http://minio.spark-infra.svc.cluster.local:9000"
+    accessKey: "minioadmin"
+    secretKey: "minioadmin"
+    pathStyleAccess: true
+    sslEnabled: false
+
+core:
+  minio:
+    enabled: false
+  hiveMetastore:
+    enabled: false
+
+historyServer:
+  enabled: false
+
+connect:
+  eventLog:
+    enabled: true
+    dir: "s3a://spark-logs/events"
+  openTelemetry:
+    enabled: true
+    endpoint: "http://otel-collector.observability.svc.cluster.local:4317"
+  # External Hive metastore (spark-infra)
+  sparkConf:
+    spark.hadoop.hive.metastore.uris: "thrift://spark-infra-spark-35-metastore.spark-infra.svc.cluster.local:9083"
+    spark.sql.warehouse.dir: "s3a://warehouse/spark-35"

@@ -1,0 +1,1087 @@
+---
+# Source: spark-3.5/templates/rbac.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: spark-35
+  labels:
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-sa
+    app.kubernetes.io/version: 3.5.7
+---
+# Source: spark-3.5/templates/history-server.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: evidence-sa-spark-35-history-config
+  labels:
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-sa
+    app.kubernetes.io/version: 3.5.7
+data:
+  spark-defaults.conf: |-
+    spark.hadoop.fs.s3a.path.style.access=true
+    spark.hadoop.fs.s3a.endpoint=http://minio:9000
+---
+# Source: spark-3.5/templates/jupyter-notebooks-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: evidence-sa-spark-35-jupyter-notebooks
+  labels:
+    app: jupyter
+    app.kubernetes.io/component: jupyter
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-sa
+    app.kubernetes.io/version: 3.5.7
+data:
+  nyc_taxi_pipeline_demo.ipynb: |
+    {
+      "cells": [
+        {
+          "cell_type": "markdown",
+          "metadata": {},
+          "source": [
+            "# NYC Taxi Pipeline Demo\n",
+            "\n",
+            "This notebook demonstrates the demo Spark pipeline against shared MinIO and Hive Metastore."
+          ]
+        },
+        {
+          "cell_type": "code",
+          "execution_count": null,
+          "metadata": {},
+          "outputs": [],
+          "source": [
+            "from pyspark.sql import SparkSession\n",
+            "from pyspark.sql.functions import col\n",
+            "\n",
+            "spark = (SparkSession.builder\n",
+            "    .appName('nyc-taxi-pipeline-demo')\n",
+            "    .config('spark.hadoop.fs.s3a.endpoint', 'http://minio:9000')\n",
+            "    .config('spark.hadoop.fs.s3a.access.key', 'minioadmin')\n",
+            "    .config('spark.hadoop.fs.s3a.secret.key', 'minioadmin')\n",
+            "    .config('spark.hadoop.fs.s3a.path.style.access', 'true')\n",
+            "    .config('spark.hadoop.fs.s3a.impl', 'org.apache.hadoop.fs.s3a.S3AFileSystem')\n",
+            "    .config('spark.hadoop.hive.metastore.uris', 'thrift://spark-infra-spark-35-metastore:9083')\n",
+            "    .config('spark.sql.warehouse.dir', 's3a://warehouse/spark-35')\n",
+            "    .enableHiveSupport()\n",
+            "    .getOrCreate())\n",
+            "\n",
+            "spark"
+          ]
+        },
+        {
+          "cell_type": "code",
+          "execution_count": null,
+          "metadata": {},
+          "outputs": [],
+          "source": [
+            "df = spark.range(50000).withColumn('bucket', col('id') % 10)\n",
+            "df.write.mode('overwrite').parquet('s3a://spark-jobs/nyc-taxi-pipeline-demo/')\n",
+            "spark.read.parquet('s3a://spark-jobs/nyc-taxi-pipeline-demo/').groupBy('bucket').count().orderBy('bucket').show()"
+          ]
+        },
+        {
+          "cell_type": "code",
+          "execution_count": null,
+          "metadata": {},
+          "outputs": [],
+          "source": [
+            "spark.sql(\"CREATE DATABASE IF NOT EXISTS demo_shared LOCATION 's3a://warehouse/spark-35/demo_shared.db'\")\n",
+            "spark.sql(\"DROP TABLE IF EXISTS demo_shared.taxi_buckets\")\n",
+            "spark.sql(\"CREATE TABLE demo_shared.taxi_buckets USING PARQUET LOCATION 's3a://warehouse/spark-35/demo_shared.db/taxi_buckets' AS SELECT bucket, count(*) AS cnt FROM parquet.`s3a://spark-jobs/nyc-taxi-pipeline-demo/` GROUP BY bucket\")\n",
+            "spark.sql(\"SELECT * FROM demo_shared.taxi_buckets ORDER BY bucket\").show()"
+          ]
+        }
+      ],
+      "metadata": {
+        "kernelspec": {
+          "display_name": "Python 3",
+          "language": "python",
+          "name": "python3"
+        },
+        "language_info": {
+          "name": "python",
+          "version": "3.10"
+        }
+      },
+      "nbformat": 4,
+      "nbformat_minor": 5
+    }
+
+  spark_shared_infra_quickstart.ipynb: |
+    {
+      "cells": [
+        {
+          "cell_type": "markdown",
+          "metadata": {},
+          "source": [
+            "# Spark Shared Infra Quickstart\n",
+            "\n",
+            "Quick checks for Spark, MinIO, History Server event logging, and Hive Metastore."
+          ]
+        },
+        {
+          "cell_type": "code",
+          "execution_count": null,
+          "metadata": {},
+          "outputs": [],
+          "source": [
+            "from pyspark.sql import SparkSession\n",
+            "\n",
+            "spark = (SparkSession.builder\n",
+            "    .appName('shared-infra-quickstart')\n",
+            "    .config('spark.hadoop.fs.s3a.endpoint', 'http://minio:9000')\n",
+            "    .config('spark.hadoop.fs.s3a.access.key', 'minioadmin')\n",
+            "    .config('spark.hadoop.fs.s3a.secret.key', 'minioadmin')\n",
+            "    .config('spark.hadoop.fs.s3a.path.style.access', 'true')\n",
+            "    .config('spark.hadoop.hive.metastore.uris', 'thrift://spark-infra-spark-35-metastore:9083')\n",
+            "    .config('spark.sql.warehouse.dir', 's3a://warehouse/spark-35')\n",
+            "    .enableHiveSupport()\n",
+            "    .getOrCreate())\n",
+            "\n",
+            "spark.range(1000).count()"
+          ]
+        },
+        {
+          "cell_type": "code",
+          "execution_count": null,
+          "metadata": {},
+          "outputs": [],
+          "source": [
+            "spark.sql('SHOW DATABASES').show(truncate=False)"
+          ]
+        },
+        {
+          "cell_type": "code",
+          "execution_count": null,
+          "metadata": {},
+          "outputs": [],
+          "source": [
+            "spark.sql(\"CREATE TABLE IF NOT EXISTS demo_shared.quickstart (value INT) USING PARQUET LOCATION 's3a://warehouse/spark-35/demo_shared.db/quickstart'\")\n",
+            "spark.sql(\"INSERT INTO demo_shared.quickstart VALUES (1), (2), (3)\")\n",
+            "spark.sql(\"SELECT * FROM demo_shared.quickstart ORDER BY value\").show()"
+          ]
+        }
+      ],
+      "metadata": {
+        "kernelspec": {
+          "display_name": "Python 3",
+          "language": "python",
+          "name": "python3"
+        },
+        "language_info": {
+          "name": "python",
+          "version": "3.10"
+        }
+      },
+      "nbformat": 4,
+      "nbformat_minor": 5
+    }
+
+  nyc_taxi_ml_training_pipeline.ipynb: |
+    {
+     "cells": [
+      {
+       "cell_type": "markdown",
+       "id": "7fb27b941602401d91542211134fc71a",
+       "metadata": {},
+       "source": [
+        "# NYC Taxi: Processing + Model Training Pipeline\n",
+        "\n",
+        "This demo notebook runs an end-to-end Spark pipeline: data generation, feature processing, model training, evaluation, and result persistence to MinIO/Hive."
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "id": "acae54e37e7d407bbb7b55eff062a284",
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "from pyspark.sql import SparkSession\n",
+        "from pyspark.sql.functions import col, rand, when\n",
+        "\n",
+        "spark = (SparkSession.builder\n",
+        "    .appName('nyc-taxi-ml-training-pipeline')\n",
+        "    .config('spark.hadoop.fs.s3a.endpoint', 'http://minio:9000')\n",
+        "    .config('spark.hadoop.fs.s3a.access.key', 'minioadmin')\n",
+        "    .config('spark.hadoop.fs.s3a.secret.key', 'minioadmin')\n",
+        "    .config('spark.hadoop.fs.s3a.path.style.access', 'true')\n",
+        "    .config('spark.hadoop.fs.s3a.impl', 'org.apache.hadoop.fs.s3a.S3AFileSystem')\n",
+        "    .config('spark.hadoop.hive.metastore.uris', 'thrift://spark-infra-spark-35-metastore:9083')\n",
+        "    .config('spark.sql.warehouse.dir', 's3a://warehouse/spark-35')\n",
+        "    .enableHiveSupport()\n",
+        "    .getOrCreate())\n",
+        "\n",
+        "spark"
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "id": "9a63283cbaf04dbcab1f6479b197f3a8",
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "# Synthetic taxi-like training dataset\n",
+        "n = 120000\n",
+        "base = spark.range(n)\n",
+        "df = (base\n",
+        "    .withColumn('trip_distance', rand(seed=42) * 25)\n",
+        "    .withColumn('passenger_count', (rand(seed=7) * 5 + 1).cast('int'))\n",
+        "    .withColumn('hour', (rand(seed=9) * 24).cast('int'))\n",
+        "    .withColumn('is_peak', when((col('hour') >= 7) & (col('hour') <= 10), 1).otherwise(0))\n",
+        "    .withColumn('fare_amount',\n",
+        "        3.0 + col('trip_distance') * 2.2 + col('passenger_count') * 0.9 + col('is_peak') * 4.5 + rand(seed=17) * 2.0\n",
+        "    ))\n",
+        "\n",
+        "df.select('trip_distance', 'passenger_count', 'hour', 'is_peak', 'fare_amount').show(5, truncate=False)"
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "id": "8dd0d8092fe74a7c96281538738b07e2",
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "from pyspark.ml.evaluation import RegressionEvaluator\n",
+        "from pyspark.ml.feature import VectorAssembler\n",
+        "from pyspark.ml.regression import GBTRegressor\n",
+        "\n",
+        "features = ['trip_distance', 'passenger_count', 'hour', 'is_peak']\n",
+        "assembler = VectorAssembler(inputCols=features, outputCol='features')\n",
+        "train_df = assembler.transform(df).select('features', col('fare_amount').alias('label'))\n",
+        "\n",
+        "train, test = train_df.randomSplit([0.8, 0.2], seed=123)\n",
+        "model = GBTRegressor(maxIter=30, maxDepth=5, stepSize=0.1).fit(train)\n",
+        "pred = model.transform(test)\n",
+        "\n",
+        "rmse = RegressionEvaluator(metricName='rmse').evaluate(pred)\n",
+        "r2 = RegressionEvaluator(metricName='r2').evaluate(pred)\n",
+        "print('RMSE:', round(rmse, 4))\n",
+        "print('R2:', round(r2, 4))"
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "id": "72eea5119410473aa328ad9291626812",
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "from pyspark.sql.functions import lit\n",
+        "\n",
+        "metrics = spark.createDataFrame([(float(rmse), float(r2), int(n))], ['rmse', 'r2', 'rows'])\n",
+        "metrics = metrics.withColumn('run_ts', lit(str(__import__('datetime').datetime.utcnow())))\n",
+        "\n",
+        "metrics.write.mode('append').parquet('s3a://spark-jobs/model-metrics/nyc-taxi-gbt/')\n",
+        "\n",
+        "spark.sql(\"CREATE DATABASE IF NOT EXISTS demo_shared LOCATION 's3a://warehouse/spark-35/demo_shared.db'\")\n",
+        "metrics.createOrReplaceTempView('m')\n",
+        "spark.sql(\"CREATE TABLE IF NOT EXISTS demo_shared.nyc_taxi_training_metrics USING PARQUET LOCATION 's3a://warehouse/spark-35/demo_shared.db/nyc_taxi_training_metrics' AS SELECT * FROM m\")\n",
+        "spark.sql(\"SELECT * FROM demo_shared.nyc_taxi_training_metrics ORDER BY run_ts DESC\").show(10, truncate=False)"
+       ]
+      }
+     ],
+     "metadata": {
+      "kernelspec": {
+       "display_name": "Python 3",
+       "language": "python",
+       "name": "python3"
+      },
+      "language_info": {
+       "name": "python",
+       "version": "3.10"
+      }
+     },
+     "nbformat": 4,
+     "nbformat_minor": 5
+    }
+
+  citibike_eda.ipynb: |
+    {
+     "cells": [
+      {
+       "cell_type": "markdown",
+       "metadata": {},
+       "source": [
+        "# Citibike EDA\n",
+        "\n",
+        "Exploratory data analysis: synthetic trip data, distributions, aggregations."
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "from pyspark.sql import SparkSession\n",
+        "from pyspark.sql.functions import rand\n",
+        "\n",
+        "spark = (SparkSession.builder\n",
+        "    .appName('citibike-eda')\n",
+        "    .config('spark.hadoop.fs.s3a.endpoint', 'http://minio:9000')\n",
+        "    .config('spark.hadoop.fs.s3a.access.key', 'minioadmin')\n",
+        "    .config('spark.hadoop.fs.s3a.secret.key', 'minioadmin')\n",
+        "    .config('spark.hadoop.fs.s3a.path.style.access', 'true')\n",
+        "    .config('spark.hadoop.fs.s3a.impl', 'org.apache.hadoop.fs.s3a.S3AFileSystem')\n",
+        "    .getOrCreate())\n",
+        "\n",
+        "n = 10000\n",
+        "df = (spark.range(n)\n",
+        "    .withColumn('trip_minutes', (rand(seed=42) * 45 + 5).cast('int'))\n",
+        "    .withColumn('hour', (rand(seed=7) * 24).cast('int'))\n",
+        "    .withColumn('is_weekend', (rand(seed=9) > 0.7).cast('int')))\n",
+        "df.printSchema()"
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "df.describe().show()"
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "df.groupBy('hour').count().orderBy('hour').show(24)"
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "df.write.mode('overwrite').parquet('s3a://spark-jobs/citibike-eda/')"
+       ]
+      }
+     ],
+     "metadata": {
+      "kernelspec": {
+       "display_name": "Python 3",
+       "language": "python",
+       "name": "python3"
+      }
+     },
+     "nbformat": 4,
+     "nbformat_minor": 4
+    }
+
+  pandas_udf_feature_engineering.ipynb: |
+    {
+     "cells": [
+      {
+       "cell_type": "markdown",
+       "metadata": {},
+       "source": [
+        "# Feature Engineering with Pandas UDF\n",
+        "\n",
+        "mapInPandas / applyInPandas for distributed feature engineering."
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "from pyspark.sql import SparkSession\n",
+        "from pyspark.sql.functions import rand\n",
+        "\n",
+        "spark = (SparkSession.builder\n",
+        "    .appName('pandas-udf-feature')\n",
+        "    .config('spark.hadoop.fs.s3a.endpoint', 'http://minio:9000')\n",
+        "    .config('spark.hadoop.fs.s3a.access.key', 'minioadmin')\n",
+        "    .config('spark.hadoop.fs.s3a.secret.key', 'minioadmin')\n",
+        "    .config('spark.hadoop.fs.s3a.path.style.access', 'true')\n",
+        "    .getOrCreate())\n",
+        "\n",
+        "df = spark.range(5000).withColumn('x', rand(42)).withColumn('y', rand(17))\n",
+        "df.show(5)"
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "def add_features(pdf_iter):\n",
+        "    for pdf in pdf_iter:\n",
+        "        pdf['x_squared'] = pdf['x'] ** 2\n",
+        "        pdf['xy'] = pdf['x'] * pdf['y']\n",
+        "        yield pdf\n",
+        "\n",
+        "schema = \"id long, x double, y double, x_squared double, xy double\"\n",
+        "out = df.mapInPandas(add_features, schema)\n",
+        "out.show(5)"
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "out.write.mode('overwrite').parquet('s3a://spark-jobs/pandas-udf-features/')"
+       ]
+      }
+     ],
+     "metadata": {
+      "kernelspec": {
+       "display_name": "Python 3",
+       "language": "python",
+       "name": "python3"
+      }
+     },
+     "nbformat": 4,
+     "nbformat_minor": 4
+    }
+
+  ml_pandas_udf.ipynb: |
+    {
+     "cells": [
+      {
+       "cell_type": "markdown",
+       "metadata": {},
+       "source": [
+        "# ML with Spark Pandas UDF\n",
+        "\n",
+        "Train per-group models using mapInPandas (e.g. by borough)."
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "from pyspark.sql import SparkSession\n",
+        "from pyspark.sql.functions import col, rand\n",
+        "\n",
+        "spark = (SparkSession.builder\n",
+        "    .appName('ml-pandas-udf')\n",
+        "    .config('spark.hadoop.fs.s3a.endpoint', 'http://minio:9000')\n",
+        "    .config('spark.hadoop.fs.s3a.access.key', 'minioadmin')\n",
+        "    .config('spark.hadoop.fs.s3a.secret.key', 'minioadmin')\n",
+        "    .config('spark.hadoop.fs.s3a.path.style.access', 'true')\n",
+        "    .getOrCreate())\n",
+        "\n",
+        "df = (spark.range(3000)\n",
+        "    .withColumn('borough', (col('id') % 5).cast('int'))\n",
+        "    .withColumn('dist', rand(42) * 20)\n",
+        "    .withColumn('fare', 3.0 + col('dist') * 2.5 + rand(17) * 2))\n",
+        "df.show(5)"
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "def train_per_borough(pdf_iter):\n",
+        "    for pdf in pdf_iter:\n",
+        "        if len(pdf) < 10:\n",
+        "            continue\n",
+        "        pdf['pred'] = pdf['dist'] * 2.5 + 3.0\n",
+        "        pdf['borough'] = pdf['borough'].iloc[0]\n",
+        "        yield pdf\n",
+        "\n",
+        "schema = \"id long, borough int, dist double, fare double, pred double\"\n",
+        "pred = df.mapInPandas(train_per_borough, schema)\n",
+        "pred.groupBy('borough').agg({'pred': 'mean', 'fare': 'mean'}).show()"
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "pred.write.mode('overwrite').parquet('s3a://spark-jobs/ml-pandas-udf-results/')"
+       ]
+      }
+     ],
+     "metadata": {
+      "kernelspec": {
+       "display_name": "Python 3",
+       "language": "python",
+       "name": "python3"
+      }
+     },
+     "nbformat": 4,
+     "nbformat_minor": 4
+    }
+---
+# Source: spark-3.5/templates/rbac.yaml
+# ClusterRole for Spark Connect/Standalone k8s backend mode
+# Required for executor pod management across the namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: evidence-sa-spark-35-spark-cluster-role
+  labels:
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-sa
+    app.kubernetes.io/version: 3.5.7
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection", "update"]
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["get"]
+- apiGroups: [""]
+  resources: ["pods/status"]
+  verbs: ["get"]
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["create", "get", "list", "delete", "deletecollection"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection", "update"]
+- apiGroups: [""]
+  resources: ["persistentvolumeclaims"]
+  verbs: ["create", "get", "list", "delete", "deletecollection"]
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["create", "get", "list", "watch", "delete", "update"]
+---
+# Source: spark-3.5/templates/rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: evidence-sa-spark-35-spark-cluster-rolebinding
+  labels:
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-sa
+    app.kubernetes.io/version: 3.5.7
+subjects:
+- kind: ServiceAccount
+  name: spark-35
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: evidence-sa-spark-35-spark-cluster-role
+---
+# Source: spark-3.5/templates/rbac.yaml
+# Role for namespace-scoped resources
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: evidence-sa-spark-35-spark-role
+  labels:
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-sa
+    app.kubernetes.io/version: 3.5.7
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection"]
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["create", "get", "list", "delete", "deletecollection"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection"]
+---
+# Source: spark-3.5/templates/rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: evidence-sa-spark-35-spark-rolebinding
+  labels:
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-sa
+    app.kubernetes.io/version: 3.5.7
+subjects:
+- kind: ServiceAccount
+  name: spark-35
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: evidence-sa-spark-35-spark-role
+---
+# Source: spark-3.5/templates/history-server.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: evidence-sa-spark-35-history
+  labels:
+    app: spark-history-server
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-sa
+    app.kubernetes.io/version: 3.5.7
+spec:
+  type: ClusterIP
+  ports:
+    - port: 18080
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: spark-history-server
+    app.kubernetes.io/name: spark-3.5
+    app.kubernetes.io/instance: evidence-sa
+---
+# Source: spark-3.5/templates/jupyter.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: evidence-sa-spark-35-jupyter
+  labels:
+    app: jupyter
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-sa
+    app.kubernetes.io/version: 3.5.7
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8888
+      targetPort: 8888
+  selector:
+    app: jupyter
+---
+# Source: spark-3.5/templates/spark-standalone.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: evidence-sa-spark-35-standalone-master
+  labels:
+    app: spark-standalone-master
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-sa
+    app.kubernetes.io/version: 3.5.7
+spec:
+  type: ClusterIP
+  ports:
+    - name: rpc
+      port: 7077
+      targetPort: rpc
+    - name: ui
+      port: 8080
+      targetPort: ui
+  selector:
+    app: spark-standalone-master
+---
+# Source: spark-3.5/templates/history-server.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evidence-sa-spark-35-history
+  labels:
+    app: spark-history-server
+    app.kubernetes.io/component: history-server
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-sa
+    app.kubernetes.io/version: 3.5.7
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-history-server
+      app.kubernetes.io/component: history-server
+      app.kubernetes.io/name: spark-3.5
+      app.kubernetes.io/instance: evidence-sa
+  template:
+    metadata:
+      labels:
+        app: spark-history-server
+        app.kubernetes.io/component: history-server
+        app.kubernetes.io/name: spark-3.5
+        app.kubernetes.io/instance: evidence-sa
+    spec:
+      serviceAccountName: spark-35
+      securityContext:
+        runAsNonRoot: false
+        fsGroup: 185
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: history-server
+          image: "spark-custom:3.5.7"
+          imagePullPolicy: IfNotPresent
+          securityContext:
+
+            allowPrivilegeEscalation: false
+            runAsUser: 185
+            runAsGroup: 185
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: http
+              containerPort: 18080
+              protocol: TCP
+          env:
+            - name: SPARK_MODE
+              value: "history"
+            - name: SPARK_HISTORY_LOG_DIR
+              value: "s3a://spark-logs/events"
+            - name: SPARK_HISTORY_OPTS
+              value: "-Dspark.history.fs.logDirectory=s3a://spark-logs/events"
+            - name: S3_ENDPOINT
+              value: "http://minio:9000"
+            - name: AWS_ACCESS_KEY_ID
+              value: "x"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "x"
+            - name: HADOOP_USER_NAME
+              value: "spark"
+          command:
+            - /bin/bash
+            - -c
+            - |
+              # Start History Server
+              $SPARK_HOME/bin/spark-class org.apache.spark.deploy.history.HistoryServer
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 2Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: spark-config
+              mountPath: /opt/spark/conf/spark-defaults.conf
+              subPath: spark-defaults.conf
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: spark-config
+          configMap:
+            name: evidence-sa-spark-35-history-config
+---
+# Source: spark-3.5/templates/jupyter.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evidence-sa-spark-35-jupyter
+  labels:
+    app: jupyter
+    app.kubernetes.io/component: jupyter
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-sa
+    app.kubernetes.io/version: 3.5.7
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jupyter
+      app.kubernetes.io/component: jupyter
+  template:
+    metadata:
+      labels:
+        app: jupyter
+        app.kubernetes.io/component: jupyter
+        app.kubernetes.io/name: spark-3.5
+        app.kubernetes.io/instance: evidence-sa
+    spec:
+      serviceAccountName: spark-35
+      securityContext:
+        runAsNonRoot: false
+        fsGroup: 185
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+        - name: notebooks
+          emptyDir: {}
+        - name: notebook-seed
+          configMap:
+            name: evidence-sa-spark-35-jupyter-notebooks
+        - name: jupyter-runtime
+          emptyDir: {}
+      initContainers:
+        - name: seed-demo-notebooks
+          image: busybox:1.36
+          command:
+            - /bin/sh
+            - -c
+            - |
+              mkdir -p /home/jupyter/notebooks
+              cp -n /seed/* /home/jupyter/notebooks/ 2>/dev/null || true
+          volumeMounts:
+            - name: notebook-seed
+              mountPath: /seed
+            - name: notebooks
+              mountPath: /home/jupyter/notebooks
+      containers:
+        - name: jupyter
+          image: "spark-k8s-jupyter:3.5-3.5.7"
+          imagePullPolicy: IfNotPresent
+          command: ["jupyter-lab"]
+          args: ["--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=''", "--NotebookApp.password=''"]
+          env:
+            - name: JUPYTER_ENABLE_LAB
+              value: "yes"
+            - name: PYARROW_IGNORE_TIMEZONE
+              value: "1"
+            - name: HOME
+              value: "/home/jupyter"
+            - name: JUPYTER_RUNTIME_DIR
+              value: "/tmp/jupyter-runtime"
+            - name: S3_ENDPOINT
+              value: "http://minio:9000"
+            - name: SPARK_CONNECT_URL
+              value: "sc://spark-connect:15002"
+          securityContext:
+
+            allowPrivilegeEscalation: false
+            runAsUser: 185
+            runAsGroup: 185
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: http
+              containerPort: 8888
+          resources:
+            limits:
+              cpu: "2"
+              memory: 4Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+          readinessProbe:
+            httpGet:
+              path: /api
+              port: 8888
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api
+              port: 8888
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          volumeMounts:
+            - name: notebooks
+              mountPath: /home/jupyter/notebooks
+            - name: jupyter-runtime
+              mountPath: /tmp/jupyter-runtime
+---
+# Source: spark-3.5/templates/spark-standalone.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evidence-sa-spark-35-standalone-master
+  labels:
+    app: spark-standalone-master
+    app.kubernetes.io/component: standalone-master
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-sa
+    app.kubernetes.io/version: 3.5.7
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-standalone-master
+      app.kubernetes.io/component: standalone-master
+  template:
+    metadata:
+      labels:
+        app: spark-standalone-master
+        app.kubernetes.io/component: standalone-master
+        app.kubernetes.io/name: spark-3.5
+        app.kubernetes.io/instance: evidence-sa
+    spec:
+      serviceAccountName: spark-35
+      securityContext:
+        runAsNonRoot: false
+        fsGroup: 185
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+        - name: spark-logs
+          emptyDir: {}
+      containers:
+        - name: spark-master
+          image: "spark-custom:3.5.7"
+          imagePullPolicy: IfNotPresent
+          command: ["/opt/spark/sbin/start-master.sh"]
+          args: ["--host", "0.0.0.0", "--port", "7077", "--webui-port", "8080"]
+          env:
+            - name: SPARK_MODE
+              value: "master"
+            - name: SPARK_MASTER_HOST
+              value: evidence-sa-spark-35-standalone-master
+            - name: SPARK_MASTER_PORT
+              value: "7077"
+            - name: SPARK_MASTER_WEBUI_PORT
+              value: "8080"
+            - name: AWS_ACCESS_KEY_ID
+              value: "x"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "x"
+          securityContext:
+
+            allowPrivilegeEscalation: false
+            runAsUser: 185
+            runAsGroup: 185
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: rpc
+              containerPort: 7077
+              protocol: TCP
+            - name: ui
+              containerPort: 8080
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 3
+          volumeMounts:
+            - name: spark-logs
+              mountPath: /opt/spark/logs
+          resources:
+            limits:
+              cpu: "1"
+              memory: 2Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+---
+# Source: spark-3.5/templates/spark-standalone.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evidence-sa-spark-35-standalone-worker
+  labels:
+    app: spark-standalone-worker
+    app.kubernetes.io/component: standalone-worker
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-sa
+    app.kubernetes.io/version: 3.5.7
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-standalone-worker
+      app.kubernetes.io/component: standalone-worker
+  template:
+    metadata:
+      labels:
+        app: spark-standalone-worker
+        app.kubernetes.io/component: standalone-worker
+        app.kubernetes.io/name: spark-3.5
+        app.kubernetes.io/instance: evidence-sa
+    spec:
+      serviceAccountName: spark-35
+      securityContext:
+        runAsNonRoot: false
+        fsGroup: 185
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+        - name: spark-logs
+          emptyDir: {}
+        - name: spark-work
+          emptyDir: {}
+      containers:
+        - name: spark-worker
+          image: "spark-custom:3.5.7"
+          imagePullPolicy: IfNotPresent
+          command: ["/opt/spark/sbin/start-worker.sh"]
+          args: ["spark://evidence-sa-spark-35-standalone-master:7077"]
+          env:
+            - name: SPARK_MODE
+              value: "worker"
+            - name: SPARK_MASTER_HOST
+              value: evidence-sa-spark-35-standalone-master
+            - name: SPARK_MASTER_PORT
+              value: "7077"
+            - name: AWS_ACCESS_KEY_ID
+              value: "x"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "x"
+          securityContext:
+
+            allowPrivilegeEscalation: false
+            runAsUser: 185
+            runAsGroup: 185
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: rpc
+              containerPort: 7077
+              protocol: TCP
+            - name: ui
+              containerPort: 8081
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8081
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 3
+          volumeMounts:
+            - name: spark-logs
+              mountPath: /opt/spark/logs
+            - name: spark-work
+              mountPath: /opt/spark/work
+          resources:
+            limits:
+              cpu: "2"
+              memory: 4Gi
+            requests:
+              cpu: 500m
+              memory: 2Gi
+---
+# Source: spark-3.5/templates/hive-metastore.yaml
+---

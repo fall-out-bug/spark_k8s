@@ -1316,6 +1316,61 @@ WS-031-01 (Audit)
 
 ---
 
+## Feature F36: Chart Refactor — Flatten Standalone/Airflow, Unify Naming
+
+**Source:** `docs/drafts/idea-chart-refactor-flatten-standalone.md`
+**Status:** Backlog
+**Total Workstreams:** 12
+**Impact:** ~120 files (charts, scripts, tests, docs, presets)
+
+| ID | Name | Scope | Dependency | Status |
+|----|------|-------|------------|--------|
+| WS-036-01 | Baseline Evidence Snapshots | SMALL | - | backlog |
+| WS-036-02 | Flatten Standalone Subchart into Parent | LARGE | 036-01 | backlog |
+| WS-036-03 | Extract Airflow Templates (independent flag) | MEDIUM | 036-02 | backlog |
+| WS-036-04 | Rename sparkK8sNative → kubernetes | SMALL | 036-01 | backlog |
+| WS-036-05 | Remove sparkStandalone Duplicate + Cleanup | MEDIUM | 036-02, 036-03 | backlog |
+| WS-036-06 | Update Presets, Demo Scripts, DAGs | LARGE | 036-05 | backlog |
+| WS-036-07 | Update run-matrix, test-matrix | MEDIUM | 036-05 | backlog |
+| WS-036-08 | Update All Scripts | LARGE | 036-06 | backlog |
+| WS-036-09 | Update Tests | MEDIUM | 036-07, 036-08 | backlog |
+| WS-036-10 | Update Documentation | MEDIUM | 036-06 | backlog |
+| WS-036-11 | CI Helm Template Gates | SMALL | 036-05 | backlog |
+| WS-036-12 | Final Evidence — Diff, Lint, Dry-Run | SMALL | 036-01..11 | backlog |
+
+### Dependency Graph
+
+```
+WS-036-01 (Baseline Evidence)
+    ├── WS-036-02 (Flatten Standalone)
+    │       └── WS-036-03 (Extract Airflow)
+    │               └── WS-036-05 (Remove Duplicates)
+    │                       ├── WS-036-06 (Presets, Demo, DAGs)
+    │                       │       └── WS-036-08 (All Scripts)
+    │                       ├── WS-036-07 (Matrix)
+    │                       └── WS-036-11 (CI Gates)
+    └── WS-036-04 (Rename K8sNative)
+
+WS-036-06 → WS-036-10 (Docs)
+WS-036-07 + WS-036-08 → WS-036-09 (Tests)
+ALL → WS-036-12 (Final Evidence)
+```
+
+### Parallel Execution Paths
+
+1. **Critical Path:** 036-01 → 036-02 → 036-03 → 036-05 → 036-06 → 036-08 → 036-09 → 036-12
+2. **Parallel:** 036-04 (after 036-01), 036-07 (after 036-05), 036-10 (after 036-06), 036-11 (after 036-05)
+
+### Quality Gates (every WS)
+
+- Provenance: helm template snapshot before/after
+- Evidence: helm lint + helm template renders all 5 mode combos
+- Trace: every name change documented (old → new)
+- No isExist tests: all AC invoke helm/shellcheck/script execution
+- Lint: shellcheck for .sh, ruff for .py
+
+---
+
 ## Summary
 
 | Feature | Total WS | Completed | In Progress | Backlog |
@@ -1347,9 +1402,10 @@ WS-031-01 (Audit)
 | **F28: Chart Architecture DRY** | **3** | **3** | **0** | **0** |
 | **F29: CI/CD Hardening** | **4** | **0** | **0** | **4** |
 | **F30: Data Engineering Patterns** | **4** | **0** | **0** | **4** |
+| **F36: Chart Refactor (Flatten/Rename)** | **12** | **0** | **0** | **12** |
 | TESTING: Testing Infrastructure | 3+ | 0 | 0 | 3+ |
-| **TOTAL** | **138+** | **87** | **0** | **101+** |
+| **TOTAL** | **150+** | **87** | **0** | **113+** |
 
 ---
 
-*Last updated: 2026-02-13*
+*Last updated: 2026-03-05*

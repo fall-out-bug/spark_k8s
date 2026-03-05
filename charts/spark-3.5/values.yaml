@@ -263,6 +263,22 @@ features:
       file:
         path: "/tmp/openlineage/events.json"
 
+# Spark K8s Native submitter (connect=false, k8s_mode=native)
+# Pod with Spark image for spark-submit --master k8s://...
+sparkK8sNative:
+  enabled: false
+  image:
+    repository: spark-custom
+    tag: "3.5.7"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "1"
+
 # Spark Standalone master/worker (3.5.3)
 # Alternative to Spark Connect for Spark 3.5
 sparkStandalone:
