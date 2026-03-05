@@ -1,7 +1,7 @@
 # Spark Standalone Chart Guide
 
-**Chart:** `charts/spark-standalone` (symlink → `charts/spark-3.5/charts/spark-standalone`)
-**Current layout:** Spark 3.5 has spark-standalone as subchart; Spark 4.1 uses the same symlink. History Server lives in parent chart (`spark-3.5/templates/`).
+**Chart:** `charts/spark-3.5` (parent chart with inline templates)
+**Current layout:** Spark 3.5 parent chart includes standalone templates under `templates/standalone/`. Enable with `--set standalone.enabled=true`. History Server lives in parent chart (`spark-3.5/templates/`).
 **Tested on:** Minikube
 **Prepared for:** OpenShift-like constraints (PSS `restricted` / SCC `restricted`)
 
@@ -33,23 +33,23 @@ Deploys **Spark Standalone** cluster (master + workers) with optional Airflow, M
 # Create namespace
 kubectl create namespace spark-sa
 
-# Install with defaults
-helm install spark-standalone charts/spark-standalone -n spark-sa
+# Install parent chart with standalone enabled
+helm install spark-sa charts/spark-3.5 -n spark-sa \
+  --set standalone.enabled=true \
+  --set connect.enabled=false \
+  --set global.s3.accessKey=x --set global.s3.secretKey=x \
+  --set global.postgresql.password=x
 
-# Or with shared values overlay
-helm install spark-standalone charts/spark-standalone -n spark-sa \
-  -f charts/values-common.yaml
-
-# Or with prod-like profile (tested on Minikube)
-helm install spark-standalone charts/spark-standalone -n spark-sa \
-  -f charts/spark-standalone/values-prod-like.yaml
+# Or with preset
+helm install spark-sa charts/spark-3.5 -n spark-sa \
+  -f charts/spark-3.5/presets/spark-infra-minimal.yaml
 ```
 
 ### Verify
 
 ```bash
 # Wait for master
-kubectl wait --for=condition=ready pod -l app=spark-master -n spark-sa --timeout=120s
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=standalone-master -n spark-sa --timeout=120s
 
 # Check status
 kubectl get pods -n spark-sa
@@ -57,7 +57,7 @@ kubectl get pods -n spark-sa
 
 ### Access
 
-- **Spark Master UI:** `kubectl port-forward svc/spark-standalone-master 8080:8080 -n spark-sa` → http://localhost:8080
+- **Spark Master UI:** `kubectl port-forward svc/spark-sa-standalone-master 8080:8080 -n spark-sa` → http://localhost:8080
 - **Airflow UI:** `kubectl port-forward svc/spark-standalone-airflow-webserver 8080:8080 -n spark-sa` → http://localhost:8080 (admin / admin)
 - **MLflow UI:** `kubectl port-forward svc/spark-standalone-mlflow 5000:5000 -n spark-sa` → http://localhost:5000
 - **MinIO Console:** `kubectl port-forward svc/spark-standalone-minio 9001:9001 -n spark-sa` → http://localhost:9001 (minioadmin / minioadmin)

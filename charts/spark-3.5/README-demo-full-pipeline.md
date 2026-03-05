@@ -190,7 +190,7 @@ standalone:
 
 ### Adding Custom DAGs
 
-1. Add DAG file to `charts/spark-3.5/charts/spark-standalone/dags/`
+1. Add DAG file to `charts/spark-3.5/dags/`
 2. Update values:
    ```yaml
    standalone:
@@ -269,12 +269,12 @@ kubectl delete pvc -n demo --all
 
 | File | Purpose |
 |------|---------|
-| `charts/spark-3.5/charts/spark-standalone/Chart.yaml` | Subchart metadata |
-| `charts/spark-3.5/charts/spark-standalone/values.yaml` | Subchart defaults |
-| `charts/spark-3.5/charts/spark-standalone/templates/_helpers.tpl` | Template helpers |
-| `charts/spark-3.5/charts/spark-standalone/templates/master.yaml` | Spark Master deployment |
-| `charts/spark-3.5/charts/spark-3.5/charts/spark-standalone/templates/worker.yaml` | Spark Worker deployment |
-| `charts/spark-3.5/charts/spark-standalone/templates/airflow/*.yaml` | Airflow components |
+| `charts/spark-3.5/Chart.yaml` | Chart metadata |
+| `charts/spark-3.5/values.yaml` | Defaults |
+| `charts/spark-3.5/templates/_helpers.tpl` | Template helpers |
+| `charts/spark-3.5/templates/standalone/master.yaml` | Spark Master deployment |
+| `charts/spark-3.5/templates/standalone/worker.yaml` | Spark Worker deployment |
+| `charts/spark-3.5/templates/airflow/*.yaml` | Airflow components |
 | `charts/spark-3.5/Chart.yaml` | Added standalone dependency |
 | `charts/spark-3.5/values-demo-full-pipeline.yaml` | Full demo configuration |
-| `charts/spark-standalone` (symlink) | Fixed to point to subchart |
+| `charts/spark-3.5` | Parent chart with inline templates |

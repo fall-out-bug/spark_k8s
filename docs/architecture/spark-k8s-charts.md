@@ -9,7 +9,7 @@
 
 Конструктор Spark K8s представляет собой двухуровневую структуру Helm чартов:
 
-1. **Spark 3.5:** Модульные subcharts (LEGO-подход)
+1. **Spark 3.5:** Родительский чарт с inline-шаблонами (standalone, airflow, kubernetes) + зависимость spark-base
 2. **Spark 4.1:** Единый чарт с toggle-flags
 
 Оба подхода позволяют комбинировать компоненты для создания оптимальной конфигурации под конкретные нужды команды.
@@ -18,46 +18,32 @@
 
 ## Структура чартов
 
-### Spark 3.5 (модульная архитектура)
+### Spark 3.5 (родительский чарт + inline-шаблоны)
 
 ```
 charts/spark-3.5/
 ├── charts/
-│   ├── spark-base-0.1.0.tgz          # Базовый образ
-│   ├── spark-connect/                # Connect server
-│   │   ├── Chart.yaml
-│   │   ├── values.yaml
-│   │   └── templates/
-│   │       ├── spark-connect.yaml
-│   │       ├── jupyter.yaml
-│   │       ├── jupyterhub.yaml
-│   │       ├── history-server.yaml
-│   │       ├── hive-metastore.yaml
-│   │       ├── minio.yaml
-│   │       ├── postgresql.yaml
-│   │       ├── rbac.yaml
-│   │       └── secrets.yaml
-│   └── spark-standalone/             # Master/Workers
-│       ├── Chart.yaml
-│       ├── values-prod-like.yaml
-│       └── templates/
-│           ├── master.yaml
-│           ├── worker.yaml
-│           ├── shuffle-service.yaml
-│           ├── airflow/
-│           │   ├── scheduler.yaml
-│           │   ├── webserver.yaml
-│           │   └── pod-template-configmap.yaml
-│           ├── mlflow/
-│           │   ├── server.yaml
-│           │   └── postgresql.yaml
-│           └── ...
-└── values-common.yaml
+│   └── spark-base-0.1.0.tgz   # Базовый образ
+├── templates/
+│   ├── standalone/             # Master/Workers (standalone.enabled=true)
+│   │   ├── master.yaml
+│   │   ├── worker.yaml
+│   │   └── rbac.yaml
+│   ├── airflow/               # Airflow (airflow.enabled=true)
+│   │   ├── webserver.yaml
+│   │   ├── scheduler.yaml
+│   │   └── postgresql.yaml
+│   ├── spark-connect.yaml     # Connect (connect.enabled=true)
+│   ├── kubernetes/           # K8s submitter (kubernetes.enabled=true)
+│   ├── history-server.yaml
+│   ├── hive-metastore.yaml
+│   └── ...
+└── values.yaml
 ```
 
 **Принципы:**
-- Каждый компонент — отдельный Helm chart
-- Комбинация через `Chart.yaml` dependencies или individual install
+- Все компоненты — inline-шаблоны в родительском чарте
+- Включение через `--set standalone.enabled=true`, `connect.enabled=true` и т.д.
 - Переиспользование `spark-base` как общего слоя
 
 ### Spark 4.1 (единый чарт)

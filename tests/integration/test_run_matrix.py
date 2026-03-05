@@ -342,6 +342,39 @@ def test_standalone_disabled_by_default() -> None:
     assert "standalone-worker" not in result.stdout
 
 
+def test_connect_standalone_uses_release_name_master() -> None:
+    """Connect+standalone configmap must use {Release.Name}-standalone-master (not fullname)."""
+    chart = PROJECT_ROOT / "charts" / "spark-3.5"
+    result = subprocess.run(
+        [
+            "helm",
+            "template",
+            "my-release",
+            str(chart),
+            "--set",
+            "connect.enabled=true",
+            "--set",
+            "connect.backendMode=standalone",
+            "--set",
+            "standalone.enabled=true",
+            "--set",
+            "standalone.image.repository=spark-custom",
+            "--set",
+            "standalone.image.tag=3.5.7",
+            "--set",
+            "global.s3.accessKey=x",
+            "--set",
+            "global.s3.secretKey=x",
+        ],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    assert result.returncode == 0, f"helm template failed: {result.stderr}"
+    assert "spark.master=spark://my-release-standalone-master:7077" in result.stdout
+    assert "my-release-spark-35-standalone-master" not in result.stdout
+
+
 def test_no_subchart_dependency() -> None:
     """F036-02: Chart.yaml must not contain spark-standalone dependency."""
     import yaml

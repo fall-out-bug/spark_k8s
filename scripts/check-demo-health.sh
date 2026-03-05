@@ -51,8 +51,8 @@ check_pod_running() {
 }
 
 check "MinIO pod running"                check_pod_running "app=minio"
-check "Spark Master pod running"         check_pod_running "app.kubernetes.io/component=spark-master"
-check "Spark Worker pod running"         check_pod_running "app.kubernetes.io/component=spark-worker"
+check "Spark Master pod running"         check_pod_running "app.kubernetes.io/component=standalone-master"
+check "Spark Worker pod running"         check_pod_running "app.kubernetes.io/component=standalone-worker"
 check "Airflow Webserver pod running"    check_pod_running "app.kubernetes.io/component=airflow-webserver"
 check "Hive Metastore pod running"       check_pod_running "app.kubernetes.io/component=hive-metastore"
 check "History Server pod running"       check_pod_running "app.kubernetes.io/component=history-server"

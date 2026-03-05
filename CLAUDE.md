@@ -302,7 +302,9 @@ hooks/post-build.sh WS-001-01 project.module
 
 ### Manual Validation
 ```bash
-python scripts/validate.py docs/workstreams/backlog/
+hooks/pre-build.sh {WS-ID}
+# or
+sdp drift detect
 ```
 
 ## Quality Gates (Enforced)

@@ -11,7 +11,7 @@
 The Spark K8s Constructor provides modular Helm charts for deploying Apache Spark on Kubernetes. Components can be combined like LEGO blocks to create optimal configurations for your team's needs.
 
 **Two architectures:**
-- **Spark 3.5:** Modular subcharts (spark-base, spark-connect, spark-standalone)
+- **Spark 3.5:** Parent chart with inline templates (standalone, airflow, kubernetes) + spark-base dependency
 - **Spark 4.1:** Unified chart with toggle-flags
 
 ---
@@ -32,13 +32,17 @@ The Spark K8s Constructor provides modular Helm charts for deploying Apache Spar
 
 ## LEGO Blocks
 
-### Spark 3.5 (Modular Charts)
+### Spark 3.5 (Parent Chart + Inline Templates)
 
 ```
-charts/spark-3.5/charts/
-├── spark-base/          # Base image, shared configs
-├── spark-connect/       # Spark Connect server
-└── spark-standalone/    # Master/Workers + Airflow + MLflow
+charts/spark-3.5/
+├── charts/
+│   └── spark-base-*.tgz   # Base image, shared configs
+└── templates/
+    ├── standalone/         # Master/Workers (--set standalone.enabled=true)
+    ├── airflow/            # Airflow (--set airflow.enabled=true)
+    ├── spark-connect.yaml  # Connect server (--set connect.enabled=true)
+    └── kubernetes/         # K8s submitter (--set kubernetes.enabled=true)
 ```
 
 ### Spark 4.1 (Unified Chart)
@@ -77,7 +81,7 @@ charts/spark-4.1/
 
 ```bash
 # For Spark 3.5
-cd charts/spark-3.5/charts/spark-connect
+helm install spark charts/spark-3.5 --set connect.enabled=true
 
 # For Spark 4.1
 cd charts/spark-4.1

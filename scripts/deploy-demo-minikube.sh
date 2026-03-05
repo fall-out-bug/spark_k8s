@@ -32,13 +32,13 @@ helm_safe_install spark-infra "$CHART_PATH" "$NAMESPACE" \
   --set global.s3.accessKey=minioadmin \
   --set global.s3.secretKey=minioadmin \
   --set spark-base.postgresql.auth.password=postgres \
-  --set standalone.airflow.postgresql.auth.password=airflow \
+  --set standalone.airflow.postgresql.auth.password=postgres \
   --timeout 15m \
   --wait
 
 echo "Waiting for pods..."
 kubectl wait --for=condition=ready pod -l app=minio -n "$NAMESPACE" --timeout=120s || true
-kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=spark-master -n "$NAMESPACE" --timeout=180s || true
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=standalone-master -n "$NAMESPACE" --timeout=180s || true
 
 # Deploy observability
 "$PROJECT_ROOT/scripts/tests/minikube/deploy-observability.sh"

@@ -14,9 +14,9 @@ echo "=== Scaling down Standalone, Airflow, Jupyter ==="
 # Standalone + Airflow
 kubectl scale deployment spark-infra-standalone-master -n "$NAMESPACE" --replicas=0 2>/dev/null || true
 kubectl scale deployment spark-infra-standalone-worker -n "$NAMESPACE" --replicas=0 2>/dev/null || true
-kubectl scale deployment spark-infra-standalone-airflow-webserver -n "$NAMESPACE" --replicas=0 2>/dev/null || true
-kubectl scale deployment spark-infra-standalone-airflow-scheduler -n "$NAMESPACE" --replicas=0 2>/dev/null || true
-kubectl scale statefulset spark-infra-standalone-airflow-postgresql -n "$NAMESPACE" --replicas=0 2>/dev/null || true
+kubectl scale deployment spark-infra-airflow-webserver -n "$NAMESPACE" --replicas=0 2>/dev/null || true
+kubectl scale deployment spark-infra-airflow-scheduler -n "$NAMESPACE" --replicas=0 2>/dev/null || true
+kubectl scale statefulset spark-infra-airflow-postgresql -n "$NAMESPACE" --replicas=0 2>/dev/null || true
 
 # Jupyter
 kubectl scale deployment spark-infra-spark-35-jupyter -n "$NAMESPACE" --replicas=0 2>/dev/null || true

@@ -435,7 +435,7 @@ connect:
   backendMode: "k8s"
   # Standalone backend configuration (used when backendMode=standalone)
   standalone:
-    masterService: "spark-sa-spark-standalone-master"
+    masterService: ""  # Default: {Release.Name}-standalone-master
     masterPort: 7077
   executor:
     cores: "1"

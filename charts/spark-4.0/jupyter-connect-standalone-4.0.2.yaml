@@ -8,7 +8,7 @@ connect:
   backendMode: standalone
   replicas: 1
 
-sparkStandalone:
+standalone:
   enabled: true
   worker:
     replicas: 2

@@ -53,8 +53,8 @@
 
 - **Smoke (Connect доступен):** `kubectl run nc --rm -i --restart=Never -n spark-35-jupyter-sa --image=busybox:1.36 -- nc -zv scenario1-spark-35-connect 15002`.
 - **Load-тест:** выполняется **в кластере** (под с образом spark-custom). По умолчанию пишет event log в S3 (`LOAD_EVENT_LOG_DIR=s3a://spark-logs/events`) и **обязательно** проверяет, что History Server показывает приложение после теста (иначе тест падает). Endpoint MinIO по умолчанию: `http://minio.spark-infra.svc.cluster.local:9000`.
-  `./scripts/test-spark-connect-standalone-load.sh spark-35-jupyter-sa scenario1 scenario1-spark-35-standalone-master:7077`
-  (release `scenario1`, Standalone master: `scenario1-spark-35-standalone-master:7077`)
+  `./scripts/test-connect-standalone-load.sh spark-35-jupyter-sa scenario1 scenario1-standalone-master:7077`
+  (release `scenario1`, Standalone master: `scenario1-standalone-master:7077`)
 - **Проверка History Server:** `./scripts/tests/minikube/verify-history-server.sh`
 - **E2E:** `./scripts/tests/integration/test-spark-35-minikube.sh` (при наличии образов и namespace).
 - **Load:** скрипты из `scripts/tests/load/` (читают/пишут S3) и `scripts/test-spark-connect-standalone-load.sh`.

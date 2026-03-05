@@ -7,7 +7,7 @@ RELEASE="${2:-spark-sa}"
 # Install example (Spark 3.5 umbrella chart):
 # helm install "${RELEASE}" charts/spark-3.5 --set standalone.enabled=true
 
-MASTER_SELECTOR="app=spark-master,app.kubernetes.io/instance=${RELEASE}"
+MASTER_SELECTOR="app.kubernetes.io/component=standalone-master,app.kubernetes.io/instance=${RELEASE}"
 WORKER_SELECTOR="app=spark-worker,app.kubernetes.io/instance=${RELEASE}"
 
 echo "=== Testing Spark Standalone Chart (${RELEASE} in ${NAMESPACE}) ==="

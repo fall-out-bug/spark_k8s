@@ -3,8 +3,8 @@
 # Components: Airflow + MinIO + Spark Operator
 # Note: Spark Operator deployed separately in operator namespace
 
-# This preset is for the spark-standalone chart which contains Airflow
-# For Spark 4.0, use charts/spark-3.5/charts/spark-standalone
+# This preset is for Airflow with Spark Operator
+# For Spark 4.0, use charts/spark-3.5 (parent chart with airflow.enabled=true)
 
 # Spark Operator deployment (separate chart):
 # helm install spark-operator charts/spark-operator -n <operator-namespace> \
@@ -68,7 +68,7 @@ security:
   podSecurityStandards: false
 
 # DAG files for Spark Operator
-# See: charts/spark-3.5/charts/spark-standalone/files/airflow/dags/spark_operator_e2e.py
+# See: charts/spark-3.5/dags/ (Airflow DAGs)
 # Required Airflow variables:
 # - spark_image: spark-custom:4.0.2
 # - spark_namespace: <namespace>

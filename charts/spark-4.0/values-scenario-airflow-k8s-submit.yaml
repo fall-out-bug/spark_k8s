@@ -3,8 +3,8 @@
 # Components: Airflow + MinIO
 # Note: Spark Connect is NOT used; jobs submitted directly to K8s via spark-submit
 
-# This preset is for the spark-standalone chart which contains Airflow
-# For Spark 4.0, use charts/spark-3.5/charts/spark-standalone
+# This preset is for Airflow with K8s submit
+# For Spark 4.0, use charts/spark-3.5 (parent chart with airflow.enabled=true)
 
 # K8s submit scenario uses Airflow variables for Spark configuration:
 # - spark_image: spark-custom:4.0.2
@@ -67,4 +67,4 @@ security:
   podSecurityStandards: false
 
 # DAG files for Spark K8s submit
-# See: charts/spark-3.5/charts/spark-standalone/files/airflow/dags/spark_k8s_submit_e2e.py
+# See: charts/spark-3.5/dags/ (Airflow DAGs)

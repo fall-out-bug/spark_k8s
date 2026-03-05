@@ -9,7 +9,7 @@ data:
   spark-properties.conf.template: |-
     {{- if eq .Values.connect.backendMode "standalone" }}
     # Spark Master - Standalone backend mode
-    spark.master=spark://{{ .Values.connect.standalone.masterService }}:{{ .Values.connect.standalone.masterPort }}
+    spark.master=spark://{{ .Values.connect.standalone.masterService | default (printf "%s-standalone-master" .Release.Name) }}:{{ .Values.connect.standalone.masterPort | default 7077 }}
     spark.driver.bindAddress=0.0.0.0
     spark.driver.host={{ default (printf "%s-connect" (include "spark-4.0.fullname" .)) .Values.connect.driver.host }}
     spark.driver.port={{ .Values.connect.driver.port }}

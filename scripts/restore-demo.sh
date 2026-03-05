@@ -168,7 +168,7 @@ fi
 echo ""
 echo "[6/6] Waiting for core pods..."
 kubectl wait --for=condition=ready pod -l app=minio -n "$NAMESPACE" --timeout=120s 2>/dev/null || true
-kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=spark-master -n "$NAMESPACE" --timeout=180s 2>/dev/null || true
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=standalone-master -n "$NAMESPACE" --timeout=180s 2>/dev/null || true
 
 echo ""
 echo "=== Running health check ==="

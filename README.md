@@ -38,12 +38,17 @@ See [OpenShift notes](docs/guides/en/openshift-notes.md) for details.
 
 ## Charts
 
-### Spark 3.5 (Modular Charts)
+### Spark 3.5 (Parent Chart)
 
-| Chart | Description | Quick Start |
-|-------|-------------|-------------|
-| [spark-connect](charts/spark-3.5/charts/spark-connect) | Spark Connect server (gRPC) | `helm install spark-connect charts/spark-3.5/charts/spark-connect` |
-| [spark-standalone](charts/spark-3.5/charts/spark-standalone) | Master + Workers + Airflow + MLflow | `helm install spark-standalone charts/spark-3.5/charts/spark-standalone` |
+Single parent chart with optional components. Enable modes via `--set`:
+
+| Mode | Description | Quick Start |
+|------|-------------|-------------|
+| Connect only | Spark Connect server (gRPC) | `helm install spark charts/spark-3.5 --set connect.enabled=true` |
+| Connect + Standalone | Connect + Master + Workers | `helm install spark charts/spark-3.5 --set connect.enabled=true --set standalone.enabled=true` |
+| Kubernetes Native | K8s submitter (no Connect) | `helm install spark charts/spark-3.5 --set kubernetes.enabled=true` |
+
+See [Backend Modes](#backend-modes) for full options.
 
 ### Spark 4.1 (Unified Chart)
 
@@ -85,8 +90,8 @@ Pre-configured values files for common scenarios:
 helm install spark charts/spark-4.1 -f charts/spark-4.1/values-scenario-jupyter-connect-k8s.yaml
 
 # Spark 3.5 example
-helm install spark-connect charts/spark-3.5/charts/spark-connect \
-  -f charts/spark-3.5/charts/spark-connect/values-scenario-jupyter-connect-k8s.yaml
+helm install spark charts/spark-3.5 --set connect.enabled=true \
+  -f charts/spark-3.5/presets/scenarios/jupyter-connect-k8s.yaml
 ```
 
 ### OCI Registry Install (Alternative)

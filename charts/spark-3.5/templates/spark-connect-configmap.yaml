@@ -22,7 +22,7 @@ data:
     {{- else if eq .Values.connect.backendMode "standalone" }}
     # Spark Connect Server runs in standalone mode
     # Driver connects to standalone Spark master
-    spark.master=spark://{{ include "spark-3.5.fullname" . }}-standalone-master:7077
+    spark.master=spark://{{ .Values.connect.standalone.masterService | default (printf "%s-standalone-master" .Release.Name) }}:{{ .Values.connect.standalone.masterPort | default 7077 }}
     spark.driver.bindAddress=0.0.0.0
     spark.driver.host={{ default (printf "%s-connect" (include "spark-3.5.fullname" .)) .Values.connect.driver.host }}
     {{- end }}

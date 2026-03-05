@@ -15,7 +15,7 @@
 #
 # Prerequisites:
 # - Spark Standalone master must be deployed separately
-# - Default master service: spark-sa-spark-standalone-master:7077
+# - Default master service: {Release.Name}-standalone-master:7077
 #
 # Usage:
 #   helm install my-spark charts/spark-4.0 -f charts/spark-4.0/presets/scenarios/jupyter-connect-standalone.yaml
@@ -70,7 +70,7 @@ connect:
     host: ""  # Set to "<release>-spark-40-connect.<namespace>.svc.cluster.local"
     port: 7078
   standalone:
-    masterService: "spark-sa-spark-standalone-master"
+    masterService: ""  # Default: {Release.Name}-standalone-master
     masterPort: 7077
   eventLog:
     enabled: true

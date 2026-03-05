@@ -41,7 +41,7 @@ connect:
     port: 7078
   standalone:
     enabled: true
-    masterService: "spark-3.5-spark-35-standalone-master"
+    masterService: ""  # Default: {Release.Name}-standalone-master
     masterPort: 7077
   eventLog:
     enabled: false

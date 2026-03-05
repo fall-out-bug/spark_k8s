@@ -57,7 +57,7 @@ metadata:
     app.kubernetes.io/component: airflow-webserver
 type: Opaque
 stringData:
-  secret-key: "ul0ouvRqKh1BwYIhdw8xrk8Gvmlni9DK"
+  secret-key: "cy0RfDM9WXakZrZYpAoLfKnCEMgVIIbx"
 ---
 # Source: spark-3.5/templates/hive-metastore.yaml
 apiVersion: v1

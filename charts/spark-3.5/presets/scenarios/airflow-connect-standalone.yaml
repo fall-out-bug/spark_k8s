@@ -72,7 +72,7 @@ connect:
     memory: "512Mi"
     memoryLimit: "640Mi"
   standalone:
-    masterService: "spark-sa-spark-standalone-master"
+    masterService: ""  # Default: {Release.Name}-standalone-master
     masterPort: 7077
   eventLog:
     enabled: true

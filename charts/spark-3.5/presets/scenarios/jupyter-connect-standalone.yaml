@@ -70,7 +70,7 @@ connect:
     host: ""  # Set to "<release>-spark-35-connect.<namespace>.svc.cluster.local"
     port: 7078
   standalone:
-    masterService: "spark-sa-spark-standalone-master"
+    masterService: ""  # Default: {Release.Name}-standalone-master
     masterPort: 7077
   eventLog:
     enabled: true

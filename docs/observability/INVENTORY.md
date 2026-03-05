@@ -30,8 +30,8 @@
 |-----|--------|------|---------|
 | prometheus | localhost | 9090 | Self |
 | demo-metrics-exporter | demo-metrics-exporter.observability | 9108 | spark_*, airflow_* |
-| spark-master | spark-infra-spark-standalone-master | 8080 | Spark Master UI |
-| spark-worker | pods (spark-worker) | 8081 | Spark Worker UI |
+| spark-master | spark-infra-standalone-master | 8080 | Spark Master UI |
+| spark-worker | pods (standalone-worker) | 8081 | Spark Worker UI |
 | otel-collector | otel-collector.observability | 8889 | OTEL metrics |
 
 **Ключевые метрики (demo-metrics-exporter):**

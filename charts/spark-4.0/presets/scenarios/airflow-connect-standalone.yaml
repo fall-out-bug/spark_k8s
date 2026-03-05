@@ -15,7 +15,7 @@
 # Prerequisites:
 # - Airflow must be deployed separately
 # - Spark Standalone master must be deployed separately
-# - Default master service: spark-sa-spark-standalone-master:7077
+# - Default master service: {Release.Name}-standalone-master:7077
 # - Airflow SparkHook connects to: sc://<release>-spark-connect:15002
 #
 # Usage:
@@ -72,7 +72,7 @@ connect:
     memory: "512Mi"
     memoryLimit: "640Mi"
   standalone:
-    masterService: "spark-sa-spark-standalone-master"
+    masterService: ""  # Default: {Release.Name}-standalone-master
     masterPort: 7077
   eventLog:
     enabled: true

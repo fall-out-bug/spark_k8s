@@ -11,7 +11,7 @@
 Данный конструктор представляет собой набор модульных Helm чартов для развёртывания Apache Spark в Kubernetes. Компоненты можно комбинировать как LEGO-блоки для создания оптимальной конфигурации под конкретные нужды команды.
 
 **Две архитектуры:**
-- **Spark 3.5:** Модульные subcharts (spark-base, spark-connect, spark-standalone)
+- **Spark 3.5:** Родительский чарт с inline-шаблонами (standalone, airflow, kubernetes) + зависимость spark-base
 - **Spark 4.1:** Единый чарт с toggle-flags
 
 ---
@@ -32,13 +32,17 @@
 
 ## LEGO-блоки
 
-### Spark 3.5 (модульные чарты)
+### Spark 3.5 (родительский чарт + inline-шаблоны)
 
 ```
-charts/spark-3.5/charts/
-├── spark-base/          # Базовый образ, общие конфиги
-├── spark-connect/       # Spark Connect server
-└── spark-standalone/    # Master/Workers + Airflow + MLflow
+charts/spark-3.5/
+├── charts/
+│   └── spark-base-*.tgz   # Базовый образ, общие конфиги
+└── templates/
+    ├── standalone/         # Master/Workers (--set standalone.enabled=true)
+    ├── airflow/           # Airflow (--set airflow.enabled=true)
+    ├── spark-connect.yaml # Connect server (--set connect.enabled=true)
+    └── kubernetes/        # K8s submitter (--set kubernetes.enabled=true)
 ```
 
 ### Spark 4.1 (единый чарт)
@@ -76,7 +80,7 @@ charts/spark-4.1/
 **Шаг 1: Выберите чарт**
 ```bash
 # Для Spark 3.5
-cd charts/spark-3.5/charts/spark-connect
+helm install spark charts/spark-3.5 --set connect.enabled=true
 
 # Для Spark 4.1
 cd charts/spark-4.1
