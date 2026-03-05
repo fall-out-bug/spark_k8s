@@ -839,7 +839,7 @@ See `docs/reports/review-F15-full-2026-02-13.md`. UAT guide: `docs/uat/UAT-F15-p
 | WS-016-02 | Logging aggregation (Loki) | MEDIUM (~600 LOC) | F06 | completed |
 | WS-016-03 | Distributed tracing (Jaeger/OTel) | MEDIUM (~600 LOC) | F06 | completed |
 | WS-016-04 | Dashboards (Grafana) | MEDIUM (~500 LOC) | WS-016-01, WS-016-02 | completed |
-| WS-016-05 | Alerting rules | MEDIUM (~400 LOC) | WS-016-01 | backlog |
+| WS-016-05 | Alerting rules | MEDIUM (~400 LOC) | WS-016-01 | completed |
 | WS-016-06 | Spark UI integration | MEDIUM (~800 LOC) | WS-016-01, WS-016-03 | backlog |
 
 ### Dependency Graph

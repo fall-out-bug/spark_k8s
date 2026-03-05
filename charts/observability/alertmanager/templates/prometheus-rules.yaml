@@ -1,0 +1,73 @@
+{{/*
+PrometheusRule for Spark alerts (WS-016-05)
+AC2: critical, AC3: warning, AC6: testing scenarios
+Picked up by prometheus-operator when deployed
+*/}}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ .Release.Name }}-spark-alerts
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: alertmanager-spark
+    app.kubernetes.io/component: alert-rules
+    release: {{ .Release.Name }}
+    prometheus: k8s
+    role: alert-rules
+spec:
+  groups:
+    - name: spark-critical
+      rules:
+        - alert: SparkPodCrashLooping
+          expr: rate(kube_pod_container_status_restarts_total{namespace=~"spark.*"}[15m]) > 0
+          for: 5m
+          labels:
+            severity: critical
+            component: spark
+          annotations:
+            summary: Spark pod crash looping
+            description: "Pod {{`{{ $labels.pod }}`}} in namespace {{`{{ $labels.namespace }}`}} is crash looping"
+
+        - alert: SparkExecutorOOMKilled
+          expr: kube_pod_container_status_terminated_reason{namespace=~"spark.*",reason="OOMKilled"} == 1
+          for: 1m
+          labels:
+            severity: critical
+            component: spark
+          annotations:
+            summary: Spark executor OOM killed
+            description: "Pod {{`{{ $labels.pod }}`}} was OOM killed in namespace {{`{{ $labels.namespace }}`}}"
+
+    - name: spark-warning
+      rules:
+        - alert: SparkHighGCTime
+          expr: rate(jvm_gc_collection_seconds_sum{namespace=~"spark.*"}[5m]) / rate(jvm_gc_collection_seconds_count{namespace=~"spark.*"}[5m]) > 0.1
+          for: 10m
+          labels:
+            severity: warning
+            component: spark
+          annotations:
+            summary: High GC time detected
+            description: "Executor {{`{{ $labels.pod }}`}} has high GC time (>100ms)"
+
+        - alert: SparkHighShuffleSpill
+          expr: increase(spark_executor_disk_spill_bytes{namespace=~"spark.*"}[5m]) > 10485760
+          for: 10m
+          labels:
+            severity: warning
+            component: spark
+          annotations:
+            summary: High shuffle spill detected
+            description: "Executor {{`{{ $labels.pod }}`}} spilling >10MB to disk"
+
+    - name: spark-info
+      rules:
+        - alert: SparkApplicationCompleted
+          expr: spark_application_status{namespace=~"spark.*",status="COMPLETED"} > 0
+          for: 1m
+          labels:
+            severity: info
+            component: spark
+          annotations:
+            summary: Spark application completed
+            description: "Application {{`{{ $labels.app_name }}`}} completed successfully"
