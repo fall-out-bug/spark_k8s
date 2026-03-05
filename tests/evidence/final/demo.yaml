@@ -1,0 +1,2518 @@
+---
+# Source: spark-3.5/templates/rbac.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: spark-35
+  labels:
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+---
+# Source: spark-3.5/charts/spark-base/templates/minio.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: s3-credentials
+  labels:
+    app: minio
+    helm.sh/chart: spark-base-0.1.0
+    app.kubernetes.io/name: spark-base
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: "0.1.0"
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+stringData:
+  access-key: minioadmin
+  secret-key: minioadmin
+---
+# Source: spark-3.5/charts/spark-base/templates/postgresql.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: evidence-demo-spark-base-postgresql-credentials
+  labels:
+    app: postgresql
+    helm.sh/chart: spark-base-0.1.0
+    app.kubernetes.io/name: spark-base
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: "0.1.0"
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+stringData:
+  POSTGRES_USER: "postgres"
+  POSTGRES_PASSWORD: "x"
+---
+# Source: spark-3.5/templates/airflow/webserver.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: evidence-demo-airflow-secret
+  labels:
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+    app.kubernetes.io/component: airflow-webserver
+type: Opaque
+stringData:
+  secret-key: "ul0ouvRqKh1BwYIhdw8xrk8Gvmlni9DK"
+---
+# Source: spark-3.5/templates/hive-metastore.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: evidence-demo-spark-35-metastore-db
+  labels:
+    app: hive-metastore
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+type: Opaque
+stringData:
+  POSTGRES_USER: "postgres"
+  POSTGRES_PASSWORD: "postgres"
+  POSTGRES_PORT: "5432"
+---
+# Source: spark-3.5/charts/spark-base/templates/postgresql.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: evidence-demo-spark-base-postgresql-init
+  labels:
+    app: postgresql
+    helm.sh/chart: spark-base-0.1.0
+    app.kubernetes.io/name: spark-base
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: "0.1.0"
+    app.kubernetes.io/managed-by: Helm
+data:
+  init-dbs.sh: |
+    #!/bin/sh
+    set -e
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-'EOSQL'
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT FROM pg_database WHERE datname = 'spark_db') THEN
+        CREATE DATABASE "spark_db";
+      END IF;
+    END $$;
+    EOSQL
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-'EOSQL'
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT FROM pg_database WHERE datname = 'airflow') THEN
+        CREATE DATABASE "airflow";
+      END IF;
+    END $$;
+    EOSQL
+---
+# Source: spark-3.5/templates/airflow/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: evidence-demo-airflow-config
+  labels:
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+    app.kubernetes.io/component: airflow-webserver
+data:
+  airflow.cfg: |
+    [core]
+    dags_folder = /opt/airflow/dags
+    load_examples = False
+    executor = LocalExecutor
+
+    [database]
+    sql_alchemy_conn = "postgresql://postgres:postgres@spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local:5432/airflow"
+
+    [webserver]
+    expose_config = True
+    rbac = True
+    base_url = http://localhost:8080
+
+    [scheduler]
+    catchup_by_default = False
+
+    [kubernetes]
+    namespace = default
+
+    [logging]
+    base_log_folder = /opt/airflow/logs
+  variables.json: |
+    {"s3_access_key":"minioadmin","s3_endpoint":"http://minio:9000","s3_secret_key":"minioadmin","spark_image":"spark-custom:3.5.7","spark_namespace":"spark"}
+---
+# Source: spark-3.5/templates/airflow/dags-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: evidence-demo-airflow-dags
+  labels:
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+    app.kubernetes.io/component: airflow-webserver
+data:
+  nyc_taxi_ml_full_pipeline.py: |
+    """NYC Taxi ML full pipeline (Airflow + Spark Standalone via KPO)."""
+
+    import logging
+    import os
+    from datetime import datetime, timedelta
+
+    from airflow import DAG
+    from airflow.operators.python import PythonOperator
+    from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
+
+    logger = logging.getLogger(__name__)
+
+    _MASTER_HOST = os.environ.get("SPARK_MASTER_HOST", "spark-infra-standalone-master")
+
+    CONFIG = {
+        "namespace": "spark-infra",
+        "spark_master": f"spark://{_MASTER_HOST}:7077",
+        "minio_endpoint": "http://minio.spark-infra.svc.cluster.local:9000",
+        # Pushgateway (9091); empty = disabled. Prometheus (9090) does not accept push.
+        "pushgateway_url": "",  # Set via PUSHGATEWAY_URL if Pushgateway deployed
+        "otel_endpoint": "http://otel-collector.observability.svc.cluster.local:4317",
+        "model_version": datetime.now().strftime("%Y%m%d"),
+        "mape_threshold": 0.75,
+    }
+
+    default_args = {
+        "owner": "ml-team",
+        "depends_on_past": False,
+        "start_date": datetime(2026, 2, 1),
+        "retries": 2,
+        "retry_delay": timedelta(minutes=5),
+    }
+
+
+    def push_metric(name, value, labels=None):
+        """Push metric to Prometheus Pushgateway. No-op if pushgateway_url empty or Pushgateway unavailable."""
+        url = str(CONFIG.get("pushgateway_url") or "")
+        if not url or ":9091" not in url:
+            return  # Pushgateway not configured or wrong port (Prometheus 9090 does not accept push)
+        import requests
+
+        labels = labels or {}
+        labels["version"] = CONFIG["model_version"]
+        label_str = ",".join([f'{k}="{v}"' for k, v in labels.items()])
+        payload = f"# TYPE {name} gauge\n{name}{{{label_str}}} {value}\n"
+        try:
+            requests.post(f"{url}/metrics/job/nyc_taxi_ml_pipeline", data=payload, timeout=5)
+        except Exception as exc:
+            logger.debug(f"Pushgateway push skipped for {name}: {exc}")
+
+
+    def build_spark_submit_pod_task(task_id: str, script_name: str, extra_env: dict | None = None):
+        env_vars = {
+            "MINIO_ENDPOINT": CONFIG["minio_endpoint"],
+            "MINIO_ACCESS_KEY": "minioadmin",
+            "MINIO_SECRET_KEY": "minioadmin",
+            "PUSHGATEWAY_URL": CONFIG["pushgateway_url"],
+        }
+        if extra_env:
+            env_vars.update(extra_env)
+
+        runtime_deps_cmd = ""
+
+        command = (
+            runtime_deps_cmd
+            + 'python3 -c "import os,boto3;'
+            + f"s3=boto3.client('s3',endpoint_url=os.environ['MINIO_ENDPOINT'],aws_access_key_id=os.environ['MINIO_ACCESS_KEY'],aws_secret_access_key=os.environ['MINIO_SECRET_KEY']);s3.download_file('spark-jobs','dags/spark_jobs/{script_name}','/tmp/{script_name}')\""
+            + f" && DRIVER_HOST=$(hostname -i) && /opt/spark/bin/spark-submit --master {CONFIG['spark_master']} "
+            "--conf spark.driver.host=$DRIVER_HOST "
+            "--conf spark.driver.bindAddress=0.0.0.0 "
+            "--conf spark.executor.instances=1 "
+            "--conf spark.cores.max=1 "
+            "--conf spark.executor.cores=1 "
+            "--conf spark.executor.memory=512m "
+            "--conf spark.driver.memory=512m "
+            "--conf spark.sql.shuffle.partitions=4 "
+            "--conf spark.default.parallelism=1 "
+            "--conf spark.hadoop.fs.s3a.endpoint=http://minio.spark-infra.svc.cluster.local:9000 "
+            "--conf spark.hadoop.fs.s3a.access.key=minioadmin "
+            "--conf spark.hadoop.fs.s3a.secret.key=minioadmin "
+            "--conf spark.hadoop.fs.s3a.path.style.access=true "
+            "--conf spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem "
+            "--conf spark.eventLog.enabled=true "
+            "--conf spark.eventLog.dir=s3a://spark-logs/events/ "
+            "--conf spark.extraListeners=org.apache.spark.openTelemetry.OpenTelemetryListener "
+            "--conf spark.openTelemetry.exporter.protocol=grpc "
+            f"--conf spark.openTelemetry.exporter.endpoint={CONFIG['otel_endpoint']} "
+            "--conf spark.openTelemetry.resource.attributes=service.name=nyc-taxi-ml "
+            f"/tmp/{script_name}"
+        )
+
+        return KubernetesPodOperator(
+            task_id=task_id,
+            name=f"nyc-taxi-{task_id.replace('_', '-')}",
+            namespace=CONFIG["namespace"],
+            image="spark-custom-ml:3.5.7",
+            image_pull_policy="IfNotPresent",
+            cmds=["/bin/bash", "-lc"],
+            arguments=[command],
+            env_vars=env_vars,
+            service_account_name="spark-standalone",
+            get_logs=True,
+            random_name_suffix=True,
+            reattach_on_restart=False,
+            on_finish_action="keep_pod",
+            is_delete_operator_pod=False,
+            in_cluster=True,
+        )
+
+
+    def check_data_availability(**context):
+        import boto3
+        from botocore.client import Config
+
+        s3 = boto3.client(
+            "s3",
+            endpoint_url=CONFIG["minio_endpoint"],
+            aws_access_key_id="minioadmin",
+            aws_secret_access_key="minioadmin",
+            config=Config(signature_version="s3v4"),
+        )
+        file_count = s3.list_objects_v2(Bucket="nyc-taxi", Prefix="raw/").get("KeyCount", 0)
+        if file_count < 4:
+            raise ValueError(f"Insufficient data: only {file_count} files found")
+        push_metric("ml_data_files_available", file_count, {"stage": "validation"})
+        return {"file_count": file_count}
+
+
+    def validate_models(**context):
+        import json
+        import pickle
+
+        import boto3
+
+        s3 = boto3.client(
+            "s3",
+            endpoint_url=CONFIG["minio_endpoint"],
+            aws_access_key_id="minioadmin",
+            aws_secret_access_key="minioadmin",
+        )
+
+        boroughs = ["manhattan", "brooklyn", "queens", "bronx", "staten_island"]
+        passed_count = 0
+        for borough in boroughs:
+            try:
+                metrics_key = f"taxi-predictor/v{CONFIG['model_version']}/{borough}.metrics.json"
+                try:
+                    data = json.loads(s3.get_object(Bucket="ml-models", Key=metrics_key)["Body"].read().decode("utf-8"))
+                except Exception:
+                    model = pickle.loads(
+                        s3.get_object(Bucket="ml-models", Key=f"taxi-predictor/v{CONFIG['model_version']}/{borough}.pkl")[
+                            "Body"
+                        ].read()
+                    )
+                    data = {"mape_revenue": model.get("mape_revenue", 999.0), "mape_trips": model.get("mape_trips", 999.0)}
+
+                mape_rev = float(data.get("mape_revenue", 999.0))
+                mape_trips = float(data.get("mape_trips", 999.0))
+                if mape_rev < CONFIG["mape_threshold"] and mape_trips < CONFIG["mape_threshold"]:
+                    passed_count += 1
+            except Exception as exc:
+                logger.error(f"Error validating {borough}: {exc}")
+
+        push_metric("ml_validation_models_passed", passed_count, {"stage": "validation"})
+        push_metric("ml_validation_total_models", len(boroughs), {"stage": "validation"})
+        if passed_count == 0:
+            raise ValueError("No models passed validation")
+
+
+    with DAG(
+        "nyc_taxi_ml_full_pipeline",
+        default_args=default_args,
+        description="NYC Taxi ML Pipeline with Metrics",
+        schedule_interval="0 6 * * *",
+        catchup=False,
+        tags=["ml", "nyc-taxi", "production"],
+        max_active_runs=1,
+    ) as dag:
+        check_data = PythonOperator(task_id="check_data_availability", python_callable=check_data_availability)
+
+        feature_prep = build_spark_submit_pod_task(task_id="feature_engineering", script_name="taxi_feature_engineering.py")
+
+        train_models = build_spark_submit_pod_task(task_id="train_models", script_name="taxi_catboost_training.py")
+
+        validate = PythonOperator(task_id="validate_models", python_callable=validate_models)
+
+        predict = build_spark_submit_pod_task(
+            task_id="generate_predictions",
+            script_name="taxi_predict.py",
+            extra_env={"MODEL_VERSION": CONFIG["model_version"]},
+        )
+
+        check_data >> feature_prep >> train_models >> validate >> predict
+
+  spark_standalone_load_demo.py: |
+    """Airflow DAG for Spark Standalone load demo via KubernetesPodOperator."""
+
+    from datetime import datetime
+
+    from airflow import DAG
+    from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
+
+    with DAG(
+        dag_id="spark_standalone_load_demo",
+        start_date=datetime(2024, 1, 1),
+        schedule_interval=None,
+        catchup=False,
+        tags=["spark", "standalone", "load", "demo"],
+    ) as dag:
+        run_spark_demo_pipeline = KubernetesPodOperator(
+            task_id="run_spark_demo_pipeline",
+            name="spark-standalone-load-demo",
+            namespace="spark-infra",
+            image="spark-custom:3.5.7",
+            image_pull_policy="IfNotPresent",
+            cmds=["/bin/bash", "-lc"],
+            arguments=[
+                (
+                    "cat > /tmp/airflow_demo_pipeline.py <<'PYEOF'\n"
+                    "from datetime import datetime\n"
+                    "from pyspark.sql import SparkSession\n"
+                    "from pyspark.sql.functions import col\n"
+                    "\n"
+                    "run_id = datetime.utcnow().strftime('%Y%m%d%H%M%S')\n"
+                    "\n"
+                    "spark = (SparkSession.builder\n"
+                    "    .appName('airflow-demo-pipeline')\n"
+                    "    .enableHiveSupport()\n"
+                    "    .getOrCreate())\n"
+                    "\n"
+                    "df = spark.range(200000).withColumn('bucket', col('id') % 20)\n"
+                    "output_path = f's3a://spark-jobs/airflow-demo/{run_id}/'\n"
+                    "df.write.mode('overwrite').parquet(output_path)\n"
+                    "\n"
+                    "agg = df.groupBy('bucket').count()\n"
+                    "agg.createOrReplaceTempView('agg')\n"
+                    "\n"
+                    "spark.sql(\"CREATE DATABASE IF NOT EXISTS demo_shared LOCATION 's3a://warehouse/spark-35/demo_shared.db'\")\n"
+                    "spark.sql('DROP TABLE IF EXISTS demo_shared.airflow_demo_metrics')\n"
+                    "spark.sql(\"CREATE TABLE demo_shared.airflow_demo_metrics USING PARQUET LOCATION 's3a://warehouse/spark-35/demo_shared.db/airflow_demo_metrics' AS SELECT * FROM agg\")\n"
+                    "rows = spark.sql('SELECT count(*) AS c FROM demo_shared.airflow_demo_metrics').collect()[0]['c']\n"
+                    "\n"
+                    "print(f'DEMO_PIPELINE_OK rows={rows} output={output_path}')\n"
+                    "spark.stop()\n"
+                    "PYEOF\n"
+                    "DRIVER_HOST=$(hostname -i) && "
+                    "SPARK_MASTER=${SPARK_MASTER_HOST:-spark-infra-standalone-master} && "
+                    "/opt/spark/bin/spark-submit "
+                    "--master spark://$SPARK_MASTER:7077 "
+                    "--conf spark.app.name=airflow-demo-pipeline "
+                    "--conf spark.driver.host=$DRIVER_HOST "
+                    "--conf spark.driver.bindAddress=0.0.0.0 "
+                    "--conf spark.executor.cores=1 "
+                    "--conf spark.executor.memory=512m "
+                    "--conf spark.driver.memory=512m "
+                    "--conf spark.sql.shuffle.partitions=8 "
+                    "--conf spark.sql.legacy.allowNonEmptyLocationInCTAS=true "
+                    "--conf spark.eventLog.enabled=true "
+                    "--conf spark.eventLog.dir=s3a://spark-logs/events "
+                    "--conf spark.hadoop.fs.s3a.endpoint=http://minio.spark-infra.svc.cluster.local:9000 "
+                    "--conf spark.hadoop.fs.s3a.access.key=minioadmin "
+                    "--conf spark.hadoop.fs.s3a.secret.key=minioadmin "
+                    "--conf spark.hadoop.fs.s3a.path.style.access=true "
+                    "--conf spark.hadoop.fs.s3a.connection.ssl.enabled=false "
+                    "--conf spark.hadoop.hive.metastore.uris=thrift://spark-infra-spark-35-metastore:9083 "
+                    "--conf spark.sql.warehouse.dir=s3a://warehouse/spark-35 "
+                    "/tmp/airflow_demo_pipeline.py"
+                )
+            ],
+            service_account_name="spark-standalone",
+            get_logs=True,
+            is_delete_operator_pod=True,
+            in_cluster=True,
+        )
+
+  citibike_analytics_pipeline.py: |
+    """
+    Citibike Analytics Pipeline - Airflow DAG
+    Analyzes bike-sharing trip data from NYC Citibike.
+    """
+
+    import os
+    from datetime import datetime, timedelta
+
+    from airflow import DAG
+    from airflow.operators.python import PythonOperator
+    from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
+
+    _MASTER_HOST = os.environ.get("SPARK_MASTER_HOST", "spark-infra-standalone-master")
+
+    CONFIG = {
+        "namespace": "spark-infra",
+        "spark_master": f"spark://{_MASTER_HOST}:7077",
+        "minio_endpoint": "http://minio.spark-infra.svc.cluster.local:9000",
+        "pushgateway_url": "http://prometheus.observability.svc.cluster.local:9090",
+    }
+
+    default_args = {
+        "owner": "analytics-team",
+        "depends_on_past": False,
+        "start_date": datetime(2026, 2, 1),
+        "retries": 2,
+        "retry_delay": timedelta(minutes=5),
+    }
+
+
+    def build_spark_submit_task(task_id: str, script_name: str, extra_env: dict | None = None):
+        """Create a KubernetesPodOperator task that runs a Spark job."""
+        env_vars = {
+            "MINIO_ENDPOINT": CONFIG["minio_endpoint"],
+            "MINIO_ACCESS_KEY": "minioadmin",
+            "MINIO_SECRET_KEY": "minioadmin",
+            "PUSHGATEWAY_URL": CONFIG["pushgateway_url"],
+        }
+        if extra_env:
+            env_vars.update(extra_env)
+
+        runtime_deps_cmd = "pip install -q boto3 && "
+
+        command = (
+            runtime_deps_cmd
+            + 'python3 -c "import os,boto3;'
+            + f"s3=boto3.client('s3',endpoint_url=os.environ['MINIO_ENDPOINT'],aws_access_key_id=os.environ['MINIO_ACCESS_KEY'],aws_secret_access_key=os.environ['MINIO_SECRET_KEY']);s3.download_file('spark-jobs','dags/spark_jobs/{script_name}','/tmp/{script_name}')\""
+            + f" && DRIVER_HOST=$(hostname -i) && /opt/spark/bin/spark-submit --master {CONFIG['spark_master']} "
+            "--conf spark.driver.host=$DRIVER_HOST "
+            "--conf spark.driver.bindAddress=0.0.0.0 "
+            "--conf spark.executor.instances=1 "
+            "--conf spark.cores.max=1 "
+            "--conf spark.executor.cores=1 "
+            "--conf spark.executor.memory=1g "
+            "--conf spark.driver.memory=1g "
+            "--conf spark.sql.shuffle.partitions=8 "
+            "--conf spark.default.parallelism=2 "
+            "--conf spark.eventLog.enabled=true "
+            "--conf spark.eventLog.dir=s3a://spark-logs/events/ "
+            "--conf spark.hadoop.fs.s3a.endpoint=http://minio.spark-infra.svc.cluster.local:9000 "
+            "--conf spark.hadoop.fs.s3a.access.key=minioadmin "
+            "--conf spark.hadoop.fs.s3a.secret.key=minioadmin "
+            "--conf spark.hadoop.fs.s3a.path.style.access=true "
+            "--conf spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem "
+            f"/tmp/{script_name}"
+        )
+
+        return KubernetesPodOperator(
+            task_id=task_id,
+            name=f"citibike-{task_id.replace('_', '-')}",
+            namespace=CONFIG["namespace"],
+            image="spark-custom-ml:3.5.7",
+            image_pull_policy="IfNotPresent",
+            cmds=["/bin/bash", "-lc"],
+            arguments=[command],
+            env_vars=env_vars,
+            service_account_name="spark-standalone",
+            get_logs=True,
+            random_name_suffix=True,
+            reattach_on_restart=False,
+            on_finish_action="keep_pod",
+            is_delete_operator_pod=False,
+            in_cluster=True,
+        )
+
+
+    def check_data_availability(**context):
+        """Check if Citibike data exists in MinIO."""
+        import boto3
+        from botocore.client import Config
+
+        s3 = boto3.client(
+            "s3",
+            endpoint_url=CONFIG["minio_endpoint"],
+            aws_access_key_id="minioadmin",
+            aws_secret_access_key="minioadmin",
+            config=Config(signature_version="s3v4"),
+        )
+
+        # Check for citibike bucket or create sample data
+        try:
+            buckets = [b["Name"] for b in s3.list_buckets()["Buckets"]]
+            if "citibike" not in buckets:
+                s3.create_bucket(Bucket="citibike")
+                # Create sample data marker
+                s3.put_object(Bucket="citibike", Key="raw/.initialized", Body=b"")
+        except Exception as e:
+            print(f"Bucket check/creation: {e}")
+
+        return {"status": "ready"}
+
+
+    with DAG(
+        "citibike_analytics_pipeline",
+        default_args=default_args,
+        description="Citibike Trip Analytics Pipeline",
+        schedule_interval="0 8 * * *",
+        catchup=False,
+        tags=["analytics", "citibike", "transportation"],
+        max_active_runs=1,
+    ) as dag:
+        check_data = PythonOperator(task_id="check_data_availability", python_callable=check_data_availability)
+
+        feature_prep = build_spark_submit_task(task_id="feature_engineering", script_name="citibike_feature_engineering.py")
+
+        generate_stats = build_spark_submit_task(task_id="generate_statistics", script_name="citibike_statistics.py")
+
+        check_data >> feature_prep >> generate_stats
+
+  movielens_recommendation_pipeline.py: |
+    """
+    MovieLens Recommendation Pipeline - Airflow DAG
+    Generates movie recommendations using collaborative filtering.
+    """
+
+    import os
+    from datetime import datetime, timedelta
+
+    from airflow import DAG
+    from airflow.operators.python import PythonOperator
+    from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
+
+    _MASTER_HOST = os.environ.get("SPARK_MASTER_HOST", "spark-infra-standalone-master")
+
+    CONFIG = {
+        "namespace": "spark-infra",
+        "spark_master": f"spark://{_MASTER_HOST}:7077",
+        "minio_endpoint": "http://minio.spark-infra.svc.cluster.local:9000",
+        "pushgateway_url": "http://prometheus.observability.svc.cluster.local:9090",
+    }
+
+    default_args = {
+        "owner": "ml-team",
+        "depends_on_past": False,
+        "start_date": datetime(2026, 2, 1),
+        "retries": 2,
+        "retry_delay": timedelta(minutes=5),
+    }
+
+
+    def build_spark_submit_task(task_id: str, script_name: str, extra_env: dict | None = None):
+        """Create a KubernetesPodOperator task that runs a Spark job."""
+        env_vars = {
+            "MINIO_ENDPOINT": CONFIG["minio_endpoint"],
+            "MINIO_ACCESS_KEY": "minioadmin",
+            "MINIO_SECRET_KEY": "minioadmin",
+            "PUSHGATEWAY_URL": CONFIG["pushgateway_url"],
+        }
+        if extra_env:
+            env_vars.update(extra_env)
+
+        runtime_deps_cmd = "pip install -q boto3 && "
+
+        command = (
+            runtime_deps_cmd
+            + 'python3 -c "import os,boto3;'
+            + f"s3=boto3.client('s3',endpoint_url=os.environ['MINIO_ENDPOINT'],aws_access_key_id=os.environ['MINIO_ACCESS_KEY'],aws_secret_access_key=os.environ['MINIO_SECRET_KEY']);s3.download_file('spark-jobs','dags/spark_jobs/{script_name}','/tmp/{script_name}')\""
+            + f" && DRIVER_HOST=$(hostname -i) && /opt/spark/bin/spark-submit --master {CONFIG['spark_master']} "
+            "--conf spark.driver.host=$DRIVER_HOST "
+            "--conf spark.driver.bindAddress=0.0.0.0 "
+            "--conf spark.executor.instances=1 "
+            "--conf spark.cores.max=1 "
+            "--conf spark.executor.cores=1 "
+            "--conf spark.executor.memory=1g "
+            "--conf spark.driver.memory=1g "
+            "--conf spark.sql.shuffle.partitions=8 "
+            "--conf spark.default.parallelism=2 "
+            "--conf spark.eventLog.enabled=true "
+            "--conf spark.eventLog.dir=s3a://spark-logs/events/ "
+            "--conf spark.hadoop.fs.s3a.endpoint=http://minio.spark-infra.svc.cluster.local:9000 "
+            "--conf spark.hadoop.fs.s3a.access.key=minioadmin "
+            "--conf spark.hadoop.fs.s3a.secret.key=minioadmin "
+            "--conf spark.hadoop.fs.s3a.path.style.access=true "
+            "--conf spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem "
+            f"/tmp/{script_name}"
+        )
+
+        return KubernetesPodOperator(
+            task_id=task_id,
+            name=f"movielens-{task_id.replace('_', '-')}",
+            namespace=CONFIG["namespace"],
+            image="spark-custom-ml:3.5.7",
+            image_pull_policy="IfNotPresent",
+            cmds=["/bin/bash", "-lc"],
+            arguments=[command],
+            env_vars=env_vars,
+            service_account_name="spark-standalone",
+            get_logs=True,
+            random_name_suffix=True,
+            reattach_on_restart=False,
+            on_finish_action="keep_pod",
+            is_delete_operator_pod=False,
+            in_cluster=True,
+        )
+
+
+    def download_movielens_data(**context):
+        """Download MovieLens 100k dataset."""
+        import io
+        import zipfile
+
+        import boto3
+        import requests
+
+        print("Downloading MovieLens 100k dataset...")
+
+        # Download dataset
+        url = "https://files.grouplens.org/datasets/movielens/ml-100k.zip"
+        response = requests.get(url, timeout=60)
+        response.raise_for_status()
+
+        # Extract and upload to MinIO
+        s3 = boto3.client(
+            "s3",
+            endpoint_url=CONFIG["minio_endpoint"],
+            aws_access_key_id="minioadmin",
+            aws_secret_access_key="minioadmin",
+        )
+
+        # Create bucket if needed
+        try:
+            s3.head_bucket(Bucket="movielens")
+        except Exception:
+            s3.create_bucket(Bucket="movielens")
+
+        # Extract and upload files
+        with zipfile.ZipFile(io.BytesIO(response.content)) as z:
+            for filename in ["u.data", "u.item", "u.user", "u.genre", "u.occupation"]:
+                with z.open(f"ml-100k/{filename}") as f:
+                    content = f.read()
+                    s3.put_object(Bucket="movielens", Key=f"raw/{filename}", Body=content)
+                    print(f"  Uploaded {filename} ({len(content)} bytes)")
+
+        print("MovieLens data ready!")
+        return {"files_uploaded": 5}
+
+
+    def validate_recommendations(**context):
+        """Validate generated recommendations."""
+        import boto3
+
+        s3 = boto3.client(
+            "s3",
+            endpoint_url=CONFIG["minio_endpoint"],
+            aws_access_key_id="minioadmin",
+            aws_secret_access_key="minioadmin",
+        )
+
+        # Check recommendations exist
+        try:
+            objs = s3.list_objects_v2(Bucket="movielens", Prefix="recommendations/")
+            count = objs.get("KeyCount", 0)
+            print(f"Found {count} recommendation files")
+            if count == 0:
+                raise ValueError("No recommendations generated")
+            return {"recommendation_files": count}
+        except Exception as e:
+            print(f"Validation error: {e}")
+            raise
+
+
+    with DAG(
+        "movielens_recommendation_pipeline",
+        default_args=default_args,
+        description="MovieLens Collaborative Filtering Recommendations",
+        schedule_interval="0 3 * * 0",  # Weekly on Sunday at 3am
+        catchup=False,
+        tags=["ml", "recommendations", "movielens"],
+        max_active_runs=1,
+    ) as dag:
+        download_data = PythonOperator(
+            task_id="download_movielens_data",
+            python_callable=download_movielens_data,
+        )
+
+        build_features = build_spark_submit_task(
+            task_id="build_features",
+            script_name="movielens_feature_engineering.py",
+        )
+
+        train_model = build_spark_submit_task(
+            task_id="train_als_model",
+            script_name="movielens_als_training.py",
+        )
+
+        generate_recs = build_spark_submit_task(
+            task_id="generate_recommendations",
+            script_name="movielens_generate_recs.py",
+        )
+
+        validate = PythonOperator(
+            task_id="validate_recommendations",
+            python_callable=validate_recommendations,
+        )
+
+        download_data >> build_features >> train_model >> generate_recs >> validate
+---
+# Source: spark-3.5/templates/history-server.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: evidence-demo-spark-35-history-config
+  labels:
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+data:
+  spark-defaults.conf: |-
+    spark.hadoop.fs.s3a.path.style.access=true
+    spark.hadoop.fs.s3a.endpoint=http://minio.spark-infra.svc.cluster.local:9000
+---
+# Source: spark-3.5/templates/hive-metastore.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: evidence-demo-spark-35-hive-metastore-config
+  labels:
+    app: hive-metastore
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+data:
+  hive-site.xml.template: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+    <configuration>
+      <property>
+        <name>javax.jdo.option.ConnectionURL</name>
+        <value>jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}</value>
+      </property>
+      <property>
+        <name>javax.jdo.option.ConnectionDriverName</name>
+        <value>org.postgresql.Driver</value>
+      </property>
+      <property>
+        <name>javax.jdo.option.ConnectionUserName</name>
+        <value>${POSTGRES_USER}</value>
+      </property>
+      <property>
+        <name>javax.jdo.option.ConnectionPassword</name>
+        <value>${POSTGRES_PASSWORD}</value>
+      </property>
+      <property>
+        <name>hive.metastore.uris</name>
+        <value>thrift://evidence-demo-spark-35-metastore:9083</value>
+      </property>
+      <property>
+        <name>hive.metastore.thrift.port</name>
+        <value>9083</value>
+      </property>
+      <property>
+        <name>hive.metastore.schema.verification</name>
+        <value>false</value>
+      </property>
+      <property>
+        <name>hive.metastore.warehouse.dir</name>
+        <value>s3a://warehouse/spark-35</value>
+      </property>
+      <property>
+        <name>fs.s3a.endpoint</name>
+        <value>http://minio.spark-infra.svc.cluster.local:9000</value>
+      </property>
+      <property>
+        <name>fs.s3a.access.key</name>
+        <value>minioadmin</value>
+      </property>
+      <property>
+        <name>fs.s3a.secret.key</name>
+        <value>minioadmin</value>
+      </property>
+      <property>
+        <name>fs.s3a.path.style.access</name>
+        <value>true</value>
+      </property>
+      <property>
+        <name>fs.s3a.impl</name>
+        <value>org.apache.hadoop.fs.s3a.S3AFileSystem</value>
+      </property>
+    </configuration>
+---
+# Source: spark-3.5/templates/jupyter-notebooks-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: evidence-demo-spark-35-jupyter-notebooks
+  labels:
+    app: jupyter
+    app.kubernetes.io/component: jupyter
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+data:
+  nyc_taxi_pipeline_demo.ipynb: |
+    {
+      "cells": [
+        {
+          "cell_type": "markdown",
+          "metadata": {},
+          "source": [
+            "# NYC Taxi Pipeline Demo\n",
+            "\n",
+            "This notebook demonstrates the demo Spark pipeline against shared MinIO and Hive Metastore."
+          ]
+        },
+        {
+          "cell_type": "code",
+          "execution_count": null,
+          "metadata": {},
+          "outputs": [],
+          "source": [
+            "from pyspark.sql import SparkSession\n",
+            "from pyspark.sql.functions import col\n",
+            "\n",
+            "spark = (SparkSession.builder\n",
+            "    .appName('nyc-taxi-pipeline-demo')\n",
+            "    .config('spark.hadoop.fs.s3a.endpoint', 'http://minio:9000')\n",
+            "    .config('spark.hadoop.fs.s3a.access.key', 'minioadmin')\n",
+            "    .config('spark.hadoop.fs.s3a.secret.key', 'minioadmin')\n",
+            "    .config('spark.hadoop.fs.s3a.path.style.access', 'true')\n",
+            "    .config('spark.hadoop.fs.s3a.impl', 'org.apache.hadoop.fs.s3a.S3AFileSystem')\n",
+            "    .config('spark.hadoop.hive.metastore.uris', 'thrift://spark-infra-spark-35-metastore:9083')\n",
+            "    .config('spark.sql.warehouse.dir', 's3a://warehouse/spark-35')\n",
+            "    .enableHiveSupport()\n",
+            "    .getOrCreate())\n",
+            "\n",
+            "spark"
+          ]
+        },
+        {
+          "cell_type": "code",
+          "execution_count": null,
+          "metadata": {},
+          "outputs": [],
+          "source": [
+            "df = spark.range(50000).withColumn('bucket', col('id') % 10)\n",
+            "df.write.mode('overwrite').parquet('s3a://spark-jobs/nyc-taxi-pipeline-demo/')\n",
+            "spark.read.parquet('s3a://spark-jobs/nyc-taxi-pipeline-demo/').groupBy('bucket').count().orderBy('bucket').show()"
+          ]
+        },
+        {
+          "cell_type": "code",
+          "execution_count": null,
+          "metadata": {},
+          "outputs": [],
+          "source": [
+            "spark.sql(\"CREATE DATABASE IF NOT EXISTS demo_shared LOCATION 's3a://warehouse/spark-35/demo_shared.db'\")\n",
+            "spark.sql(\"DROP TABLE IF EXISTS demo_shared.taxi_buckets\")\n",
+            "spark.sql(\"CREATE TABLE demo_shared.taxi_buckets USING PARQUET LOCATION 's3a://warehouse/spark-35/demo_shared.db/taxi_buckets' AS SELECT bucket, count(*) AS cnt FROM parquet.`s3a://spark-jobs/nyc-taxi-pipeline-demo/` GROUP BY bucket\")\n",
+            "spark.sql(\"SELECT * FROM demo_shared.taxi_buckets ORDER BY bucket\").show()"
+          ]
+        }
+      ],
+      "metadata": {
+        "kernelspec": {
+          "display_name": "Python 3",
+          "language": "python",
+          "name": "python3"
+        },
+        "language_info": {
+          "name": "python",
+          "version": "3.10"
+        }
+      },
+      "nbformat": 4,
+      "nbformat_minor": 5
+    }
+
+  spark_shared_infra_quickstart.ipynb: |
+    {
+      "cells": [
+        {
+          "cell_type": "markdown",
+          "metadata": {},
+          "source": [
+            "# Spark Shared Infra Quickstart\n",
+            "\n",
+            "Quick checks for Spark, MinIO, History Server event logging, and Hive Metastore."
+          ]
+        },
+        {
+          "cell_type": "code",
+          "execution_count": null,
+          "metadata": {},
+          "outputs": [],
+          "source": [
+            "from pyspark.sql import SparkSession\n",
+            "\n",
+            "spark = (SparkSession.builder\n",
+            "    .appName('shared-infra-quickstart')\n",
+            "    .config('spark.hadoop.fs.s3a.endpoint', 'http://minio:9000')\n",
+            "    .config('spark.hadoop.fs.s3a.access.key', 'minioadmin')\n",
+            "    .config('spark.hadoop.fs.s3a.secret.key', 'minioadmin')\n",
+            "    .config('spark.hadoop.fs.s3a.path.style.access', 'true')\n",
+            "    .config('spark.hadoop.hive.metastore.uris', 'thrift://spark-infra-spark-35-metastore:9083')\n",
+            "    .config('spark.sql.warehouse.dir', 's3a://warehouse/spark-35')\n",
+            "    .enableHiveSupport()\n",
+            "    .getOrCreate())\n",
+            "\n",
+            "spark.range(1000).count()"
+          ]
+        },
+        {
+          "cell_type": "code",
+          "execution_count": null,
+          "metadata": {},
+          "outputs": [],
+          "source": [
+            "spark.sql('SHOW DATABASES').show(truncate=False)"
+          ]
+        },
+        {
+          "cell_type": "code",
+          "execution_count": null,
+          "metadata": {},
+          "outputs": [],
+          "source": [
+            "spark.sql(\"CREATE TABLE IF NOT EXISTS demo_shared.quickstart (value INT) USING PARQUET LOCATION 's3a://warehouse/spark-35/demo_shared.db/quickstart'\")\n",
+            "spark.sql(\"INSERT INTO demo_shared.quickstart VALUES (1), (2), (3)\")\n",
+            "spark.sql(\"SELECT * FROM demo_shared.quickstart ORDER BY value\").show()"
+          ]
+        }
+      ],
+      "metadata": {
+        "kernelspec": {
+          "display_name": "Python 3",
+          "language": "python",
+          "name": "python3"
+        },
+        "language_info": {
+          "name": "python",
+          "version": "3.10"
+        }
+      },
+      "nbformat": 4,
+      "nbformat_minor": 5
+    }
+
+  nyc_taxi_ml_training_pipeline.ipynb: |
+    {
+     "cells": [
+      {
+       "cell_type": "markdown",
+       "id": "7fb27b941602401d91542211134fc71a",
+       "metadata": {},
+       "source": [
+        "# NYC Taxi: Processing + Model Training Pipeline\n",
+        "\n",
+        "This demo notebook runs an end-to-end Spark pipeline: data generation, feature processing, model training, evaluation, and result persistence to MinIO/Hive."
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "id": "acae54e37e7d407bbb7b55eff062a284",
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "from pyspark.sql import SparkSession\n",
+        "from pyspark.sql.functions import col, rand, when\n",
+        "\n",
+        "spark = (SparkSession.builder\n",
+        "    .appName('nyc-taxi-ml-training-pipeline')\n",
+        "    .config('spark.hadoop.fs.s3a.endpoint', 'http://minio:9000')\n",
+        "    .config('spark.hadoop.fs.s3a.access.key', 'minioadmin')\n",
+        "    .config('spark.hadoop.fs.s3a.secret.key', 'minioadmin')\n",
+        "    .config('spark.hadoop.fs.s3a.path.style.access', 'true')\n",
+        "    .config('spark.hadoop.fs.s3a.impl', 'org.apache.hadoop.fs.s3a.S3AFileSystem')\n",
+        "    .config('spark.hadoop.hive.metastore.uris', 'thrift://spark-infra-spark-35-metastore:9083')\n",
+        "    .config('spark.sql.warehouse.dir', 's3a://warehouse/spark-35')\n",
+        "    .enableHiveSupport()\n",
+        "    .getOrCreate())\n",
+        "\n",
+        "spark"
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "id": "9a63283cbaf04dbcab1f6479b197f3a8",
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "# Synthetic taxi-like training dataset\n",
+        "n = 120000\n",
+        "base = spark.range(n)\n",
+        "df = (base\n",
+        "    .withColumn('trip_distance', rand(seed=42) * 25)\n",
+        "    .withColumn('passenger_count', (rand(seed=7) * 5 + 1).cast('int'))\n",
+        "    .withColumn('hour', (rand(seed=9) * 24).cast('int'))\n",
+        "    .withColumn('is_peak', when((col('hour') >= 7) & (col('hour') <= 10), 1).otherwise(0))\n",
+        "    .withColumn('fare_amount',\n",
+        "        3.0 + col('trip_distance') * 2.2 + col('passenger_count') * 0.9 + col('is_peak') * 4.5 + rand(seed=17) * 2.0\n",
+        "    ))\n",
+        "\n",
+        "df.select('trip_distance', 'passenger_count', 'hour', 'is_peak', 'fare_amount').show(5, truncate=False)"
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "id": "8dd0d8092fe74a7c96281538738b07e2",
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "from pyspark.ml.evaluation import RegressionEvaluator\n",
+        "from pyspark.ml.feature import VectorAssembler\n",
+        "from pyspark.ml.regression import GBTRegressor\n",
+        "\n",
+        "features = ['trip_distance', 'passenger_count', 'hour', 'is_peak']\n",
+        "assembler = VectorAssembler(inputCols=features, outputCol='features')\n",
+        "train_df = assembler.transform(df).select('features', col('fare_amount').alias('label'))\n",
+        "\n",
+        "train, test = train_df.randomSplit([0.8, 0.2], seed=123)\n",
+        "model = GBTRegressor(maxIter=30, maxDepth=5, stepSize=0.1).fit(train)\n",
+        "pred = model.transform(test)\n",
+        "\n",
+        "rmse = RegressionEvaluator(metricName='rmse').evaluate(pred)\n",
+        "r2 = RegressionEvaluator(metricName='r2').evaluate(pred)\n",
+        "print('RMSE:', round(rmse, 4))\n",
+        "print('R2:', round(r2, 4))"
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "id": "72eea5119410473aa328ad9291626812",
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "from pyspark.sql.functions import lit\n",
+        "\n",
+        "metrics = spark.createDataFrame([(float(rmse), float(r2), int(n))], ['rmse', 'r2', 'rows'])\n",
+        "metrics = metrics.withColumn('run_ts', lit(str(__import__('datetime').datetime.utcnow())))\n",
+        "\n",
+        "metrics.write.mode('append').parquet('s3a://spark-jobs/model-metrics/nyc-taxi-gbt/')\n",
+        "\n",
+        "spark.sql(\"CREATE DATABASE IF NOT EXISTS demo_shared LOCATION 's3a://warehouse/spark-35/demo_shared.db'\")\n",
+        "metrics.createOrReplaceTempView('m')\n",
+        "spark.sql(\"CREATE TABLE IF NOT EXISTS demo_shared.nyc_taxi_training_metrics USING PARQUET LOCATION 's3a://warehouse/spark-35/demo_shared.db/nyc_taxi_training_metrics' AS SELECT * FROM m\")\n",
+        "spark.sql(\"SELECT * FROM demo_shared.nyc_taxi_training_metrics ORDER BY run_ts DESC\").show(10, truncate=False)"
+       ]
+      }
+     ],
+     "metadata": {
+      "kernelspec": {
+       "display_name": "Python 3",
+       "language": "python",
+       "name": "python3"
+      },
+      "language_info": {
+       "name": "python",
+       "version": "3.10"
+      }
+     },
+     "nbformat": 4,
+     "nbformat_minor": 5
+    }
+
+  citibike_eda.ipynb: |
+    {
+     "cells": [
+      {
+       "cell_type": "markdown",
+       "metadata": {},
+       "source": [
+        "# Citibike EDA\n",
+        "\n",
+        "Exploratory data analysis: synthetic trip data, distributions, aggregations."
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "from pyspark.sql import SparkSession\n",
+        "from pyspark.sql.functions import rand\n",
+        "\n",
+        "spark = (SparkSession.builder\n",
+        "    .appName('citibike-eda')\n",
+        "    .config('spark.hadoop.fs.s3a.endpoint', 'http://minio:9000')\n",
+        "    .config('spark.hadoop.fs.s3a.access.key', 'minioadmin')\n",
+        "    .config('spark.hadoop.fs.s3a.secret.key', 'minioadmin')\n",
+        "    .config('spark.hadoop.fs.s3a.path.style.access', 'true')\n",
+        "    .config('spark.hadoop.fs.s3a.impl', 'org.apache.hadoop.fs.s3a.S3AFileSystem')\n",
+        "    .getOrCreate())\n",
+        "\n",
+        "n = 10000\n",
+        "df = (spark.range(n)\n",
+        "    .withColumn('trip_minutes', (rand(seed=42) * 45 + 5).cast('int'))\n",
+        "    .withColumn('hour', (rand(seed=7) * 24).cast('int'))\n",
+        "    .withColumn('is_weekend', (rand(seed=9) > 0.7).cast('int')))\n",
+        "df.printSchema()"
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "df.describe().show()"
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "df.groupBy('hour').count().orderBy('hour').show(24)"
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "df.write.mode('overwrite').parquet('s3a://spark-jobs/citibike-eda/')"
+       ]
+      }
+     ],
+     "metadata": {
+      "kernelspec": {
+       "display_name": "Python 3",
+       "language": "python",
+       "name": "python3"
+      }
+     },
+     "nbformat": 4,
+     "nbformat_minor": 4
+    }
+
+  pandas_udf_feature_engineering.ipynb: |
+    {
+     "cells": [
+      {
+       "cell_type": "markdown",
+       "metadata": {},
+       "source": [
+        "# Feature Engineering with Pandas UDF\n",
+        "\n",
+        "mapInPandas / applyInPandas for distributed feature engineering."
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "from pyspark.sql import SparkSession\n",
+        "from pyspark.sql.functions import rand\n",
+        "\n",
+        "spark = (SparkSession.builder\n",
+        "    .appName('pandas-udf-feature')\n",
+        "    .config('spark.hadoop.fs.s3a.endpoint', 'http://minio:9000')\n",
+        "    .config('spark.hadoop.fs.s3a.access.key', 'minioadmin')\n",
+        "    .config('spark.hadoop.fs.s3a.secret.key', 'minioadmin')\n",
+        "    .config('spark.hadoop.fs.s3a.path.style.access', 'true')\n",
+        "    .getOrCreate())\n",
+        "\n",
+        "df = spark.range(5000).withColumn('x', rand(42)).withColumn('y', rand(17))\n",
+        "df.show(5)"
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "def add_features(pdf_iter):\n",
+        "    for pdf in pdf_iter:\n",
+        "        pdf['x_squared'] = pdf['x'] ** 2\n",
+        "        pdf['xy'] = pdf['x'] * pdf['y']\n",
+        "        yield pdf\n",
+        "\n",
+        "schema = \"id long, x double, y double, x_squared double, xy double\"\n",
+        "out = df.mapInPandas(add_features, schema)\n",
+        "out.show(5)"
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "out.write.mode('overwrite').parquet('s3a://spark-jobs/pandas-udf-features/')"
+       ]
+      }
+     ],
+     "metadata": {
+      "kernelspec": {
+       "display_name": "Python 3",
+       "language": "python",
+       "name": "python3"
+      }
+     },
+     "nbformat": 4,
+     "nbformat_minor": 4
+    }
+
+  ml_pandas_udf.ipynb: |
+    {
+     "cells": [
+      {
+       "cell_type": "markdown",
+       "metadata": {},
+       "source": [
+        "# ML with Spark Pandas UDF\n",
+        "\n",
+        "Train per-group models using mapInPandas (e.g. by borough)."
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "from pyspark.sql import SparkSession\n",
+        "from pyspark.sql.functions import col, rand\n",
+        "\n",
+        "spark = (SparkSession.builder\n",
+        "    .appName('ml-pandas-udf')\n",
+        "    .config('spark.hadoop.fs.s3a.endpoint', 'http://minio:9000')\n",
+        "    .config('spark.hadoop.fs.s3a.access.key', 'minioadmin')\n",
+        "    .config('spark.hadoop.fs.s3a.secret.key', 'minioadmin')\n",
+        "    .config('spark.hadoop.fs.s3a.path.style.access', 'true')\n",
+        "    .getOrCreate())\n",
+        "\n",
+        "df = (spark.range(3000)\n",
+        "    .withColumn('borough', (col('id') % 5).cast('int'))\n",
+        "    .withColumn('dist', rand(42) * 20)\n",
+        "    .withColumn('fare', 3.0 + col('dist') * 2.5 + rand(17) * 2))\n",
+        "df.show(5)"
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "def train_per_borough(pdf_iter):\n",
+        "    for pdf in pdf_iter:\n",
+        "        if len(pdf) < 10:\n",
+        "            continue\n",
+        "        pdf['pred'] = pdf['dist'] * 2.5 + 3.0\n",
+        "        pdf['borough'] = pdf['borough'].iloc[0]\n",
+        "        yield pdf\n",
+        "\n",
+        "schema = \"id long, borough int, dist double, fare double, pred double\"\n",
+        "pred = df.mapInPandas(train_per_borough, schema)\n",
+        "pred.groupBy('borough').agg({'pred': 'mean', 'fare': 'mean'}).show()"
+       ]
+      },
+      {
+       "cell_type": "code",
+       "execution_count": null,
+       "metadata": {},
+       "outputs": [],
+       "source": [
+        "pred.write.mode('overwrite').parquet('s3a://spark-jobs/ml-pandas-udf-results/')"
+       ]
+      }
+     ],
+     "metadata": {
+      "kernelspec": {
+       "display_name": "Python 3",
+       "language": "python",
+       "name": "python3"
+      }
+     },
+     "nbformat": 4,
+     "nbformat_minor": 4
+    }
+---
+# Source: spark-3.5/charts/spark-base/templates/minio.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minio-pvc
+  labels:
+    helm.sh/chart: spark-base-0.1.0
+    app.kubernetes.io/name: spark-base
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: "0.1.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+# Source: spark-3.5/templates/rbac.yaml
+# ClusterRole for Spark Connect/Standalone k8s backend mode
+# Required for executor pod management across the namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: evidence-demo-spark-35-spark-cluster-role
+  labels:
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection", "update"]
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["get"]
+- apiGroups: [""]
+  resources: ["pods/status"]
+  verbs: ["get"]
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["create", "get", "list", "delete", "deletecollection"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection", "update"]
+- apiGroups: [""]
+  resources: ["persistentvolumeclaims"]
+  verbs: ["create", "get", "list", "delete", "deletecollection"]
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["create", "get", "list", "watch", "delete", "update"]
+---
+# Source: spark-3.5/templates/rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: evidence-demo-spark-35-spark-cluster-rolebinding
+  labels:
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+subjects:
+- kind: ServiceAccount
+  name: spark-35
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: evidence-demo-spark-35-spark-cluster-role
+---
+# Source: spark-3.5/templates/rbac.yaml
+# Role for namespace-scoped resources
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: evidence-demo-spark-35-spark-role
+  labels:
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection"]
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["create", "get", "list", "delete", "deletecollection"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection"]
+---
+# Source: spark-3.5/templates/rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: evidence-demo-spark-35-spark-rolebinding
+  labels:
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+subjects:
+- kind: ServiceAccount
+  name: spark-35
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: evidence-demo-spark-35-spark-role
+---
+# Source: spark-3.5/charts/spark-base/templates/minio.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+  labels:
+    app: minio
+    helm.sh/chart: spark-base-0.1.0
+    app.kubernetes.io/name: spark-base
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: "0.1.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  ports:
+  - name: api
+    port: 9000
+    targetPort: 9000
+  - name: console
+    port: 9001
+    targetPort: 9001
+  selector:
+    app: minio
+---
+# Source: spark-3.5/charts/spark-base/templates/postgresql.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: evidence-demo-spark-base-postgresql
+  labels:
+    app: postgresql
+    helm.sh/chart: spark-base-0.1.0
+    app.kubernetes.io/name: spark-base
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: "0.1.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    app: postgresql
+    app.kubernetes.io/name: spark-base
+    app.kubernetes.io/instance: evidence-demo
+  ports:
+  - name: postgres
+    port: 5432
+    targetPort: postgres
+---
+# Source: spark-3.5/templates/airflow/webserver.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: evidence-demo-airflow-webserver
+  labels:
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+    app.kubernetes.io/component: airflow-webserver
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+      protocol: TCP
+      nodePort: 30080
+  selector:
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+    app.kubernetes.io/component: airflow-webserver
+---
+# Source: spark-3.5/templates/history-server.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: evidence-demo-spark-35-history
+  labels:
+    app: spark-history-server
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+spec:
+  type: NodePort
+  ports:
+    - port: 18080
+      targetPort: http
+      protocol: TCP
+      name: http
+      nodePort: 30081
+  selector:
+    app: spark-history-server
+    app.kubernetes.io/name: spark-3.5
+    app.kubernetes.io/instance: evidence-demo
+---
+# Source: spark-3.5/templates/hive-metastore.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: evidence-demo-spark-35-metastore
+  labels:
+    app: hive-metastore
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+spec:
+  selector:
+    app: hive-metastore
+    app.kubernetes.io/name: spark-3.5
+    app.kubernetes.io/instance: evidence-demo
+  ports:
+    - name: thrift
+      port: 9083
+      targetPort: thrift
+---
+# Source: spark-3.5/templates/jupyter.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: evidence-demo-spark-35-jupyter
+  labels:
+    app: jupyter
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 8888
+      targetPort: 8888
+      nodePort: 30088
+  selector:
+    app: jupyter
+---
+# Source: spark-3.5/templates/standalone/master.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: evidence-demo-standalone-master
+  labels:
+    app: standalone-master
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+spec:
+  type: ClusterIP
+  ports:
+    - name: rpc
+      port: 7077
+      targetPort: rpc
+    - name: ui
+      port: 8080
+      targetPort: ui
+  selector:
+    app: standalone-master
+---
+# Source: spark-3.5/charts/spark-base/templates/minio.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+  labels:
+    app: minio
+    helm.sh/chart: spark-base-0.1.0
+    app.kubernetes.io/name: spark-base
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: "0.1.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+        app.kubernetes.io/name: spark-base
+        app.kubernetes.io/instance: evidence-demo
+    spec:
+      containers:
+      - name: minio
+        image: "quay.io/minio/minio:RELEASE.2024-01-01T16-36-33Z"
+        imagePullPolicy: IfNotPresent
+        args:
+        - server
+        - /data
+        - --console-address
+        - ":9001"
+        env:
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              name: s3-credentials
+              key: access-key
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: s3-credentials
+              key: secret-key
+        ports:
+        - name: api
+          containerPort: 9000
+        - name: console
+          containerPort: 9001
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: tmp
+          mountPath: /tmp
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+        readinessProbe:
+          httpGet:
+            path: /minio/health/ready
+            port: 9000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /minio/health/live
+            port: 9000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: minio-pvc
+      - name: tmp
+        emptyDir: {}
+---
+# Source: spark-3.5/templates/airflow/scheduler.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evidence-demo-airflow-scheduler
+  labels:
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+    app.kubernetes.io/component: airflow-scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      helm.sh/chart: spark-3.5-0.2.0
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/instance: evidence-demo
+      app.kubernetes.io/version: 3.5.7
+      app.kubernetes.io/component: airflow-scheduler
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: spark-3.5-0.2.0
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/instance: evidence-demo
+        app.kubernetes.io/version: 3.5.7
+        app.kubernetes.io/component: airflow-scheduler
+    spec:
+      serviceAccountName: spark-35
+      initContainers:
+        - name: wait-for-db
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local 5432; do echo waiting for db; sleep 2; done']
+        - name: prepare-dags
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /opt/airflow/dags
+              cp -L /opt/airflow/dags-src/*.py /opt/airflow/dags/ 2>/dev/null || true
+          volumeMounts:
+            - name: airflow-dags-src
+              mountPath: /opt/airflow/dags-src
+            - name: airflow-dags
+              mountPath: /opt/airflow/dags
+      containers:
+        - name: scheduler
+          image: "spark-k8s/airflow:2.11.0"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: AIRFLOW__CORE__DAGS_FOLDER
+              value: /opt/airflow/dags
+            - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+              value: "postgresql://postgres:postgres@spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local:5432/airflow"
+            - name: AIRFLOW__WEBSERVER__SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: evidence-demo-airflow-secret
+                  key: secret-key
+          command: ['airflow', 'scheduler']
+          resources:
+            limits:
+              cpu: "1"
+              memory: 2Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          livenessProbe:
+            exec:
+              command:
+                - airflow
+                - jobs
+                - check
+                - --job-type
+                - SchedulerJob
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            timeoutSeconds: 10
+          volumeMounts:
+            - name: airflow-config
+              mountPath: /opt/airflow/airflow.cfg
+              subPath: airflow.cfg
+            - name: airflow-dags
+              mountPath: /opt/airflow/dags
+            - name: airflow-logs
+              mountPath: /opt/airflow/logs
+      volumes:
+        - name: airflow-config
+          configMap:
+            name: evidence-demo-airflow-config
+        - name: airflow-dags-src
+          configMap:
+            name: evidence-demo-airflow-dags
+        - name: airflow-dags
+          emptyDir: {}
+        - name: airflow-logs
+          emptyDir: {}
+---
+# Source: spark-3.5/templates/airflow/webserver.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evidence-demo-airflow-webserver
+  labels:
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+    app.kubernetes.io/component: airflow-webserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      helm.sh/chart: spark-3.5-0.2.0
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/instance: evidence-demo
+      app.kubernetes.io/version: 3.5.7
+      app.kubernetes.io/component: airflow-webserver
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: spark-3.5-0.2.0
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/instance: evidence-demo
+        app.kubernetes.io/version: 3.5.7
+        app.kubernetes.io/component: airflow-webserver
+    spec:
+      serviceAccountName: spark-35
+      initContainers:
+        - name: wait-for-db
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local 5432; do echo waiting for db; sleep 2; done']
+        - name: prepare-dags
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /opt/airflow/dags
+              cp -L /opt/airflow/dags-src/*.py /opt/airflow/dags/ 2>/dev/null || true
+          volumeMounts:
+            - name: airflow-dags-src
+              mountPath: /opt/airflow/dags-src
+            - name: airflow-dags
+              mountPath: /opt/airflow/dags
+        - name: init-db
+          image: "spark-k8s/airflow:2.11.0"
+          imagePullPolicy: IfNotPresent
+          command: ['airflow', 'db', 'init']
+          env:
+            - name: AIRFLOW__CORE__DAGS_FOLDER
+              value: /opt/airflow/dags
+            - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+              value: "postgresql://postgres:postgres@spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local:5432/airflow"
+          volumeMounts:
+            - name: airflow-config
+              mountPath: /opt/airflow/airflow.cfg
+              subPath: airflow.cfg
+            - name: airflow-dags
+              mountPath: /opt/airflow/dags
+      containers:
+        - name: webserver
+          image: "spark-k8s/airflow:2.11.0"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: AIRFLOW__CORE__DAGS_FOLDER
+              value: /opt/airflow/dags
+            - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+              value: "postgresql://postgres:postgres@spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local:5432/airflow"
+            - name: AIRFLOW__WEBSERVER__SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: evidence-demo-airflow-secret
+                  key: secret-key
+          command: ['airflow', 'webserver']
+          args: ['--port', '8080']
+          resources:
+            limits:
+              cpu: "1"
+              memory: 2Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          volumeMounts:
+            - name: airflow-config
+              mountPath: /opt/airflow/airflow.cfg
+              subPath: airflow.cfg
+            - name: airflow-dags
+              mountPath: /opt/airflow/dags
+            - name: airflow-logs
+              mountPath: /opt/airflow/logs
+      volumes:
+        - name: airflow-config
+          configMap:
+            name: evidence-demo-airflow-config
+        - name: airflow-dags-src
+          configMap:
+            name: evidence-demo-airflow-dags
+        - name: airflow-dags
+          emptyDir: {}
+        - name: airflow-logs
+          emptyDir: {}
+---
+# Source: spark-3.5/templates/history-server.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evidence-demo-spark-35-history
+  labels:
+    app: spark-history-server
+    app.kubernetes.io/component: history-server
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-history-server
+      app.kubernetes.io/component: history-server
+      app.kubernetes.io/name: spark-3.5
+      app.kubernetes.io/instance: evidence-demo
+  template:
+    metadata:
+      labels:
+        app: spark-history-server
+        app.kubernetes.io/component: history-server
+        app.kubernetes.io/name: spark-3.5
+        app.kubernetes.io/instance: evidence-demo
+    spec:
+      serviceAccountName: spark-35
+      containers:
+        - name: history-server
+          image: "spark-custom:3.5.7"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 18080
+              protocol: TCP
+          env:
+            - name: SPARK_MODE
+              value: "history"
+            - name: SPARK_HISTORY_LOG_DIR
+              value: "s3a://spark-logs/events"
+            - name: SPARK_HISTORY_OPTS
+              value: "-Dspark.history.fs.logDirectory=s3a://spark-logs/events"
+            - name: S3_ENDPOINT
+              value: "http://minio.spark-infra.svc.cluster.local:9000"
+            - name: AWS_ACCESS_KEY_ID
+              value: "minioadmin"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "minioadmin"
+            - name: HADOOP_USER_NAME
+              value: "spark"
+          command:
+            - /bin/bash
+            - -c
+            - |
+              # Start History Server
+              $SPARK_HOME/bin/spark-class org.apache.spark.deploy.history.HistoryServer
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: spark-config
+              mountPath: /opt/spark/conf/spark-defaults.conf
+              subPath: spark-defaults.conf
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: spark-config
+          configMap:
+            name: evidence-demo-spark-35-history-config
+---
+# Source: spark-3.5/templates/hive-metastore.yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evidence-demo-spark-35-metastore
+  labels:
+    app: hive-metastore
+    app.kubernetes.io/component: hive-metastore
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hive-metastore
+      app.kubernetes.io/component: hive-metastore
+      app.kubernetes.io/name: spark-3.5
+      app.kubernetes.io/instance: evidence-demo
+  template:
+    metadata:
+      labels:
+        app: hive-metastore
+        app.kubernetes.io/component: hive-metastore
+        app.kubernetes.io/name: spark-3.5
+        app.kubernetes.io/instance: evidence-demo
+    spec:
+      serviceAccountName: spark-35
+      initContainers:
+        - name: wait-for-postgresql
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - >
+              until nc -z spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local 5432;
+              do echo "Waiting for PostgreSQL..."; sleep 2; done; echo "PostgreSQL is ready!"
+      containers:
+        - name: hive-metastore
+          image: "spark-k8s/hive:3.1.3-pg"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DB_DRIVER
+              value: "postgres"
+            - name: SERVICE_NAME
+              value: "metastore"
+            - name: POSTGRES_HOST
+              value: "spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local"
+            - name: POSTGRES_DB
+              value: "spark_db"
+            - name: HIVE_CONF_DIR
+              value: "/tmp/hive-conf"
+            - name: HADOOP_CLASSPATH
+              value: "/opt/hadoop/share/hadoop/tools/lib/*:/opt/hadoop/share/hadoop/common/lib/*"
+            - name: HIVE_AUX_JARS_PATH
+              value: "/opt/hadoop/share/hadoop/tools/lib/*:/opt/hadoop/share/hadoop/common/lib/*"
+          envFrom:
+            - secretRef:
+                name: evidence-demo-spark-35-metastore-db
+          command:
+            - /bin/bash
+            - -lc
+            - |
+              # Generate hive-site.xml by substituting environment variables
+              cat /opt/hive/conf/hive-site.xml.template | \
+              sed "s/\${POSTGRES_HOST}/${POSTGRES_HOST}/g" | \
+              sed "s/\${POSTGRES_PORT}/${POSTGRES_PORT}/g" | \
+              sed "s/\${POSTGRES_DB}/${POSTGRES_DB}/g" | \
+              sed "s/\${POSTGRES_USER}/${POSTGRES_USER}/g" | \
+              sed "s#\${POSTGRES_PASSWORD}#${POSTGRES_PASSWORD}#g" \
+              > /tmp/hive-conf/hive-site.xml
+              exec /opt/hive/bin/hive --service metastore
+          ports:
+            - name: thrift
+              containerPort: 9083
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          volumeMounts:
+            - name: hive-config
+              mountPath: /opt/hive/conf/hive-site.xml.template
+              subPath: hive-site.xml.template
+            - name: tmp
+              mountPath: /tmp
+            - name: hive-conf
+              mountPath: /tmp/hive-conf
+      volumes:
+        - name: hive-config
+          configMap:
+            name: evidence-demo-spark-35-hive-metastore-config
+        - name: tmp
+          emptyDir: {}
+        - name: hive-conf
+          emptyDir: {}
+---
+# Source: spark-3.5/templates/jupyter.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evidence-demo-spark-35-jupyter
+  labels:
+    app: jupyter
+    app.kubernetes.io/component: jupyter
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jupyter
+      app.kubernetes.io/component: jupyter
+  template:
+    metadata:
+      labels:
+        app: jupyter
+        app.kubernetes.io/component: jupyter
+        app.kubernetes.io/name: spark-3.5
+        app.kubernetes.io/instance: evidence-demo
+    spec:
+      serviceAccountName: spark-35
+      volumes:
+        - name: notebooks
+          emptyDir: {}
+        - name: notebook-seed
+          configMap:
+            name: evidence-demo-spark-35-jupyter-notebooks
+        - name: jupyter-runtime
+          emptyDir: {}
+      initContainers:
+        - name: seed-demo-notebooks
+          image: busybox:1.36
+          command:
+            - /bin/sh
+            - -c
+            - |
+              mkdir -p /home/jupyter/notebooks
+              cp -n /seed/* /home/jupyter/notebooks/ 2>/dev/null || true
+          volumeMounts:
+            - name: notebook-seed
+              mountPath: /seed
+            - name: notebooks
+              mountPath: /home/jupyter/notebooks
+      containers:
+        - name: jupyter
+          image: "jupyter/all-spark-notebook:latest"
+          imagePullPolicy: IfNotPresent
+          command: ["jupyter-lab"]
+          args: ["--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=''", "--NotebookApp.password=''"]
+          env:
+            - name: JUPYTER_ENABLE_LAB
+              value: "yes"
+            - name: PYARROW_IGNORE_TIMEZONE
+              value: "1"
+            - name: HOME
+              value: "/home/jupyter"
+            - name: JUPYTER_RUNTIME_DIR
+              value: "/tmp/jupyter-runtime"
+            - name: S3_ENDPOINT
+              value: "http://minio.spark-infra.svc.cluster.local:9000"
+            - name: SPARK_CONNECT_URL
+              value: "sc://spark-connect:15002"
+          ports:
+            - name: http
+              containerPort: 8888
+          resources:
+            limits:
+              cpu: "2"
+              memory: 4Gi
+            requests:
+              cpu: 300m
+              memory: 2Gi
+          readinessProbe:
+            httpGet:
+              path: /api
+              port: 8888
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api
+              port: 8888
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          volumeMounts:
+            - name: notebooks
+              mountPath: /home/jupyter/notebooks
+            - name: jupyter-runtime
+              mountPath: /tmp/jupyter-runtime
+---
+# Source: spark-3.5/templates/standalone/master.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evidence-demo-standalone-master
+  labels:
+    app: standalone-master
+    app.kubernetes.io/component: standalone-master
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: standalone-master
+      app.kubernetes.io/component: standalone-master
+  template:
+    metadata:
+      labels:
+        app: standalone-master
+        app.kubernetes.io/component: standalone-master
+        app.kubernetes.io/name: spark-3.5
+        app.kubernetes.io/instance: evidence-demo
+    spec:
+      serviceAccountName: spark-35
+      volumes:
+        - name: spark-logs
+          emptyDir: {}
+      containers:
+        - name: spark-master
+          image: "spark-custom:3.5.7"
+          imagePullPolicy: IfNotPresent
+          command: ["/opt/spark/sbin/start-master.sh"]
+          args: ["--host", "0.0.0.0", "--port", "7077", "--webui-port", "8080"]
+          env:
+            - name: SPARK_MODE
+              value: "master"
+            - name: SPARK_MASTER_HOST
+              value: evidence-demo-standalone-master
+            - name: SPARK_MASTER_PORT
+              value: "7077"
+            - name: SPARK_MASTER_WEBUI_PORT
+              value: "8080"
+            - name: AWS_ACCESS_KEY_ID
+              value: "minioadmin"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "minioadmin"
+          ports:
+            - name: rpc
+              containerPort: 7077
+              protocol: TCP
+            - name: ui
+              containerPort: 8080
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 3
+          volumeMounts:
+            - name: spark-logs
+              mountPath: /opt/spark/logs
+          resources:
+            limits:
+              cpu: "1"
+              memory: 2Gi
+            requests:
+              cpu: 300m
+              memory: 512Mi
+---
+# Source: spark-3.5/templates/standalone/worker.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evidence-demo-standalone-worker
+  labels:
+    app: standalone-worker
+    app.kubernetes.io/component: standalone-worker
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: standalone-worker
+      app.kubernetes.io/component: standalone-worker
+  template:
+    metadata:
+      labels:
+        app: standalone-worker
+        app.kubernetes.io/component: standalone-worker
+        app.kubernetes.io/name: spark-3.5
+        app.kubernetes.io/instance: evidence-demo
+    spec:
+      serviceAccountName: spark-35
+      volumes:
+        - name: spark-logs
+          emptyDir: {}
+        - name: spark-work
+          emptyDir: {}
+      containers:
+        - name: spark-worker
+          image: "spark-custom:3.5.7"
+          imagePullPolicy: IfNotPresent
+          command: ["/opt/spark/sbin/start-worker.sh"]
+          args: ["spark://evidence-demo-standalone-master:7077"]
+          env:
+            - name: SPARK_MODE
+              value: "worker"
+            - name: SPARK_MASTER_HOST
+              value: evidence-demo-standalone-master
+            - name: SPARK_MASTER_PORT
+              value: "7077"
+            - name: AWS_ACCESS_KEY_ID
+              value: "minioadmin"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "minioadmin"
+            - name: SPARK_SPARK_WORKER_CORES
+              value: "2"
+            - name: SPARK_SPARK_WORKER_MEMORY
+              value: "14g"
+          ports:
+            - name: rpc
+              containerPort: 7077
+              protocol: TCP
+            - name: ui
+              containerPort: 8081
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8081
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 3
+          volumeMounts:
+            - name: spark-logs
+              mountPath: /opt/spark/logs
+            - name: spark-work
+              mountPath: /opt/spark/work
+          resources:
+            limits:
+              cpu: "2"
+              memory: 15Gi
+            requests:
+              cpu: 800m
+              memory: 13Gi
+---
+# Source: spark-3.5/charts/spark-base/templates/postgresql.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: evidence-demo-spark-base-postgresql
+  labels:
+    app: postgresql
+    helm.sh/chart: spark-base-0.1.0
+    app.kubernetes.io/name: spark-base
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: "0.1.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  serviceName: evidence-demo-spark-base-postgresql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgresql
+      app.kubernetes.io/name: spark-base
+      app.kubernetes.io/instance: evidence-demo
+  template:
+    metadata:
+      labels:
+        app: postgresql
+        app.kubernetes.io/name: spark-base
+        app.kubernetes.io/instance: evidence-demo
+    spec:
+      initContainers:
+      - name: pg-hba-md5
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - |
+          if [ -f /var/lib/postgresql/data/pg_hba.conf ]; then
+            sed -i 's/scram-sha-256/md5/g' /var/lib/postgresql/data/pg_hba.conf
+          fi
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+      containers:
+      - name: postgresql
+        image: "postgres:15-alpine"
+        imagePullPolicy: IfNotPresent
+        envFrom:
+        - secretRef:
+            name: evidence-demo-spark-base-postgresql-credentials
+        env:
+        - name: POSTGRES_HOST_AUTH_METHOD
+          value: "md5"
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - sh
+              - -c
+              - |
+                psql -U "postgres" -v ON_ERROR_STOP=1 -c "SET password_encryption='md5'; ALTER USER "postgres" PASSWORD "x";" || true
+        ports:
+        - name: postgres
+          containerPort: 5432
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+        - name: init
+          mountPath: /docker-entrypoint-initdb.d
+        - name: tmp
+          mountPath: /tmp
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+      volumes:
+      - name: init
+        configMap:
+          name: evidence-demo-spark-base-postgresql-init
+          defaultMode: 0755
+      - name: tmp
+        emptyDir: {}
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi
+---
+# Source: spark-3.5/charts/spark-base/templates/minio.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-init-buckets
+  labels:
+    helm.sh/chart: spark-base-0.1.0
+    app.kubernetes.io/name: spark-base
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: "0.1.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: mc
+        image: quay.io/minio/mc:latest
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Waiting for MinIO to be ready..."
+          for i in $(seq 1 30); do
+            if mc alias set myminio http://minio:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD; then
+              echo "MinIO is ready!"
+              break
+            fi
+            echo "Attempt $i: MinIO not ready yet, waiting..."
+            sleep 5
+          done
+          mc mb --ignore-existing myminio/warehouse
+          mc mb --ignore-existing myminio/spark-logs
+          mc mb --ignore-existing myminio/spark-jobs
+          mc mb --ignore-existing myminio/raw-data
+          mc mb --ignore-existing myminio/processed-data
+          echo "" | mc pipe myminio/spark-logs/events/.keep
+          echo "" | mc pipe myminio/spark-logs/events/.keep
+
+          echo "Buckets created successfully"
+          mc ls myminio/
+        env:
+        - name: HOME
+          value: /tmp
+        - name: MC_CONFIG_DIR
+          value: /tmp/.mc
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              name: s3-credentials
+              key: access-key
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: s3-credentials
+              key: secret-key
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}

@@ -864,6 +864,39 @@ def test_ci_charts_has_mode_validation_job() -> None:
     assert "validate-chart-modes" in content, "ci-charts.yml missing validate-chart-modes reference"
 
 
+def test_final_evidence_exists() -> None:
+    """F036-12: final evidence snapshots must exist for all 5 modes."""
+    final_dir = PROJECT_ROOT / "tests" / "evidence" / "final"
+    assert final_dir.exists(), "tests/evidence/final/ not found"
+    expected = ["connect-k8s.yaml", "connect-sa.yaml", "k8s-native.yaml", "standalone.yaml", "demo.yaml"]
+    for name in expected:
+        f = final_dir / name
+        assert f.exists(), f"Missing final evidence: {name}"
+        content = f.read_text()
+        assert "kind:" in content, f"Empty or invalid evidence: {name}"
+
+
+def test_diff_report_exists() -> None:
+    """F036-12: diff-report.md must document baseline vs final differences."""
+    report = PROJECT_ROOT / "tests" / "evidence" / "diff-report.md"
+    assert report.exists(), "tests/evidence/diff-report.md not found"
+    content = report.read_text()
+    for mode in ["connect-k8s", "connect-sa", "k8s-native", "standalone", "demo"]:
+        assert mode in content, f"diff-report.md missing mode: {mode}"
+    assert "no resources lost" in content.lower() or "No resources lost" in content
+
+
+def test_no_legacy_naming_in_charts() -> None:
+    """F036-12: charts/spark-3.5 must have zero sparkStandalone/sparkK8sNative refs."""
+    chart_dir = PROJECT_ROOT / "charts" / "spark-3.5"
+    result = subprocess.run(
+        ["grep", "-rn", "sparkStandalone\\|sparkK8sNative", str(chart_dir)],
+        capture_output=True,
+        text=True,
+    )
+    assert result.stdout == "", f"Legacy naming in charts:\n{result.stdout[:500]}"
+
+
 def test_aggregate_matrix_results_script() -> None:
     """aggregate-matrix-results.py produces machine-readable summary."""
     agg = PROJECT_ROOT / "scripts" / "aggregate-matrix-results.py"

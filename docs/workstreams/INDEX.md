@@ -1319,7 +1319,7 @@ WS-031-01 (Audit)
 ## Feature F36: Chart Refactor — Flatten Standalone/Airflow, Unify Naming
 
 **Source:** `docs/drafts/idea-chart-refactor-flatten-standalone.md`
-**Status:** In Progress (10/12 completed)
+**Status:** Completed (12/12)
 **Total Workstreams:** 12
 **Impact:** ~120 files (charts, scripts, tests, docs, presets)
 
@@ -1335,8 +1335,8 @@ WS-031-01 (Audit)
 | WS-036-08 | Update All Scripts | LARGE | 036-06 | completed |
 | WS-036-09 | Update Tests | MEDIUM | 036-07, 036-08 | completed |
 | WS-036-10 | Update Documentation | MEDIUM | 036-06 | completed |
-| WS-036-11 | CI Helm Template Gates | SMALL | 036-05 | backlog |
-| WS-036-12 | Final Evidence — Diff, Lint, Dry-Run | SMALL | 036-01..11 | backlog |
+| WS-036-11 | CI Helm Template Gates | SMALL | 036-05 | completed |
+| WS-036-12 | Final Evidence — Diff, Lint, Dry-Run | SMALL | 036-01..11 | completed |
 
 ### Dependency Graph
 
