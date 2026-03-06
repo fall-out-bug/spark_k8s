@@ -1,0 +1,124 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [
+    {"title": "Spark History Server", "url": "http://localhost:18081", "type": "link"},
+    {"title": "Airflow", "url": "http://localhost:18080", "type": "link"}
+  ],
+  "panels": [
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]},
+          "unit": "short"
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+      "id": 1,
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [{"expr": "demo_metrics_exporter_up", "refId": "A"}],
+      "title": "Demo Exporter Up",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"drawStyle": "line", "fillOpacity": 10, "lineWidth": 2},
+          "unit": "short"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+      "id": 2,
+      "targets": [{"expr": "spark_workers_alive", "legendFormat": "Workers Alive", "refId": "A"}],
+      "title": "Spark Workers Alive",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"drawStyle": "line", "fillOpacity": 10, "lineWidth": 2},
+          "unit": "short"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+      "id": 3,
+      "targets": [
+        {"expr": "spark_apps_running", "legendFormat": "Running", "refId": "A"},
+        {"expr": "spark_apps_waiting", "legendFormat": "Waiting", "refId": "B"},
+        {"expr": "spark_apps_completed", "legendFormat": "Completed", "refId": "C"}
+      ],
+      "title": "Spark Applications",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"drawStyle": "line", "fillOpacity": 10, "lineWidth": 2},
+          "unit": "short"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+      "id": 4,
+      "targets": [
+        {"expr": "spark_cores_used", "legendFormat": "Cores Used", "refId": "A"},
+        {"expr": "spark_cores_total", "legendFormat": "Cores Total", "refId": "B"}
+      ],
+      "title": "Spark Cores",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"drawStyle": "line", "fillOpacity": 10, "lineWidth": 2},
+          "unit": "decmbytes"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+      "id": 5,
+      "targets": [
+        {"expr": "spark_memory_used_mb * 1024 * 1024", "legendFormat": "Memory Used", "refId": "A"},
+        {"expr": "spark_memory_total_mb * 1024 * 1024", "legendFormat": "Memory Total", "refId": "B"}
+      ],
+      "title": "Spark Memory (MB)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"drawStyle": "line", "fillOpacity": 10, "lineWidth": 2},
+          "unit": "short"
+        }
+      },
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 20},
+      "id": 6,
+      "targets": [{"expr": "airflow_dag_runs_state", "legendFormat": "{{dag_id}} - {{state}}", "refId": "A"}],
+      "title": "Airflow DAG Runs by State",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "15s",
+  "schemaVersion": 27,
+  "style": "dark",
+  "tags": ["demo", "spark", "overview"],
+  "templating": {"list": []},
+  "time": {"from": "now-1h", "to": "now"},
+  "title": "Demo Spark Overview",
+  "uid": "demo-spark-overview",
+  "version": 1
+}

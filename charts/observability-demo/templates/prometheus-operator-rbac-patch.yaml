@@ -1,0 +1,29 @@
+# Supplemental RBAC for Prometheus Operator v0.68+ (chart 9.3.2 has older ClusterRole).
+# Operator needs alertmanagerconfigs, probes for cache sync; without these Prometheus pods never start.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Release.Name }}-prometh-operator-supplemental
+  labels:
+    app.kubernetes.io/name: prometheus-operator
+    app.kubernetes.io/instance: {{ .Release.Name }}
+rules:
+  - apiGroups: ["monitoring.coreos.com"]
+    resources: ["alertmanagerconfigs", "probes"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Release.Name }}-prometh-operator-supplemental
+  labels:
+    app.kubernetes.io/name: prometheus-operator
+    app.kubernetes.io/instance: {{ .Release.Name }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ .Release.Name }}-prometh-operator-supplemental
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Release.Name }}-prometh-operator
+    namespace: {{ .Release.Namespace }}

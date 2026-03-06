@@ -1,0 +1,22 @@
+# PodMonitor for Spark driver pods (S3A metrics, PrometheusServlet)
+# WS-031-05 AC4: S3 read/write time via PrometheusServlet
+# Driver pods get annotations from DAGs when SPARK_METRICS_ENABLED=true
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: spark-driver-metrics
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/component: observability
+    app.kubernetes.io/name: observability-demo
+spec:
+  selector:
+    matchLabels:
+      spark-driver-metrics: "true"
+  namespaceSelector:
+    matchNames:
+      - {{ .Values.targetNamespace | default "spark-infra" }}
+  podMetricsEndpoints:
+    - port: metrics
+      path: /metrics/prometheus
+      interval: 15s

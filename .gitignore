@@ -16,6 +16,8 @@ docs/workstreams/TEMPLATE.md
 .env.local
 .env.template
 /hooks/   # Root-level hooks only; scripts/hooks/ is tracked
+hooks/pre-push
+hooks/hooks
 htmlcov/
 *.key
 # Load test outputs

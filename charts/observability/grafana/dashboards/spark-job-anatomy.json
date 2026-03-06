@@ -1,0 +1,211 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [
+    {"title": "Spark History Server", "url": "http://localhost:18081", "type": "link"},
+    {"title": "Airflow", "url": "http://localhost:18080", "type": "link"}
+  ],
+  "panels": [
+    {
+      "datasource": "Prometheus",
+      "description": "Per-run metrics: each run_id = one point/segment. Same job can behave differently across runs.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"drawStyle": "points", "fillOpacity": 0, "lineWidth": 0, "pointSize": 6, "showPoints": "always"},
+          "unit": "bytes"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "id": 1,
+      "targets": [{"expr": "spark_job_run_input_bytes", "legendFormat": "{{dag_id}}/{{task_id}} {{run_id}}", "refId": "A"}],
+      "title": "Input Bytes per run (read from storage)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"drawStyle": "points", "fillOpacity": 0, "lineWidth": 0, "pointSize": 6, "showPoints": "always"},
+          "unit": "bytes"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "id": 2,
+      "targets": [{"expr": "spark_job_run_output_bytes", "legendFormat": "{{dag_id}}/{{task_id}} {{run_id}}", "refId": "A"}],
+      "title": "Output Bytes per run (written to storage)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"drawStyle": "points", "fillOpacity": 0, "lineWidth": 0, "pointSize": 6, "showPoints": "always"},
+          "unit": "bytes"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "id": 3,
+      "targets": [{"expr": "spark_job_run_shuffle_read_bytes", "legendFormat": "{{dag_id}}/{{task_id}} {{run_id}}", "refId": "A"}],
+      "title": "Shuffle Read Bytes per run",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"drawStyle": "points", "fillOpacity": 0, "lineWidth": 0, "pointSize": 6, "showPoints": "always"},
+          "unit": "bytes"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "id": 4,
+      "targets": [{"expr": "spark_job_run_shuffle_write_bytes", "legendFormat": "{{dag_id}}/{{task_id}} {{run_id}}", "refId": "A"}],
+      "title": "Shuffle Write Bytes per run",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"drawStyle": "line", "fillOpacity": 10, "lineWidth": 2},
+          "unit": "bytes"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+      "id": 5,
+      "targets": [{"expr": "spark_job_memory_spill_bytes", "legendFormat": "{{dag_id}} / {{task_id}}", "refId": "A"}],
+      "title": "Memory Spill Bytes (latest)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"drawStyle": "line", "fillOpacity": 10, "lineWidth": 2},
+          "unit": "bytes"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+      "id": 6,
+      "targets": [{"expr": "spark_job_disk_spill_bytes", "legendFormat": "{{dag_id}} / {{task_id}}", "refId": "A"}],
+      "title": "Disk Spill Bytes (latest)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"drawStyle": "points", "fillOpacity": 0, "lineWidth": 0, "pointSize": 6, "showPoints": "always"},
+          "unit": "ms"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+      "id": 7,
+      "targets": [{"expr": "spark_job_run_fetch_wait_ms", "legendFormat": "{{dag_id}}/{{task_id}} {{run_id}}", "refId": "A"}],
+      "title": "Fetch Wait (ms) — time waiting for shuffle blocks",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"drawStyle": "points", "fillOpacity": 0, "lineWidth": 0, "pointSize": 6, "showPoints": "always"},
+          "unit": "ms"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
+      "id": 8,
+      "targets": [{"expr": "spark_job_run_duration_ms", "legendFormat": "{{dag_id}}/{{task_id}} {{run_id}}", "refId": "A"}],
+      "title": "Job Duration (ms) per run",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"drawStyle": "points", "fillOpacity": 0, "lineWidth": 0, "pointSize": 6, "showPoints": "always"},
+          "unit": "ms"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 32},
+      "id": 11,
+      "targets": [{"expr": "spark_job_run_shuffle_write_time_ms", "legendFormat": "{{dag_id}}/{{task_id}} {{run_id}}", "refId": "A"}],
+      "title": "Shuffle Write Time (ms) — blocking on shuffle writes",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"drawStyle": "line", "fillOpacity": 10, "lineWidth": 2},
+          "unit": "bytes"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 40},
+      "id": 9,
+      "targets": [{"expr": "spark_executor_memory_used_bytes", "legendFormat": "{{dag_id}}/{{task_id}} exec {{executor_id}}", "refId": "A"}],
+      "title": "Executor Cache Memory (bytes)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"drawStyle": "line", "fillOpacity": 10, "lineWidth": 2},
+          "unit": "bytes"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 40},
+      "id": 10,
+      "targets": [{"expr": "spark_executor_input_bytes", "legendFormat": "{{dag_id}}/{{task_id}} exec {{executor_id}}", "refId": "A"}],
+      "title": "Executor Input Bytes",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"drawStyle": "line", "fillOpacity": 10, "lineWidth": 2},
+          "unit": "bytes"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 48},
+      "id": 13,
+      "targets": [{"expr": "{__name__=~\"filesystem_s3a_.*|jvm_memory_bytes_used\"}", "legendFormat": "{{__name__}}", "refId": "A"}],
+      "title": "S3/Driver metrics (during job run)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": null,
+      "gridPos": {"h": 4, "w": 24, "x": 0, "y": 56},
+      "id": 12,
+      "options": {"content": "**S3 read/write:** DAGs enable PrometheusServlet + S3A metrics. Prometheus scrapes driver pods (label spark-driver-metrics) during job run. Query: `filesystem_s3a_*` or `jvm_*` from driver.\n\n**Resource wait:** fetch_wait_ms = shuffle block wait; shuffle_write_time_ms = shuffle write blocking.", "mode": "markdown"},
+      "title": "Note: S3 and resource wait",
+      "type": "text"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 27,
+  "style": "dark",
+  "tags": ["spark", "job-anatomy", "demo"],
+  "templating": {"list": []},
+  "time": {"from": "now-3h", "to": "now"},
+  "title": "Spark Job Anatomy",
+  "uid": "spark-job-anatomy",
+  "version": 1
+}
