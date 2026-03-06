@@ -1,18 +1,19 @@
 # Example Prometheus alert rules for spark_k8s constructor
-# Apply: add to Prometheus config or use Alertmanager
+# Metrics from demo-metrics-exporter (spark_*, airflow_*)
+# Apply: add to Prometheus config or use PrometheusRule (Operator)
 # Reference only — customize for your environment
 
 groups:
   - name: spark-k8s
     rules:
       - alert: SparkMasterDown
-        expr: up{job="spark-master"} == 0
-        for: 1m
+        expr: demo_metrics_exporter_spark_up == 0
+        for: 2m
         labels:
           severity: critical
         annotations:
-          summary: "Spark Master is down"
-          description: "Spark Master target has been down for more than 1 minute."
+          summary: "Spark Master unreachable"
+          description: "demo-metrics-exporter cannot reach Spark Master API."
 
       - alert: SparkWorkerDown
         expr: spark_workers_alive < spark_workers_total
@@ -24,7 +25,7 @@ groups:
           description: "One or more Spark workers are not alive."
 
       - alert: DemoMetricsExporterDown
-        expr: up{job="demo-metrics-exporter"} == 0
+        expr: demo_metrics_exporter_up == 0
         for: 2m
         labels:
           severity: warning
@@ -42,3 +43,12 @@ groups:
         annotations:
           summary: "Airflow DAG run failed"
           description: "DAG {{ $labels.dag_id }} has failed runs."
+
+      - alert: AirflowTaskFailed
+        expr: airflow_task_instances_state{state="failed"} > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Airflow task failed"
+          description: "DAG {{ $labels.dag_id }} has failed task instances."
