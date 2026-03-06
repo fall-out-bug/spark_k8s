@@ -18,7 +18,7 @@ The demo (`spark-infra`, `observability`) has been destroyed 3+ times by agent w
 ## Invariants (must always hold)
 
 - `spark-infra` has exactly ONE Helm release named `spark-infra`, chart `spark-3.5` (parent, NOT subchart)
-- Service names: `spark-infra-standalone-*` (master, airflow), `spark-infra-spark-35-*` (history, jupyter, metastore), `spark-infra-spark-base-*` (postgresql), `minio` — never `spark-shared-*`
+- Service names: `spark-infra-standalone-*` (master), `spark-infra-airflow-webserver`, `spark-infra-spark-35-*` (history, jupyter, metastore), `spark-infra-spark-base-*` (postgresql), `minio` — never `spark-shared-*`
 - Preset `presets/demo-full-spark-infra.yaml` is the sole config source; `values.yaml` are fallback defaults only
 - Workers: ≥3 replicas, ≥800m CPU, ≥13Gi memory, ≥2 cores, ≥14g Spark memory
 - Resource budget: ~5 CPU / ~44Gi of 6 CPU / 48Gi node (enforced by `test_demo_preset_guard.py`)
@@ -122,6 +122,8 @@ After restore/re-deploy: `pkill -f "kubectl port-forward.*spark-infra"` then `./
 | spark-infra infra | ~1550m | ~4.5Gi |
 | 3 workers × 800m/13Gi | 2400m | 39Gi |
 | **Total** | ~5050m (84%) | ~44Gi (92%) |
+
+**Observability tuning for demo:** Loki `chunksCache.allocatedMemory: 256` (default 8192MB exceeds budget), `resultsCache.allocatedMemory: 128`, `gateway.affinity: null` (single-node: disable podAntiAffinity).
 
 - Test namespaces: keep orphan count ≤ 1; each consumes ~500m CPU
 - Never scale workers >3 or increase memory >13Gi without capacity check

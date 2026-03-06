@@ -3,18 +3,23 @@
 
 targetNamespace: spark-operations
 
-# Loki subchart - SingleBinary mode for Spark (lightweight)
-deploymentMode: SingleBinary
-singleBinary:
-  replicas: 1
-read:
-  replicas: 0
-write:
-  replicas: 0
-backend:
-  replicas: 0
-# Subchart "loki" receives these; it expects Values.loki.*
+# Subchart "loki" (grafana/loki) — values under "loki" key are passed to subchart
+# SingleBinary mode for Spark demo (lightweight; avoids write/read/backend StatefulSets)
+# Demo budget: 6 CPU / 48Gi — chunks-cache default 8Gi blows budget; reduce to 256Mi
 loki:
+  deploymentMode: SingleBinary
+  singleBinary:
+    replicas: 1
+  read:
+    replicas: 0
+  write:
+    replicas: 0
+  backend:
+    replicas: 0
+  chunksCache:
+    allocatedMemory: 256  # Default 8192MB exceeds demo budget; 256MB for minikube
+  resultsCache:
+    allocatedMemory: 128  # Default 1024MB; 128MB for demo
   loki:
     auth_enabled: false
     useTestSchema: true

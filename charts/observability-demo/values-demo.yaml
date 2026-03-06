@@ -14,11 +14,43 @@ otelCollector:
 prometheus-spark:
   targetNamespace: spark-infra
   prometheus-operator:
+    # K8s 1.25+ compatibility: PSP removed, v1beta1 admission webhooks removed
+    global:
+      rbac:
+        pspEnabled: false
+    prometheusOperator:
+      admissionWebhooks:
+        enabled: false
+      tlsProxy:
+        enabled: false  # Required when admissionWebhooks disabled — avoids missing observability-demo-prometh-admission secret
+      image:
+        repository: quay.io/prometheus-operator/prometheus-operator
+        tag: v0.68.0  # v0.38.1 (quay.io/coreos) returns 401; use prometheus-operator org
+      prometheusConfigReloaderImage:
+        repository: quay.io/prometheus-operator/prometheus-config-reloader
+        tag: v0.68.0
+    # Disable subcharts that use deprecated PSP/RBAC v1beta1 on K8s 1.25+
+    kubeStateMetrics:
+      enabled: false
+    nodeExporter:
+      enabled: false
     grafana:
       enabled: false
+      # Required for helm lint (Grafana subchart nil pointer fix)
+      sidecar:
+        alerts:
+          enabled: false
+        notifiers:
+          enabled: false
+        plugins:
+          enabled: false
 
 loki-spark:
   targetNamespace: spark-infra
+  # Single-node (minikube): disable gateway podAntiAffinity so it can schedule
+  loki:
+    gateway:
+      affinity: null
 
 grafana-spark:
   # Demo: NodePort for Grafana, no persistence
@@ -27,6 +59,10 @@ grafana-spark:
       dashboards:
         enabled: true
       alerts:
+        enabled: false
+      notifiers:
+        enabled: false
+      plugins:
         enabled: false
     adminUser: admin
     adminPassword: admin

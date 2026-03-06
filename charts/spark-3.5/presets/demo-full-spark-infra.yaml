@@ -33,6 +33,14 @@ global:
 
 spark-base:
   enabled: true
+  core:
+    hiveMetastore:
+      database: { name: "spark_db" }
+      postgresql:
+        host: "spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local"
+        database: "spark_db"
+        username: "postgres"
+        password: "postgres"
   minio:
     enabled: true
     resources:
@@ -112,53 +120,22 @@ airflow:
     pullPolicy: IfNotPresent
   webserver:
     replicas: 1
-    resources:
-      requests:
-        cpu: "250m"
-        memory: "512Mi"
-      limits:
-        cpu: "1"
-        memory: "2Gi"
-    service:
-      type: NodePort
-      port: 8080
-      nodePort: 30080
+    resources: { requests: { cpu: "250m", memory: "512Mi" }, limits: { cpu: "1", memory: "2Gi" } }
+    service: { type: NodePort, port: 8080, nodePort: 30080 }
   scheduler:
     replicas: 1
-    resources:
-      requests:
-        cpu: "200m"
-        memory: "512Mi"
-      limits:
-        cpu: "1"
-        memory: "2Gi"
+    resources: { requests: { cpu: "200m", memory: "512Mi" }, limits: { cpu: "1", memory: "2Gi" } }
   postgresql:
     enabled: false
     externalHost: "spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local"
     externalPort: 5432
-    auth:
-      database: "airflow"
-      username: "postgres"
-      password: "postgres"
-    service:
-      port: 5432
-    resources:
-      requests:
-        cpu: "100m"
-        memory: "256Mi"
-      limits:
-        cpu: "500m"
-        memory: "512Mi"
+    auth: { database: "airflow", username: "postgres", password: "postgres" }
+    service: { port: 5432 }
+    resources: { requests: { cpu: "100m", memory: "256Mi" }, limits: { cpu: "500m", memory: "512Mi" } }
   config:
-    core:
-      dags_folder: "/opt/airflow/dags"
-      load_examples: "False"
-      executor: "LocalExecutor"
-    webserver:
-      expose_config: "True"
-      rbac: "True"
-    scheduler:
-      catchup_by_default: "False"
+    core: { dags_folder: "/opt/airflow/dags", load_examples: "False", executor: "LocalExecutor" }
+    webserver: { expose_config: "True", rbac: "True" }
+    scheduler: { catchup_by_default: "False" }
   dags:
     - nyc_taxi_ml_full_pipeline.py
     - spark_standalone_load_demo.py
@@ -205,8 +182,7 @@ historyServer:
 hiveMetastore:
   enabled: true
   warehouseDir: "s3a://warehouse/spark-35"
-  database:
-    name: "spark_db"
+  database: { name: "spark_db" }
   resources:
     requests:
       cpu: "100m"
