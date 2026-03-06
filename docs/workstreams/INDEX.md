@@ -1204,21 +1204,21 @@ WS-030-03 (Iceberg guide)    (independent)
 ## Feature F31: Observability as Product
 
 **Source:** `docs/drafts/idea-observability-product.md`
-**Status:** Backlog
+**Status:** Completed
 **Total Workstreams:** 9
 **Estimated LOC:** ~900 (docs + tests)
 
 | ID | Name | Scope | Dependency | Status |
 |----|------|-------|------------|--------|
-| WS-031-01 | Observability Audit — Inventory | SMALL (~150 LOC) | - | backlog |
-| WS-031-02 | DevOps Recipe — "5 min: System OK" | SMALL (~80 LOC) | WS-031-01 | backlog |
-| WS-031-03 | DataOps Recipe — Traces and Dashboards | SMALL (~100 LOC) | WS-031-01 | backlog |
-| WS-031-04 | Tech Lead Recipe — Pipeline State | SMALL (~90 LOC) | WS-031-01 | backlog |
-| WS-031-05 | Data Engineer Recipe — Data Traceability | SMALL (~100 LOC) | WS-031-01 | backlog |
-| WS-031-06 | Data Scientist Recipe — "Just Works" | SMALL (~60 LOC) | WS-031-01 | backlog |
-| WS-031-07 | PR Gate — Observability Test Scenarios | MEDIUM (~150 LOC) | WS-031-01 | backlog |
-| WS-031-08 | Example Alerts and Reports | SMALL (~120 LOC) | WS-031-01 | backlog |
-| WS-031-09 | Runbook Index — Consolidation per Persona | SMALL (~80 LOC) | WS-031-02..06, 08 | backlog |
+| 00-031-01 | Observability Audit — Inventory | SMALL (~150 LOC) | - | completed |
+| 00-031-02 | DevOps Recipe — "5 min: System OK" | SMALL (~80 LOC) | 00-031-01 | completed |
+| 00-031-03 | DataOps Recipe — Traces and Dashboards | SMALL (~100 LOC) | 00-031-01 | completed |
+| 00-031-04 | Tech Lead Recipe — Pipeline State | SMALL (~90 LOC) | 00-031-01 | completed |
+| 00-031-05 | Data Engineer Recipe — Data Traceability | SMALL (~100 LOC) | 00-031-01 | completed |
+| 00-031-06 | Data Scientist Recipe — "Just Works" | SMALL (~60 LOC) | 00-031-01 | completed |
+| 00-031-07 | PR Gate — Observability Test Scenarios | MEDIUM (~150 LOC) | 00-031-01 | completed |
+| 00-031-08 | Example Alerts and Reports | SMALL (~120 LOC) | 00-031-01 | completed |
+| 00-031-09 | Runbook Index — Consolidation per Persona | SMALL (~80 LOC) | 00-031-02..06, 08 | completed |
 
 ### Dependency Graph
 
@@ -1392,15 +1392,15 @@ ALL → WS-036-12 (Final Evidence)
 | F28: Chart Architecture DRY | 3 | 3 | 0 | 0 |
 | F29: CI/CD Hardening | 4 | 3 | 0 | 1 |
 | F30: Data Engineering Patterns | 4 | 4 | 0 | 0 |
-| F31: Observability as Product | 9 | 0 | 0 | 9 |
+| F31: Observability as Product | 9 | 9 | 0 | 0 |
 | F34: Test Matrix TDD | 5 | 0 | 5 | 0 |
 | F35: Test Matrix Rebuild | 8 | 8 | 0 | 0 |
 | F36: Chart Refactor (Flatten/Rename) | 12 | 12 | 0 | 0 |
 | TESTING: Testing Infrastructure | 3 | 3 | 0 | 0 |
-| **TOTAL** | **~208** | **~176** | **5** | **~32** |
+| **TOTAL** | **~208** | **~185** | **5** | **~23** |
 
 > **Notes:**
-> - F22/F31 ID collision: F22 uses WS-031-01..04 in `completed/`, F31 uses 00-031-01..09 in `backlog/`
+> - F22/F31 ID collision: F22 uses WS-031-01..04 (progress automation), F31 uses 00-031-01..09 (observability product) — both in `completed/`
 > - F13-improvements (00-013-06..11): archived to `_archived/` — unregistered aspirational specs
 > - WS-AUTO-01..06, WS-CI-01..03: archived — design specs only, never implemented
 > - 06-XXX series (11 files): old Phase 1 roadmap work, in `completed/` but not in INDEX

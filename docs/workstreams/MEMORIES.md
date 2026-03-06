@@ -1,7 +1,7 @@
 # Completed Work — Compressed Memories
 
 > Distilled from 170+ workstream files. Individual WS files retained in `completed/` for provenance.
-> Last updated: 2026-03-06 (F16 consolidation finalized)
+> Last updated: 2026-03-06 (F31 Observability as Product completed)
 
 **Docs consolidated 2026-03-06:** plans/ (observability, principles), reports/F10-*, tech-debt-map, drafts/agent-handover-*, drafts/matrix-* → merged into MEMORIES or deleted. security-migration → ADR-0008. chart-hallucination-audit retained in reports/ (actionable). See ADR-0008 for PSS migration.
 
@@ -269,6 +269,20 @@
 - `examples/iceberg/best_practices/`
 **Evidence:** Weak (WS docs have `status: backlog`). But deliverables exist.
 **WS files:** `WS-030-01..04`
+
+---
+
+## F31: Observability as Product — DONE (9/9 WS)
+
+**Deliverables:** INVENTORY, 5 persona recipes (DevOps, DataOps, Tech Lead, Data Engineer, Data Scientist), PR gate smoke tests, example alerts, runbook index.
+**Key paths:**
+- `docs/observability/INVENTORY.md` — dashboards, metrics, Loki, demos
+- `docs/observability/recipes/` — devops-5min, dataops-5min, techlead-5min, data-engineer-5min, ds-5min
+- `tests/observability/test_observability_smoke.py` — helm template assertions
+- `docs/observability/examples/` — alerts.yaml, README
+- `docs/observability/README.md` — entry point, personas table
+**Evidence:** Strong. All 9 WS have execution reports. Reviewed 2026-03-06, APPROVED.
+**WS files:** `completed/00-031-01`..`00-031-09`
 
 ---
 

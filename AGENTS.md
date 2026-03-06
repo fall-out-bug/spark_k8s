@@ -84,12 +84,13 @@ spark_k8s/
 | **F35** Test Matrix Rebuild | Done | `scripts/run-matrix-*.sh`, `tests/integration/test_run_matrix.py` |
 | **F36** Chart Refactor | Done | All charts, scripts, tests, docs |
 | **F16** Observability Stack | Done (6/6) | `charts/observability/`, `tests/integration/test_observability_*.py` |
+| **F31** Observability as Product | Done (9/9) | `docs/observability/`, `tests/observability/` |
 
 ### Backlog (active)
 
 | Feature | WS Count | Location |
 |---------|----------|----------|
-| **F31** Observability as Product | 9 | `docs/workstreams/backlog/00-031-*` |
+| *(none)* | — | — |
 
 ### Open Gaps
 
@@ -138,7 +139,7 @@ spark-custom:3.5.7|3.5.8|4.1.0|4.1.1  (base)
 | F29 minioadmin | Open (P1) | `minioadmin` still in 49+ files |
 | F04 Celeborn | Open (P2) | Docs exist, chart missing |
 | WS-011 ID collision | Documented | F02 uses WS-011-01..04 (docs), F11 uses 00-011-01..03 (Docker) |
-| F22/F31 ID collision | Documented | F22 uses WS-031-01..04, F31 uses 00-031-01..09 |
+| F22/F31 ID collision | Documented | F22: WS-031-01..04 (progress), F31: 00-031-01..09 (observability) — both done |
 
 **Reports:** `docs/reports/drift-analysis-2026-03-03.md`, `docs/reports/demo-review-2026-03-03.md`
 
