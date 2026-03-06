@@ -4,46 +4,82 @@
 
 ---
 
-## 1. Tech Lead Dashboard (phase breakdown)
+## 1. Dashboards для джобов (AC2)
 
-**Dashboard:** Tech Lead Morning (`tech-lead-morning`)
+### Spark Overview (`spark-overview`)
 
-- **Spark Cluster** — workers, apps running, cores, memory
-- **Airflow DAG Runs** — по state (success, failed, running)
-- **Spark Phase Breakdown** — shuffle, spill, I/O, app duration
+**Путь:** Grafana → Dashboards → Spark → Spark Overview
+**URL:** `http://localhost:13000/d/spark-overview/spark-overview` (port-forward)
 
-**Метрики phase breakdown:**
-- `spark_latest_stage_shuffle_read_bytes`, `spark_latest_stage_shuffle_write_bytes`
-- `spark_latest_stage_memory_spill_bytes`, `spark_latest_stage_disk_spill_bytes`
-- `spark_latest_stage_input_bytes`, `spark_latest_stage_output_bytes`
-- `spark_latest_app_duration_ms`
+- **History Server Up** — доступность History Server
+- **Spark Logs** — Loki, базовый фильтр `{app=~"spark.*"}`
+- **Traces** — Jaeger (если развёрнут)
+- **Ссылки** — History Server UI, Jaeger UI
 
----
+### Performance Analysis (`performance-analysis`)
 
-## 2. Logs Explorer
+**Путь:** Grafana → Dashboards → Spark → Performance Analysis
 
-**Dashboard:** Logs Explorer (`logs-explorer`)
+- **Executor Memory Used** — `spark_executor_metrics_memoryUsed`
+- **Task Duration (Max)** — `spark_task_duration_max`
+- **Shuffle Read** — `spark_shuffle_read_bytes`
+- **Shuffle Write** — `spark_shuffle_write_bytes`
 
-**Базовый запрос Loki:**
+### Logs Explorer (Grafana Explore → Loki)
+
+**Путь:** Grafana → Explore (⊕) → выбрать Loki
+
+Базовый запрос:
 ```
 {namespace=~"spark-infra|observability"}
 ```
 
-**Фильтры:**
-- По namespace: `{namespace="spark-infra"}`
-- По pod: `{pod=~"spark-infra.*"}`
-- По container: `{container="spark-driver"}`
+---
+
+## 2. Фильтрация по DAG, task, application_id (AC3)
+
+**Loki labels:** `namespace`, `pod`, `app`, `component`, `node`, `trace_id`
+
+| Фильтр | Loki Query | Примечание |
+|--------|------------|------------|
+| Namespace | `{namespace="spark-infra"}` | Логи spark-infra |
+| Pod (DAG/task) | `{pod=~".*nyc-taxi.*feature.*"}` | Pod name содержит dag_id и task_id |
+| App | `{app=~"spark.*"}` | Spark-подобные приложения |
+| Container | `{container="spark-driver"}` | Только driver |
+
+**application_id:** искать в теле лога (LogQL `|= "application_123"`) или в History Server API по DAG run.
+
+**Пример для DAG `nyc_taxi_ml_full_pipeline`, task `feature_engineering`:**
+```
+{namespace="spark-infra", pod=~".*nyc-taxi.*feature.*"}
+```
 
 ---
 
-## 3. Phase Breakdown — интерпретация
+## 3. Phase Breakdown (AC4)
 
-| Метрика | Что значит |
+**Метрики demo-metrics-exporter (Prometheus):**
+
+| Метрика | Назначение |
 |---------|------------|
-| Shuffle read/write | Обмен данными между stages |
-| Memory/Disk spill | OOM risk, нужна настройка памяти |
-| Input/Output bytes | Чтение/запись (S3, HDFS) |
-| App duration | Общее время приложения |
+| `spark_latest_stage_shuffle_read_bytes` | Shuffle read по app_id |
+| `spark_latest_stage_shuffle_write_bytes` | Shuffle write по app_id |
+| `spark_latest_stage_memory_spill_bytes` | Memory spill |
+| `spark_latest_stage_disk_spill_bytes` | Disk spill |
+| `spark_latest_stage_input_bytes` | Input (read) |
+| `spark_latest_stage_output_bytes` | Output (write) |
+| `spark_latest_app_duration_ms` | Длительность приложения |
+
+**Интерпретация:**
+
+| Фаза | Метрики | Что значит |
+|------|---------|------------|
+| Driver | — | Координация, планирование |
+| Read | input_bytes | Чтение (S3, HDFS) |
+| Compute | task_duration, executor_memory | Вычисления |
+| Shuffle | shuffle_read/write | Обмен между stages |
+| Spill | memory_spill, disk_spill | OOM risk, настройка памяти |
+| Write | output_bytes | Запись результата |
 
 **Bottleneck:** Высокий shuffle + spill → увеличить `spark.executor.memory` или пересмотреть партиционирование.
 
@@ -51,5 +87,6 @@
 
 ## Ссылки
 
-- [INVENTORY](../../observability/INVENTORY.md) — метрики, dashboards
-- [Grafana dashboards](../../../charts/observability/grafana/dashboards/) — spark-executors, spark-tuning, spark-overview
+- [INVENTORY](../INVENTORY.md) — метрики, dashboards, scrape jobs
+- [Performance Analysis dashboard](../../../charts/observability/grafana/dashboards/performance-analysis.json)
+- [DevOps recipe](devops-5min.md) — быстрая проверка системы
