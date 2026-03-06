@@ -37,6 +37,15 @@ This index provides a searchable list of all operational runbooks.
 - [Diagnose Spark Failure](../runbooks/incidents/diagnose-spark-failure.md)
 - [Resolve Incident](../runbooks/incidents/resolve-incident.md)
 
+## Observability
+
+- [Observability Hub](../../observability/README.md) — entry point: personas, recipes, INVENTORY
+- [DevOps 5min](../../observability/recipes/devops-5min.md) — system OK checklist
+- [DataOps 5min](../../observability/recipes/dataops-5min.md) — traces, dashboards
+- [Tech Lead 5min](../../observability/recipes/techlead-5min.md) — pipeline state
+- [Data Engineer 5min](../../observability/recipes/data-engineer-5min.md) — traceability
+- [Data Scientist 5min](../../observability/recipes/ds-5min.md) — just works checklist
+
 ## Scaling Runbooks
 
 - [Horizontal Pod Autoscaler](../runbooks/scaling/horizontal-pod-autoscaler.md)
@@ -46,6 +55,6 @@ This index provides a searchable list of all operational runbooks.
 
 ---
 
-**Index Version**: 1.0
-**Last Updated**: 2026-02-11
-**Total Runbooks**: 25
+**Index Version**: 1.1
+**Last Updated**: 2026-03-06
+**Total Runbooks**: 31 (incl. 6 observability)

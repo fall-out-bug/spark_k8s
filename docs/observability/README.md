@@ -28,7 +28,7 @@
 ## Runbooks
 
 - [demo-runbook-shared-infra](../../tests/demo-runbook-shared-infra.md) — развёртывание observability
-- [Runbook Index](../operations/portal/runbook-index.md) — все runbooks проекта
+- [Runbook Index](../operations/portal/runbook-index.md) — все runbooks (включая Observability)
 
 ---
 
