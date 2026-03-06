@@ -40,7 +40,12 @@ def load_matrix_filter(results_dir: Path, filter_str: str) -> list[str]:
     return [s["id"] for s in scenarios if matches(s)]
 
 
-def aggregate(results_dir: Path, expected_ids: list[str], duration_sec: int = 0) -> dict:
+def aggregate(
+    results_dir: Path,
+    expected_ids: list[str],
+    filter_str: str,
+    duration_sec: int = 0,
+) -> dict:
     """Aggregate scenario-*.json into summary."""
     passed = 0
     failed = 0
@@ -62,7 +67,7 @@ def aggregate(results_dir: Path, expected_ids: list[str], duration_sec: int = 0)
             passed += 1
 
     return {
-        "filter": "gpu=false,platform=k8s",
+        "filter": filter_str,
         "expected": len(expected_ids),
         "passed": passed,
         "failed": failed,
@@ -85,7 +90,7 @@ def main() -> int:
         print("No scenarios match filter", file=sys.stderr)
         return 1
 
-    summary = aggregate(args.results_dir, expected, args.duration)
+    summary = aggregate(args.results_dir, expected, args.filter, args.duration)
     out = args.output or args.results_dir / "matrix-96-summary.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     with open(out, "w") as f:
