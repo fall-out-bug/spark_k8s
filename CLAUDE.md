@@ -2,6 +2,8 @@
 
 Quick reference for using this Spec-Driven Protocol (SDP) repository with Claude Code.
 
+> **🤖 Agents:** Read [AGENTS.md](AGENTS.md) first — entry point, navigation map, workflow. Then [MEMORIES.md](docs/workstreams/MEMORIES.md) for project state.
+
 > **📝 Meta-note:** This guide was written with AI assistance (Claude Sonnet 4.5). The workflow is based on real development experience.
 
 ## SDP Submodule
@@ -24,7 +26,7 @@ cd .sdp && git log --oneline -1 && cd ..
 - `CODE_PATTERNS.md` → `.sdp/CODE_PATTERNS.md` (Code patterns)
 - `MODELS.md` → `.sdp/MODELS.md` (Model recommendations)
 
-**SDP Version:** v0.9.8
+**SDP Version:** v0.9.8+ (submodule: `git submodule update --remote .sdp`)
 
 ## TL;DR
 
@@ -65,9 +67,11 @@ Skills are defined in `.claude/skills/{name}/SKILL.md`
 ### First Time Setup
 
 1. **Read core docs:**
+   - [AGENTS.md](AGENTS.md) — Agent entry point, navigation, workflow (start here)
    - [README.md](README.md) — Overview and quick start
    - [PROTOCOL.md](PROTOCOL.md) — Full SDP specification
-   - [RULES_COMMON.md](RULES_COMMON.md) — Common rules
+   - [RULES_COMMON.md](RULES_COMMON.md) — SDP common rules
+   - [.cursorrules](.cursorrules) — Principles, testing, CI (spark_k8s-specific)
 
 2. **Understand key concepts:**
    - **Workstream (WS)**: Atomic task, one-shot execution
@@ -76,9 +80,8 @@ Skills are defined in `.claude/skills/{name}/SKILL.md`
 
 3. **Review quality gates:**
    - Files < 200 LOC
-   - Coverage ≥80%
    - No `except: pass`
-   - Full type hints
+   - **spark_k8s:** helm lint, helm template, security tests (see [.cursorrules](.cursorrules) — coverage not a metric for Helm charts)
 
 ### Typical Workflow
 
@@ -283,10 +286,11 @@ project/
 
 ## Key Principles (Quick)
 
-- **SOLID, DRY, KISS, YAGNI** — see [docs/PRINCIPLES.md](docs/PRINCIPLES.md)
-- **Clean Architecture** — Domain ← App ← Infra ← Presentation
+- **SOLID, DRY, KISS, YAGNI** — see [.cursorrules](.cursorrules)
 - **TDD** — Tests first (Red → Green → Refactor)
-- **AI-Readiness** — Small files, low complexity, typed
+- **Regression prevention** — see [docs/operations/demo-protection.md](docs/operations/demo-protection.md)
+
+**Note:** spark_k8s is Helm charts, not a Python app. Quality gates differ — see [.cursorrules](.cursorrules) (no `--cov=tests`, helm lint/template instead).
 
 ## Validation
 
@@ -312,19 +316,18 @@ sdp drift detect
 | Gate | Requirement |
 |------|-------------|
 | **AI-Readiness** | Files < 200 LOC, CC < 10, type hints |
-| **Clean Architecture** | No layer violations |
 | **Error Handling** | No `except: pass` |
-| **Test Coverage** | ≥80% |
 | **No TODOs** | All tasks completed or new WS |
+
+**spark_k8s:** helm lint, helm template, security assertions — see [.cursorrules](.cursorrules). Coverage is not a metric for Helm chart repos.
 
 ## Forbidden Patterns
 
 ❌ `except: pass` or bare exceptions
 ❌ Time-based estimates
-❌ Layer violations
 ❌ Files > 200 LOC
 ❌ TODO without followup WS
-❌ Coverage < 80%
+❌ `--cov=tests` (spark_k8s: self-coverage forbidden)
 
 ## Required Patterns
 
@@ -374,11 +377,15 @@ See `.claude/settings.json` for:
 
 | Resource | Purpose |
 |----------|---------|
-| [PROTOCOL.md](PROTOCOL.md) | Full specification |
-| [docs/PRINCIPLES.md](docs/PRINCIPLES.md) | Core principles |
+| [AGENTS.md](AGENTS.md) | Agent entry point, navigation, workflow |
+| [docs/workstreams/MEMORIES.md](docs/workstreams/MEMORIES.md) | Project state, provenance/evidence/trace |
+| [.cursorrules](.cursorrules) | Principles, testing, CI (spark_k8s) |
+| [PROTOCOL.md](PROTOCOL.md) | Full SDP specification |
+| [RULES_COMMON.md](RULES_COMMON.md) | SDP common rules |
 | [CODE_PATTERNS.md](CODE_PATTERNS.md) | Code patterns |
 | [MODELS.md](MODELS.md) | Model recommendations |
-| [prompts/commands/](prompts/commands/) | Skill instructions |
+| [docs/operations/demo-protection.md](docs/operations/demo-protection.md) | Demo rules, regression prevention |
+| [MEMORIES.md](docs/workstreams/MEMORIES.md) § SDP CLI | sdp status, drift, memory, verify, orchestrate |
 
 ---
 

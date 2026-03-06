@@ -1,9 +1,132 @@
-# Completed Work — Compressed Memories
+# Project Memory — Meta-Library
 
-> Distilled from 170+ workstream files. Individual WS files retained in `completed/` for provenance.
-> Last updated: 2026-03-06 (F31 Observability as Product completed)
+> **Purpose:** Single source of truth for project state. Agents: read this to find features, gaps, drift, and where everything lives.
+> Distilled from 170+ workstream files. Individual WS files in `completed/` for provenance.
+> Last updated: 2026-03-06
 
-**Docs consolidated 2026-03-06:** plans/ (observability, principles), reports/F10-*, tech-debt-map, drafts/agent-handover-*, drafts/matrix-* → merged into MEMORIES or deleted. security-migration → ADR-0008. chart-hallucination-audit retained in reports/ (actionable). See ADR-0008 for PSS migration.
+---
+
+## Navigation Map — Where to Find What
+
+| I need... | Look here |
+|-----------|-----------|
+| **Feature status, deliverables, key paths** | Features Index (below) |
+| **Image pyramid, test matrix** | Key Concepts (below) |
+| **Provenance, evidence, trace** | Key Concepts → Provenance/Evidence/Trace (below) |
+| **Open gaps, backlog items** | Known Gaps (below) |
+| **Drift, evidence gaps, ID collisions** | Known Drift → `docs/reports/drift-*.md` |
+| **Workstream files (WS-XXX-YY)** | `docs/workstreams/completed/`, `docs/workstreams/backlog/` |
+| **ADR decisions** | `docs/adr/` |
+| **Operations, runbooks** | `docs/operations/`, `docs/runbooks/` |
+| **Test matrix, runners** | `scripts/run-matrix-96.sh`, `docs/drafts/idea-test-matrix-tdd.md` |
+| **SDP CLI commands** | SDP CLI Reference (below) |
+| **Agent workflow, demo rules** | [AGENTS.md](../../AGENTS.md), [docs/operations/demo-protection.md](../operations/demo-protection.md) |
+
+---
+
+## Features Index (Quick Reference)
+
+| Feature | Status | Primary Location |
+|---------|--------|------------------|
+| F01 Spark Standalone | Done | `charts/spark-3.5/` |
+| F02 Documentation | Done | `docs/guides/en/`, `docs/guides/ru/` |
+| F03 History Server | Done | `charts/spark-3.5/templates/` |
+| F04 Spark 4.1 | Done (gap: Celeborn) | `charts/spark-4.1/`, `charts/spark-base/` |
+| F06 Core + Presets | Done | `charts/spark-3.5/templates/core/`, `presets/` |
+| F07 Security | Done | PSS/SCC in `charts/spark-3.5/` |
+| F08 Smoke Tests | Done (weak evidence) | `tests/integration/` |
+| F09–F11 Docker | Done | `docker/docker-base/`, `docker/runtime/` |
+| F12 E2E | Done (weak evidence) | `tests/e2e/` |
+| F13 Load | Done | `tests/load/` |
+| F14 Security Tests | Done | `tests/security/` |
+| F15–F17, F22–F31 | Done | See detailed sections below |
+| F35 Test Matrix | Done | `scripts/run-matrix-96.sh` |
+| F36 Chart Refactor | Done | All charts |
+
+**Full details** — each feature section below has: deliverables, key paths, evidence, WS files.
+
+---
+
+## Key Concepts
+
+**Image Pyramid:** `get_runtime_image(spark_version, gpu, iceberg)` must map to:
+```
+spark-custom:3.5.7|3.5.8|4.1.0|4.1.1 (base)
+  → spark-k8s-runtime:3.5-X-baseline|iceberg|gpu|gpu-iceberg
+  → spark-k8s-jupyter:3.5-X-*
+```
+
+**Test Matrix:** F35 done. Runner: `scripts/run-matrix-96.sh`. Target: Green 96 k8s/no-gpu, then 320 full.
+
+---
+
+### Provenance, Evidence, Trace
+
+| Concept | Meaning | Where |
+|---------|---------|-------|
+| **Provenance** | Source of deliverables, WS lineage. Where did this come from? | WS files in `completed/`, `tests/evidence/` (baseline/final snapshots) |
+| **Evidence** | Proof work was done. Execution reports, test output, helm lint/template. | Execution report section in each WS file; `tests/evidence/` (helm template snapshots); `scripts/generate-helm-evidence.sh` |
+| **Trace** | Traceability: AC → test → deliverable. Audit trail. | Review reports (`docs/reports/review-*.md`), AC mapping in WS files; observability: `trace_id` in logs (Loki) links to Jaeger traces |
+
+**Evidence quality:** Strong = execution reports + tests; Weak = blank reports, code exists; Gap = no evidence.
+
+**Regenerate evidence:** `./scripts/generate-helm-evidence.sh baseline` and `./scripts/generate-helm-evidence.sh final` → `tests/evidence/{baseline,final}/`, `tests/evidence/diff-report.md`.
+
+---
+
+### SDP CLI Reference
+
+| Command | Purpose |
+|---------|---------|
+| `sdp status --text` | Project state (WS open/completed/blocked) |
+| `sdp drift detect [ws-id]` | Detect code↔docs drift |
+| `sdp memory index` | Index docs/ into memory.db |
+| `sdp memory search <query>` | Full-text search across artifacts |
+| `sdp verify <ws-id>` | Verify workstream completion with evidence |
+| `sdp log show` | Evidence log events |
+| `sdp log trace --verify` | Verify evidence chain integrity |
+| `sdp guard activate <ws-id>` | Enforce edit scope before @build |
+| `sdp orchestrate --feature F{XX} --next-action` | Get next step for @oneshot |
+| `sdp next` | Next-step recommendation |
+
+**Config:** `.sdp/config.yml` (project root). Run `sdp init --auto` or copy `docs/sdp-config.yml.example`.
+
+**Hooks:** After submodule update, run `sh .sdp/hooks/install-git-hooks.sh`. Project hooks: `scripts/hooks/` (pre-commit, pre-push, commit-msg).
+
+**CI (trace, evidence, provenance):** `.github/workflows/ci-sdp.yml` — trace: `sdp log trace --verify` (fail if broken); evidence: helm snapshots `tests/evidence/`, `sdp verify` for modified WS; provenance: conventional commits, SDP-Agent trailers.
+
+---
+
+## Known Gaps
+
+| Area | Gap | Severity |
+|------|-----|----------|
+| F04 | Celeborn chart missing (WS-020-11) | P2 |
+| F08 | All 7 WS lack execution evidence | P3 (code exists) |
+| F12 | 5/6 WS lack execution evidence | P3 (code exists) |
+| F18 | 14+ operations WS open | P2 |
+| F25 | WS-025-11 (load tests), WS-025-12 (tracing) | P2 |
+| F29 | minioadmin hardcoded (WS-029-04) | P1 |
+| WS-AUTO | Design specs in completed/, never built | P3 (misplaced) |
+| WS-CI | Design specs in completed/, CI rebuilt differently | P3 (misplaced) |
+
+---
+
+## Known Drift (2026-03-06)
+
+| Area | Status | Notes |
+|------|--------|-------|
+| get_runtime_image | Fixed (F35) | Image pyramid in WS-035-06 |
+| Event logs, Load test | Fixed | S3 config, per-file parquet |
+| F29 minioadmin | Open (P1) | 49+ files |
+| F08, F12 evidence | Open | Blank execution reports |
+| WS-011, F22/F31 ID collision | Documented | See reports |
+
+**Reports:** `docs/reports/drift-analysis-2026-03-03.md`, `docs/reports/demo-review-2026-03-03.md`
+
+---
+
+## Detailed Feature Sections (Below)
 
 ---
 
@@ -163,6 +286,7 @@
 **Key paths:** `charts/observability/`, `charts/observability-demo/` (demo umbrella), `tests/integration/test_observability_*.py`, `charts/spark-3.5/templates/history-server-servicemonitor.yaml`
 **Evidence:** Strong. 16 observability integration tests. Grafana: Prometheus/Loki/Jaeger datasources, spark-overview dashboard. AlertManager: PrometheusRule, Slack, inhibit rules. History Server: ServiceMonitor, Jaeger/Loki env vars.
 **Consolidation (2026-03-06):** Single stack. Demo uses `charts/observability-demo` (Helm). demo-metrics-exporter + OTEL Collector in chart. Raw YAMLs → `tests/observability/_archived/`. Deploy: `scripts/tests/minikube/deploy-observability.sh`.
+**Helm lint (2026-03-06):** observability-demo values.yaml must provide Grafana subchart defaults (sidecar, imageRenderer, grafana.ini, persistence.inMemory) — per "Right over fast", no workarounds. See ADR-0010.
 **WS files:** `completed/00-016-01`..`00-016-06`
 
 ---
@@ -282,6 +406,7 @@
 - `docs/observability/examples/` — alerts.yaml, README
 - `docs/observability/README.md` — entry point, personas table
 **Evidence:** Strong. All 9 WS have execution reports. Reviewed 2026-03-06, APPROVED.
+**Review fixes (2026-03-06):** values.yaml Grafana subchart defaults (Right over fast). CI: helm lint observability-demo without -f. .cursorrules: observability-demo in repo structure. See ADR-0010.
 **WS files:** `completed/00-031-01`..`00-031-09`
 
 ---
@@ -304,10 +429,11 @@
 
 ---
 
-## Bug Fixes — 6 completed
+## Bug Fixes — 7 completed
 
 | ID | Fix | Path |
 |----|-----|------|
+| 2026-03-06 | spark-operator crds.create nil pointer | `charts/spark-operator/values.yaml` |
 | WS-BUG-004 | Spark 4.1 Connect readonly config | `charts/spark-4.1/` |
 | WS-BUG-005 | Spark 4.1 Metastore readonly config | `charts/spark-4.1/` |
 | WS-BUG-006 | History log prefix `spark-logs/4.1/events` | `charts/spark-base/` |
@@ -352,17 +478,3 @@ All 5 workstreams cancelled 2026-03-06. F35 covers same scope with better specif
 - WS-034-04 (Metrics Validation) → replaced by WS-035-07
 - WS-034-05 (Green 96 Scenarios) → replaced by WS-035-08
 
----
-
-## Known Gaps
-
-| Area | Gap | Severity |
-|------|-----|----------|
-| F04 | Celeborn chart missing (WS-020-11) | P2 |
-| F08 | All 7 WS lack execution evidence | P3 (code exists) |
-| F12 | 5/6 WS lack execution evidence | P3 (code exists) |
-| F25 | WS-025-11 (load tests), WS-025-12 (tracing) not done | P2 |
-| F29 | WS-029-04 — minioadmin still hardcoded | P1 |
-| F18 | 14+ WS still open | P2 |
-| WS-AUTO | Design specs in completed/, never built | P3 (misplaced) |
-| WS-CI | Design specs in completed/, CI was rebuilt differently | P3 (misplaced) |

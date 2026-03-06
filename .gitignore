@@ -15,7 +15,7 @@ docs/workstreams/TEMPLATE.md
 .env.*.local
 .env.local
 .env.template
-hooks/
+/hooks/   # Root-level hooks only; scripts/hooks/ is tracked
 htmlcov/
 *.key
 # Load test outputs
@@ -31,6 +31,7 @@ quality-gate.toml
 # SDP
 # SDP artifacts (local-only, from submodule)
 .sdp/.git
+.sdp/config.yml
 # SDP local backups
 # SDP runtime artifacts (local-only)
 .secrets/

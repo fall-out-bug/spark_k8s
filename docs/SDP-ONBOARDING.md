@@ -7,13 +7,18 @@
 ```bash
 # 1. Инициализация (после clone)
 git submodule update --init --recursive
-SDP_DIR=.sdp SDP_REF=v0.9.8 sh .sdp/scripts/install-project.sh
+SDP_DIR=.sdp SDP_REF=main sh .sdp/scripts/install-project.sh
 
-# 2. CLI (опционально)
+# 2. CLI (опционально, для sdp status, drift, memory, verify)
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only
 
-# 3. Хуки (уже установлены через install-project)
-# Проектные хуки: scripts/hooks/pre-commit.sh, pre-push.sh
+# 3. Конфиг (если нет .sdp/config.yml)
+sdp init --auto
+# или: cp docs/sdp-config.yml.example .sdp/config.yml
+
+# 4. Хуки (переустановить после обновления submodule)
+sh .sdp/hooks/install-git-hooks.sh
+# Проектные хуки: scripts/hooks/ (pre-commit, pre-push, commit-msg)
 ```
 
 ## Skills (команды)
@@ -29,6 +34,19 @@ curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | s
 | `@deploy <feature-id>` | Мерж в main |
 | `@debug` / `@hotfix` / `@bugfix` | Отладка и фиксы |
 
+## SDP CLI (агенты)
+
+| Команда | Назначение |
+|---------|------------|
+| `sdp status --text` | Состояние проекта (WS open/completed) |
+| `sdp drift detect [ws-id]` | Дрейф код↔документация |
+| `sdp memory search "X"` | Поиск по артефактам |
+| `sdp verify <ws-id>` | Проверка завершения WS |
+| `sdp guard activate <ws-id>` | Перед @build — ограничить scope |
+| `sdp log show` | Evidence log |
+
+Конфиг: `.sdp/config.yml`. Полный список: [MEMORIES.md](workstreams/MEMORIES.md) § SDP CLI.
+
 ## Структура
 
 ```
@@ -36,8 +54,9 @@ docs/
 ├── workstreams/
 │   ├── backlog/     # Готовые к выполнению WS
 │   ├── completed/   # Завершённые
-│   └── INDEX.md
-.sdp/                # Субмодуль SDP (v0.9.8)
+│   └── MEMORIES.md  # Мета-библиотека, SDP CLI
+.sdp/                # Субмодуль SDP (main)
+├── config.yml       # Проектный конфиг (sdp init --auto)
 .claude/skills -> .sdp/prompts/skills
 .cursor/skills -> .sdp/prompts/skills
 scripts/hooks/       # Проектные pre-commit, pre-push (Python/Helm)
