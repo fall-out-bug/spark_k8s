@@ -5,6 +5,11 @@
 #
 grafana:
   enabled: true
+  sidecar:
+    dashboards:
+      enabled: true
+    alerts:
+      enabled: false
   image:
     repository: grafana/grafana
     tag: 11.0.0

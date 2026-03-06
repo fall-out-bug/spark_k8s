@@ -138,6 +138,14 @@ def main():
             chart = f"{project_root}/charts/spark-3.5"
         helm_args = parse_helm_values(s.get("helm_values", ""))
         img_tag = get_runtime_image(spark_ver, s.get("gpu", False), s.get("iceberg", False))
+        # Matrix invariants: no Jupyter (saves resources), backendMode for Connect+Standalone
+        helm_args.extend(["--set", "jupyter.enabled=false"])
+        if is_connect and k8s_mode == "standalone":
+            helm_args.extend(["--set", "connect.backendMode=standalone"])
+        # Chart uses features.openLineage.enabled; scenarios have openlineage.enabled in helm_values.
+        # Note: OpenLineage config is only in connect configmap; for connect=false (standalone/k8s-native) this is harmless no-op.
+        if s.get("openlineage"):
+            helm_args.extend(["--set", "features.openLineage.enabled=true"])
         if is_connect:
             helm_args.extend(["--set", f"connect.image.repository=spark-custom", "--set", f"connect.image.tag={img_tag}"])
         elif k8s_mode == "native":

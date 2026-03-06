@@ -1,0 +1,93 @@
+# Build Spark distributions once, save as artifacts. Docker builds use these instead of compiling at runtime.
+# Trigger: manual or when docker/spark-custom/ changes
+
+name: "Build Spark Distributions"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Spark version"
+        required: true
+        default: "3.5.7"
+        type: choice
+        options:
+          - "3.5.7"
+          - "3.5.8"
+          - "4.1.0"
+          - "4.1.1"
+
+env:
+  HADOOP_VERSION: "3.4.2"
+  MAVEN_OPTS: "-Xmx4g -Dmaven.wagon.http.retryHandler.count=5"
+
+jobs:
+  build:
+    name: Build Spark ${{ github.event.inputs.version || '3.5.7' }}
+    runs-on: self-hosted
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openjdk-17-jdk git wget
+          # Maven
+          wget -q https://archive.apache.org/dist/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz
+          sudo tar -xzf apache-maven-3.9.6-bin.tar.gz -C /opt
+          sudo mv /opt/apache-maven-3.9.6 /opt/maven
+          echo "/opt/maven/bin" >> $GITHUB_PATH
+          echo "MAVEN_HOME=/opt/maven" >> $GITHUB_ENV
+          echo "PATH=/opt/maven/bin:$PATH" >> $GITHUB_ENV
+          # Scala 2.12 + 2.13 (Spark 3.x uses 2.12, Spark 4.x uses 2.13)
+          wget -q https://downloads.lightbend.com/scala/2.12.19/scala-2.12.19.tgz
+          sudo tar -xzf scala-2.12.19.tgz -C /opt
+          wget -q https://downloads.lightbend.com/scala/2.13.14/scala-2.13.14.tgz
+          sudo tar -xzf scala-2.13.14.tgz -C /opt
+          echo "/opt/scala-2.12.19/bin:/opt/scala-2.13.14/bin" >> $GITHUB_PATH
+
+      - name: Build Spark distribution
+        run: |
+          SPARK_VERSION="${{ github.event.inputs.version || '3.5.7' }}"
+          if [[ "$SPARK_VERSION" == 4.* ]]; then
+            export PATH="/opt/maven/bin:/opt/scala-2.13.14/bin:$PATH"
+          else
+            export PATH="/opt/maven/bin:/opt/scala-2.12.19/bin:$PATH"
+          fi
+
+          mkdir -p dist/build
+          cd dist/build
+
+          git clone --branch "v${SPARK_VERSION}" --depth 1 https://github.com/apache/spark.git "spark-${SPARK_VERSION}"
+          cd "spark-${SPARK_VERSION}"
+
+          ./dev/make-distribution.sh \
+            --name "custom-hadoop-${HADOOP_VERSION}" \
+            --tgz \
+            -Dhadoop.version="${HADOOP_VERSION}" \
+            -Phadoop-3 \
+            -Pkubernetes \
+            -Phadoop-cloud \
+            -Phive-thriftserver \
+            -Pconnect \
+            -DskipTests
+
+          TGZ="spark-${SPARK_VERSION}-bin-custom-hadoop-${HADOOP_VERSION}.tgz"
+          mv "$TGZ" ../../../
+          cd ../../..
+          mkdir -p dist
+          mv "$TGZ" dist/
+          ls -lh dist/"$TGZ"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spark-dist-${{ github.event.inputs.version || '3.5.7' }}
+          path: dist/
+          retention-days: 90
+
+      - name: Output
+        run: |
+          V="${{ github.event.inputs.version || '3.5.7' }}"
+          echo "Built dist/spark-${V}-bin-custom-hadoop-${HADOOP_VERSION}.tgz"

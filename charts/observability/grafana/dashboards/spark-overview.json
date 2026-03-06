@@ -5,8 +5,8 @@
   "graphTooltip": 0,
   "id": null,
   "links": [
-    {"title": "Spark History Server", "url": "http://spark-history:18080", "type": "link"},
-    {"title": "Jaeger Traces", "url": "http://jaeger:16686", "type": "link"}
+    {"title": "Spark History Server", "url": "${history_url}", "type": "link"},
+    {"title": "Jaeger Traces", "url": "${jaeger_url}", "type": "link"}
   ],
   "panels": [
     {
@@ -49,7 +49,24 @@
   "schemaVersion": 27,
   "style": "dark",
   "tags": ["spark", "overview", "observability", "unified"],
-  "templating": {"list": []},
+  "templating": {
+    "list": [
+      {
+        "name": "history_url",
+        "type": "constant",
+        "label": "History Server URL",
+        "query": "http://localhost:18081",
+        "description": "Demo: localhost:18081 (port-forward). Full stack: http://<release>-spark-35-history.<namespace>:18080"
+      },
+      {
+        "name": "jaeger_url",
+        "type": "constant",
+        "label": "Jaeger UI URL",
+        "query": "http://localhost:16686",
+        "description": "Set if Jaeger deployed. Demo: not deployed."
+      }
+    ]
+  },
   "time": {"from": "now-1h", "to": "now"},
   "title": "Spark Overview",
   "uid": "spark-overview",

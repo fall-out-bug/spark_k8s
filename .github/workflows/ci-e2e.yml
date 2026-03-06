@@ -1,0 +1,120 @@
+name: "CI: E2E"
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - "charts/**"
+      - "docker/**"
+      - "scripts/**"
+  workflow_dispatch:
+    inputs:
+      preset:
+        description: "Preset to deploy"
+        required: false
+        default: "spark-infra-minimal"
+        type: choice
+        options:
+          - spark-infra-minimal
+          - demo-full-spark-infra
+          - core-baseline
+      smoke_only:
+        description: "Run smoke tests only (skip matrix)"
+        required: false
+        default: true
+        type: boolean
+
+env:
+  NAMESPACE: spark-e2e
+
+jobs:
+  deploy-and-test:
+    name: Deploy & Smoke Test
+    runs-on: self-hosted
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify tools
+        run: |
+          kubectl version --client
+          helm version
+          minikube status || echo "minikube not running — will attempt start"
+
+      - name: Ensure minikube
+        run: |
+          if ! minikube status | grep -q "Running"; then
+            minikube start --cpus=4 --memory=8g --driver=docker
+          fi
+
+      - name: Create namespace
+        run: kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy shared infra
+        run: |
+          PRESET=${{ github.event.inputs.preset || 'spark-infra-minimal' }}
+          helm upgrade --install spark-e2e charts/spark-3.5 \
+            -n $NAMESPACE \
+            -f charts/spark-3.5/presets/${PRESET}.yaml \
+            --wait --timeout 5m
+
+      - name: Smoke test — pods running
+        run: |
+          echo "Waiting for pods..."
+          kubectl wait --for=condition=Ready pod -l app.kubernetes.io/instance=spark-e2e \
+            -n $NAMESPACE --timeout=300s || true
+          kubectl get pods -n $NAMESPACE
+          RUNNING=$(kubectl get pods -n $NAMESPACE --no-headers | grep -c Running || true)
+          if [ "$RUNNING" -lt 1 ]; then
+            echo "No running pods found"
+            kubectl describe pods -n $NAMESPACE | tail -30
+            exit 1
+          fi
+          echo "$RUNNING pod(s) running"
+
+      - name: Smoke test — services reachable
+        run: |
+          for svc in $(kubectl get svc -n $NAMESPACE -o name); do
+            echo "Service: $svc"
+            kubectl get $svc -n $NAMESPACE -o jsonpath='{.spec.ports[*].port}' && echo
+          done
+
+      - name: Integration tests
+        if: github.event.inputs.smoke_only != 'true'
+        run: |
+          pip install --quiet pytest pyyaml
+          pytest tests/integration/ -v --tb=short
+
+      - name: Cleanup
+        if: always()
+        run: |
+          helm uninstall spark-e2e -n $NAMESPACE 2>/dev/null || true
+          kubectl delete namespace $NAMESPACE --wait=false 2>/dev/null || true
+
+  matrix-smoke:
+    name: Matrix Smoke (SCENARIO-0036)
+    runs-on: self-hosted
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure minikube
+        run: |
+          if ! minikube status | grep -q "Running"; then
+            minikube start --cpus=4 --memory=8g --driver=docker
+          fi
+
+      - name: Build and load images (hive + spark-custom for schematool and matrix)
+        run: ./scripts/build-and-load-matrix-images.sh --quick
+
+      - name: Deploy shared infra
+        run: ./scripts/deploy-shared-infra-minikube.sh
+
+      - name: Run matrix scenario (deploy + smoke)
+        run: |
+          ./scripts/run-matrix.sh --filter "id=SCENARIO-0036" --shared-infra deploy smoke
+
+      - name: Cleanup
+        if: always()
+        run: |
+          kubectl delete namespace spark-matrix-scenario-0036 --wait=false 2>/dev/null || true

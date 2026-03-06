@@ -25,13 +25,7 @@ echo "Waiting for pods to terminate..."
 sleep 10
 
 echo ""
-echo "=== Re-applying observability with reduced CPU ==="
-kubectl apply -f "$PROJECT_ROOT/tests/observability/prometheus-demo.yaml" 2>/dev/null || true
-kubectl apply -f "$PROJECT_ROOT/tests/observability/loki.yaml" 2>/dev/null || true
-kubectl apply -f "$PROJECT_ROOT/tests/observability/promtail.yaml" 2>/dev/null || true
-kubectl apply -f "$PROJECT_ROOT/tests/observability/demo-metrics-exporter.yaml" 2>/dev/null || true
-
-# OTEL and Grafana - need full deploy
+echo "=== Re-applying observability (Helm) ==="
 "$PROJECT_ROOT/scripts/tests/minikube/deploy-observability.sh" 2>/dev/null || true
 
 echo ""

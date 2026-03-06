@@ -117,6 +117,42 @@ data:
     {{- end }}
     {{- end }}
 
+    {{- $hasOL := and .Values.features .Values.features.openLineage .Values.features.openLineage.enabled }}
+    {{- $hasRWT := and .Values.connect.extraLibraries (index .Values.connect.extraLibraries "resource-wait-tracker") (index (index .Values.connect.extraLibraries "resource-wait-tracker") "enabled") }}
+    {{- if $hasOL }}
+    # OpenLineage configuration (see https://openlineage.io/docs/integrations/spark/configuration/usage/)
+    {{- if $hasRWT }}
+    spark.extraListeners=io.openlineage.spark.agent.OpenLineageSparkListener,{{ index (index .Values.connect.extraLibraries "resource-wait-tracker") "className" }}
+    "spark.resource.wait.tracker.jar"={{ index (index .Values.connect.extraLibraries "resource-wait-tracker") "jar" }}
+    {{- else }}
+    spark.extraListeners=io.openlineage.spark.agent.OpenLineageSparkListener
+    {{- end }}
+    spark.openlineage.transport.type=http
+    spark.openlineage.transport.url={{ .Values.features.openLineage.endpoint | default "http://marquez:5000" }}
+    spark.openlineage.namespace={{ .Values.features.openLineage.namespace | default "spark-k8s" }}
+    {{- if .Values.features.openLineage.jobPrefix }}
+    spark.openlineage.jobPrefix={{ .Values.features.openLineage.jobPrefix }}
+    {{- end }}
+    {{- if .Values.features.openLineage.facets }}
+    spark.openlineage.facets.spark.version.enabled={{ .Values.features.openLineage.facets.sparkVersion | default true }}
+    spark.openlineage.facets.source.code.enabled={{ .Values.features.openLineage.facets.sourceCode | default false }}
+    {{- end }}
+    {{- if eq .Values.features.openLineage.transport.type "kafka" }}
+    spark.openlineage.transport.type=kafka
+    spark.openlineage.transport.topic={{ .Values.features.openLineage.transport.kafka.topic }}
+    spark.openlineage.transport.brokers={{ .Values.features.openLineage.transport.kafka.brokers }}
+    {{- else if eq .Values.features.openLineage.transport.type "file" }}
+    spark.openlineage.transport.type=file
+    spark.openlineage.transport.path={{ .Values.features.openLineage.transport.file.path }}
+    {{- end }}
+    {{- end }}
+
+    {{- if and $hasRWT (not $hasOL) }}
+    # Resource Wait Tracker Listener (OpenLineage disabled)
+    spark.extraListeners={{ index (index .Values.connect.extraLibraries "resource-wait-tracker") "className" }}
+    "spark.resource.wait.tracker.jar"={{ index (index .Values.connect.extraLibraries "resource-wait-tracker") "jar" }}
+    {{- end }}
+
     {{- if .Values.celeborn.enabled }}
     # Celeborn shuffle
     spark.shuffle.manager=org.apache.spark.shuffle.celeborn.RssShuffleManager
@@ -126,26 +162,8 @@ data:
     spark.celeborn.client.spark.fetch.throwsFetchFailure=true
     {{- end }}
     {{- if .Values.connect.openTelemetry.enabled }}
-    # OpenTelemetry configuration
-    spark.otel.exporter.protocol={{ .Values.connect.openTelemetry.protocol }}
-    spark.otel.exporter.endpoint={{ .Values.connect.openTelemetry.endpoint }}
-    spark.otel.resource.attributes={{ printf "service.name=%s" (.Values.connect.openTelemetry.serviceName | default "spark-connect-35") }}
-    spark.otel.sampling.ratio={{ .Values.connect.openTelemetry.samplingRatio | default "1.0" }}
-
-    # OpenTelemetry Listener for Spark
-    spark.extraListeners=org.apache.spark.sql.telemetry.OpenTelemetryListener
-    spark.plugins=org.apache.spark.sql.telemetry.SparkTelemetryPlugin
-
-    # Trace context propagation from Airflow via gRPC metadata
-    # Expects traceparent header (W3C trace context format)
-    spark.otel.context.tracepropagation.enabled=true
-    spark.otel.b3.multi=true
-    {{- end }}
-
-    {{- if and .Values.connect.extraLibraries (index .Values.connect.extraLibraries "resource-wait-tracker") (index (index .Values.connect.extraLibraries "resource-wait-tracker") "enabled") }}
-    # Resource Wait Tracker Listener
-    spark.extraListeners={{ index (index .Values.connect.extraLibraries "resource-wait-tracker") "className" }}
-    "spark.resource.wait.tracker.jar"={{ index (index .Values.connect.extraLibraries "resource-wait-tracker") "jar" }}
+    # OTEL via Java agent (opentelemetry-javaagent) — org.apache.spark.sql.telemetry.* does not exist in Spark 3.5/4.x
+    # Agent configured via OTEL_* env vars in deployment; no Spark conf needed
     {{- end }}
 
   {{- if .Values.connect.metrics.enabled }}

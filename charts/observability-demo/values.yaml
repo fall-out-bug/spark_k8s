@@ -1,0 +1,22 @@
+# observability-demo — default values
+# For demo: use values-demo.yaml (targetNamespace=spark-infra)
+
+targetNamespace: spark-operations
+
+# demo-metrics-exporter: scrapes Spark Master, History API, Airflow PG (demo-specific)
+demoMetricsExporter:
+  enabled: false
+  sparkMasterJson: "http://spark-infra-standalone-master.spark-infra.svc.cluster.local:8080/json/"
+  sparkHistoryApi: "http://spark-infra-spark-35-history.spark-infra.svc.cluster.local:18080/api/v1"
+  airflowPgHost: "spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local"
+  airflowPgPort: "5432"
+  airflowPgDb: "airflow"
+  airflowPgUser: "postgres"
+  airflowPgPassword: "postgres"
+  targetDags: "spark_standalone_load_demo,nyc_taxi_ml_full_pipeline,citibike_analytics_pipeline,movielens_recommendation_pipeline"
+
+# OTEL Collector: receive gRPC 4317, export to Prometheus (Connect presets expect it)
+otelCollector:
+  enabled: false
+  image: otel/opentelemetry-collector-contrib
+  tag: "0.96.0"

@@ -1,0 +1,52 @@
+# observability-demo — demo preset (minikube, spark-infra)
+# Usage: helm install observability-demo . -f values-demo.yaml -n observability
+
+targetNamespace: spark-infra
+
+# Demo-specific: enable demo-metrics-exporter and OTEL Collector
+demoMetricsExporter:
+  enabled: true
+
+otelCollector:
+  enabled: true
+
+# Subchart overrides
+prometheus-spark:
+  targetNamespace: spark-infra
+  prometheus-operator:
+    grafana:
+      enabled: false
+
+loki-spark:
+  targetNamespace: spark-infra
+
+grafana-spark:
+  # Demo: NodePort for Grafana, no persistence
+  grafana:
+    sidecar:
+      dashboards:
+        enabled: true
+      alerts:
+        enabled: false
+    adminUser: admin
+    adminPassword: admin
+    service:
+      type: NodePort
+      nodePort: 30030
+    persistence:
+      enabled: false
+    datasources:
+      datasources.yaml:
+        apiVersion: 1
+        datasources:
+          - name: Prometheus
+            type: prometheus
+            uid: PBFA97CFB590B2093
+            access: proxy
+            url: http://observability-demo-prometh-prometheus.observability.svc.cluster.local:9090
+            isDefault: true
+          - name: Loki
+            type: loki
+            uid: loki
+            access: proxy
+            url: http://observability-demo-loki.observability.svc.cluster.local:3100

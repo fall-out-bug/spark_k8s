@@ -1,0 +1,108 @@
+name: "CI: Docker"
+
+env:
+  HADOOP_VERSION: "3.4.2"
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - "docker/**"
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - "docker/**"
+
+jobs:
+  hadolint:
+    name: Dockerfile Lint
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - name: Hadolint
+        run: |
+          command -v hadolint || {
+            wget -q -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
+            chmod +x /usr/local/bin/hadolint
+          }
+          find docker -name "Dockerfile*" -exec hadolint --ignore DL3008 --ignore DL3013 --ignore DL3059 {} +
+
+  build-dist-35:
+    name: Build Spark dist 3.5.7
+    runs-on: self-hosted
+    needs: hadolint
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Spark distribution
+        run: ./scripts/build-spark-dist.sh 3.5.7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-3.5.7
+          path: dist/
+
+  build-spark-35:
+    name: Build spark-custom 3.5.7
+    runs-on: self-hosted
+    needs: build-dist-35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist-3.5.7
+          path: .
+      - name: Build image (no push)
+        run: |
+          docker build --build-arg HADOOP_VERSION=${{ env.HADOOP_VERSION }} \
+            -f docker/spark-custom/Dockerfile.3.5.7 \
+            -t spark-custom:3.5.7-ci-${{ github.sha }} .
+      - name: Cleanup
+        if: always()
+        run: docker rmi spark-custom:3.5.7-ci-${{ github.sha }} 2>/dev/null || true
+
+  build-dist-41:
+    name: Build Spark dist 4.1.0
+    runs-on: self-hosted
+    needs: hadolint
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Spark distribution
+        run: ./scripts/build-spark-dist.sh 4.1.0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-4.1.0
+          path: dist/
+
+  build-spark-41:
+    name: Build spark-custom 4.1.0
+    runs-on: self-hosted
+    needs: build-dist-41
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist-4.1.0
+          path: .
+      - name: Build image (no push)
+        run: |
+          docker build --build-arg HADOOP_VERSION=${{ env.HADOOP_VERSION }} \
+            -f docker/spark-custom/Dockerfile.4.1.0 \
+            -t spark-custom:4.1.0-ci-${{ github.sha }} .
+      - name: Cleanup
+        if: always()
+        run: docker rmi spark-custom:4.1.0-ci-${{ github.sha }} 2>/dev/null || true
+
+  build-jupyter:
+    name: Build Jupyter
+    runs-on: self-hosted
+    needs: hadolint
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image (no push)
+        run: |
+          docker build \
+            -f docker/jupyter/Dockerfile \
+            -t jupyter-spark:ci-${{ github.sha }} \
+            docker/jupyter/
+      - name: Cleanup
+        if: always()
+        run: docker rmi jupyter-spark:ci-${{ github.sha }} 2>/dev/null || true

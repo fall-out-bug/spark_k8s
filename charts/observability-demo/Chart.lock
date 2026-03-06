@@ -1,0 +1,12 @@
+dependencies:
+- name: prometheus-spark
+  repository: file://../observability/prometheus
+  version: 1.0.0
+- name: loki-spark
+  repository: file://../observability/loki
+  version: 1.0.0
+- name: grafana-spark
+  repository: file://../observability/grafana
+  version: 1.0.0
+digest: sha256:9f33b4fe29f68c8e1b04d11523a4195da0aac3f98d4cb67f2261c187e158ad1e
+generated: "2026-03-06T02:42:32.472110133+03:00"

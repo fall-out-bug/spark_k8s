@@ -98,7 +98,7 @@ spec:
               - sh
               - -c
               - |
-                psql -U {{ .Values.postgresql.auth.username | quote }} -v ON_ERROR_STOP=1 -c "SET password_encryption='md5'; ALTER USER {{ .Values.postgresql.auth.username | quote }} PASSWORD {{ .Values.postgresql.auth.password | quote }};" || true
+                psql -U {{ .Values.postgresql.auth.username | quote }} -v ON_ERROR_STOP=1 -c "SET password_encryption='md5'; ALTER USER {{ .Values.postgresql.auth.username | quote }} PASSWORD '{{ .Values.postgresql.auth.password | replace "'" "''" }}';" || true
         {{- end }}
         ports:
         - name: postgres

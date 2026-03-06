@@ -146,6 +146,9 @@ RUN cd /opt/spark/jars && \
     wget -q https://repo1.maven.org/maven2/org/apache/spark/spark-sql-kafka-0-10_2.12/${SPARK_VERSION}/spark-sql-kafka-0-10_2.12-${SPARK_VERSION}.jar && \
     wget -q https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/3.7.1/kafka-clients-3.7.1.jar
 
+# OpenLineage Spark integration (optional, used when features.openLineage.enabled=true)
+RUN wget -q https://repo1.maven.org/maven2/io/openlineage/openlineage-spark_2.12/1.24.0/openlineage-spark_2.12-1.24.0.jar -O /opt/spark/jars/openlineage-spark_2.12-1.24.0.jar
+
 # Install Python dependencies for PySpark
 RUN pip3 install --no-cache-dir \
     pyspark==${SPARK_VERSION} \

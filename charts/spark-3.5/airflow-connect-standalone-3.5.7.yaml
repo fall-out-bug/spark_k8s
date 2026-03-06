@@ -50,13 +50,7 @@ connect:
     enabled: true
     masterService: ""  # Default: {Release.Name}-standalone-master
     masterPort: 7077
-  sparkConf:
-    # Airflow trace parent propagation
-    "spark.extraListeners": "org.apache.spark.openTelemetry.OpenTelemetryListener"
-    "spark.openTelemetry.exporter.protocol": "grpc"
-    "spark.openTelemetry.exporter.endpoint": "http://otel-collector:4317"
-    "spark.openTelemetry.resource.attributes": "service.name=spark-connect-35"
-    "spark.openTelemetry.sampling.ratio": "1.0"
+  # OTEL: use connect.openTelemetry.enabled + Java agent in deployment (org.apache.spark.openTelemetry.* does not exist in Spark)
 
 standalone:
   enabled: true

@@ -1,0 +1,68 @@
+name: "CI: Lint"
+
+on:
+  push:
+    branches: [main, dev]
+    paths-ignore:
+      - "docs/**"
+      - "*.md"
+      - ".sdp/**"
+      - "tests/results/**"
+  pull_request:
+    branches: [main, dev]
+    paths-ignore:
+      - "docs/**"
+      - "*.md"
+      - ".sdp/**"
+      - "tests/results/**"
+
+jobs:
+  shellcheck:
+    name: ShellCheck
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - name: ShellCheck
+        run: |
+          command -v shellcheck || sudo apt-get install -y shellcheck
+          find scripts -name "*.sh" -exec shellcheck -S warning {} +
+
+  python-lint:
+    name: Python Lint (ruff)
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ruff check
+        run: |
+          command -v ruff || pip install ruff
+          ruff check --config pyproject.toml .
+
+  yaml-lint:
+    name: YAML Lint
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - name: yamllint
+        run: |
+          command -v yamllint || pip install yamllint
+          yamllint -d '{extends: relaxed, rules: {line-length: disable, truthy: disable, comments-indentation: disable}}' \
+            charts/spark-3.5/values.yaml \
+            charts/spark-4.1/values.yaml \
+            charts/spark-3.5/Chart.yaml \
+            charts/spark-4.1/Chart.yaml
+
+  dockerfile-lint:
+    name: Hadolint
+    runs-on: self-hosted
+    if: >
+      contains(github.event.head_commit.modified, 'docker/') ||
+      contains(github.event.head_commit.added, 'docker/')
+    steps:
+      - uses: actions/checkout@v4
+      - name: Hadolint
+        run: |
+          command -v hadolint || {
+            wget -q -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
+            chmod +x /usr/local/bin/hadolint
+          }
+          find docker -name "Dockerfile*" -exec hadolint --ignore DL3008 --ignore DL3013 --ignore DL3059 {} +

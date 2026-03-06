@@ -1,0 +1,85 @@
+{{- if .Values.demoMetricsExporter.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-metrics-exporter-script
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: demo-metrics-exporter
+data:
+  exporter.py: |
+{{ .Files.Get "files/exporter.py" | indent 4 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-metrics-exporter
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: demo-metrics-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo-metrics-exporter
+  template:
+    metadata:
+      labels:
+        app: demo-metrics-exporter
+    spec:
+      containers:
+        - name: exporter
+          image: python:3.11-slim
+          command: ["/bin/sh", "-c"]
+          args:
+            - pip install --no-cache-dir requests prometheus_client psycopg2-binary && python /app/exporter.py
+          env:
+            - name: SPARK_MASTER_JSON
+              value: {{ .Values.demoMetricsExporter.sparkMasterJson | quote }}
+            - name: SPARK_HISTORY_API
+              value: {{ .Values.demoMetricsExporter.sparkHistoryApi | quote }}
+            - name: AIRFLOW_PG_HOST
+              value: {{ .Values.demoMetricsExporter.airflowPgHost | quote }}
+            - name: AIRFLOW_PG_PORT
+              value: {{ .Values.demoMetricsExporter.airflowPgPort | quote }}
+            - name: AIRFLOW_PG_DB
+              value: {{ .Values.demoMetricsExporter.airflowPgDb | quote }}
+            - name: AIRFLOW_PG_USER
+              value: {{ .Values.demoMetricsExporter.airflowPgUser | quote }}
+            - name: AIRFLOW_PG_PASSWORD
+              value: {{ .Values.demoMetricsExporter.airflowPgPassword | quote }}
+            - name: TARGET_DAGS
+              value: {{ .Values.demoMetricsExporter.targetDags | quote }}
+          ports:
+            - containerPort: 9108
+              name: metrics
+          volumeMounts:
+            - name: app
+              mountPath: /app
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "25m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+      volumes:
+        - name: app
+          configMap:
+            name: demo-metrics-exporter-script
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-metrics-exporter
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: demo-metrics-exporter
+spec:
+  selector:
+    app: demo-metrics-exporter
+  ports:
+    - name: metrics
+      port: 9108
+      targetPort: metrics
+{{- end }}

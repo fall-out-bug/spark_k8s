@@ -18,7 +18,6 @@ CONFIG = {
     "minio_endpoint": "http://minio.spark-infra.svc.cluster.local:9000",
     # Pushgateway (9091); empty = disabled. Prometheus (9090) does not accept push.
     "pushgateway_url": "",  # Set via PUSHGATEWAY_URL if Pushgateway deployed
-    "otel_endpoint": "http://otel-collector.observability.svc.cluster.local:4317",
     "model_version": datetime.now().strftime("%Y%m%d"),
     "mape_threshold": 0.75,
 }
@@ -82,10 +81,6 @@ def build_spark_submit_pod_task(task_id: str, script_name: str, extra_env: dict 
         "--conf spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem "
         "--conf spark.eventLog.enabled=true "
         "--conf spark.eventLog.dir=s3a://spark-logs/events/ "
-        "--conf spark.extraListeners=org.apache.spark.openTelemetry.OpenTelemetryListener "
-        "--conf spark.openTelemetry.exporter.protocol=grpc "
-        f"--conf spark.openTelemetry.exporter.endpoint={CONFIG['otel_endpoint']} "
-        "--conf spark.openTelemetry.resource.attributes=service.name=nyc-taxi-ml "
         f"/tmp/{script_name}"
     )
 

@@ -72,7 +72,7 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "sum(spark_job_cost_total{namespace=\"spark-operations\"}) / sum(kube_configmap_data{configmap=\"cost-budgets\",key=\"monthly_budget\"}) * 100",
+          "expr": "sum(spark_job_cost_total{namespace=\"${namespace}\"}) / sum(kube_configmap_data{configmap=\"cost-budgets\",key=\"monthly_budget\"}) * 100",
           "refId": "A"
         }
       ],
@@ -127,7 +127,7 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "sum by (team) (spark_job_cost_total{namespace=\"spark-operations\"})",
+          "expr": "sum by (team) (spark_job_cost_total{namespace=\"${namespace}\"})",
           "format": "table",
           "instant": true,
           "refId": "A"
@@ -205,7 +205,7 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "sum by (team) (spark_job_cost_total{namespace=\"spark-operations\"}) / sum(kube_configmap_data{configmap=\"cost-budgets\",key=\"monthly_budget\"}) * 100",
+          "expr": "sum by (team) (spark_job_cost_total{namespace=\"${namespace}\"}) / sum(kube_configmap_data{configmap=\"cost-budgets\",key=\"monthly_budget\"}) * 100",
           "refId": "A"
         }
       ],
@@ -222,7 +222,15 @@
     "cost"
   ],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "name": "namespace",
+        "type": "custom",
+        "label": "Namespace",
+        "query": "spark-operations,spark-infra",
+        "current": {"selected": true, "text": "spark-operations", "value": "spark-operations"}
+      }
+    ]
   },
   "time": {
     "from": "now-30d",

@@ -1,16 +1,4 @@
 ---
-# Source: spark-3.5/charts/standalone/templates/serviceaccount.yaml
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: spark-standalone
-  labels:
-    helm.sh/chart: standalone-0.1.0
-    app.kubernetes.io/name: standalone
-    app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "3.5.7"
-    app.kubernetes.io/managed-by: Helm
----
 # Source: spark-3.5/templates/rbac.yaml
 apiVersion: v1
 kind: ServiceAccount
@@ -22,21 +10,6 @@ metadata:
     app.kubernetes.io/instance: evidence-demo
     app.kubernetes.io/version: 3.5.7
 ---
-# Source: spark-3.5/charts/spark-base/templates/core/hive-metastore-secret.yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: evidence-demo-hive-metastore-db
-  labels:
-    helm.sh/chart: spark-base-0.1.0
-    app.kubernetes.io/component: "hive-metastore"
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: evidence-demo
-type: Opaque
-stringData:
-  POSTGRES_USER: "hive"
-  POSTGRES_PASSWORD: "hive123"
----
 # Source: spark-3.5/charts/spark-base/templates/minio.yaml
 apiVersion: v1
 kind: Secret
@@ -47,7 +20,7 @@ metadata:
     helm.sh/chart: spark-base-0.1.0
     app.kubernetes.io/name: spark-base
     app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "0.1.1"
+    app.kubernetes.io/version: "0.1.0"
     app.kubernetes.io/managed-by: Helm
 type: Opaque
 stringData:
@@ -64,28 +37,27 @@ metadata:
     helm.sh/chart: spark-base-0.1.0
     app.kubernetes.io/name: spark-base
     app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "0.1.1"
+    app.kubernetes.io/version: "0.1.0"
     app.kubernetes.io/managed-by: Helm
 type: Opaque
 stringData:
   POSTGRES_USER: "postgres"
   POSTGRES_PASSWORD: "x"
 ---
-# Source: spark-3.5/charts/standalone/templates/airflow/webserver.yaml
+# Source: spark-3.5/templates/airflow/webserver.yaml
 apiVersion: v1
 kind: Secret
 metadata:
-  name: evidence-demo-standalone-airflow-secret
+  name: evidence-demo-airflow-secret
   labels:
-    helm.sh/chart: standalone-0.1.0
-    app.kubernetes.io/name: standalone
-    app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "3.5.7"
+    helm.sh/chart: spark-3.5-0.2.0
     app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
     app.kubernetes.io/component: airflow-webserver
 type: Opaque
 stringData:
-  secret-key: "DplbXrTKipSbkeZ8amDYrDHkBNu6AwKt"
+  secret-key: "LLKcZXk5b23h03mkYl4zhTxAv3MBQqsW"
 ---
 # Source: spark-3.5/templates/hive-metastore.yaml
 apiVersion: v1
@@ -104,75 +76,6 @@ stringData:
   POSTGRES_PASSWORD: "postgres"
   POSTGRES_PORT: "5432"
 ---
-# Source: spark-3.5/charts/spark-base/templates/core/hive-metastore-configmap.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: evidence-demo-hive-metastore-config
-  labels:
-    helm.sh/chart: spark-base-0.1.0
-    app.kubernetes.io/component: "hive-metastore"
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: evidence-demo
-data:
-  hive-site.xml.template: |
-    <?xml version="1.0" encoding="UTF-8"?>
-    <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
-    <configuration>
-      <property>
-        <name>javax.jdo.option.ConnectionURL</name>
-        <value>jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}</value>
-      </property>
-      <property>
-        <name>javax.jdo.option.ConnectionDriverName</name>
-        <value>org.postgresql.Driver</value>
-      </property>
-      <property>
-        <name>javax.jdo.option.ConnectionUserName</name>
-        <value>${POSTGRES_USER}</value>
-      </property>
-      <property>
-        <name>javax.jdo.option.ConnectionPassword</name>
-        <value>${POSTGRES_PASSWORD}</value>
-      </property>
-      <property>
-        <name>hive.metastore.uris</name>
-        <value>thrift://evidence-demo-hive-metastore:9083</value>
-      </property>
-      <property>
-        <name>hive.metastore.thrift.port</name>
-        <value>9083</value>
-      </property>
-      <property>
-        <name>hive.metastore.thrift.bind.host</name>
-        <value>0.0.0.0</value>
-      </property>
-      <property>
-        <name>hive.metastore.warehouse.dir</name>
-        <value>s3a://warehouse/spark-35</value>
-      </property>
-      <property>
-        <name>datanucleus.schema.autoCreateAll</name>
-        <value>false</value>
-      </property>
-      <property>
-        <name>datanucleus.schema.validateTables</name>
-        <value>false</value>
-      </property>
-      <property>
-        <name>datanucleus.schema.validateColumns</name>
-        <value>false</value>
-      </property>
-      <property>
-        <name>datanucleus.schema.validateConstraints</name>
-        <value>false</value>
-      </property>
-      <property>
-        <name>hive.metastore.schema.verification</name>
-        <value>false</value>
-      </property>
-    </configuration>
----
 # Source: spark-3.5/charts/spark-base/templates/postgresql.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -183,7 +86,7 @@ metadata:
     helm.sh/chart: spark-base-0.1.0
     app.kubernetes.io/name: spark-base
     app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "0.1.1"
+    app.kubernetes.io/version: "0.1.0"
     app.kubernetes.io/managed-by: Helm
 data:
   init-dbs.sh: |
@@ -206,17 +109,16 @@ data:
     END $$;
     EOSQL
 ---
-# Source: spark-3.5/charts/standalone/templates/airflow/configmap.yaml
+# Source: spark-3.5/templates/airflow/configmap.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: evidence-demo-standalone-airflow-config
+  name: evidence-demo-airflow-config
   labels:
-    helm.sh/chart: standalone-0.1.0
-    app.kubernetes.io/name: standalone
-    app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "3.5.7"
+    helm.sh/chart: spark-3.5-0.2.0
     app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
     app.kubernetes.io/component: airflow-webserver
 data:
   airflow.cfg: |
@@ -244,23 +146,23 @@ data:
   variables.json: |
     {"s3_access_key":"minioadmin","s3_endpoint":"http://minio:9000","s3_secret_key":"minioadmin","spark_image":"spark-custom:3.5.7","spark_namespace":"spark"}
 ---
-# Source: spark-3.5/charts/standalone/templates/airflow/dags-configmap.yaml
+# Source: spark-3.5/templates/airflow/dags-configmap.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: evidence-demo-standalone-airflow-dags
+  name: evidence-demo-airflow-dags
   labels:
-    helm.sh/chart: standalone-0.1.0
-    app.kubernetes.io/name: standalone
-    app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "3.5.7"
+    helm.sh/chart: spark-3.5-0.2.0
     app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
     app.kubernetes.io/component: airflow-webserver
 data:
   nyc_taxi_ml_full_pipeline.py: |
     """NYC Taxi ML full pipeline (Airflow + Spark Standalone via KPO)."""
 
     import logging
+    import os
     from datetime import datetime, timedelta
 
     from airflow import DAG
@@ -269,13 +171,14 @@ data:
 
     logger = logging.getLogger(__name__)
 
+    _MASTER_HOST = os.environ.get("SPARK_MASTER_HOST", "spark-infra-standalone-master")
+
     CONFIG = {
         "namespace": "spark-infra",
-        "spark_master": "spark://spark-infra-spark-standalone-master:7077",
+        "spark_master": f"spark://{_MASTER_HOST}:7077",
         "minio_endpoint": "http://minio.spark-infra.svc.cluster.local:9000",
         # Pushgateway (9091); empty = disabled. Prometheus (9090) does not accept push.
         "pushgateway_url": "",  # Set via PUSHGATEWAY_URL if Pushgateway deployed
-        "otel_endpoint": "http://otel-collector.observability.svc.cluster.local:4317",
         "model_version": datetime.now().strftime("%Y%m%d"),
         "mape_threshold": 0.75,
     }
@@ -339,10 +242,6 @@ data:
             "--conf spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem "
             "--conf spark.eventLog.enabled=true "
             "--conf spark.eventLog.dir=s3a://spark-logs/events/ "
-            "--conf spark.extraListeners=org.apache.spark.openTelemetry.OpenTelemetryListener "
-            "--conf spark.openTelemetry.exporter.protocol=grpc "
-            f"--conf spark.openTelemetry.exporter.endpoint={CONFIG['otel_endpoint']} "
-            "--conf spark.openTelemetry.resource.attributes=service.name=nyc-taxi-ml "
             f"/tmp/{script_name}"
         )
 
@@ -501,8 +400,9 @@ data:
                     "spark.stop()\n"
                     "PYEOF\n"
                     "DRIVER_HOST=$(hostname -i) && "
+                    "SPARK_MASTER=${SPARK_MASTER_HOST:-spark-infra-standalone-master} && "
                     "/opt/spark/bin/spark-submit "
-                    "--master spark://spark-infra-spark-standalone-master:7077 "
+                    "--master spark://$SPARK_MASTER:7077 "
                     "--conf spark.app.name=airflow-demo-pipeline "
                     "--conf spark.driver.host=$DRIVER_HOST "
                     "--conf spark.driver.bindAddress=0.0.0.0 "
@@ -535,15 +435,18 @@ data:
     Analyzes bike-sharing trip data from NYC Citibike.
     """
 
+    import os
     from datetime import datetime, timedelta
 
     from airflow import DAG
     from airflow.operators.python import PythonOperator
     from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 
+    _MASTER_HOST = os.environ.get("SPARK_MASTER_HOST", "spark-infra-standalone-master")
+
     CONFIG = {
         "namespace": "spark-infra",
-        "spark_master": "spark://spark-infra-spark-standalone-master:7077",
+        "spark_master": f"spark://{_MASTER_HOST}:7077",
         "minio_endpoint": "http://minio.spark-infra.svc.cluster.local:9000",
         "pushgateway_url": "http://prometheus.observability.svc.cluster.local:9090",
     }
@@ -662,15 +565,18 @@ data:
     Generates movie recommendations using collaborative filtering.
     """
 
+    import os
     from datetime import datetime, timedelta
 
     from airflow import DAG
     from airflow.operators.python import PythonOperator
     from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 
+    _MASTER_HOST = os.environ.get("SPARK_MASTER_HOST", "spark-infra-standalone-master")
+
     CONFIG = {
         "namespace": "spark-infra",
-        "spark_master": "spark://spark-infra-spark-standalone-master:7077",
+        "spark_master": f"spark://{_MASTER_HOST}:7077",
         "minio_endpoint": "http://minio.spark-infra.svc.cluster.local:9000",
         "pushgateway_url": "http://prometheus.observability.svc.cluster.local:9090",
     }
@@ -766,7 +672,7 @@ data:
         # Create bucket if needed
         try:
             s3.head_bucket(Bucket="movielens")
-        except:
+        except Exception:
             s3.create_bucket(Bucket="movielens")
 
         # Extract and upload files
@@ -1438,7 +1344,7 @@ metadata:
     helm.sh/chart: spark-base-0.1.0
     app.kubernetes.io/name: spark-base
     app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "0.1.1"
+    app.kubernetes.io/version: "0.1.0"
     app.kubernetes.io/managed-by: Helm
 spec:
   accessModes:
@@ -1447,29 +1353,59 @@ spec:
     requests:
       storage: 10Gi
 ---
-# Source: spark-3.5/charts/standalone/templates/rbac.yaml
+# Source: spark-3.5/templates/rbac.yaml
+# ClusterRole for Spark Connect/Standalone k8s backend mode
+# Required for executor pod management across the namespace
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
-  name: evidence-demo-standalone
+  name: evidence-demo-spark-35-spark-cluster-role
   labels:
-    helm.sh/chart: standalone-0.1.0
-    app.kubernetes.io/name: standalone
-    app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "3.5.7"
+    helm.sh/chart: spark-3.5-0.2.0
     app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
 rules:
-  # Spark pods management
-  - apiGroups: [""]
-    resources: ["pods", "pods/log", "pods/status", "services", "configmaps", "secrets"]
-    verbs: ["create", "get", "list", "watch", "update", "patch", "delete"]
-  - apiGroups: [""]
-    resources: ["events"]
-    verbs: ["create", "get", "list", "watch"]
-  # Spark Operator resources (if used)
-  - apiGroups: ["sparkoperator.k8s.io"]
-    resources: ["sparkapplications", "sparkapplications/status", "scheduledsparkapplications", "scheduledsparkapplications/status"]
-    verbs: ["create", "get", "list", "watch", "update", "patch", "delete"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection", "update"]
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["get"]
+- apiGroups: [""]
+  resources: ["pods/status"]
+  verbs: ["get"]
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["create", "get", "list", "delete", "deletecollection"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["create", "get", "list", "watch", "delete", "deletecollection", "update"]
+- apiGroups: [""]
+  resources: ["persistentvolumeclaims"]
+  verbs: ["create", "get", "list", "delete", "deletecollection"]
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["create", "get", "list", "watch", "delete", "update"]
+---
+# Source: spark-3.5/templates/rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: evidence-demo-spark-35-spark-cluster-rolebinding
+  labels:
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+subjects:
+- kind: ServiceAccount
+  name: spark-35
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: evidence-demo-spark-35-spark-cluster-role
 ---
 # Source: spark-3.5/templates/rbac.yaml
 # Role for namespace-scoped resources
@@ -1493,26 +1429,6 @@ rules:
   resources: ["configmaps"]
   verbs: ["create", "get", "list", "watch", "delete", "deletecollection"]
 ---
-# Source: spark-3.5/charts/standalone/templates/rbac.yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: evidence-demo-standalone
-  labels:
-    helm.sh/chart: standalone-0.1.0
-    app.kubernetes.io/name: standalone
-    app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "3.5.7"
-    app.kubernetes.io/managed-by: Helm
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: evidence-demo-standalone
-subjects:
-  - kind: ServiceAccount
-    name: spark-standalone
-    namespace: default
----
 # Source: spark-3.5/templates/rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -1532,25 +1448,6 @@ roleRef:
   kind: Role
   name: evidence-demo-spark-35-spark-role
 ---
-# Source: spark-3.5/charts/spark-base/templates/core/hive-metastore-service.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: evidence-demo-hive-metastore
-  labels:
-    helm.sh/chart: spark-base-0.1.0
-    app.kubernetes.io/component: "hive-metastore"
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: evidence-demo
-spec:
-  selector:
-    app.kubernetes.io/name: spark-base-hive-metastore
-    app.kubernetes.io/instance: evidence-demo
-  ports:
-    - name: thrift
-      port: 9083
-      targetPort: thrift
----
 # Source: spark-3.5/charts/spark-base/templates/minio.yaml
 apiVersion: v1
 kind: Service
@@ -1561,7 +1458,7 @@ metadata:
     helm.sh/chart: spark-base-0.1.0
     app.kubernetes.io/name: spark-base
     app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "0.1.1"
+    app.kubernetes.io/version: "0.1.0"
     app.kubernetes.io/managed-by: Helm
 spec:
   ports:
@@ -1584,7 +1481,7 @@ metadata:
     helm.sh/chart: spark-base-0.1.0
     app.kubernetes.io/name: spark-base
     app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "0.1.1"
+    app.kubernetes.io/version: "0.1.0"
     app.kubernetes.io/managed-by: Helm
 spec:
   selector:
@@ -1596,17 +1493,16 @@ spec:
     port: 5432
     targetPort: postgres
 ---
-# Source: spark-3.5/charts/standalone/templates/airflow/webserver.yaml
+# Source: spark-3.5/templates/airflow/webserver.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: evidence-demo-standalone-airflow-webserver
+  name: evidence-demo-airflow-webserver
   labels:
-    helm.sh/chart: standalone-0.1.0
-    app.kubernetes.io/name: standalone
-    app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "3.5.7"
+    helm.sh/chart: spark-3.5-0.2.0
     app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
     app.kubernetes.io/component: airflow-webserver
 spec:
   type: NodePort
@@ -1617,40 +1513,11 @@ spec:
       protocol: TCP
       nodePort: 30080
   selector:
-    helm.sh/chart: standalone-0.1.0
-    app.kubernetes.io/name: standalone
-    app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "3.5.7"
+    helm.sh/chart: spark-3.5-0.2.0
     app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
     app.kubernetes.io/component: airflow-webserver
----
-# Source: spark-3.5/charts/standalone/templates/master.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: evidence-demo-standalone-master
-  labels:
-    helm.sh/chart: standalone-0.1.0
-    app.kubernetes.io/name: standalone
-    app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "3.5.7"
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/component: spark-master
-spec:
-  type: ClusterIP
-  ports:
-    - name: rpc
-      port: 7077
-      targetPort: rpc
-      protocol: TCP
-    - name: ui
-      port: 8080
-      targetPort: ui
-      protocol: TCP
-  selector:
-    app.kubernetes.io/name: standalone
-    app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/component: spark-master
 ---
 # Source: spark-3.5/templates/history-server.yaml
 apiVersion: v1
@@ -1718,88 +1585,28 @@ spec:
   selector:
     app: jupyter
 ---
-# Source: spark-3.5/charts/spark-base/templates/core/hive-metastore-deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
+# Source: spark-3.5/templates/standalone/master.yaml
+apiVersion: v1
+kind: Service
 metadata:
-  name: evidence-demo-hive-metastore
+  name: evidence-demo-standalone-master
   labels:
-    helm.sh/chart: spark-base-0.1.0
-    app.kubernetes.io/component: "hive-metastore"
+    app: standalone-master
+    helm.sh/chart: spark-3.5-0.2.0
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
 spec:
-  replicas: 1
+  type: ClusterIP
+  ports:
+    - name: rpc
+      port: 7077
+      targetPort: rpc
+    - name: ui
+      port: 8080
+      targetPort: ui
   selector:
-    matchLabels:
-      app.kubernetes.io/name: spark-base-hive-metastore
-      app.kubernetes.io/instance: evidence-demo
-  template:
-    metadata:
-      labels:
-        app.kubernetes.io/name: spark-base-hive-metastore
-        app.kubernetes.io/instance: evidence-demo
-    spec:
-      serviceAccountName: spark-35
-      initContainers:
-      containers:
-        - name: hive-metastore
-          image: "spark-k8s/hive:3.1.3-pg"
-          imagePullPolicy: IfNotPresent
-          env:
-            - name: DB_DRIVER
-              value: "postgres"
-            - name: SERVICE_NAME
-              value: "metastore"
-            - name: POSTGRES_HOST
-              value: "postgresql-metastore-35"
-            - name: POSTGRES_PORT
-              value: "5432"
-            - name: POSTGRES_DB
-              value: "metastore_spark35"
-            - name: HIVE_CONF_DIR
-              value: "/tmp/hive-conf"
-          envFrom:
-            - secretRef:
-                name: evidence-demo-hive-metastore-db
-          command:
-            - /bin/bash
-            - -lc
-            - |
-              cat /opt/hive/conf/hive-site.xml.template | \
-              sed "s/\${POSTGRES_HOST}/${POSTGRES_HOST}/g" | \
-              sed "s/\${POSTGRES_PORT}/${POSTGRES_PORT}/g" | \
-              sed "s/\${POSTGRES_DB}/${POSTGRES_DB}/g" | \
-              sed "s/\${POSTGRES_USER}/${POSTGRES_USER}/g" | \
-              sed "s#\${POSTGRES_PASSWORD}#${POSTGRES_PASSWORD}#g" \
-              > /tmp/hive-conf/hive-site.xml
-              exec /opt/hive/bin/hive --service metastore
-          ports:
-            - name: thrift
-              containerPort: 9083
-          resources:
-            limits:
-              cpu: 1000m
-              memory: 2Gi
-            requests:
-              cpu: 200m
-              memory: 512Mi
-          volumeMounts:
-            - name: hive-config
-              mountPath: /opt/hive/conf/hive-site.xml.template
-              subPath: hive-site.xml.template
-            - name: tmp
-              mountPath: /tmp
-            - name: hive-conf
-              mountPath: /tmp/hive-conf
-      volumes:
-        - name: hive-config
-          configMap:
-            name: evidence-demo-hive-metastore-config
-        - name: tmp
-          emptyDir: {}
-        - name: hive-conf
-          emptyDir: {}
+    app: standalone-master
 ---
 # Source: spark-3.5/charts/spark-base/templates/minio.yaml
 apiVersion: apps/v1
@@ -1811,7 +1618,7 @@ metadata:
     helm.sh/chart: spark-base-0.1.0
     app.kubernetes.io/name: spark-base
     app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "0.1.1"
+    app.kubernetes.io/version: "0.1.0"
     app.kubernetes.io/managed-by: Helm
 spec:
   replicas: 1
@@ -1881,39 +1688,36 @@ spec:
       - name: tmp
         emptyDir: {}
 ---
-# Source: spark-3.5/charts/standalone/templates/airflow/scheduler.yaml
+# Source: spark-3.5/templates/airflow/scheduler.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: evidence-demo-standalone-airflow-scheduler
+  name: evidence-demo-airflow-scheduler
   labels:
-    helm.sh/chart: standalone-0.1.0
-    app.kubernetes.io/name: standalone
-    app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "3.5.7"
+    helm.sh/chart: spark-3.5-0.2.0
     app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
     app.kubernetes.io/component: airflow-scheduler
 spec:
   replicas: 1
   selector:
     matchLabels:
-      helm.sh/chart: standalone-0.1.0
-      app.kubernetes.io/name: standalone
-      app.kubernetes.io/instance: evidence-demo
-      app.kubernetes.io/version: "3.5.7"
+      helm.sh/chart: spark-3.5-0.2.0
       app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/instance: evidence-demo
+      app.kubernetes.io/version: 3.5.7
       app.kubernetes.io/component: airflow-scheduler
   template:
     metadata:
       labels:
-        helm.sh/chart: standalone-0.1.0
-        app.kubernetes.io/name: standalone
-        app.kubernetes.io/instance: evidence-demo
-        app.kubernetes.io/version: "3.5.7"
+        helm.sh/chart: spark-3.5-0.2.0
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/instance: evidence-demo
+        app.kubernetes.io/version: 3.5.7
         app.kubernetes.io/component: airflow-scheduler
     spec:
-      serviceAccountName: spark-standalone
+      serviceAccountName: spark-35
       initContainers:
         - name: wait-for-db
           image: busybox:1.36
@@ -1943,7 +1747,7 @@ spec:
             - name: AIRFLOW__WEBSERVER__SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: evidence-demo-standalone-airflow-secret
+                  name: evidence-demo-airflow-secret
                   key: secret-key
           command: ['airflow', 'scheduler']
           resources:
@@ -1975,48 +1779,45 @@ spec:
       volumes:
         - name: airflow-config
           configMap:
-            name: evidence-demo-standalone-airflow-config
+            name: evidence-demo-airflow-config
         - name: airflow-dags-src
           configMap:
-            name: evidence-demo-standalone-airflow-dags
+            name: evidence-demo-airflow-dags
         - name: airflow-dags
           emptyDir: {}
         - name: airflow-logs
           emptyDir: {}
 ---
-# Source: spark-3.5/charts/standalone/templates/airflow/webserver.yaml
+# Source: spark-3.5/templates/airflow/webserver.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: evidence-demo-standalone-airflow-webserver
+  name: evidence-demo-airflow-webserver
   labels:
-    helm.sh/chart: standalone-0.1.0
-    app.kubernetes.io/name: standalone
-    app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "3.5.7"
+    helm.sh/chart: spark-3.5-0.2.0
     app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
     app.kubernetes.io/component: airflow-webserver
 spec:
   replicas: 1
   selector:
     matchLabels:
-      helm.sh/chart: standalone-0.1.0
-      app.kubernetes.io/name: standalone
-      app.kubernetes.io/instance: evidence-demo
-      app.kubernetes.io/version: "3.5.7"
+      helm.sh/chart: spark-3.5-0.2.0
       app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/instance: evidence-demo
+      app.kubernetes.io/version: 3.5.7
       app.kubernetes.io/component: airflow-webserver
   template:
     metadata:
       labels:
-        helm.sh/chart: standalone-0.1.0
-        app.kubernetes.io/name: standalone
-        app.kubernetes.io/instance: evidence-demo
-        app.kubernetes.io/version: "3.5.7"
+        helm.sh/chart: spark-3.5-0.2.0
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/instance: evidence-demo
+        app.kubernetes.io/version: 3.5.7
         app.kubernetes.io/component: airflow-webserver
     spec:
-      serviceAccountName: spark-standalone
+      serviceAccountName: spark-35
       initContainers:
         - name: wait-for-db
           image: busybox:1.36
@@ -2065,7 +1866,7 @@ spec:
             - name: AIRFLOW__WEBSERVER__SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: evidence-demo-standalone-airflow-secret
+                  name: evidence-demo-airflow-secret
                   key: secret-key
           command: ['airflow', 'webserver']
           args: ['--port', '8080']
@@ -2099,169 +1900,13 @@ spec:
       volumes:
         - name: airflow-config
           configMap:
-            name: evidence-demo-standalone-airflow-config
+            name: evidence-demo-airflow-config
         - name: airflow-dags-src
           configMap:
-            name: evidence-demo-standalone-airflow-dags
+            name: evidence-demo-airflow-dags
         - name: airflow-dags
           emptyDir: {}
         - name: airflow-logs
-          emptyDir: {}
----
-# Source: spark-3.5/charts/standalone/templates/master.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: evidence-demo-standalone-master
-  labels:
-    helm.sh/chart: standalone-0.1.0
-    app.kubernetes.io/name: standalone
-    app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "3.5.7"
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/component: spark-master
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: standalone
-      app.kubernetes.io/instance: evidence-demo
-      app.kubernetes.io/component: spark-master
-  template:
-    metadata:
-      labels:
-        app.kubernetes.io/name: standalone
-        app.kubernetes.io/instance: evidence-demo
-        app.kubernetes.io/component: spark-master
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "8080"
-        prometheus.io/path: "/metrics"
-    spec:
-      serviceAccountName: spark-standalone
-      containers:
-        - name: spark-master
-          image: "spark-custom:3.5.7"
-          imagePullPolicy: IfNotPresent
-          ports:
-            - name: rpc
-              containerPort: 7077
-              protocol: TCP
-            - name: ui
-              containerPort: 8080
-              protocol: TCP
-          env:
-            - name: SPARK_MASTER_PORT
-              value: "7077"
-            - name: SPARK_MASTER_WEBUI_PORT
-              value: "8080"
-          command: ["/opt/spark/bin/spark-class"]
-          args:
-            - "org.apache.spark.deploy.master.Master"
-          resources:
-            limits:
-              cpu: "1"
-              memory: 2Gi
-            requests:
-              cpu: 300m
-              memory: 512Mi
-          livenessProbe:
-            httpGet:
-              path: /
-              port: ui
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /
-              port: ui
-            initialDelaySeconds: 10
-            periodSeconds: 5
-          volumeMounts:
-            - name: tmp
-              mountPath: /tmp
-      volumes:
-        - name: tmp
-          emptyDir: {}
----
-# Source: spark-3.5/charts/standalone/templates/worker.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: evidence-demo-standalone-worker
-  labels:
-    helm.sh/chart: standalone-0.1.0
-    app.kubernetes.io/name: standalone
-    app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "3.5.7"
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/component: spark-worker
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: standalone
-      app.kubernetes.io/instance: evidence-demo
-      app.kubernetes.io/component: spark-worker
-  template:
-    metadata:
-      labels:
-        app.kubernetes.io/name: standalone
-        app.kubernetes.io/instance: evidence-demo
-        app.kubernetes.io/component: spark-worker
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "8081"
-        prometheus.io/path: "/metrics"
-    spec:
-      serviceAccountName: spark-standalone
-      containers:
-        - name: spark-worker
-          image: "spark-custom:3.5.7"
-          imagePullPolicy: IfNotPresent
-          ports:
-            - name: ui
-              containerPort: 8081
-              protocol: TCP
-          env:
-            - name: SPARK_MASTER
-              value: "spark://evidence-demo-standalone-master:7077"
-            - name: SPARK_WORKER_WEBUI_PORT
-              value: "8081"
-            - name: SPARK_WORKER_DIR
-              value: "/tmp/spark-worker"
-            - name: SPARK_WORKER_CORES
-              value: "2"
-            - name: SPARK_WORKER_MEMORY
-              value: "14g"
-          command: ["/opt/spark/bin/spark-class"]
-          args:
-            - "org.apache.spark.deploy.worker.Worker"
-            - "spark://evidence-demo-standalone-master:7077"
-          resources:
-            limits:
-              cpu: "2"
-              memory: 15Gi
-            requests:
-              cpu: 800m
-              memory: 13Gi
-          livenessProbe:
-            httpGet:
-              path: /
-              port: ui
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /
-              port: ui
-            initialDelaySeconds: 10
-            periodSeconds: 5
-          volumeMounts:
-            - name: work-dir
-              mountPath: /tmp/spark-worker
-      volumes:
-        - name: work-dir
           emptyDir: {}
 ---
 # Source: spark-3.5/templates/history-server.yaml
@@ -2539,6 +2184,174 @@ spec:
             - name: jupyter-runtime
               mountPath: /tmp/jupyter-runtime
 ---
+# Source: spark-3.5/templates/standalone/master.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evidence-demo-standalone-master
+  labels:
+    app: standalone-master
+    app.kubernetes.io/component: standalone-master
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: standalone-master
+      app.kubernetes.io/component: standalone-master
+  template:
+    metadata:
+      labels:
+        app: standalone-master
+        app.kubernetes.io/component: standalone-master
+        app.kubernetes.io/name: spark-3.5
+        app.kubernetes.io/instance: evidence-demo
+    spec:
+      serviceAccountName: spark-35
+      volumes:
+        - name: spark-logs
+          emptyDir: {}
+      containers:
+        - name: spark-master
+          image: "spark-custom:3.5.7"
+          imagePullPolicy: IfNotPresent
+          command: ["/opt/spark/sbin/start-master.sh"]
+          args: ["--host", "0.0.0.0", "--port", "7077", "--webui-port", "8080"]
+          env:
+            - name: SPARK_MODE
+              value: "master"
+            - name: SPARK_MASTER_HOST
+              value: evidence-demo-standalone-master
+            - name: SPARK_MASTER_PORT
+              value: "7077"
+            - name: SPARK_MASTER_WEBUI_PORT
+              value: "8080"
+            - name: AWS_ACCESS_KEY_ID
+              value: "minioadmin"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "minioadmin"
+          ports:
+            - name: rpc
+              containerPort: 7077
+              protocol: TCP
+            - name: ui
+              containerPort: 8080
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 3
+          volumeMounts:
+            - name: spark-logs
+              mountPath: /opt/spark/logs
+          resources:
+            limits:
+              cpu: "1"
+              memory: 2Gi
+            requests:
+              cpu: 300m
+              memory: 512Mi
+---
+# Source: spark-3.5/templates/standalone/worker.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evidence-demo-standalone-worker
+  labels:
+    app: standalone-worker
+    app.kubernetes.io/component: standalone-worker
+    helm.sh/chart: spark-3.5-0.2.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-demo
+    app.kubernetes.io/version: 3.5.7
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: standalone-worker
+      app.kubernetes.io/component: standalone-worker
+  template:
+    metadata:
+      labels:
+        app: standalone-worker
+        app.kubernetes.io/component: standalone-worker
+        app.kubernetes.io/name: spark-3.5
+        app.kubernetes.io/instance: evidence-demo
+    spec:
+      serviceAccountName: spark-35
+      volumes:
+        - name: spark-logs
+          emptyDir: {}
+        - name: spark-work
+          emptyDir: {}
+      containers:
+        - name: spark-worker
+          image: "spark-custom:3.5.7"
+          imagePullPolicy: IfNotPresent
+          command: ["/opt/spark/sbin/start-worker.sh"]
+          args: ["spark://evidence-demo-standalone-master:7077"]
+          env:
+            - name: SPARK_MODE
+              value: "worker"
+            - name: SPARK_MASTER_HOST
+              value: evidence-demo-standalone-master
+            - name: SPARK_MASTER_PORT
+              value: "7077"
+            - name: AWS_ACCESS_KEY_ID
+              value: "minioadmin"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "minioadmin"
+            - name: SPARK_SPARK_WORKER_CORES
+              value: "2"
+            - name: SPARK_SPARK_WORKER_MEMORY
+              value: "14g"
+          ports:
+            - name: rpc
+              containerPort: 7077
+              protocol: TCP
+            - name: ui
+              containerPort: 8081
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8081
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 3
+          volumeMounts:
+            - name: spark-logs
+              mountPath: /opt/spark/logs
+            - name: spark-work
+              mountPath: /opt/spark/work
+          resources:
+            limits:
+              cpu: "2"
+              memory: 15Gi
+            requests:
+              cpu: 800m
+              memory: 13Gi
+---
 # Source: spark-3.5/charts/spark-base/templates/postgresql.yaml
 apiVersion: apps/v1
 kind: StatefulSet
@@ -2549,7 +2362,7 @@ metadata:
     helm.sh/chart: spark-base-0.1.0
     app.kubernetes.io/name: spark-base
     app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "0.1.1"
+    app.kubernetes.io/version: "0.1.0"
     app.kubernetes.io/managed-by: Helm
 spec:
   serviceName: evidence-demo-spark-base-postgresql
@@ -2566,6 +2379,19 @@ spec:
         app.kubernetes.io/name: spark-base
         app.kubernetes.io/instance: evidence-demo
     spec:
+      initContainers:
+      - name: pg-hba-md5
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - |
+          if [ -f /var/lib/postgresql/data/pg_hba.conf ]; then
+            sed -i 's/scram-sha-256/md5/g' /var/lib/postgresql/data/pg_hba.conf
+          fi
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
       containers:
       - name: postgresql
         image: "postgres:15-alpine"
@@ -2573,6 +2399,17 @@ spec:
         envFrom:
         - secretRef:
             name: evidence-demo-spark-base-postgresql-credentials
+        env:
+        - name: POSTGRES_HOST_AUTH_METHOD
+          value: "md5"
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - sh
+              - -c
+              - |
+                psql -U "postgres" -v ON_ERROR_STOP=1 -c "SET password_encryption='md5'; ALTER USER "postgres" PASSWORD "x";" || true
         ports:
         - name: postgres
           containerPort: 5432
@@ -2607,9 +2444,6 @@ spec:
         requests:
           storage: 5Gi
 ---
-# Source: spark-3.5/charts/spark-base/templates/backup-cronjob.yaml
----
----
 # Source: spark-3.5/charts/spark-base/templates/minio.yaml
 apiVersion: batch/v1
 kind: Job
@@ -2619,7 +2453,7 @@ metadata:
     helm.sh/chart: spark-base-0.1.0
     app.kubernetes.io/name: spark-base
     app.kubernetes.io/instance: evidence-demo
-    app.kubernetes.io/version: "0.1.1"
+    app.kubernetes.io/version: "0.1.0"
     app.kubernetes.io/managed-by: Helm
   annotations:
     "helm.sh/hook": post-install,post-upgrade

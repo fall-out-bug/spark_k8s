@@ -106,9 +106,10 @@ data:
     {{- end }}
 
     {{- if and .Values.features .Values.features.openLineage .Values.features.openLineage.enabled }}
-    # OpenLineage configuration
-    spark.extraListeners=io.openlineage.spark.OpenLineageSparkListener
-    spark.openlineage.host={{ .Values.features.openLineage.endpoint | default "http://marquez:5000" }}
+    # OpenLineage configuration (see https://openlineage.io/docs/integrations/spark/configuration/usage/)
+    spark.extraListeners=io.openlineage.spark.agent.OpenLineageSparkListener
+    spark.openlineage.transport.type=http
+    spark.openlineage.transport.url={{ .Values.features.openLineage.endpoint | default "http://marquez:5000" }}
     spark.openlineage.namespace={{ .Values.features.openLineage.namespace | default "spark-k8s" }}
     {{- if .Values.features.openLineage.jobPrefix }}
     spark.openlineage.jobPrefix={{ .Values.features.openLineage.jobPrefix }}

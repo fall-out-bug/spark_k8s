@@ -666,13 +666,13 @@ spec:
   selector:
     app: jupyter
 ---
-# Source: spark-3.5/templates/spark-standalone.yaml
+# Source: spark-3.5/templates/standalone/master.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: evidence-sa-spark-35-standalone-master
+  name: evidence-sa-standalone-master
   labels:
-    app: spark-standalone-master
+    app: standalone-master
     helm.sh/chart: spark-3.5-0.2.0
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: evidence-sa
@@ -687,7 +687,7 @@ spec:
       port: 8080
       targetPort: ui
   selector:
-    app: spark-standalone-master
+    app: standalone-master
 ---
 # Source: spark-3.5/templates/history-server.yaml
 apiVersion: apps/v1
@@ -891,13 +891,13 @@ spec:
             - name: jupyter-runtime
               mountPath: /tmp/jupyter-runtime
 ---
-# Source: spark-3.5/templates/spark-standalone.yaml
+# Source: spark-3.5/templates/standalone/master.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: evidence-sa-spark-35-standalone-master
+  name: evidence-sa-standalone-master
   labels:
-    app: spark-standalone-master
+    app: standalone-master
     app.kubernetes.io/component: standalone-master
     helm.sh/chart: spark-3.5-0.2.0
     app.kubernetes.io/managed-by: Helm
@@ -907,12 +907,12 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: spark-standalone-master
+      app: standalone-master
       app.kubernetes.io/component: standalone-master
   template:
     metadata:
       labels:
-        app: spark-standalone-master
+        app: standalone-master
         app.kubernetes.io/component: standalone-master
         app.kubernetes.io/name: spark-3.5
         app.kubernetes.io/instance: evidence-sa
@@ -936,7 +936,7 @@ spec:
             - name: SPARK_MODE
               value: "master"
             - name: SPARK_MASTER_HOST
-              value: evidence-sa-spark-35-standalone-master
+              value: evidence-sa-standalone-master
             - name: SPARK_MASTER_PORT
               value: "7077"
             - name: SPARK_MASTER_WEBUI_PORT
@@ -986,13 +986,13 @@ spec:
               cpu: 500m
               memory: 1Gi
 ---
-# Source: spark-3.5/templates/spark-standalone.yaml
+# Source: spark-3.5/templates/standalone/worker.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: evidence-sa-spark-35-standalone-worker
+  name: evidence-sa-standalone-worker
   labels:
-    app: spark-standalone-worker
+    app: standalone-worker
     app.kubernetes.io/component: standalone-worker
     helm.sh/chart: spark-3.5-0.2.0
     app.kubernetes.io/managed-by: Helm
@@ -1002,12 +1002,12 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: spark-standalone-worker
+      app: standalone-worker
       app.kubernetes.io/component: standalone-worker
   template:
     metadata:
       labels:
-        app: spark-standalone-worker
+        app: standalone-worker
         app.kubernetes.io/component: standalone-worker
         app.kubernetes.io/name: spark-3.5
         app.kubernetes.io/instance: evidence-sa
@@ -1028,12 +1028,12 @@ spec:
           image: "spark-custom:3.5.7"
           imagePullPolicy: IfNotPresent
           command: ["/opt/spark/sbin/start-worker.sh"]
-          args: ["spark://evidence-sa-spark-35-standalone-master:7077"]
+          args: ["spark://evidence-sa-standalone-master:7077"]
           env:
             - name: SPARK_MODE
               value: "worker"
             - name: SPARK_MASTER_HOST
-              value: evidence-sa-spark-35-standalone-master
+              value: evidence-sa-standalone-master
             - name: SPARK_MASTER_PORT
               value: "7077"
             - name: AWS_ACCESS_KEY_ID

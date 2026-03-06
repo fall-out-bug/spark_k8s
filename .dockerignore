@@ -1,0 +1,12 @@
+# Reduce build context; dist/ is needed for spark-custom COPY
+.git
+.github
+.sdp
+.venv
+venv
+__pycache__
+*.pyc
+.pytest_cache
+.coverage
+htmlcov
+tests/results

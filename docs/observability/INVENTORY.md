@@ -1,8 +1,17 @@
 # Observability Inventory — spark_k8s Constructor
 
-**Source:** WS-031-01 | **Updated:** 2026-03-03
+**Source:** WS-031-01 | **Updated:** 2026-03-06
 
 Полный инвентарь observability-компонентов конструктора. База для persona recipes и PR gate.
+
+## Два режима развёртывания
+
+| Режим | Источник | Когда использовать |
+|-------|----------|-------------------|
+| **Demo** | `charts/observability-demo/` (Helm) + `deploy-observability.sh` | Minikube demo, spark-infra namespace. Helm install observability-demo. |
+| **Full stack** | `charts/observability/` (Helm) | Production, multi-namespace. Prometheus Operator, ServiceMonitors. |
+
+Demo использует `spark-infra`; charts/observability по умолчанию — `spark-operations`. Для demo: `charts/observability-demo` с `values-demo.yaml` (targetNamespace=spark-infra).
 
 ---
 
@@ -85,13 +94,11 @@
 
 | File | Purpose |
 |------|---------|
-| `tests/observability/prometheus-demo.yaml` | Prometheus config + deployment |
-| `tests/observability/loki.yaml` | Loki deployment |
-| `tests/observability/promtail.yaml` | Promtail DaemonSet and config |
-| `tests/observability/demo-metrics-exporter.yaml` | Demo metrics exporter |
-| `tests/observability/grafana-*.yaml` | Grafana dashboards, datasources, providers |
-| `tests/observability/jmx-exporter-config.yaml` | JMX Exporter (not deployed) |
-| `scripts/tests/minikube/deploy-observability.sh` | Main deploy script |
+| `charts/observability-demo/` | Demo umbrella chart (Prometheus, Loki, Grafana, demo-metrics-exporter, OTEL) |
+| `charts/observability-demo/values-demo.yaml` | Demo preset (targetNamespace=spark-infra) |
+| `tests/observability/start-ui-portforwards.sh` | Port-forwards for UI access |
+| `tests/observability/_archived/` | Deprecated raw YAMLs (2026-03-06) |
+| `scripts/tests/minikube/deploy-observability.sh` | Main deploy script (Helm) |
 
 ---
 

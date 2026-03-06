@@ -1,7 +1,9 @@
 # Completed Work — Compressed Memories
 
 > Distilled from 170+ workstream files. Individual WS files retained in `completed/` for provenance.
-> Last updated: 2026-03-06
+> Last updated: 2026-03-06 (F16 consolidation finalized)
+
+**Docs consolidated 2026-03-06:** plans/ (observability, principles), reports/F10-*, tech-debt-map, drafts/agent-handover-*, drafts/matrix-* → merged into MEMORIES or deleted. security-migration → ADR-0008. chart-hallucination-audit retained in reports/ (actionable). See ADR-0008 for PSS migration.
 
 ---
 
@@ -105,6 +107,7 @@
 **Key paths:** `docker/docker-intermediate/`, `docker/spark-custom/`
 **Evidence:** Mixed. WS-010-02, WS-010-04: Strong. 00-010-01/02/04: blank (superseded specs).
 **Note:** Duplicate files exist: `00-010-XX` (specs) vs `WS-010-XX` (implementations). WS-010-* are canonical.
+**Redesign (archived):** F10 was redesigned to use custom Spark builds (Hadoop 3.4.2, AWS SDK v2). Incorrect `docker/docker-base/spark-core/` removed. Version coverage: 3.5.7, 4.1.0.
 **WS files:** `WS-010-01..04`, `WS-00-010-03` (canonical); `00-010-01/02/04` (superseded specs)
 
 ---
@@ -154,13 +157,13 @@
 
 ---
 
-## F16: Observability Stack — PARTIAL (4/6 WS)
+## F16: Observability Stack — DONE (6/6 WS)
 
-**Deliverables completed:** Prometheus (WS-016-01), Loki (WS-016-02), Jaeger (WS-016-03), Grafana (WS-016-04).
-**Key paths:** `charts/observability/`, `tests/integration/test_observability_*.py`
-**Evidence:** Strong. Grafana: Prometheus/Loki/Jaeger datasources, 7 ops dashboards auto-provision; 6 tests.
-**Remaining:** WS-016-05..06 (Alerting, Spark UI).
-**WS files:** `00-016-01`, `00-016-02`, `00-016-03`, `00-016-04` (completed)
+**Deliverables completed:** Prometheus (WS-016-01), Loki (WS-016-02), Jaeger (WS-016-03), Grafana (WS-016-04), AlertManager (WS-016-05), Spark UI integration (WS-016-06).
+**Key paths:** `charts/observability/`, `charts/observability-demo/` (demo umbrella), `tests/integration/test_observability_*.py`, `charts/spark-3.5/templates/history-server-servicemonitor.yaml`
+**Evidence:** Strong. 16 observability integration tests. Grafana: Prometheus/Loki/Jaeger datasources, spark-overview dashboard. AlertManager: PrometheusRule, Slack, inhibit rules. History Server: ServiceMonitor, Jaeger/Loki env vars.
+**Consolidation (2026-03-06):** Single stack. Demo uses `charts/observability-demo` (Helm). demo-metrics-exporter + OTEL Collector in chart. Raw YAMLs → `tests/observability/_archived/`. Deploy: `scripts/tests/minikube/deploy-observability.sh`.
+**WS files:** `completed/00-016-01`..`00-016-06`
 
 ---
 

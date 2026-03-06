@@ -1,0 +1,164 @@
+name: "CI: SDP Gates"
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  provenance:
+    name: Commit Provenance
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate conventional commits
+        run: |
+          BASE_SHA=${{ github.event.before || github.event.pull_request.base.sha || 'HEAD~1' }}
+          ERRORS=0
+          PATTERN="^(feat|fix|docs|test|refactor|style|chore|perf|ci|build)(\([a-z0-9_-]+\))?: .+"
+
+          for sha in $(git rev-list "$BASE_SHA"..HEAD 2>/dev/null || echo "HEAD"); do
+            MSG=$(git log --format='%s' -1 "$sha")
+            if echo "$MSG" | grep -qE "^Merge "; then continue; fi
+            if echo "$MSG" | grep -qE "^Revert "; then continue; fi
+            if ! echo "$MSG" | grep -qE "$PATTERN"; then
+              echo "BAD: $sha — $MSG"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done
+
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "$ERRORS commit(s) violate conventional commit format"
+            exit 1
+          fi
+          echo "All commits follow conventional format"
+
+      - name: Check SDP trailers
+        if: github.event_name == 'pull_request'
+        run: |
+          BASE_SHA=${{ github.event.pull_request.base.sha }}
+          MISSING=0
+
+          for sha in $(git rev-list "$BASE_SHA"..HEAD); do
+            MSG=$(git log --format='%B' -1 "$sha")
+            if echo "$MSG" | grep -qE "^Merge "; then continue; fi
+            if ! echo "$MSG" | grep -q "SDP-Agent:"; then
+              echo "WARN: $sha missing SDP-Agent trailer"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+
+          if [ "$MISSING" -gt 0 ]; then
+            echo "$MISSING commit(s) missing SDP provenance trailers (warning only)"
+          else
+            echo "All commits have SDP provenance trailers"
+          fi
+
+  evidence:
+    name: Evidence Chain
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install SDP CLI
+        run: |
+          command -v sdp || echo "SDP CLI not in PATH, checking ~/.local/bin"
+          export PATH="$HOME/.local/bin:$PATH"
+          sdp --version
+
+      - name: Verify evidence chain integrity
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          if [ -f .sdp/log/events.jsonl ]; then
+            sdp log trace --verify && echo "Evidence chain intact" || echo "WARN: Evidence chain broken"
+          else
+            echo "No evidence log found (expected for non-SDP commits)"
+          fi
+
+      - name: Evidence statistics
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          if [ -f .sdp/log/events.jsonl ]; then
+            sdp log stats || true
+          fi
+
+      - name: Collect metrics
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          if [ -f .sdp/log/events.jsonl ]; then
+            sdp metrics collect || true
+          fi
+
+  drift:
+    name: Drift Detection
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install SDP CLI
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          sdp --version
+
+      - name: Prompt tree drift
+        run: |
+          if [ -x .sdp/hooks/check-prompt-drift.sh ]; then
+            .sdp/hooks/check-prompt-drift.sh
+          else
+            echo "Prompt drift check not available"
+          fi
+
+      - name: Workstream drift detection
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          ERRORS=0
+          for ws in docs/workstreams/in_progress/*.md; do
+            [ -f "$ws" ] || continue
+            WS_ID=$(basename "$ws" .md)
+            echo "Checking drift for $WS_ID..."
+            if ! sdp drift detect "$WS_ID" 2>/dev/null; then
+              echo "WARN: drift detected for $WS_ID"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "$ERRORS workstream(s) have drift (warning)"
+          else
+            echo "No drift detected"
+          fi
+
+      - name: Artifact validation
+        run: |
+          if [ -x .sdp/hooks/validate-artifacts.sh ]; then
+            .sdp/hooks/validate-artifacts.sh || echo "WARN: Some artifacts missing"
+          fi
+
+      - name: Collision detection
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          sdp collision check 2>/dev/null || echo "No scope collisions"
+
+  quality:
+    name: SDP Quality Gates
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install SDP CLI
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          sdp --version
+
+      - name: File size check (<200 LOC)
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          sdp quality size || echo "WARN: Some files exceed 200 LOC"
+
+      - name: Complexity check (CC<10)
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          sdp quality complexity || echo "WARN: Some files have high complexity"

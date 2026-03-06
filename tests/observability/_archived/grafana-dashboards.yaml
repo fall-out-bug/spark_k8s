@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: observability
+data:
+  spark-overview.json: |
+    {
+      "title": "Spark Cluster Overview",
+      "uid": "spark-overview",
+      "tags": ["spark"],
+      "timezone": "browser",
+      "panels": [
+        {"title": "Workers Alive", "type": "stat", "gridPos": {"h": 4, "w": 4, "x": 0, "y": 0}, "targets": [{"expr": "spark_workers_alive", "refId": "A"}]},
+        {"title": "Workers Total", "type": "stat", "gridPos": {"h": 4, "w": 4, "x": 4, "y": 0}, "targets": [{"expr": "spark_workers_total", "refId": "A"}]},
+        {"title": "Apps Running", "type": "stat", "gridPos": {"h": 4, "w": 4, "x": 8, "y": 0}, "targets": [{"expr": "spark_apps_running", "refId": "A"}]},
+        {"title": "Apps Completed", "type": "stat", "gridPos": {"h": 4, "w": 4, "x": 12, "y": 0}, "targets": [{"expr": "spark_apps_completed", "refId": "A"}]},
+        {"title": "Cores", "type": "stat", "gridPos": {"h": 4, "w": 6, "x": 0, "y": 4}, "targets": [{"expr": "spark_cores_used", "legendFormat": "Used", "refId": "A"}, {"expr": "spark_cores_total", "legendFormat": "Total", "refId": "B"}]},
+        {"title": "Memory MB", "type": "stat", "gridPos": {"h": 4, "w": 6, "x": 6, "y": 4}, "targets": [{"expr": "spark_memory_used_mb", "legendFormat": "Used", "refId": "A"}, {"expr": "spark_memory_total_mb", "legendFormat": "Total", "refId": "B"}]}
+      ],
+      "schemaVersion": 38,
+      "refresh": "10s"
+    }
+  airflow-overview.json: |
+    {
+      "title": "Airflow Overview",
+      "uid": "airflow-overview",
+      "tags": ["airflow"],
+      "timezone": "browser",
+      "panels": [
+        {"title": "DAG Runs by State", "type": "timeseries", "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}, "targets": [{"expr": "airflow_dag_runs_state", "legendFormat": "{{dag_id}} - {{state}}", "refId": "A"}]},
+        {"title": "Task Instances by State", "type": "timeseries", "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}, "targets": [{"expr": "airflow_task_instances_state", "legendFormat": "{{dag_id}} - {{state}}", "refId": "A"}]}
+      ],
+      "schemaVersion": 38,
+      "refresh": "10s"
+    }

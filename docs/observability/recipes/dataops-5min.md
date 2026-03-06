@@ -52,4 +52,4 @@
 ## Ссылки
 
 - [INVENTORY](../../observability/INVENTORY.md) — метрики, dashboards
-- [Spark Executors](../../../tests/observability/grafana-dashboards-spark.yaml) — spark-executors, spark-tuning
+- [Grafana dashboards](../../../charts/observability/grafana/dashboards/) — spark-executors, spark-tuning, spark-overview

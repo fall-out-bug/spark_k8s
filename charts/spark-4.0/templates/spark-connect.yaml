@@ -119,6 +119,18 @@ spec:
               value: "sc://0.0.0.0:15002"
             - name: SPARK_CONF_DIR
               value: "/tmp/spark-conf"
+            {{- if .Values.connect.openTelemetry.enabled }}
+            - name: SPARK_SUBMIT_OPTS
+              value: "-javaagent:/opt/otel/opentelemetry-javaagent.jar"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ .Values.connect.openTelemetry.endpoint | quote }}
+            - name: OTEL_SERVICE_NAME
+              value: {{ .Values.connect.openTelemetry.serviceName | default "spark-connect-40" | quote }}
+            - name: OTEL_TRACES_SAMPLER
+              value: "parentbased_traceidratio"
+            - name: OTEL_TRACES_SAMPLER_ARG
+              value: {{ .Values.connect.openTelemetry.samplingRatio | default "1.0" | quote }}
+            {{- end }}
             {{- range $key, $val := .Values.connect.sparkConf }}
             - name: SPARK_{{ $key | replace "." "_" | upper }}
               value: {{ $val | quote }}

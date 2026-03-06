@@ -10,6 +10,90 @@ metadata:
     app.kubernetes.io/instance: evidence-cs
     app.kubernetes.io/version: 3.5.7
 ---
+# Source: spark-3.5/charts/spark-base/templates/core/hive-metastore-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: evidence-cs-hive-metastore-db
+  labels:
+    helm.sh/chart: spark-base-0.1.0
+    app.kubernetes.io/component: "hive-metastore"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-cs
+type: Opaque
+stringData:
+  POSTGRES_USER: "hive"
+  POSTGRES_PASSWORD: "hive123"
+---
+# Source: spark-3.5/charts/spark-base/templates/core/hive-metastore-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: evidence-cs-hive-metastore-config
+  labels:
+    helm.sh/chart: spark-base-0.1.0
+    app.kubernetes.io/component: "hive-metastore"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-cs
+data:
+  hive-site.xml.template: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+    <configuration>
+      <property>
+        <name>javax.jdo.option.ConnectionURL</name>
+        <value>jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}</value>
+      </property>
+      <property>
+        <name>javax.jdo.option.ConnectionDriverName</name>
+        <value>org.postgresql.Driver</value>
+      </property>
+      <property>
+        <name>javax.jdo.option.ConnectionUserName</name>
+        <value>${POSTGRES_USER}</value>
+      </property>
+      <property>
+        <name>javax.jdo.option.ConnectionPassword</name>
+        <value>${POSTGRES_PASSWORD}</value>
+      </property>
+      <property>
+        <name>hive.metastore.uris</name>
+        <value>thrift://evidence-cs-hive-metastore:9083</value>
+      </property>
+      <property>
+        <name>hive.metastore.thrift.port</name>
+        <value>9083</value>
+      </property>
+      <property>
+        <name>hive.metastore.thrift.bind.host</name>
+        <value>0.0.0.0</value>
+      </property>
+      <property>
+        <name>hive.metastore.warehouse.dir</name>
+        <value>s3a://warehouse/spark-35</value>
+      </property>
+      <property>
+        <name>datanucleus.schema.autoCreateAll</name>
+        <value>false</value>
+      </property>
+      <property>
+        <name>datanucleus.schema.validateTables</name>
+        <value>false</value>
+      </property>
+      <property>
+        <name>datanucleus.schema.validateColumns</name>
+        <value>false</value>
+      </property>
+      <property>
+        <name>datanucleus.schema.validateConstraints</name>
+        <value>false</value>
+      </property>
+      <property>
+        <name>hive.metastore.schema.verification</name>
+        <value>false</value>
+      </property>
+    </configuration>
+---
 # Source: spark-3.5/templates/executor-pod-template-configmap.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -749,6 +833,25 @@ roleRef:
   kind: Role
   name: evidence-cs-spark-35-spark-role
 ---
+# Source: spark-3.5/charts/spark-base/templates/core/hive-metastore-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: evidence-cs-hive-metastore
+  labels:
+    helm.sh/chart: spark-base-0.1.0
+    app.kubernetes.io/component: "hive-metastore"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-cs
+spec:
+  selector:
+    app.kubernetes.io/name: spark-base-hive-metastore
+    app.kubernetes.io/instance: evidence-cs
+  ports:
+    - name: thrift
+      port: 9083
+      targetPort: thrift
+---
 # Source: spark-3.5/templates/history-server.yaml
 apiVersion: v1
 kind: Service
@@ -818,13 +921,13 @@ spec:
   selector:
     app: spark-connect
 ---
-# Source: spark-3.5/templates/spark-standalone.yaml
+# Source: spark-3.5/templates/standalone/master.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: evidence-cs-spark-35-standalone-master
+  name: evidence-cs-standalone-master
   labels:
-    app: spark-standalone-master
+    app: standalone-master
     helm.sh/chart: spark-3.5-0.2.0
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: evidence-cs
@@ -839,7 +942,90 @@ spec:
       port: 8080
       targetPort: ui
   selector:
-    app: spark-standalone-master
+    app: standalone-master
+---
+# Source: spark-3.5/charts/spark-base/templates/core/hive-metastore-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evidence-cs-hive-metastore
+  labels:
+    helm.sh/chart: spark-base-0.1.0
+    app.kubernetes.io/component: "hive-metastore"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: evidence-cs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: spark-base-hive-metastore
+      app.kubernetes.io/instance: evidence-cs
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: spark-base-hive-metastore
+        app.kubernetes.io/instance: evidence-cs
+    spec:
+      serviceAccountName: spark-35
+      initContainers:
+      containers:
+        - name: hive-metastore
+          image: "spark-k8s/hive:3.1.3-pg"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DB_DRIVER
+              value: "postgres"
+            - name: SERVICE_NAME
+              value: "metastore"
+            - name: POSTGRES_HOST
+              value: "postgresql-metastore-35"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DB
+              value: "metastore_spark35"
+            - name: HIVE_CONF_DIR
+              value: "/tmp/hive-conf"
+          envFrom:
+            - secretRef:
+                name: evidence-cs-hive-metastore-db
+          command:
+            - /bin/bash
+            - -lc
+            - |
+              cat /opt/hive/conf/hive-site.xml.template | \
+              sed "s/\${POSTGRES_HOST}/${POSTGRES_HOST}/g" | \
+              sed "s/\${POSTGRES_PORT}/${POSTGRES_PORT}/g" | \
+              sed "s/\${POSTGRES_DB}/${POSTGRES_DB}/g" | \
+              sed "s/\${POSTGRES_USER}/${POSTGRES_USER}/g" | \
+              sed "s#\${POSTGRES_PASSWORD}#${POSTGRES_PASSWORD}#g" \
+              > /tmp/hive-conf/hive-site.xml
+              exec /opt/hive/bin/hive --service metastore
+          ports:
+            - name: thrift
+              containerPort: 9083
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 2Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: hive-config
+              mountPath: /opt/hive/conf/hive-site.xml.template
+              subPath: hive-site.xml.template
+            - name: tmp
+              mountPath: /tmp
+            - name: hive-conf
+              mountPath: /tmp/hive-conf
+      volumes:
+        - name: hive-config
+          configMap:
+            name: evidence-cs-hive-metastore-config
+        - name: tmp
+          emptyDir: {}
+        - name: hive-conf
+          emptyDir: {}
 ---
 # Source: spark-3.5/templates/history-server.yaml
 apiVersion: apps/v1
@@ -1239,13 +1425,13 @@ spec:
               cpu: "1"
               memory: 2Gi
 ---
-# Source: spark-3.5/templates/spark-standalone.yaml
+# Source: spark-3.5/templates/standalone/master.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: evidence-cs-spark-35-standalone-master
+  name: evidence-cs-standalone-master
   labels:
-    app: spark-standalone-master
+    app: standalone-master
     app.kubernetes.io/component: standalone-master
     helm.sh/chart: spark-3.5-0.2.0
     app.kubernetes.io/managed-by: Helm
@@ -1255,12 +1441,12 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: spark-standalone-master
+      app: standalone-master
       app.kubernetes.io/component: standalone-master
   template:
     metadata:
       labels:
-        app: spark-standalone-master
+        app: standalone-master
         app.kubernetes.io/component: standalone-master
         app.kubernetes.io/name: spark-3.5
         app.kubernetes.io/instance: evidence-cs
@@ -1284,7 +1470,7 @@ spec:
             - name: SPARK_MODE
               value: "master"
             - name: SPARK_MASTER_HOST
-              value: evidence-cs-spark-35-standalone-master
+              value: evidence-cs-standalone-master
             - name: SPARK_MASTER_PORT
               value: "7077"
             - name: SPARK_MASTER_WEBUI_PORT
@@ -1334,13 +1520,13 @@ spec:
               cpu: 500m
               memory: 1Gi
 ---
-# Source: spark-3.5/templates/spark-standalone.yaml
+# Source: spark-3.5/templates/standalone/worker.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: evidence-cs-spark-35-standalone-worker
+  name: evidence-cs-standalone-worker
   labels:
-    app: spark-standalone-worker
+    app: standalone-worker
     app.kubernetes.io/component: standalone-worker
     helm.sh/chart: spark-3.5-0.2.0
     app.kubernetes.io/managed-by: Helm
@@ -1350,12 +1536,12 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: spark-standalone-worker
+      app: standalone-worker
       app.kubernetes.io/component: standalone-worker
   template:
     metadata:
       labels:
-        app: spark-standalone-worker
+        app: standalone-worker
         app.kubernetes.io/component: standalone-worker
         app.kubernetes.io/name: spark-3.5
         app.kubernetes.io/instance: evidence-cs
@@ -1376,12 +1562,12 @@ spec:
           image: "spark-custom:3.5.7"
           imagePullPolicy: IfNotPresent
           command: ["/opt/spark/sbin/start-worker.sh"]
-          args: ["spark://evidence-cs-spark-35-standalone-master:7077"]
+          args: ["spark://evidence-cs-standalone-master:7077"]
           env:
             - name: SPARK_MODE
               value: "worker"
             - name: SPARK_MASTER_HOST
-              value: evidence-cs-spark-35-standalone-master
+              value: evidence-cs-standalone-master
             - name: SPARK_MASTER_PORT
               value: "7077"
             - name: AWS_ACCESS_KEY_ID
@@ -1430,6 +1616,9 @@ spec:
             requests:
               cpu: 500m
               memory: 2Gi
+---
+# Source: spark-3.5/charts/spark-base/templates/backup-cronjob.yaml
+---
 ---
 # Source: spark-3.5/templates/hive-metastore.yaml
 ---

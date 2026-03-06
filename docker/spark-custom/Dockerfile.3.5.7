@@ -150,6 +150,9 @@ RUN cd /opt/spark/jars && \
 RUN cd /opt/spark/jars && \
     wget -q https://repo1.maven.org/maven2/org/apache/spark/spark-metrics_2.12/${SPARK_VERSION}/spark-metrics_2.12-${SPARK_VERSION}.jar
 
+# OpenLineage Spark integration (optional, used when features.openLineage.enabled=true)
+RUN wget -q https://repo1.maven.org/maven2/io/openlineage/openlineage-spark_2.12/1.24.0/openlineage-spark_2.12-1.24.0.jar -O /opt/spark/jars/openlineage-spark_2.12-1.24.0.jar
+
 # Install Python dependencies for PySpark
 RUN pip3 install --no-cache-dir \
     pyspark==${SPARK_VERSION} \

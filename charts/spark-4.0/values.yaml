@@ -323,6 +323,11 @@ connect:
     enabled: true
     dir: "s3a://spark-logs/events"
   sparkConf: {}
+  openTelemetry:
+    enabled: false
+    endpoint: "http://opentelemetry-collector:4317"
+    serviceName: "spark-connect-40"
+    samplingRatio: "1.0"
   extraJars:
     enabled: false
     configMap: ""

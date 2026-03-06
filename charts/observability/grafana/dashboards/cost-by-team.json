@@ -55,7 +55,7 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "sum by (team) (spark_job_cost_total{namespace=\"spark-operations\"})",
+          "expr": "sum by (team) (spark_job_cost_total{namespace=\"${namespace}\"})",
           "refId": "A"
         }
       ],
@@ -125,7 +125,7 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "sum by (team) (spark_job_cost_total{namespace=\"spark-operations\"})",
+          "expr": "sum by (team) (spark_job_cost_total{namespace=\"${namespace}\"})",
           "refId": "A"
         }
       ],
@@ -184,7 +184,7 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "sum(spark_job_cost_total{namespace=\"spark-operations\"})",
+          "expr": "sum(spark_job_cost_total{namespace=\"${namespace}\"})",
           "refId": "A"
         }
       ],
@@ -201,7 +201,15 @@
     "operations"
   ],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "name": "namespace",
+        "type": "custom",
+        "label": "Namespace",
+        "query": "spark-operations,spark-infra",
+        "current": {"selected": true, "text": "spark-operations", "value": "spark-operations"}
+      }
+    ]
   },
   "time": {
     "from": "now-30d",

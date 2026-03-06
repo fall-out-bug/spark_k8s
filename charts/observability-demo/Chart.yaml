@@ -1,0 +1,26 @@
+apiVersion: v2
+name: observability-demo
+description: Observability stack for Spark demo (minikube) — Prometheus, Loki, Grafana, demo-metrics-exporter
+type: application
+version: 1.0.0
+keywords:
+  - spark
+  - observability
+  - demo
+  - minikube
+maintainers:
+  - name: S7 Spark K8s Team
+    email: spark@s7.ru
+
+# Umbrella chart: consolidates tests/observability raw YAML into Helm
+# Usage: helm install observability-demo . -f values-demo.yaml -n observability
+dependencies:
+  - name: prometheus-spark
+    version: "1.0.0"
+    repository: "file://../observability/prometheus"
+  - name: loki-spark
+    version: "1.0.0"
+    repository: "file://../observability/loki"
+  - name: grafana-spark
+    version: "1.0.0"
+    repository: "file://../observability/grafana"

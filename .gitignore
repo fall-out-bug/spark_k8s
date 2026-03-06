@@ -37,6 +37,9 @@ quality-gate.toml
 # Secrets and credentials (NEVER commit these)
 *-secrets.yaml
 secrets.yaml
+# Build artifacts (spark dist)
+dist/
+
 # Test artifacts
 tests/results/e2e-failed.txt
 tests/results/failed.txt

@@ -1,0 +1,18 @@
+{{- if .Values.demoMetricsExporter.enabled }}
+# ServiceMonitor for demo-metrics-exporter — Prometheus Operator scrapes it
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: demo-metrics-exporter
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: demo-metrics-exporter
+spec:
+  selector:
+    matchLabels:
+      app: demo-metrics-exporter
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s
+{{- end }}

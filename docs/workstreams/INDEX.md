@@ -472,7 +472,7 @@ WS-TESTING-001 (Diagnostics)
 
 ## Feature F35: Test Matrix Rebuild (Execute, Not Check)
 
-**Source:** `docs/drafts/idea-test-matrix-tdd.md`, `docs/drafts/idea-test-matrix-tdd-design.md`
+**Source:** `docs/drafts/idea-test-matrix-tdd.md`
 **Status:** Completed (8/8)
 **Total Workstreams:** 8
 **Estimated LOC:** ~1200
@@ -829,7 +829,7 @@ See `docs/reports/review-F15-full-2026-02-13.md`. UAT guide: `docs/uat/UAT-F15-p
 ## Feature F16: Observability Stack (Monitoring & Tracing)
 
 **Source:** `docs/drafts/feature-observability.md`
-**Status:** Backlog
+**Status:** Completed
 **Total Workstreams:** 6
 **Estimated LOC:** ~3600
 
@@ -857,11 +857,12 @@ F06 ─────────────────────────�
 
 ### Review Summary
 
-**Review Date:** 2026-02-10
+**Review Date:** 2026-03-06
 **Verdict:** ✅ APPROVED
-**Status:** 50 passed, 16 skipped. All blockers (74z.8, k5r, 2qk, 31l, 74z.9, 74z.10) CLOSED.
+**Status:** 6/6 WS completed. Observability integration tests pass.
+**Consolidation (2026-03-06):** Single stack — `charts/observability-demo` (demo), raw YAMLs archived.
 
-See `docs/reports/review-F16-full-2026-02-10.md`. UAT guide: `docs/uat/UAT-F16-observability.md`.
+See `docs/reports/review-F16-full-2026-03-06.md`. UAT guide: `docs/uat/UAT-F16-observability.md`.
 
 ---
 

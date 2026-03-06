@@ -1,55 +1,15 @@
 # Prometheus values for Spark monitoring on Kubernetes (WS-016-01)
 # AC5: scrape 15s, AC6: retention 15d, AC4: kube-state-metrics
+# targetNamespace: Spark namespace to scrape. Use --set targetNamespace=spark-infra for demo.
 
 targetNamespace: spark-operations
 
-# Values for our ServiceMonitor template
+# Values for our ServiceMonitor template (servicemonitor.yaml uses targetNamespace)
 prometheus:
   enabled: true
   serviceMonitors:
-    namespace: spark-operations
+    namespace: spark-operations  # fallback when targetNamespace not set
     interval: 15s
-    items:
-      - name: spark-driver
-        namespace: spark-operations
-        selector:
-          app: spark
-          spark-role: driver
-        endpoints:
-          - port: metrics
-            path: /metrics/prometheus
-        interval: 15s
-      - name: spark-executor
-        namespace: spark-operations
-        selector:
-          app: spark
-          spark-role: executor
-        endpoints:
-          - port: metrics
-            path: /metrics/prometheus
-        interval: 15s
-
-  podMonitors:
-    - name: spark-driver-pods
-      namespace: spark-operations
-      selector:
-        app: spark
-        spark-role: driver
-      podMetricsEndpoints:
-        - port: metrics
-          path: /metrics/prometheus
-      interval: 15s
-
-    - name: spark-executor-pods
-      namespace: spark-operations
-      selector:
-        app: spark
-        spark-role: executor
-      podMetricsEndpoints:
-        - port: metrics
-          path: /metrics/prometheus
-      interval: 15s
-
   scrapeInterval: 15s
   scrapeTimeout: 10s
   evaluationInterval: 15s

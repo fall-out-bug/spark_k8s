@@ -83,12 +83,12 @@ spark_k8s/
 | **F30** Data Engineering | Done | `examples/airflow/`, `examples/iceberg/`, `docs/recipes/` |
 | **F35** Test Matrix Rebuild | Done | `scripts/run-matrix-*.sh`, `tests/integration/test_run_matrix.py` |
 | **F36** Chart Refactor | Done | All charts, scripts, tests, docs |
+| **F16** Observability Stack | Done (6/6) | `charts/observability/`, `tests/integration/test_observability_*.py` |
 
 ### Backlog (active)
 
 | Feature | WS Count | Location |
 |---------|----------|----------|
-| **F16** Observability Stack | 6 | `docs/workstreams/backlog/00-016-*` |
 | **F31** Observability as Product | 9 | `docs/workstreams/backlog/00-031-*` |
 
 ### Open Gaps
@@ -102,11 +102,18 @@ spark_k8s/
 
 ### Principles
 
+- **Right over fast:** Do it right, not fast. No workarounds that paper over root causes.
+- **Complete the chain:** If you see a chain of problems — finish it. Don't add config without the JAR, don't fix A and leave B broken.
+- **Clarify over assume:** Better to ask than to invent. When unclear, ask before implementing.
+- **Check for conflicts:** When doing something, verify it doesn't contradict existing solutions, presets, or docs.
+- **Boy Scout Rule:** Every touched file must be left better than it was — no regressions, no half-done edits.
 - **TDD:** Red → Green → Refactor. Test failure = requirement not met, not "test wrong"
 - **Critical path:** Deploy → Smoke → E2E → Load → Metrics (event logs → History Server)
 - **No shortcuts:** Event logs ON, S3 for load (no in-memory fallback), image pyramid respected
 - **Config via params:** `--set` for helm, env for pipeline; no per-scenario values files
 - **SOLID, DRY, KISS, YAGNI** — see .cursorrules
+- **No compromises:** If the right path exists, take it. No "good enough" when it contradicts the correct solution.
+- **Principles are non-negotiable:** Violating them undermines them. Never lie to ourselves — fix or track.
 
 ### Image Pyramid
 
