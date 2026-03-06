@@ -110,8 +110,9 @@ Demo использует `spark-infra`; charts/observability по умолча�
 | `scripts/tests/load/run-validate-history-after-load.sh` | load | Validates History Server API |
 | `scripts/tests/e2e/` | e2e | May deploy observability namespace |
 | `scripts/observability/test_observability_*.py` | script | Metrics/logging validation |
+| `tests/observability/test_observability_smoke.py` | helm template | Loki, Prometheus, Grafana (PR gate) |
 
-**Прямых observability smoke tests:** нет (WS-031-07 создаст `test_observability_smoke.py`)
+**Observability smoke tests:** `tests/observability/test_observability_smoke.py` — helm template, Loki/Prometheus/Grafana (WS-031-07)
 
 ---
 

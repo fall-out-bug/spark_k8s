@@ -7,6 +7,7 @@ on:
       - "charts/**"
       - "tests/security/**"
       - "tests/integration/**"
+      - "tests/observability/**"
       - "pyproject.toml"
   pull_request:
     branches: [main, dev]
@@ -14,6 +15,7 @@ on:
       - "charts/**"
       - "tests/security/**"
       - "tests/integration/**"
+      - "tests/observability/**"
       - "pyproject.toml"
 
 jobs:

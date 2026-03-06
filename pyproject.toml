@@ -21,6 +21,7 @@ markers = [
     "security: Helm template security validation",
     "e2e: End-to-end tests requiring live cluster",
     "slow: Tests that take >30s",
+    "observability: Observability smoke tests (helm template on observability-demo)",
 ]
 
 [tool.ruff]
