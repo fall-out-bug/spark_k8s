@@ -4,7 +4,7 @@
 
 ---
 
-## Минимальный чек-лист
+## Минимальный чек-лист (AC2)
 
 ### 1. Jupyter Up
 
@@ -14,15 +14,23 @@ kubectl get pods -n spark-infra -l app.kubernetes.io/name=jupyter
 
 **Ожидание:** Running
 
-### 2. Spark Connect Up
+**URL:** http://localhost:18888/lab (port-forward: `tests/observability/start-ui-portforwards.sh`)
 
+### 2. Spark Up (Standalone или Connect)
+
+**Demo (Standalone):**
 ```bash
-kubectl get pods -n spark-infra -l app.kubernetes.io/component=spark-connect
-# или для standalone
-kubectl get svc -n spark-infra | grep 15002
+kubectl get pods -n spark-infra -l app.kubernetes.io/component=standalone-master
+kubectl get pods -n spark-infra -l app.kubernetes.io/component=standalone-worker
 ```
 
-**Ожидание:** Service/Connect доступен на 15002
+**Connect-сценарии:**
+```bash
+kubectl get pods -n spark-infra -l app.kubernetes.io/component=spark-connect
+# Service: sc://<release>-spark-connect:15002
+```
+
+**Ожидание:** Master/Connect и workers Running
 
 ### 3. MinIO Buckets
 
@@ -38,26 +46,30 @@ kubectl run -n spark-infra minio-check --rm -i --restart=Never \
 
 ---
 
-## Куда смотреть при ошибке
+## Куда смотреть при ошибке (AC3)
 
-1. **Jupyter pod logs:** `kubectl logs -n spark-infra -l app.kubernetes.io/name=jupyter`
-2. **Spark Connect logs:** `kubectl logs -n spark-infra -l app.kubernetes.io/component=spark-connect`
-3. **Grafana Logs Explorer** (если настроен) — фильтр по namespace
+1. **Jupyter pod logs:** `kubectl logs -n spark-infra -l app.kubernetes.io/name=jupyter -f`
+2. **Spark driver/worker logs:** `kubectl logs -n spark-infra -l app.kubernetes.io/component=standalone-worker`
+3. **Grafana Explore → Loki** (опционально): `{namespace="spark-infra"}` — фильтр по namespace
 
 ---
 
-## History Server (Spark UI)
+## History Server (Spark UI) (AC4)
 
 Для просмотра завершённых Spark jobs:
 
 ```bash
-kubectl port-forward -n spark-infra svc/spark-infra-spark-35-history 18080:18080
-# http://localhost:18080
+kubectl port-forward -n spark-infra svc/spark-infra-spark-35-history 18081:18080
 ```
+
+**URL:** http://localhost:18081
+
+Или использовать `tests/observability/start-ui-portforwards.sh` — History на :18081.
 
 ---
 
 ## Ссылки
 
-- [demo-runbook](../../../tests/demo-runbook-shared-infra.md) — полный runbook
-- [INVENTORY](../../observability/INVENTORY.md)
+- [INVENTORY](../INVENTORY.md) — компоненты observability
+- [demo-runbook](../../tests/demo-runbook-shared-infra.md) — развёртывание shared infra
+- [DevOps recipe](devops-5min.md) — полная проверка системы
