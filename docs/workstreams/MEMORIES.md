@@ -477,4 +477,3 @@ All 5 workstreams cancelled 2026-03-06. F35 covers same scope with better specif
 - WS-034-03 (Full Critical Path) → replaced by WS-035-02..05
 - WS-034-04 (Metrics Validation) → replaced by WS-035-07
 - WS-034-05 (Green 96 Scenarios) → replaced by WS-035-08
-
