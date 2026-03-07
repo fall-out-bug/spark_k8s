@@ -5,11 +5,9 @@ This module provides fixtures for GPU detection, metrics collection,
 and GPU-specific Spark configuration.
 """
 
-import os
-import json
 import subprocess
-from typing import Dict, Any, Generator, Optional
-from pathlib import Path
+from collections.abc import Generator
+from typing import Any, Dict, Optional
 
 import pytest
 
@@ -56,7 +54,7 @@ def _get_gpu_stats() -> Dict[str, Any]:
                     "gpu_memory_used_mb": int(parts[1].strip()),
                     "gpu_memory_total_mb": int(parts[2].strip()),
                 }
-    except (FileNotFoundError, subprocess.TimeoutExpired, ValueError) as e:
+    except (FileNotFoundError, subprocess.TimeoutExpired, ValueError):
         # Log the exception and return default metrics
         # GPU metrics not available, using defaults
         pass

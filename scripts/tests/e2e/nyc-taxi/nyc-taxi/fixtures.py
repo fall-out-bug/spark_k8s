@@ -6,7 +6,6 @@ This module provides fixtures for loading and managing the NYC Taxi dataset.
 
 import os
 import subprocess
-import tempfile
 from pathlib import Path
 from typing import Optional
 
@@ -47,9 +46,10 @@ def generate_sample_dataset(output_path: str = "/tmp/nyc-taxi-sample.parquet", r
 def _generate_with_python(output_path: str, rows: int) -> str:
     """Generate dataset using Python (fallback)."""
     try:
-        import pandas as pd
-        import numpy as np
         from datetime import datetime, timedelta
+
+        import numpy as np
+        import pandas as pd
 
         # Generate synthetic data
         np.random.seed(42)

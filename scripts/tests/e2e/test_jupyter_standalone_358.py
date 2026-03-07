@@ -95,7 +95,7 @@ class TestJupyterStandalone358FullDataset:
         results = []
         for i in range(3):
             result = spark_session.sql(
-                f"SELECT COUNT(*) AS cnt FROM nyc_taxi " + f"WHERE passenger_count = {i + 1}"
+                "SELECT COUNT(*) AS cnt FROM nyc_taxi " + f"WHERE passenger_count = {i + 1}"
             ).collect()
             results.append(result[0]["cnt"])
 

@@ -70,8 +70,8 @@ class TestPyArrowCompatibility:
             result = sdf.agg({"x": "sum", "y": "sum"}).collect()
 
             assert len(result) == 1, "Expected single aggregation result"
-            assert result[0]["sum(x)"] == 15, f"Sum of 'x' should be 15"
-            assert result[0]["sum(y)"] == 150, f"Sum of 'y' should be 150"
+            assert result[0]["sum(x)"] == 15, "Sum of 'x' should be 15"
+            assert result[0]["sum(y)"] == 150, "Sum of 'y' should be 150"
 
         except ImportError:
             pytest.skip("pandas not installed")

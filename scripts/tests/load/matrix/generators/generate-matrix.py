@@ -15,14 +15,12 @@ Usage:
 import argparse
 import itertools
 import json
-import os
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 import jinja2
 import yaml
-
 
 # Default paths
 SCRIPT_DIR = Path(__file__).parent
@@ -350,7 +348,7 @@ def main():
     summary_file = generate_summary(args.tier, combinations, artifacts, args.output_dir)
     print(f"  Generated summary: {summary_file.name}")
 
-    print(f"\nGeneration complete!")
+    print("\nGeneration complete!")
     print(f"  Combinations: {len(combinations)}")
     print(f"  Helm values: {len([a for a, _ in artifacts if a == 'helm'])}")
     print(f"  Scenarios: {len([a for a, _ in artifacts if a == 'scenario'])}")

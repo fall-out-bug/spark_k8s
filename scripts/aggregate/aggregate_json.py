@@ -11,7 +11,7 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 
 def aggregate_results(results_dir: str) -> Dict[str, Any]:
@@ -36,7 +36,7 @@ def aggregate_results(results_dir: str) -> Dict[str, Any]:
 
     for result_file in result_files:
         try:
-            with open(result_file, "r", encoding="utf-8") as f:
+            with open(result_file, encoding="utf-8") as f:
                 result = json.load(f)
 
             scenario_name = result_file.stem

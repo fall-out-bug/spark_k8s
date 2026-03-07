@@ -12,7 +12,6 @@ from autotuning.analyzer import (
     DetectedIssue,
     WorkloadAnalyzer,
     analyze_metrics,
-    classify_workload,
     load_rules_config,
 )
 

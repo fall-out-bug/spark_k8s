@@ -9,10 +9,9 @@ Usage:
 import argparse
 import json
 import sys
-from datetime import datetime
 from pathlib import Path
-from xml.etree import ElementTree as ET
 from xml.dom import minidom
+from xml.etree import ElementTree as ET
 
 
 def generate_junit_xml(results_dir: str) -> str:
@@ -24,7 +23,7 @@ def generate_junit_xml(results_dir: str) -> str:
         print(f"Error: {aggregated_file} not found. Run aggregate_json.py first.", file=sys.stderr)
         sys.exit(1)
 
-    with open(aggregated_file, "r", encoding="utf-8") as f:
+    with open(aggregated_file, encoding="utf-8") as f:
         aggregated = json.load(f)
 
     # Create testsuites element

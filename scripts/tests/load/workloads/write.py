@@ -18,8 +18,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, count, spark_sum, avg, lit
-
+from pyspark.sql.functions import avg, count, spark_sum
 
 # Data paths for different sizes
 DATA_PATHS = {

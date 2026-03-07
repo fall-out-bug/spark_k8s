@@ -12,17 +12,16 @@ For running inside k8s cluster:
 """
 
 import argparse
-import os
 import sys
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
-import requests
+from io import BytesIO
+
 import boto3
+import pyarrow.parquet as pq
+import requests
 from botocore.client import Config
 from botocore.exceptions import ClientError
-from io import BytesIO
-import pyarrow.parquet as pq
-import pyarrow as pa
+from dateutil.relativedelta import relativedelta
 
 
 def get_month_range(start_month: str, end_month: str) -> list:
@@ -107,9 +106,9 @@ def main():
 
     args = parser.parse_args()
 
-    print(f"NYC TLC Data Ingestion")
-    print(f"======================")
-    print(f"Source: NYC TLC Yellow Taxi")
+    print("NYC TLC Data Ingestion")
+    print("======================")
+    print("Source: NYC TLC Yellow Taxi")
     print(f"Period: {args.start_month} to {args.end_month}")
     print(f"Target: s3a://{args.bucket}/{args.path}")
     print()
@@ -159,7 +158,7 @@ def main():
             if s3_client:
                 upload_to_minio(s3_client, args.bucket, key, data)
 
-            print(f"  Done!")
+            print("  Done!")
 
         except Exception as e:
             print(f"  ERROR: {e}")

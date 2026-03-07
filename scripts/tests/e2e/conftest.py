@@ -5,12 +5,13 @@ This module provides fixtures for dataset loading, Spark session creation,
 and metrics collection for end-to-end testing.
 """
 
-import os
-import time
 import json
+import os
 import tempfile
+import time
+from collections.abc import Generator
 from pathlib import Path
-from typing import Dict, Any, Generator
+from typing import Any, Dict
 
 import pytest
 

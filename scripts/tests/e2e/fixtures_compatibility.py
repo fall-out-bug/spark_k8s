@@ -5,7 +5,8 @@ This module provides fixtures for testing PySpark compatibility
 with different versions of pandas, numpy, and pyarrow.
 """
 
-from typing import Dict, Any
+from typing import Any, Dict
+
 import pytest
 
 
@@ -174,7 +175,6 @@ def type_compatibility(spark_session: Any) -> Dict[str, Any]:
     """
     try:
         import pandas as pd
-        import numpy as np
 
         # Create DataFrame with various types
         test_data = pd.DataFrame(

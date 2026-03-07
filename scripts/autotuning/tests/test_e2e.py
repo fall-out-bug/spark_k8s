@@ -8,24 +8,22 @@ import json
 import time
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import Mock, patch
 
 import pytest
 import yaml
 
 from autotuning import (
-    MetricsCollector,
-    MetricsResult,
-    WorkloadAnalyzer,
     AnalysisResult,
     ConfigRecommender,
-    RecommendationSet,
     HelmValuesGenerator,
+    MetricsCollector,
+    MetricsResult,
+    RecommendationSet,
     ValidationResult,
-    collect_metrics,
+    WorkloadAnalyzer,
     analyze_metrics,
-    generate_recommendations,
     apply_recommendations,
+    generate_recommendations,
 )
 
 FIXTURES_PATH = Path(__file__).parent / "fixtures"

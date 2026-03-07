@@ -6,10 +6,8 @@ Duration: 30 minutes
 Target: 0.5 query/second (heavier queries)
 """
 
-import time
 import pytest
-
-from helpers import run_sustained_load, get_gpu_metrics
+from helpers import get_gpu_metrics, run_sustained_load
 from helpers_validation import validate_load_metrics
 
 
@@ -84,7 +82,7 @@ def test_gpu_window_functions_410(spark_connect_client):
     assert gpu_memory_used < gpu_memory_total * 0.8, f"GPU memory too high: {gpu_memory_used}MB / {gpu_memory_total}MB"
 
     # Print summary
-    print(f"\n=== GPU Load Test Summary (4.1.0 Window) ===")
+    print("\n=== GPU Load Test Summary (4.1.0 Window) ===")
     print(f"Duration: {metrics['actual_duration_sec']:.1f}s")
     print(f"Queries: {metrics['queries_success']} / {metrics['queries_total']}")
     print(f"Throughput: {metrics['throughput_qps']:.2f} qps")

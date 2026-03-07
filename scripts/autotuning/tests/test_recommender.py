@@ -13,11 +13,11 @@ from autotuning.recommender import (
     Recommendation,
     RecommendationSet,
     apply_safety_bounds,
-    generate_recommendations,
-    load_profiles_config,
-    load_bounds_config,
-    parse_memory_value,
     format_memory_value,
+    generate_recommendations,
+    load_bounds_config,
+    load_profiles_config,
+    parse_memory_value,
 )
 
 

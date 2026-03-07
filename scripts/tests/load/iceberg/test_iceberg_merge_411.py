@@ -7,9 +7,8 @@ Target: 5 merges/second
 """
 
 import time
-import pytest
-from pyspark.sql import Row
 
+import pytest
 from helpers_validation import validate_load_metrics
 
 
@@ -122,7 +121,7 @@ def test_iceberg_merge_load_411(spark_connect_client):
     assert metrics["queries_success"] >= 8000, f"Too few successful merges: {metrics['queries_success']}"
 
     # Print summary
-    print(f"\n=== Iceberg Load Test Summary (4.1.1 MERGE) ===")
+    print("\n=== Iceberg Load Test Summary (4.1.1 MERGE) ===")
     print(f"Duration: {metrics['actual_duration_sec']:.1f}s")
     print(f"Merges: {metrics['queries_success']} / {metrics['queries_total']}")
     print(f"Throughput: {metrics['throughput_qps']:.2f} ops/sec")

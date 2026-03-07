@@ -17,38 +17,25 @@ import json
 import os
 import subprocess
 import sys
-import tempfile
 from datetime import datetime, timedelta
-from pathlib import Path
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import (
     col,
+    floor,
+    hour,
+    lit,
     rand,
     when,
-    lit,
-    floor,
-    date_format,
-    substring,
-    concat,
-    year,
-    month,
-    dayofmonth,
-    hour,
-    monotonically_increasing_id,
 )
-from pyspark.sql.functions import column
 from pyspark.sql.types import (
-    StructType,
-    StructField,
-    IntegerType,
-    LongType,
-    FloatType,
     DoubleType,
-    TimestampType,
+    IntegerType,
     StringType,
+    StructField,
+    StructType,
+    TimestampType,
 )
-
 
 # NYC taxi zone locations (approximate coordinates)
 MANHATTAN_ZONES = [

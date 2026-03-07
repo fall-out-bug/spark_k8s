@@ -5,7 +5,6 @@ Tests validate Spark 3.5.8 execution via Jupyter notebook with k8s-submit mode.
 """
 
 import pytest
-from pathlib import Path
 
 test_spark_version = "3.5.8"
 test_component = "jupyter"

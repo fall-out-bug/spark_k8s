@@ -3,8 +3,10 @@
 import os
 import sys
 import time
+
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, sum as spark_sum
+from pyspark.sql.functions import col
+from pyspark.sql.functions import sum as spark_sum
 
 
 def main() -> None:

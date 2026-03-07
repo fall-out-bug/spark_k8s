@@ -19,18 +19,22 @@ from typing import Any, Dict
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import (
-    col,
-    count,
-    sum as spark_sum,
     avg,
-    max as spark_max,
-    min as spark_min,
-    year,
-    month,
+    count,
     dayofmonth,
     hour,
+    month,
+    year,
 )
-
+from pyspark.sql.functions import (
+    max as spark_max,
+)
+from pyspark.sql.functions import (
+    min as spark_min,
+)
+from pyspark.sql.functions import (
+    sum as spark_sum,
+)
 
 # Data paths for different sizes
 DATA_PATHS = {

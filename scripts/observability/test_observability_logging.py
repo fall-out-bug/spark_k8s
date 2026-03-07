@@ -7,7 +7,6 @@ Tests Loki deployment, log aggregation, and log querying.
 
 import subprocess
 import sys
-from pathlib import Path
 
 
 def run_command(cmd: list, description: str) -> dict:

@@ -13,8 +13,9 @@ Environment variables:
 
 import os
 import socket
-import time
 import sys
+import time
+
 from pyspark.sql import SparkSession
 
 
@@ -76,7 +77,7 @@ def run_load_test(spark: SparkSession, mode: str, rows: int, partitions: int) ->
     elif mode == "nulls":
         df = spark.range(0, rows, numPartitions=partitions)
         # Add some null values
-        from pyspark.sql.functions import when, col
+        from pyspark.sql.functions import col, when
 
         df = df.withColumn("value", when(col("id") % 100 == 0, None).otherwise(col("id")))
     else:

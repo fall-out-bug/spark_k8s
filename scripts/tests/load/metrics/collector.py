@@ -13,12 +13,11 @@ Usage:
 import argparse
 import json
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import requests
-
 
 # History Server API
 HISTORY_SERVER_URL = "http://spark-history-server.load-testing.svc.cluster.local:18080"

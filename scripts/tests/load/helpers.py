@@ -7,7 +7,7 @@ collecting metrics, and validating results.
 
 import subprocess
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 from pyspark.sql import SparkSession
 

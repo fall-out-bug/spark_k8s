@@ -10,9 +10,7 @@ Usage:
     df.write.jdbc(get_postgres_url(), "table", properties=get_postgres_properties())
 """
 
-from typing import Dict, Any
-from urllib.parse import quote_plus
-
+from typing import Any, Dict
 
 # Postgres configuration for load testing
 POSTGRES_HOST = "postgres-load-testing.load-testing.svc.cluster.local"

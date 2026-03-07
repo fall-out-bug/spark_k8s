@@ -7,14 +7,12 @@ Duration: 60 minutes (30 min per version)
 
 import random
 import time
-import pytest
-
 from datetime import datetime, timedelta
 from typing import Any, Dict
 
-from pyspark.sql import SparkSession
-
+import pytest
 from helpers_validation import generate_comparison_report
+from pyspark.sql import SparkSession
 
 
 def run_mixed_workload(
@@ -138,7 +136,7 @@ def test_version_comparison_mixed_workload(
     ), f"Significant latency regression: {report['latency_p95']['diff_pct']:.1f}%"
 
     # Print summary
-    print(f"\n=== Version Comparison Summary (Mixed Workload) ===")
+    print("\n=== Version Comparison Summary (Mixed Workload) ===")
     print(f"Spark 3.5.8: {metrics_358['throughput_qps']:.2f} qps, " f"P95: {metrics_358['latency_p95_ms']:.1f}ms")
     print(f"Spark 4.1.1: {metrics_411['throughput_qps']:.2f} qps, " f"P95: {metrics_411['latency_p95_ms']:.1f}ms")
     print(f"Throughput diff: {report['throughput']['diff_pct']:.1f}%")

@@ -1,24 +1,22 @@
 """Tests for autotuning Helm values generator (applier)."""
 
 import json
-import re
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import Mock, patch
 
 import pytest
 import yaml
 
-from autotuning.recommender import Recommendation, RecommendationSet
 from autotuning.applier import (
     HelmValuesGenerator,
     ValidationResult,
     apply_recommendations,
     generate_helm_overlay,
-    validate_helm_values,
     get_helm_path,
     load_recommendations,
+    validate_helm_values,
 )
+from autotuning.recommender import Recommendation, RecommendationSet
 
 
 class TestGetHelmPath:

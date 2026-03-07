@@ -12,8 +12,8 @@ import sys
 from rightsizing_core import (
     EXECUTOR_PRESETS,
     SizingRecommendation,
-    parse_data_size,
     calculate_recommendation,
+    parse_data_size,
 )
 
 

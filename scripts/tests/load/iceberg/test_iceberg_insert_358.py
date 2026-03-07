@@ -7,11 +7,10 @@ Target: 10 inserts/second
 """
 
 import time
-import pytest
-from pyspark.sql import Row
 
-from helpers import run_sustained_load
+import pytest
 from helpers_validation import validate_load_metrics
+from pyspark.sql import Row
 
 
 @pytest.mark.load
@@ -142,7 +141,7 @@ def test_iceberg_insert_load_358(spark_connect_client):
         print("Warning: Could not verify snapshot count")
 
     # Print summary
-    print(f"\n=== Iceberg Load Test Summary (3.5.8 INSERT) ===")
+    print("\n=== Iceberg Load Test Summary (3.5.8 INSERT) ===")
     print(f"Duration: {metrics['actual_duration_sec']:.1f}s")
     print(f"Inserts: {metrics['queries_success']} / {metrics['queries_total']}")
     print(f"Throughput: {metrics['throughput_qps']:.2f} ops/sec")

@@ -19,19 +19,17 @@ from typing import Any, Dict
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import (
-    col,
-    row_number,
-    rank,
-    dense_rank,
-    lead,
-    lag,
-    count,
-    sum as spark_sum,
     avg,
-    window as spark_window,
+    dense_rank,
+    lag,
+    lead,
+    rank,
+    row_number,
+)
+from pyspark.sql.functions import (
+    sum as spark_sum,
 )
 from pyspark.sql.window import Window
-
 
 # Data paths for different sizes
 DATA_PATHS = {

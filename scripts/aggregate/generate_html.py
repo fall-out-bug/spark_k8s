@@ -11,9 +11,10 @@ import json
 import sys
 from pathlib import Path
 
-# Import styles and metrics from separate modules
-from generate_html_styles import get_html_head, get_html_body_end
 from generate_html_metrics import calculate_metrics
+
+# Import styles and metrics from separate modules
+from generate_html_styles import get_html_body_end, get_html_head
 
 
 def generate_html_body_start(aggregated: dict, metrics: dict) -> str:
@@ -103,7 +104,7 @@ def generate_html_report(results_dir: str) -> str:
         print(f"Error: {aggregated_file} not found. Run aggregate_json.py first.", file=sys.stderr)
         sys.exit(1)
 
-    with open(aggregated_file, "r", encoding="utf-8") as f:
+    with open(aggregated_file, encoding="utf-8") as f:
         aggregated = json.load(f)
 
     # Calculate metrics using imported function

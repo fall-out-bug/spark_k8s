@@ -6,9 +6,7 @@ Duration: 30 minutes
 Target: 1 query/second
 """
 
-import time
 import pytest
-
 from helpers import run_sustained_load
 from helpers_validation import validate_load_metrics
 
@@ -59,7 +57,7 @@ def test_baseline_select_aggregation_358(spark_connect_client):
     assert metrics["queries_success"] >= 1700, f"Too few successful queries: {metrics['queries_success']}"
 
     # Print summary
-    print(f"\n=== Baseline Load Test Summary (3.5.8) ===")
+    print("\n=== Baseline Load Test Summary (3.5.8) ===")
     print(f"Duration: {metrics['actual_duration_sec']:.1f}s")
     print(f"Queries: {metrics['queries_success']} / {metrics['queries_total']}")
     print(f"Throughput: {metrics['throughput_qps']:.2f} qps")

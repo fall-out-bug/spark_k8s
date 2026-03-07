@@ -5,7 +5,6 @@ Tests validate Apache Iceberg table operations via Airflow with Spark 3.5.7.
 """
 
 import pytest
-from datetime import datetime, timedelta
 
 test_spark_version = "3.5.7"
 test_component = "airflow"
@@ -82,7 +81,7 @@ class TestAirflowIceberg357:
         table_name = f"{catalog_name}.test_update"
 
         # Create table
-        spark_session.sql(f"CREATE TABLE {table_name} (id INT, value STRING) " + f"USING iceberg")
+        spark_session.sql(f"CREATE TABLE {table_name} (id INT, value STRING) " + "USING iceberg")
 
         # Insert initial data
         spark_session.sql(f"INSERT INTO {table_name} VALUES (1, 'a'), (2, 'b')")
@@ -104,7 +103,7 @@ class TestAirflowIceberg357:
         table_name = f"{catalog_name}.test_delete"
 
         # Create table
-        spark_session.sql(f"CREATE TABLE {table_name} (id INT, value STRING) " + f"USING iceberg")
+        spark_session.sql(f"CREATE TABLE {table_name} (id INT, value STRING) " + "USING iceberg")
 
         # Insert data
         spark_session.sql(f"INSERT INTO {table_name} VALUES (1, 'a'), (2, 'b'), (3, 'c')")
@@ -127,8 +126,8 @@ class TestAirflowIceberg357:
         source_name = f"{catalog_name}.test_merge_source"
 
         # Create tables
-        spark_session.sql(f"CREATE TABLE {table_name} (id INT, value STRING) " + f"USING iceberg")
-        spark_session.sql(f"CREATE TABLE {source_name} (id INT, value STRING) " + f"USING iceberg")
+        spark_session.sql(f"CREATE TABLE {table_name} (id INT, value STRING) " + "USING iceberg")
+        spark_session.sql(f"CREATE TABLE {source_name} (id INT, value STRING) " + "USING iceberg")
 
         # Insert initial data
         spark_session.sql(f"INSERT INTO {table_name} VALUES (1, 'a'), (2, 'b')")
@@ -138,9 +137,9 @@ class TestAirflowIceberg357:
         spark_session.sql(
             f"MERGE INTO {table_name} AS target "
             + f"USING {source_name} AS source "
-            + f"ON target.id = source.id "
-            + f"WHEN MATCHED THEN UPDATE SET target.value = source.value "
-            + f"WHEN NOT MATCHED THEN INSERT *"
+            + "ON target.id = source.id "
+            + "WHEN MATCHED THEN UPDATE SET target.value = source.value "
+            + "WHEN NOT MATCHED THEN INSERT *"
         )
 
         # Verify merge
@@ -174,7 +173,7 @@ class TestAirflowIceberg357:
         table_name = f"{catalog_name}.test_schema"
 
         # Create table
-        spark_session.sql(f"CREATE TABLE {table_name} (id INT, value STRING) " + f"USING iceberg")
+        spark_session.sql(f"CREATE TABLE {table_name} (id INT, value STRING) " + "USING iceberg")
 
         # Insert data
         spark_session.sql(f"INSERT INTO {table_name} VALUES (1, 'a'), (2, 'b')")
@@ -212,10 +211,10 @@ class TestAirflowIceberg357FullDataset:
 
         # Perform aggregation
         result = spark_session.sql(
-            f"SELECT passenger_count, COUNT(*) AS cnt "
+            "SELECT passenger_count, COUNT(*) AS cnt "
             + f"FROM {table_name} "
-            + f"WHERE passenger_count > 0 "
-            + f"GROUP BY passenger_count"
+            + "WHERE passenger_count > 0 "
+            + "GROUP BY passenger_count"
         )
 
         assert result.count() > 0, "Aggregation failed"

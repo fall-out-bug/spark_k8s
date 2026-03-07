@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 """Generate complete matrix of scenario files."""
 
-import yaml
-from pathlib import Path
-
 
 def deep_merge(base, overlay):
     """Deep merge two dictionaries."""

@@ -4,8 +4,9 @@ Jupyter k8s-submit E2E tests for Spark 3.5.7.
 Tests validate Spark 3.5.7 execution via Jupyter notebook with k8s-submit mode.
 """
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 test_spark_version = "3.5.7"
 test_component = "jupyter"

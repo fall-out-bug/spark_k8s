@@ -7,6 +7,7 @@ Duration: 30 minutes
 
 import os
 import time
+
 import pytest
 
 try:
@@ -16,7 +17,6 @@ try:
 except ImportError:
     K8S_AVAILABLE = False
 
-from helpers import run_sustained_load
 from helpers_validation import validate_load_metrics
 
 
@@ -144,7 +144,7 @@ def test_pss_restricted_stability(spark_connect_client):
     assert metrics["policy_violations"] == 0, f"Policy violations detected: {metrics['policy_violations']}"
 
     # Print summary
-    print(f"\n=== Security Stability Summary (PSS Restricted) ===")
+    print("\n=== Security Stability Summary (PSS Restricted) ===")
     print(f"Duration: {metrics['actual_duration_sec']:.1f}s")
     print(f"Queries: {metrics['queries_success']} / {metrics['queries_total']}")
     print(f"Throughput: {metrics['throughput_qps']:.2f} qps")

@@ -19,7 +19,6 @@ from typing import Any, Dict, List, Optional
 
 import yaml
 
-
 # Baseline storage
 BASELINE_FILE = Path("/home/fall_out_bug/work/s7/spark_k8s/config/baselines/load-test-baselines.yaml")
 RESULTS_DIR = Path("/tmp/load-test-results")

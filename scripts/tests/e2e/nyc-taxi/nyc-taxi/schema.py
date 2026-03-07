@@ -6,7 +6,6 @@ This module defines the schema for the NYC Taxi dataset used in E2E tests.
 
 from typing import Dict, List
 
-
 NYC_TAXI_SCHEMA: Dict[str, str] = {
     "VendorID": "bigint",
     "tpep_pickup_datetime": "timestamp",

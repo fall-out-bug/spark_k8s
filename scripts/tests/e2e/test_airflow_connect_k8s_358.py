@@ -5,7 +5,6 @@ Tests validate Spark 3.5.8 execution via Airflow DAG with Spark Connect in k8s m
 """
 
 import pytest
-from pathlib import Path
 
 test_spark_version = "3.5.8"
 test_component = "airflow"

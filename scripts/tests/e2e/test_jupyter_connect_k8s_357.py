@@ -5,7 +5,6 @@ Tests validate Spark 3.5.7 execution via Jupyter with Spark Connect in k8s mode.
 """
 
 import pytest
-from pathlib import Path
 
 test_spark_version = "3.5.7"
 test_component = "jupyter"

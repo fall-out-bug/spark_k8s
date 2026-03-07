@@ -19,7 +19,6 @@ from typing import Any, Dict
 
 from pyspark.sql import SparkSession
 
-
 # Data paths for different sizes (using spark-infra MinIO)
 DATA_PATHS = {
     "1gb": "s3a://raw-data/yellow_tripdata_2024-01.parquet",

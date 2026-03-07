@@ -5,11 +5,10 @@ This module provides fixtures for Apache Iceberg table operations,
 catalog configuration, and Iceberg-specific metrics.
 """
 
-import os
-import tempfile
 import shutil
-from typing import Dict, Any, Generator, Optional
-from pathlib import Path
+import tempfile
+from collections.abc import Generator
+from typing import Any, Dict, Optional
 
 import pytest
 
@@ -142,7 +141,7 @@ def iceberg_metrics(spark_session: Any, iceberg_catalog: Dict[str, Any]) -> Dict
         try:
             partitions = spark_session.sql(f"SELECT * FROM {table_name}.partitions")
             metrics["partition_count"] = partitions.count()
-        except Exception as partition_error:
+        except Exception:
             # Partitions not available for this table
             metrics["partition_count"] = 0
 

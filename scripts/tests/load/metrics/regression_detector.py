@@ -14,10 +14,9 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 from scipy import stats
-
 
 # Regression thresholds
 REGRESSION_THRESHOLD_PCT = 20.0  # > 20% degradation
@@ -137,7 +136,7 @@ class RegressionDetector:
         trade_offs = []
 
         # Analyze each metric
-        for metric_name in baseline_metrics.keys():
+        for metric_name in baseline_metrics:
             if metric_name not in current_metrics:
                 continue
 
