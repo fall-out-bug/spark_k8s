@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Iceberg delete operations and main entry point."""
 
-from pyspark.sql.functions import col
-
 
 def delete_operations(spark):
     """Demonstrate Iceberg delete operations."""
@@ -31,14 +29,14 @@ def delete_operations(spark):
 
 def run_all_examples():
     """Run all Iceberg examples."""
-    from iceberg_setup import create_spark_session, setup_database, create_iceberg_table, insert_initial_data
     from iceberg_evolution import (
-        time_travel_example,
-        schema_evolution_add_column,
-        schema_evolution_rename_column,
         partition_evolution,
         rollback_procedures,
+        schema_evolution_add_column,
+        schema_evolution_rename_column,
+        time_travel_example,
     )
+    from iceberg_setup import create_iceberg_table, create_spark_session, insert_initial_data, setup_database
 
     print("=" * 80)
     print("Apache Iceberg Examples")

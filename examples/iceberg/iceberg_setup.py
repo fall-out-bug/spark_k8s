@@ -42,7 +42,7 @@ def create_iceberg_table(spark):
 
 def insert_initial_data(spark):
     """Insert initial data into the table."""
-    from pyspark.sql.functions import current_timestamp, lit
+    from pyspark.sql.functions import current_timestamp
 
     data = [
         (1, "Alice", "alice@example.com"),

@@ -80,7 +80,7 @@ def time_travel_example(spark: SparkSession) -> None:
     print(f"   Snapshot 2 ID: {snapshot2}")
     print("\n   Latest data (7 rows):")
     spark.sql("SELECT * FROM iceberg.db_examples.orders").show()
-    print(f"\n   Time travel to snapshot 1 (5 rows):")
+    print("\n   Time travel to snapshot 1 (5 rows):")
     spark.sql(f"SELECT * FROM iceberg.db_examples.orders VERSION AS OF {snapshot1}").show()
     print("\n   List all snapshots:")
     spark.sql("SELECT snapshot_id, committed_at, summary FROM iceberg.db_examples.orders.snapshots").show(

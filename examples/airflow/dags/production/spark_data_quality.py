@@ -7,13 +7,13 @@ This DAG runs data quality checks:
 - Schema validation
 """
 
-from datetime import datetime, timedelta
-from airflow import DAG
-from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
-from airflow.operators.python import PythonOperator
-from airflow.utils.dates import days_ago
-from airflow.hooks.base import BaseHook
 import logging
+from datetime import timedelta
+
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
+from airflow.utils.dates import days_ago
 
 logger = logging.getLogger(__name__)
 

@@ -2,7 +2,6 @@
 """Iceberg time travel examples for querying historical data."""
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col
 
 
 def create_spark_session():
@@ -129,7 +128,7 @@ def query_by_timestamp(spark, table_name, timestamp):
 
 def compare_versions(spark, table_name):
     """Compare data between two snapshots."""
-    print(f"\n=== Comparing Versions ===")
+    print("\n=== Comparing Versions ===")
 
     # Get first and last snapshots
     snapshots = spark.sql(
@@ -191,7 +190,7 @@ def rollback_to_snapshot(spark, table_name, snapshot_id):
 
 def audit_changes(spark, table_name):
     """Audit what changed between snapshots."""
-    print(f"\n=== Auditing Changes ===")
+    print("\n=== Auditing Changes ===")
 
     # Get recent snapshots
     snapshots = spark.sql(

@@ -3,7 +3,8 @@
 import time
 
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import col, count, avg, sum as spark_sum
+from pyspark.sql.functions import avg, col, count
+from pyspark.sql.functions import sum as spark_sum
 
 
 def gpu_parquet_operations(spark_session, df: DataFrame) -> DataFrame:

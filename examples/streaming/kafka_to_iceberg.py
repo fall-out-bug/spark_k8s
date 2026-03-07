@@ -9,10 +9,10 @@ For Spark 3.5: use _2.12:3.5.0 and iceberg-spark-runtime-3.5_2.12:1.5.0
 """
 
 import os
-import sys
+
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, from_json, current_timestamp
-from pyspark.sql.types import StructType, StructField, StringType, LongType, DoubleType
+from pyspark.sql.functions import col, current_timestamp, from_json
+from pyspark.sql.types import DoubleType, LongType, StringType, StructField, StructType
 
 KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
 KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "events")

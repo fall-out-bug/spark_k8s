@@ -2,7 +2,7 @@
 """Iceberg partitioning examples demonstrating different strategies."""
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, lit, current_timestamp
+from pyspark.sql.functions import current_timestamp, lit
 
 
 def create_spark_session():

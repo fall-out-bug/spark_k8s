@@ -8,13 +8,12 @@ This DAG demonstrates production-grade patterns:
 - Idempotent design
 """
 
-from datetime import datetime, timedelta
+import logging
+from datetime import timedelta
+
 from airflow import DAG
 from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
-from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
-from airflow.hooks.base import BaseHook
-import logging
 
 logger = logging.getLogger(__name__)
 

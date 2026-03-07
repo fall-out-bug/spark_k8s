@@ -10,16 +10,16 @@ Prerequisites:
 - RAPIDS plugin installed
 """
 
-from gpu_setup import create_gpu_spark_session, print_gpu_status
+from gpu_analysis import benchmark_comparison, explain_gpu_plan
 from gpu_data import create_sample_data
 from gpu_io import gpu_parquet_operations
+from gpu_setup import create_gpu_spark_session, print_gpu_status
 from gpu_transforms import (
     gpu_aggregations,
-    gpu_joins,
     gpu_filter_operations,
+    gpu_joins,
     gpu_sort_operations,
 )
-from gpu_analysis import explain_gpu_plan, benchmark_comparison
 
 
 def main():

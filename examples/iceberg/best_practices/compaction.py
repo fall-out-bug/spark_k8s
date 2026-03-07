@@ -2,7 +2,8 @@
 """Iceberg compaction automation for maintaining optimal file sizes."""
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, sum as spark_sum, count, avg
+from pyspark.sql.functions import avg, count
+from pyspark.sql.functions import sum as spark_sum
 
 
 def create_spark_session():
