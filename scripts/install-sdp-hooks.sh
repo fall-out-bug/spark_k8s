@@ -14,6 +14,12 @@ if [ -f config/sdp-config.yml ] && [ -d .sdp ]; then
   echo "Copied config/sdp-config.yml -> .sdp/config.yml"
 fi
 
+# Ensure guard-rules.yml is at .sdp/guard-rules.yml (sdp expects it there)
+if [ -f .sdp/.sdp/guard-rules.yml ] && [ ! -f .sdp/guard-rules.yml ]; then
+  cp .sdp/.sdp/guard-rules.yml .sdp/guard-rules.yml
+  echo "Copied .sdp/.sdp/guard-rules.yml -> .sdp/guard-rules.yml"
+fi
+
 echo "Installing SDP Git hooks..."
 
 # 1. Run SDP install (uses scripts/hooks for pre-commit, pre-push)
