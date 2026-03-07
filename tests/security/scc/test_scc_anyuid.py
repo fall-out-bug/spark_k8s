@@ -5,18 +5,15 @@ Tests for Security Context Constraints (SCC) anyuid compatibility
 with OpenShift clusters.
 """
 
+from unittest.mock import MagicMock, patch
+
 import pytest
 import yaml
-from pathlib import Path
-from typing import Dict, Any, List
-from unittest.mock import patch, MagicMock
 
 from tests.security.conftest import (
+    get_pod_specs,
     helm_template,
     parse_yaml_docs,
-    get_pod_specs,
-    chart_35_path,
-    chart_41_path,
 )
 
 

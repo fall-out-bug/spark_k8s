@@ -6,13 +6,12 @@ Aggregates test results and generates HTML/JSON reports
 
 import argparse
 import json
-import os
 import sys
-from datetime import datetime
-from pathlib import Path
-from typing import Dict, List, Optional
 import xml.etree.ElementTree as ET
 from collections import defaultdict
+from datetime import datetime
+from pathlib import Path
+from typing import List, Optional
 
 RESULTS_DIR = Path("tests/results")
 
@@ -109,7 +108,7 @@ class ReportGenerator:
     def parse_csv_history(self, csv_path: Path) -> List[TestResult]:
         results = []
         try:
-            with open(csv_path, "r") as f:
+            with open(csv_path) as f:
                 for line in f:
                     line = line.strip()
                     if not line or line.startswith("scenario") or line.startswith("timestamp"):
@@ -475,7 +474,7 @@ class ReportGenerator:
         self.generate_json_report(output_dir / "test-report.json")
         self.generate_html_report(output_dir / "test-report.html")
 
-        print(f"\nSummary:")
+        print("\nSummary:")
         print(f"  Total:   {self.summary['total']}")
         print(f"  Passed:  {self.summary['passed']}")
         print(f"  Failed:  {self.summary['failed']}")

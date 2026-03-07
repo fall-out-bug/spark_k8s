@@ -6,16 +6,10 @@ with OpenShift clusters.
 """
 
 import pytest
-import yaml
-from pathlib import Path
-from typing import Dict, Any, List
 
 from tests.security.conftest import (
-    helm_template,
-    parse_yaml_docs,
     get_pod_specs,
-    chart_35_path,
-    chart_41_path,
+    helm_template,
 )
 
 

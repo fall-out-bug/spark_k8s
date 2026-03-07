@@ -4,17 +4,14 @@ S3 security tests for IRSA annotation validation
 Tests for IRSA (IAM Roles for Service Accounts) annotation validation.
 """
 
+import re
+
 import pytest
 import yaml
-import re
-from pathlib import Path
-from typing import Dict, Any, List
 
 from tests.security.conftest import (
     helm_template,
     parse_yaml_docs,
-    chart_35_path,
-    preset_35_baseline,
 )
 
 

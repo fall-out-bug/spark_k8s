@@ -5,16 +5,10 @@ Tests for non-root user validation in container security contexts.
 """
 
 import pytest
-import yaml
-from pathlib import Path
-from typing import Dict, Any, List
 
 from tests.security.conftest import (
-    helm_template,
-    parse_yaml_docs,
     get_pod_specs,
-    chart_35_path,
-    preset_35_baseline,
+    helm_template,
 )
 
 

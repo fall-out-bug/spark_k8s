@@ -5,8 +5,9 @@ These tests REQUIRE:
 - MinIO or S3-compatible storage
 """
 
-import pytest
 import subprocess
+
+import pytest
 
 
 class TestRealIcebergWorkload:

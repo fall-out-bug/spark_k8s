@@ -6,15 +6,10 @@ required traffic (DNS, S3, PostgreSQL, etc.).
 """
 
 import pytest
-import yaml
-from pathlib import Path
-from typing import Dict, Any, List
 
 from tests.security.conftest import (
     helm_template,
     parse_yaml_docs,
-    chart_35_path,
-    preset_35_baseline,
 )
 
 

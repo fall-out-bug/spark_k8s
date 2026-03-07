@@ -1,9 +1,9 @@
 """E2E tests for secret templates and environment isolation."""
 
+import subprocess
 from pathlib import Path
 
 import pytest
-import subprocess
 
 
 class TestSecretTemplates:

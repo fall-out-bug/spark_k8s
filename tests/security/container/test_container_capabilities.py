@@ -4,17 +4,13 @@ Container security tests for dropped capabilities
 Tests for dropped capabilities validation.
 """
 
+from typing import Set
+
 import pytest
-import yaml
-from pathlib import Path
-from typing import Dict, Any, List, Set
 
 from tests.security.conftest import (
-    helm_template,
-    parse_yaml_docs,
     get_pod_specs,
-    chart_35_path,
-    preset_35_baseline,
+    helm_template,
 )
 
 

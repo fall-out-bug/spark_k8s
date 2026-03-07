@@ -4,11 +4,12 @@ Security test fixtures for Spark K8s Helm charts
 This module provides shared fixtures for all security tests.
 """
 
-import pytest
 import subprocess
-import yaml
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any, Dict, List
+
+import pytest
+import yaml
 
 
 @pytest.fixture(scope="session")

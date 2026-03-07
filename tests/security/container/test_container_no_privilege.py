@@ -5,16 +5,11 @@ Tests for privilege escalation disabled validation.
 """
 
 import pytest
-import yaml
-from pathlib import Path
-from typing import Dict, Any, List
 
 from tests.security.conftest import (
+    get_pod_specs,
     helm_template,
     parse_yaml_docs,
-    get_pod_specs,
-    chart_35_path,
-    preset_35_baseline,
 )
 
 
