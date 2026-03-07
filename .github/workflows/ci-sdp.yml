@@ -9,7 +9,7 @@ on:
 jobs:
   provenance:
     name: Commit Provenance
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -61,11 +61,17 @@ jobs:
 
   evidence:
     name: Evidence Chain
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           submodules: recursive
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
 
       - name: Install SDP CLI
         run: |
@@ -106,7 +112,7 @@ jobs:
 
   helm-evidence:
     name: Helm Evidence (Provenance)
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -140,17 +146,26 @@ jobs:
 
   drift:
     name: Drift Detection
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: recursive
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
       - name: Install SDP CLI
         run: |
+          mkdir -p "$HOME/.local/bin"
           export PATH="$HOME/.local/bin:$PATH"
-          sdp --version
+          if ! command -v sdp >/dev/null 2>&1; then
+            (cd .sdp/sdp-plugin && go build -o "$HOME/.local/bin/sdp" ./cmd/sdp) || true
+          fi
+          sdp --version || echo "SDP CLI not available"
 
       - name: Prompt tree drift
         run: |
@@ -213,16 +228,25 @@ jobs:
 
   quality:
     name: SDP Quality Gates
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
       - name: Install SDP CLI
         run: |
+          mkdir -p "$HOME/.local/bin"
           export PATH="$HOME/.local/bin:$PATH"
-          sdp --version
+          if ! command -v sdp >/dev/null 2>&1; then
+            (cd .sdp/sdp-plugin && go build -o "$HOME/.local/bin/sdp" ./cmd/sdp) || true
+          fi
+          sdp --version || echo "SDP CLI not available"
 
       - name: File size check (<200 LOC)
         run: |

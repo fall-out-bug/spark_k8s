@@ -17,8 +17,8 @@ sdp init --auto
 # или: cp docs/sdp-config.yml.example .sdp/config.yml
 
 # 4. Хуки (переустановить после обновления submodule)
-sh .sdp/hooks/install-git-hooks.sh
-# Проектные хуки: scripts/hooks/ (pre-commit, pre-push, commit-msg)
+./scripts/install-sdp-hooks.sh
+# Устанавливает: pre-commit, pre-push (scripts/hooks), commit-msg (.sdp/hooks)
 ```
 
 ## Skills (команды)

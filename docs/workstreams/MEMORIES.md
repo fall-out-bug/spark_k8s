@@ -91,7 +91,7 @@ spark-custom:3.5.7|3.5.8|4.1.0|4.1.1 (base)
 
 **Config:** `.sdp/config.yml` (project root). Run `sdp init --auto` or copy `docs/sdp-config.yml.example`.
 
-**Hooks:** After submodule update, run `sh .sdp/hooks/install-git-hooks.sh`. Project hooks: `scripts/hooks/` (pre-commit, pre-push, commit-msg).
+**Hooks:** After submodule update, run `./scripts/install-sdp-hooks.sh`. Project hooks: `scripts/hooks/` (pre-commit, pre-push), `commit-msg` from `.sdp/hooks/`.
 
 **CI (trace, evidence, provenance):** `.github/workflows/ci-sdp.yml` — trace: `sdp log trace --verify` (fail if broken); evidence: helm snapshots `tests/evidence/`, `sdp verify` for modified WS; provenance: conventional commits, SDP-Agent trailers.
 

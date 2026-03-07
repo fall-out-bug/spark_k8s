@@ -14,8 +14,11 @@ This repository uses [SDP](https://github.com/fall-out-bug/sdp) as a git submodu
 # Initialize submodule (first time)
 git submodule update --init --recursive
 
-# Update submodule to latest
+# Update submodule to latest (main branch)
 git submodule update --remote .sdp
+
+# Reinstall hooks after submodule update
+./scripts/install-sdp-hooks.sh
 
 # Check SDP version
 cd .sdp && git log --oneline -1 && cd ..

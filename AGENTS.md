@@ -86,7 +86,7 @@ bd sync                 # Sync with git
 
 ### SDP hooks (after submodule update)
 ```bash
-sh .sdp/hooks/install-git-hooks.sh   # Symlinks pre-commit, pre-push, commit-msg
+./scripts/install-sdp-hooks.sh   # Symlinks pre-commit, pre-push (scripts/hooks), commit-msg (.sdp/hooks)
 ```
 
 ### SDP CLI (when sdp in PATH)

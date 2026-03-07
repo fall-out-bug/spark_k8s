@@ -1,0 +1,24 @@
+# SDP project config (spark_k8s)
+# Copied to .sdp/config.yml by scripts/install-sdp-hooks.sh
+version: 1
+
+evidence:
+  enabled: true
+  log_path: ".sdp/log/events.jsonl"
+
+quality:
+  max_file_loc: 200
+  size_exclude:
+    - "docs/"
+    - ".github/"
+    - "docs/guides/"
+    - "charts/observability/grafana/dashboards/"
+  coverage_exclude:
+    - "charts/"
+    - "tests/"
+    - "scripts/"
+    - "docs/"
+
+guard:
+  mode: "permissive"
+  rules_file: ".sdp/guard-rules.yml"
