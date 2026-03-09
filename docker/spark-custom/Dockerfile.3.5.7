@@ -1,19 +1,16 @@
 # Custom Spark 3.5.7 image built from source with Hadoop 3.4.2 for AWS SDK v2 support
 # Multi-stage build: build stage compiles Spark, runtime stage contains the result
-
 # ========== BUILD STAGE ==========
 FROM ubuntu:22.04 AS builder
 
 LABEL maintainer="spark-k8s"
 LABEL description="Spark 3.5.7 builder - compiled from source with Hadoop 3.4.2"
-
 # Environment variables for build
 ENV SPARK_VERSION=3.5.7 \
     HADOOP_VERSION=3.4.2 \
     SCALA_VERSION=2.12 \
     JAVA_VERSION=17 \
     MAVEN_VERSION=3.9.6
-
 # Install build dependencies
 RUN apt-get update && apt-get install -y \
     curl \
@@ -25,28 +22,22 @@ RUN apt-get update && apt-get install -y \
     && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-
 # Set Java home for build
 ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
-
 # Install Maven
 RUN wget -q https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz && \
     tar -xzf apache-maven-${MAVEN_VERSION}-bin.tar.gz -C /opt/ && \
     mv /opt/apache-maven-${MAVEN_VERSION} /opt/maven && \
     rm apache-maven-${MAVEN_VERSION}-bin.tar.gz
-
 ENV MAVEN_HOME=/opt/maven
 ENV PATH="${MAVEN_HOME}/bin:${PATH}"
-
 # Install Scala (required for Spark build)
 RUN wget -q https://downloads.lightbend.com/scala/2.12.19/scala-2.12.19.tgz && \
     tar -xzf scala-2.12.19.tgz -C /opt/ && \
     rm scala-2.12.19.tgz
-
 ENV SCALA_HOME=/opt/scala-2.12.19
 ENV PATH="${SCALA_HOME}/bin:${PATH}"
-
 # Clone and build Spark 3.5.7 with Hadoop 3.4.2
 WORKDIR /tmp
 RUN git clone --branch v${SPARK_VERSION} --depth 1 https://github.com/apache/spark.git
@@ -146,9 +137,10 @@ RUN cd /opt/spark/jars && \
     wget -q https://repo1.maven.org/maven2/org/apache/spark/spark-sql-kafka-0-10_2.12/${SPARK_VERSION}/spark-sql-kafka-0-10_2.12-${SPARK_VERSION}.jar && \
     wget -q https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/3.7.1/kafka-clients-3.7.1.jar
 
-# Prometheus metrics sink for Spark (enables /metrics/prometheus endpoint)
+# Optional Prometheus metrics sink jar (artifact is not published for all Spark patch versions)
 RUN cd /opt/spark/jars && \
-    wget -q https://repo1.maven.org/maven2/org/apache/spark/spark-metrics_2.12/${SPARK_VERSION}/spark-metrics_2.12-${SPARK_VERSION}.jar
+    wget -q https://repo1.maven.org/maven2/org/apache/spark/spark-metrics_2.12/${SPARK_VERSION}/spark-metrics_2.12-${SPARK_VERSION}.jar || \
+    echo "spark-metrics_2.12-${SPARK_VERSION}.jar not published; skipping"
 
 # OpenLineage Spark integration (optional, used when features.openLineage.enabled=true)
 RUN wget -q https://repo1.maven.org/maven2/io/openlineage/openlineage-spark_2.12/1.24.0/openlineage-spark_2.12-1.24.0.jar -O /opt/spark/jars/openlineage-spark_2.12-1.24.0.jar

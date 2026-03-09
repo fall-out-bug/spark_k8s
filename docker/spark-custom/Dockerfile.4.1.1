@@ -129,6 +129,7 @@ RUN ls /opt/spark/jars/hadoop-*.jar | head -10 && \
 
 # Download AWS SDK v2 bundle for S3 support (compatible with Hadoop 3.4.2)
 RUN wget -q https://repo1.maven.org/maven2/software/amazon/awssdk/bundle/2.29.52/bundle-2.29.52.jar -O /opt/spark/jars/aws-sdk-java-v2-bundle.jar
+RUN wget -q https://repo1.maven.org/maven2/io/openlineage/openlineage-spark_2.13/1.24.0/openlineage-spark_2.13-1.24.0.jar -O /opt/spark/jars/openlineage-spark_2.13-1.24.0.jar
 
 # Download JDBC drivers
 # PostgreSQL
@@ -157,7 +158,6 @@ RUN pip3 install --no-cache-dir \
 
 # Install kubernetes python client
 RUN pip3 install --no-cache-dir kubernetes
-
 # Create working directories
 RUN mkdir -p /opt/spark/work \
     /opt/spark/events \
