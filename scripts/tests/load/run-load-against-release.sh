@@ -15,6 +15,8 @@ if [[ -n "${SHARED_INFRA_NS:-}" ]]; then
 else
     S3_ENDPOINT="http://${RELEASE}-minio.${NAMESPACE}.svc.cluster.local:9000"
 fi
+S3_ACCESS_KEY="${S3_ACCESS_KEY:-minioadmin}"
+S3_SECRET_KEY="${S3_SECRET_KEY:-minioadmin}"
 
 load_script="${SCRIPT_DIR}/scripts/load_s3_parquet_3agg.py"
 case "$DEPLOY_MODE" in
@@ -47,14 +49,20 @@ case "$DEPLOY_MODE" in
         kubectl cp "$load_script" "$NAMESPACE/$submitter_pod:/tmp/load_s3.py"
         kubectl exec -n "$NAMESPACE" "$submitter_pod" -- /bin/sh -c "
             export S3_ENDPOINT='$S3_ENDPOINT'
-            export S3_ACCESS_KEY='${S3_ACCESS_KEY:-minioadmin}'
-            export S3_SECRET_KEY='${S3_SECRET_KEY:-minioadmin}'
+            export S3_ACCESS_KEY='$S3_ACCESS_KEY'
+            export S3_SECRET_KEY='$S3_SECRET_KEY'
             /opt/spark/bin/spark-submit \
                 --master k8s://https://kubernetes.default.svc:443 \
                 --deploy-mode cluster \
+                --conf spark.kubernetes.file.upload.path=s3a://spark-jobs/spark-upload/$RELEASE \
                 --conf spark.kubernetes.namespace=$NAMESPACE \
                 --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark-35 \
                 --conf spark.kubernetes.container.image=$SPARK_IMAGE \
+                --conf spark.hadoop.fs.s3a.endpoint=$S3_ENDPOINT \
+                --conf spark.hadoop.fs.s3a.access.key=$S3_ACCESS_KEY \
+                --conf spark.hadoop.fs.s3a.secret.key=$S3_SECRET_KEY \
+                --conf spark.hadoop.fs.s3a.path.style.access=true \
+                --conf spark.hadoop.fs.s3a.connection.ssl.enabled=false \
                 --conf spark.driver.memory=1g \
                 --conf spark.eventLog.enabled=true \
                 --conf spark.eventLog.dir=s3a://spark-logs/events \
@@ -71,10 +79,13 @@ case "$DEPLOY_MODE" in
         kubectl cp "$load_script" "$NAMESPACE/$worker_pod:/tmp/load_s3.py"
         kubectl exec -n "$NAMESPACE" "$worker_pod" -- /bin/sh -c "
             export S3_ENDPOINT='$S3_ENDPOINT'
-            export S3_ACCESS_KEY='${S3_ACCESS_KEY:-minioadmin}'
-            export S3_SECRET_KEY='${S3_SECRET_KEY:-minioadmin}'
+            export S3_ACCESS_KEY='$S3_ACCESS_KEY'
+            export S3_SECRET_KEY='$S3_SECRET_KEY'
+            driver_host=\$(hostname -i)
             /opt/spark/bin/spark-submit \
                 --master $spark_master \
+                --conf spark.driver.host=\$driver_host \
+                --conf spark.driver.bindAddress=0.0.0.0 \
                 --conf spark.driver.memory=1g \
                 --conf spark.eventLog.enabled=true \
                 --conf spark.eventLog.dir=s3a://spark-logs/events \
