@@ -7,11 +7,16 @@ set -euo pipefail
 
 NAMESPACE="${NAMESPACE:?NAMESPACE required}"
 RELEASE="${RELEASE:?RELEASE required}"
+SHARED_INFRA_NS="${SHARED_INFRA_NS:-}"
 
-HISTORY_URL="http://${RELEASE}-history.${NAMESPACE}.svc.cluster.local:18080/api/v1/applications"
+if [[ -n "$SHARED_INFRA_NS" ]]; then
+    HISTORY_URL="http://spark-infra-spark-35-history.${SHARED_INFRA_NS}.svc.cluster.local:18080/api/v1/applications"
+else
+    HISTORY_URL="http://${RELEASE}-history.${NAMESPACE}.svc.cluster.local:18080/api/v1/applications"
+fi
 
 # Curl from within cluster (ephemeral pod)
-json=$(kubectl run "curl-history-$$" --rm -i --restart=Never -n "$NAMESPACE" \
+json=$(kubectl run "curl-history-$$" --rm -i --quiet --restart=Never -n "$NAMESPACE" \
     --image=curlimages/curl:latest \
     -- curl -sS "$HISTORY_URL" 2>/dev/null || echo "[]")
 
@@ -23,12 +28,16 @@ fi
 # Parse and assert at least one application
 count=$(echo "$json" | python3 -c "
 import json, sys
+text = sys.stdin.read()
+start = text.find('[')
+end = text.rfind(']')
+if start == -1 or end == -1 or end < start:
+    print(0)
+    raise SystemExit(0)
+payload = text[start:end+1]
 try:
-    apps = json.load(sys.stdin)
-    if isinstance(apps, list):
-        print(len(apps))
-    else:
-        print(0)
+    apps = json.loads(payload)
+    print(len(apps) if isinstance(apps, list) else 0)
 except Exception:
     print(0)
 " 2>/dev/null || echo "0")

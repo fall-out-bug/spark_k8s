@@ -28,6 +28,13 @@ case "$DEPLOY_MODE" in
     k8s-native)
         RELEASE="${RELEASE:?RELEASE required}"
         SPARK_IMAGE="${SPARK_IMAGE:-spark-custom:3.5.7}"
+        S3_ACCESS_KEY="${S3_ACCESS_KEY:-minioadmin}"
+        S3_SECRET_KEY="${S3_SECRET_KEY:-minioadmin}"
+        if [[ -n "${SHARED_INFRA_NS:-}" ]]; then
+            S3_ENDPOINT="http://minio.${SHARED_INFRA_NS}.svc.cluster.local:9000"
+        else
+            S3_ENDPOINT="http://${RELEASE}-minio.${NAMESPACE}.svc.cluster.local:9000"
+        fi
         submitter_pod=$(kubectl get pods -n "$NAMESPACE" -l app.kubernetes.io/component=k8s-native-submitter -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
         if [[ -z "$submitter_pod" ]]; then
             echo "No k8s-native-submitter pod in $NAMESPACE"
@@ -38,9 +45,15 @@ case "$DEPLOY_MODE" in
             /opt/spark/bin/spark-submit \
                 --master k8s://https://kubernetes.default.svc:443 \
                 --deploy-mode cluster \
+                --conf spark.kubernetes.file.upload.path=s3a://spark-jobs/spark-upload/$RELEASE \
                 --conf spark.kubernetes.namespace=$NAMESPACE \
                 --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark-35 \
                 --conf spark.kubernetes.container.image=$SPARK_IMAGE \
+                --conf spark.hadoop.fs.s3a.endpoint=$S3_ENDPOINT \
+                --conf spark.hadoop.fs.s3a.access.key=$S3_ACCESS_KEY \
+                --conf spark.hadoop.fs.s3a.secret.key=$S3_SECRET_KEY \
+                --conf spark.hadoop.fs.s3a.path.style.access=true \
+                --conf spark.hadoop.fs.s3a.connection.ssl.enabled=false \
                 --conf spark.driver.memory=512m \
                 /tmp/smoke_1k.py
         "
@@ -55,8 +68,11 @@ case "$DEPLOY_MODE" in
         spark_master="spark://${RELEASE}-standalone-master:7077"
         kubectl cp "$smoke_script" "$NAMESPACE/$worker_pod:/tmp/smoke_1k.py"
         kubectl exec -n "$NAMESPACE" "$worker_pod" -- /bin/sh -c "
+            driver_host=\$(hostname -i)
             /opt/spark/bin/spark-submit \
                 --master $spark_master \
+                --conf spark.driver.host=\$driver_host \
+                --conf spark.driver.bindAddress=0.0.0.0 \
                 --conf spark.driver.memory=512m \
                 /tmp/smoke_1k.py
         "
