@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Restore demo environment from any failure mode in <5 minutes.
 # Handles: stuck release, chart swap, scale-to-zero, orphan namespaces.
-# Usage: ./scripts/restore-demo.sh [--force]
+# Usage: ./scripts/restore-demo.sh [--minimal] [--force]
+#   --minimal  Delegate to deploy-shared-infra-minikube.sh (demo=0, shared infra + Observability)
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,7 +10,11 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 NAMESPACE="spark-infra"
 RELEASE="spark-infra"
 CHART_PATH="$PROJECT_ROOT/charts/spark-3.5"
-PRESET="$CHART_PATH/presets/demo-full-spark-infra.yaml"
+MINIMAL=false
+for arg in "$@"; do
+  [[ "$arg" == "--minimal" ]] && MINIMAL=true
+done
+[[ "$MINIMAL" == true ]] && PRESET="$CHART_PATH/presets/spark-infra-minimal.yaml" || PRESET="$CHART_PATH/presets/demo-full-spark-infra.yaml"
 _FORCE="${1:-}"  # reserved for future --force flag
 
 echo "=== Demo Recovery ==="
@@ -17,7 +22,6 @@ echo "Namespace: $NAMESPACE"
 echo "Release:   $RELEASE"
 echo "Chart:     $CHART_PATH"
 echo ""
-
 # Step 1: Clean orphan test namespaces
 orphan_ns=$(kubectl get ns -o name 2>/dev/null | grep 'test-scenario-' || true)
 if [[ -n "$orphan_ns" ]]; then
@@ -70,7 +74,8 @@ elif [[ "$release_status" == "failed" ]]; then
   needs_reinstall=true
 elif [[ "$release_status" == "missing" ]]; then
   echo "[4/5] Release missing. Checking for orphan helm secrets..."
-  orphan_secrets=$(kubectl get secret -n "$NAMESPACE" -l "owner=helm,name=$RELEASE" --no-headers 2>/dev/null | wc -l || echo "0")
+  orphan_secrets=$(kubectl get secret -n "$NAMESPACE" -l "owner=helm,name=$RELEASE" --no-headers 2>/dev/null | wc -l)
+  orphan_secrets=${orphan_secrets:-0}
   if [[ "$orphan_secrets" -gt 0 ]]; then
     echo "  Found $orphan_secrets orphan helm secrets. Cleaning..."
     kubectl delete secret -n "$NAMESPACE" -l "owner=helm,name=$RELEASE" --ignore-not-found 2>/dev/null || true
@@ -92,6 +97,9 @@ elif [[ "$release_status" == "deployed" ]]; then
     "${RELEASE}-airflow-webserver" \
     "${RELEASE}-airflow-scheduler" \
     "${RELEASE}-spark-35-jupyter"; do
+    if ! kubectl get deployment "$deploy" -n "$NAMESPACE" &>/dev/null; then
+      continue  # Skip if deploy doesn't exist (e.g. jupyter disabled in minimal)
+    fi
     replicas=$(kubectl get deployment "$deploy" -n "$NAMESPACE" -o jsonpath='{.spec.replicas}' 2>/dev/null || echo "0")
     if [[ "$replicas" == "0" ]]; then
       echo "  Scaling up $deploy..."
@@ -114,7 +122,17 @@ elif [[ "$release_status" == "deployed" ]]; then
   fi
 fi
 
+airflow_args=()
+if [[ "$MINIMAL" != true ]]; then
+  airflow_args+=(--set airflow.postgresql.auth.password=postgres)
+fi
+
 if [[ "$needs_reinstall" == "true" ]]; then
+  if [[ "$MINIMAL" == true ]]; then
+    echo ""
+    echo "Delegating to deploy-shared-infra-minikube.sh (demo=0)..."
+    exec "$SCRIPT_DIR/deploy-shared-infra-minikube.sh"
+  fi
   echo ""
   echo "Installing $RELEASE from $CHART_PATH..."
   helm dependency build "$CHART_PATH" 2>/dev/null || true
@@ -133,7 +151,7 @@ if [[ "$needs_reinstall" == "true" ]]; then
     --set global.s3.accessKey=minioadmin \
     --set global.s3.secretKey=minioadmin \
     --set spark-base.postgresql.auth.password=postgres \
-    --set standalone.airflow.postgresql.auth.password=postgres \
+    "${airflow_args[@]}" \
     --timeout 10m \
     --wait
 else
@@ -144,7 +162,7 @@ else
     --set global.s3.accessKey=minioadmin \
     --set global.s3.secretKey=minioadmin \
     --set spark-base.postgresql.auth.password=postgres \
-    --set standalone.airflow.postgresql.auth.password=postgres \
+    "${airflow_args[@]}" \
     --timeout 10m \
     --wait 2>/dev/null || echo "  Helm upgrade skipped or failed (pods may already be starting)"
 fi
@@ -168,7 +186,13 @@ fi
 echo ""
 echo "[6/6] Waiting for core pods..."
 kubectl wait --for=condition=ready pod -l app=minio -n "$NAMESPACE" --timeout=120s 2>/dev/null || true
-kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=standalone-master -n "$NAMESPACE" --timeout=180s 2>/dev/null || true
+if [[ "$MINIMAL" == true ]]; then
+  kubectl wait --for=condition=ready pod -l app=postgresql -n "$NAMESPACE" --timeout=120s 2>/dev/null || true
+  kubectl wait --for=condition=ready pod -l app=hive-metastore -n "$NAMESPACE" --timeout=180s 2>/dev/null || true
+  kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=history-server -n "$NAMESPACE" --timeout=180s 2>/dev/null || true
+else
+  kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=standalone-master -n "$NAMESPACE" --timeout=180s 2>/dev/null || true
+fi
 
 echo ""
 echo "=== Running health check ==="
