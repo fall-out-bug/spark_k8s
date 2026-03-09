@@ -3,7 +3,7 @@
 # Requires: k8s cluster, kubectl, helm, spark-custom images.
 # Usage: ./scripts/run-matrix-320.sh [--shared-infra]
 #   --shared-infra: use spark-infra + observability (MinIO, History, Hive, OTEL)
-# Output: tests/results/scenario-*.json, tests/results/matrix-320-summary.json
+# Output: tests/results/scenario-*.json, tests/results/matrix-320-summary.json, tests/results/matrix-320-*.log
 
 set -euo pipefail
 
@@ -20,11 +20,13 @@ echo "=== Matrix 320: all scenarios (deploy smoke e2e load)${SHARED_INFRA:+ [sha
 echo "Start: $(date -Iseconds)"
 
 mkdir -p "$RESULTS_DIR"
+LOG="${RESULTS_DIR}/matrix-320-$(date +%Y%m%d_%H%M%S).log"
 t0=$(date +%s)
 
-if ! ./scripts/run-matrix.sh --filter "$FILTER" $SHARED_INFRA all; then
+if ! ./scripts/run-matrix.sh --filter "$FILTER" $SHARED_INFRA all 2>&1 | tee "$LOG"; then
     echo "Matrix run had failures (see above)"
 fi
+echo "Log: $LOG"
 
 t1=$(date +%s)
 duration=$((t1 - t0))
