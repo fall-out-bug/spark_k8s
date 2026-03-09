@@ -14,13 +14,28 @@ VERSIONS="${1:-3.5.7}"
 
 cd "$PROJECT_ROOT"
 
+has_openlineage_jar() {
+    local image="$1"
+    docker run --rm --entrypoint /bin/sh "$image" -c 'ls /opt/spark/jars/openlineage-spark*.jar >/dev/null 2>&1'
+}
+
+has_connect_jar() {
+    local image="$1"
+    docker run --rm --entrypoint /bin/sh "$image" -c 'ls /opt/spark/jars/spark-connect_*.jar >/dev/null 2>&1'
+}
+
 # Step 1: Build spark-custom base images (spark-k8s:V-hadoop3.4.2)
 build_base() {
     local v="$1"
     local base="spark-k8s:${v}-hadoop3.4.2"
     if docker image inspect "$base" &>/dev/null; then
-        echo "Base $base exists, skipping"
-        return 0
+        if ! has_openlineage_jar "$base" || ! has_connect_jar "$base"; then
+            echo "Base $base is stale (missing OpenLineage or Spark Connect jar), rebuilding"
+            docker rmi "$base" &>/dev/null || true
+        else
+            echo "Base $base exists, skipping"
+            return 0
+        fi
     fi
     echo "Building base $base..."
     docker build -f "docker/spark-custom/Dockerfile.${v}" \
@@ -45,8 +60,13 @@ build_runtime_and_tag() {
         [[ "$variant" != "baseline" ]] && matrix_tag="spark-custom:${v}-${variant}"
 
         if docker image inspect "$matrix_tag" &>/dev/null; then
-            echo "  $matrix_tag exists, skipping"
-            continue
+            if ! has_openlineage_jar "$matrix_tag" || ! has_connect_jar "$matrix_tag"; then
+                echo "  $matrix_tag is stale (missing OpenLineage or Spark Connect jar), rebuilding"
+                docker rmi "$matrix_tag" &>/dev/null || true
+            else
+                echo "  $matrix_tag exists, skipping"
+                continue
+            fi
         fi
 
         local enable_gpu="false" enable_iceberg="false"
