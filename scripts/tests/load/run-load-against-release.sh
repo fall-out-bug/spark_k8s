@@ -41,6 +41,7 @@ case "$DEPLOY_MODE" in
         ;;
     k8s-native)
         SPARK_IMAGE="${SPARK_IMAGE:-spark-custom:3.5.7}"
+        driver_service_account="${DRIVER_SERVICE_ACCOUNT:-spark-35}"
         submitter_pod=$(kubectl get pods -n "$NAMESPACE" -l app.kubernetes.io/component=k8s-native-submitter -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
         if [[ -z "$submitter_pod" ]]; then
             echo "No k8s-native-submitter pod in $NAMESPACE"
@@ -56,7 +57,7 @@ case "$DEPLOY_MODE" in
                 --deploy-mode cluster \
                 --conf spark.kubernetes.file.upload.path=s3a://spark-jobs/spark-upload/$RELEASE \
                 --conf spark.kubernetes.namespace=$NAMESPACE \
-                --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark-35 \
+                --conf spark.kubernetes.authenticate.driver.serviceAccountName=$driver_service_account \
                 --conf spark.kubernetes.container.image=$SPARK_IMAGE \
                 --conf spark.hadoop.fs.s3a.endpoint=$S3_ENDPOINT \
                 --conf spark.hadoop.fs.s3a.access.key=$S3_ACCESS_KEY \

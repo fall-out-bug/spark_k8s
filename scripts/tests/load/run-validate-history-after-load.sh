@@ -15,18 +15,8 @@ else
     HISTORY_URL="http://${RELEASE}-history.${NAMESPACE}.svc.cluster.local:18080/api/v1/applications"
 fi
 
-# Curl from within cluster (ephemeral pod)
-json=$(kubectl run "curl-history-$$" --rm -i --quiet --restart=Never -n "$NAMESPACE" \
-    --image=curlimages/curl:latest \
-    -- curl -sS "$HISTORY_URL" 2>/dev/null || echo "[]")
-
-if [[ -z "$json" ]]; then
-    echo "Failed to curl History Server at $HISTORY_URL"
-    exit 1
-fi
-
-# Parse and assert at least one application
-count=$(echo "$json" | python3 -c "
+count_apps() {
+    python3 -c "
 import json, sys
 text = sys.stdin.read()
 start = text.find('[')
@@ -40,12 +30,31 @@ try:
     print(len(apps) if isinstance(apps, list) else 0)
 except Exception:
     print(0)
-" 2>/dev/null || echo "0")
+" 2>/dev/null
+}
 
-if [[ "${count:-0}" -lt 1 ]]; then
+json=""
+count=0
+for _ in $(seq 1 12); do
+    json=$(kubectl run "curl-history-$$" --rm -i --quiet --restart=Never -n "$NAMESPACE" \
+        --image=curlimages/curl:latest \
+        -- curl -sS "$HISTORY_URL" 2>/dev/null || echo "[]")
+
+    if [[ -n "$json" ]]; then
+        count=$(echo "$json" | count_apps || echo "0")
+        if [[ "${count:-0}" -ge 1 ]]; then
+            echo "HISTORY_VALIDATION_SUCCESS: $count application(s) in History Server"
+            exit 0
+        fi
+    fi
+
+    sleep 10
+done
+
+if [[ -z "$json" ]]; then
+    echo "Failed to curl History Server at $HISTORY_URL"
+else
     echo "History Server validation FAIL: expected >=1 application, got $count"
     echo "Response: $json"
-    exit 1
 fi
-
-echo "HISTORY_VALIDATION_SUCCESS: $count application(s) in History Server"
+exit 1
