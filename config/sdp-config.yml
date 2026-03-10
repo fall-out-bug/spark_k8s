@@ -13,6 +13,7 @@ quality:
     - ".github/"
     - "docs/guides/"
     - "charts/observability/grafana/dashboards/"
+    - "scripts/run-matrix.sh"
   coverage_exclude:
     - "charts/"
     - "tests/"
