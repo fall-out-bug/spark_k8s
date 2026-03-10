@@ -39,8 +39,8 @@ jobs:
             echo "No changed Dockerfiles"
             exit 0
           fi
-          printf '%s
-
+          echo "$changed_docker" > changed-docker.txt
+          xargs -a changed-docker.txt -r hadolint --failure-threshold error --ignore DL3008 --ignore DL3013 --ignore DL3059
   build-dist-35:
     name: Build Spark dist 3.5.7
     runs-on: self-hosted
