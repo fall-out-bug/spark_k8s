@@ -1,7 +1,7 @@
 {
-  "filter": "id=SCENARIO-0009",
-  "expected": 1,
-  "passed": 1,
+  "filter": "gpu=false,platform=k8s",
+  "expected": 96,
+  "passed": 96,
   "failed": 0,
   "failed_ids": [],
   "duration_sec": 0,
