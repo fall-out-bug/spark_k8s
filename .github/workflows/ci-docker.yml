@@ -19,6 +19,8 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Hadolint
         run: |
           export PATH="$HOME/.local/bin:$PATH"
@@ -27,7 +29,17 @@ jobs:
             wget -q -O "$HOME/.local/bin/hadolint" https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
             chmod +x "$HOME/.local/bin/hadolint"
           }
-          find docker -name "Dockerfile*" -exec hadolint --ignore DL3008 --ignore DL3013 --ignore DL3059 {} +
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin "${{ github.base_ref }}" --depth=1
+            changed_docker=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep '^docker/.*Dockerfile' || true)
+          else
+            changed_docker=$(find docker -name 'Dockerfile*' | sort)
+          fi
+          if [ -z "$changed_docker" ]; then
+            echo "No changed Dockerfiles"
+            exit 0
+          fi
+          printf '%s
 
   build-dist-35:
     name: Build Spark dist 3.5.7

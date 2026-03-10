@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Helm lint spark-3.5
         run: helm lint charts/spark-3.5
@@ -21,8 +23,18 @@ jobs:
 
       - name: ShellCheck
         run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin "${{ github.base_ref }}" --depth=1
+            git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep '^scripts/.*\.sh$' > changed-shell.txt || true
+            if [ ! -s changed-shell.txt ]; then
+              echo "No changed shell scripts"
+              exit 0
+            fi
+          else
+            find scripts -name "*.sh" > changed-shell.txt
+          fi
           sudo apt-get install -y shellcheck
-          find scripts -name "*.sh" -exec shellcheck -S warning {} +
+          xargs -r shellcheck -S warning < changed-shell.txt
 
   template-tests:
     name: Helm Template Tests

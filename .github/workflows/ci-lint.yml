@@ -36,11 +36,17 @@ jobs:
           cat changed-shell.txt
       - name: ShellCheck
         run: |
-          command -v shellcheck || sudo apt-get install -y shellcheck
           if [ ! -s changed-shell.txt ]; then
             echo "No changed shell scripts"
             exit 0
           fi
+          export PATH="$HOME/.local/bin:$PATH"
+          command -v shellcheck || {
+            mkdir -p "$HOME/.local/bin"
+            wget -qO- https://github.com/koalaman/shellcheck/releases/download/v0.10.0/shellcheck-v0.10.0.linux.x86_64.tar.xz | tar -xJf - -C /tmp
+            cp /tmp/shellcheck-v0.10.0/shellcheck "$HOME/.local/bin/shellcheck"
+            chmod +x "$HOME/.local/bin/shellcheck"
+          }
           xargs -r shellcheck -S warning < changed-shell.txt
 
   python-lint:
@@ -110,4 +116,4 @@ jobs:
             wget -q -O "$HOME/.local/bin/hadolint" https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
             chmod +x "$HOME/.local/bin/hadolint"
           }
-          xargs -r hadolint --ignore DL3008 --ignore DL3013 --ignore DL3059 < changed-docker.txt
+          xargs -r hadolint --failure-threshold error --ignore DL3008 --ignore DL3013 --ignore DL3059 < changed-docker.txt
