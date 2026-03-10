@@ -21,9 +21,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Hadolint
         run: |
+          export PATH="$HOME/.local/bin:$PATH"
           command -v hadolint || {
-            wget -q -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
-            chmod +x /usr/local/bin/hadolint
+            mkdir -p "$HOME/.local/bin"
+            wget -q -O "$HOME/.local/bin/hadolint" https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
+            chmod +x "$HOME/.local/bin/hadolint"
           }
           find docker -name "Dockerfile*" -exec hadolint --ignore DL3008 --ignore DL3013 --ignore DL3059 {} +
 

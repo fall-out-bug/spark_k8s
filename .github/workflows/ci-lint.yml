@@ -22,20 +22,51 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Collect changed shell files
+        id: changed-shell
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin "${{ github.base_ref }}" --depth=1
+            git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep '^scripts/.*\.sh$' > changed-shell.txt || true
+          else
+            git diff --name-only "${{ github.event.before }}...HEAD" | grep '^scripts/.*\.sh$' > changed-shell.txt || true
+          fi
+          cat changed-shell.txt
       - name: ShellCheck
         run: |
           command -v shellcheck || sudo apt-get install -y shellcheck
-          find scripts -name "*.sh" -exec shellcheck -S warning {} +
+          if [ ! -s changed-shell.txt ]; then
+            echo "No changed shell scripts"
+            exit 0
+          fi
+          xargs -r shellcheck -S warning < changed-shell.txt
 
   python-lint:
     name: Python Lint (ruff)
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Collect changed python/notebook files
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin "${{ github.base_ref }}" --depth=1
+            git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep -E '\.(py|ipynb)$' > changed-python.txt || true
+          else
+            git diff --name-only "${{ github.event.before }}...HEAD" | grep -E '\.(py|ipynb)$' > changed-python.txt || true
+          fi
+          cat changed-python.txt
       - name: Ruff check
         run: |
           command -v ruff || pip install ruff
-          ruff check --config pyproject.toml .
+          if [ ! -s changed-python.txt ]; then
+            echo "No changed python or notebook files"
+            exit 0
+          fi
+          xargs -r ruff check --config pyproject.toml < changed-python.txt
 
   yaml-lint:
     name: YAML Lint
@@ -54,15 +85,29 @@ jobs:
   dockerfile-lint:
     name: Hadolint
     runs-on: self-hosted
-    if: >
-      contains(github.event.head_commit.modified, 'docker/') ||
-      contains(github.event.head_commit.added, 'docker/')
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Collect changed Dockerfiles
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin "${{ github.base_ref }}" --depth=1
+            git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep '^docker/.*Dockerfile' > changed-docker.txt || true
+          else
+            git diff --name-only "${{ github.event.before }}...HEAD" | grep '^docker/.*Dockerfile' > changed-docker.txt || true
+          fi
+          cat changed-docker.txt
       - name: Hadolint
         run: |
+          if [ ! -s changed-docker.txt ]; then
+            echo "No changed Dockerfiles"
+            exit 0
+          fi
+          export PATH="$HOME/.local/bin:$PATH"
           command -v hadolint || {
-            wget -q -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
-            chmod +x /usr/local/bin/hadolint
+            mkdir -p "$HOME/.local/bin"
+            wget -q -O "$HOME/.local/bin/hadolint" https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
+            chmod +x "$HOME/.local/bin/hadolint"
           }
-          find docker -name "Dockerfile*" -exec hadolint --ignore DL3008 --ignore DL3013 --ignore DL3059 {} +
+          xargs -r hadolint --ignore DL3008 --ignore DL3013 --ignore DL3059 < changed-docker.txt

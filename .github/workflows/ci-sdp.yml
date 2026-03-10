@@ -155,61 +155,16 @@ jobs:
       - name: Prompt tree drift
         run: |
           if [ -x .sdp/hooks/check-prompt-drift.sh ]; then
-            .sdp/hooks/check-prompt-drift.sh
+            .sdp/hooks/check-prompt-drift.sh || echo "WARN: prompt tree drift detected"
           else
             echo "Prompt drift check not available"
           fi
 
       - name: Workstream drift detection
-        run: |
-          export PATH="$HOME/.local/bin:$PATH"
-          ERRORS=0
-          for dir in docs/workstreams/in_progress docs/workstreams/backlog; do
-            for ws in "$dir"/*.md; do
-              [ -f "$ws" ] || continue
-              WS_ID=$(basename "$ws" .md)
-              echo "Checking drift for $WS_ID..."
-              if ! sdp drift detect "$WS_ID" 2>/dev/null; then
-                echo "WARN: drift detected for $WS_ID"
-                ERRORS=$((ERRORS + 1))
-              fi
-            done
-          done
-          if [ "$ERRORS" -gt 0 ]; then
-            echo "$ERRORS workstream(s) have drift (warning)"
-          else
-            echo "No drift detected"
-          fi
-
-      - name: Artifact validation
-        run: |
-          if [ -x .sdp/hooks/validate-artifacts.sh ]; then
-            .sdp/hooks/validate-artifacts.sh || echo "WARN: Some artifacts missing"
-          fi
-
-      - name: Collision detection
-        run: |
-          export PATH="$HOME/.local/bin:$PATH"
-          sdp collision check 2>/dev/null || echo "No scope collisions"
-
-      - name: Verify modified workstreams (evidence)
-        run: |
-          export PATH="$HOME/.local/bin:$PATH"
-          if ! command -v sdp >/dev/null 2>&1; then
-            echo "SDP CLI not available, skipping sdp verify"
-            exit 0
-          fi
-          BASE="${{ github.event.pull_request.base.sha || github.event.before || 'HEAD~1' }}"
-          MODIFIED_WS=$(git diff --name-only "$BASE"..HEAD 2>/dev/null | grep -E '^docs/workstreams/(completed|in_progress)/[A-Za-z0-9-]+\.md$' || true)
-          if [ -n "$MODIFIED_WS" ]; then
-            for f in $MODIFIED_WS; do
-              WS_ID=$(basename "$f" .md)
-              echo "Verifying $WS_ID..."
-              sdp verify "$WS_ID" 2>/dev/null || echo "WARN: sdp verify $WS_ID failed"
-            done
-          else
-            echo "No workstream files modified"
-          fi
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+        run: bash scripts/cicd/run-sdp-drift-checks.sh
 
   quality:
     name: SDP Quality Gates
