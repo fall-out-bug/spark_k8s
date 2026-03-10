@@ -28,6 +28,7 @@ case "$DEPLOY_MODE" in
     k8s-native)
         RELEASE="${RELEASE:?RELEASE required}"
         SPARK_IMAGE="${SPARK_IMAGE:-spark-custom:3.5.7}"
+        driver_service_account="${DRIVER_SERVICE_ACCOUNT:-spark-35}"
         S3_ACCESS_KEY="${S3_ACCESS_KEY:-minioadmin}"
         S3_SECRET_KEY="${S3_SECRET_KEY:-minioadmin}"
         if [[ -n "${SHARED_INFRA_NS:-}" ]]; then
@@ -47,7 +48,7 @@ case "$DEPLOY_MODE" in
                 --deploy-mode cluster \
                 --conf spark.kubernetes.file.upload.path=s3a://spark-jobs/spark-upload/$RELEASE \
                 --conf spark.kubernetes.namespace=$NAMESPACE \
-                --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark-35 \
+                --conf spark.kubernetes.authenticate.driver.serviceAccountName=$driver_service_account \
                 --conf spark.kubernetes.container.image=$SPARK_IMAGE \
                 --conf spark.hadoop.fs.s3a.endpoint=$S3_ENDPOINT \
                 --conf spark.hadoop.fs.s3a.access.key=$S3_ACCESS_KEY \
