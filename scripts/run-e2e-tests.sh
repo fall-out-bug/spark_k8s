@@ -239,6 +239,7 @@ EOF
 }
 
 # Test GPU + Iceberg combined
+# shellcheck disable=SC1072,SC1073,SC1036,SC1056,SC1078
 test_combined_workload() {
     if [[ "$SKIP_GPU" == "true" ]] || [[ "$SKIP_ICEBERG" == "true" ]]; then
         echo -e "${YELLOW}Skipping combined tests${NC}"
@@ -259,7 +260,7 @@ test_combined_workload() {
 
     helm install spark-combined "$CHART_DIR" \
         -f "$CHART_DIR/presets/gpu-values.yaml" \
-        -f "$CHART_DIR/presets/iceberg-values.yaml \
+        -f "$CHART_DIR/presets/iceberg-values.yaml" \
         --namespace "$TEST_NAMESPACE" \
         --wait \
         --timeout 10m

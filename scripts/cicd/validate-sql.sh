@@ -6,7 +6,7 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../operations/common.sh"
 
 # Configuration
@@ -70,13 +70,13 @@ fi
 log_info "Checking for common SQL issues..."
 
 # Check for SELECT *
-if grep -qi "select \*" "$SQL_FILE"; then
-    log_warn "Found SELECT * (consider explicit columns)"
+if grep -qi 'select \*' "$SQL_FILE"; then
+    log_warn "Found SELECT * - consider explicit columns"
 fi
 
 # Check for missing WHERE clauses
 if grep -qi "DELETE FROM.*WHERE 1=1" "$SQL_FILE"; then
-    log_warn "Found DELETE without WHERE clause (use caution)"
+    log_warn "Found DELETE without WHERE clause - use caution"
 fi
 
 # Check for hardcoded dates

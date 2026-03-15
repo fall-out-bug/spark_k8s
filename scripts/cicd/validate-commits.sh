@@ -67,7 +67,7 @@ for commit in $COMMITS; do
         TYPE=$(echo "$MESSAGE" | cut -d':' -f1 | cut -d'(' -f1)
 
         # Check if type is allowed
-        if [[ ! " ${ALLOWED_TYPES[@]} " =~ " ${TYPE} " ]]; then
+        if [[ ! " ${ALLOWED_TYPES[*]} " =~ [[:space:]]${TYPE}[[:space:]] ]]; then
             log_warn "⚠ Unknown commit type: ${TYPE}"
             ((INVALID_COUNT++))
         else
