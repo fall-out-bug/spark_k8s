@@ -159,6 +159,9 @@ jobs:
     name: Deep Security Scan
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      security-events: write
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
