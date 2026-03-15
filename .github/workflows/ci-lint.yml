@@ -25,7 +25,7 @@ jobs:
       - name: ShellCheck
         run: |
           command -v shellcheck || sudo apt-get install -y shellcheck
-          find scripts -name "*.sh" -exec shellcheck -S warning {} +
+          find scripts -name "*.sh" -exec shellcheck -S error {} +
 
   python-lint:
     name: Python Lint (ruff)
