@@ -6,7 +6,7 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../operations/common.sh"
 
 # Configuration
@@ -79,7 +79,7 @@ if great_expectations --v3 datasource list 2>&1 | grep -q "spark"; then
             exit 1
         fi
 
-        log_warn "Non-critical issues found (proceeding with caution)"
+        log_warn "Non-critical issues found - proceeding with caution"
     fi
 else
     log_warn "Great Expectations not configured, using basic checks"

@@ -112,7 +112,7 @@ echo ""
 echo "Forecast for next ${MONTHS} months:"
 
 FORECAST_TOTAL=0
-for ((i=1; i<=$MONTHS; i++); do
+for ((i=1; i<=$MONTHS; i++)); do
     X=$((COUNT + i))
     FORECAST=$(echo "scale=2; $SLOPE * $X + $INTERCEPT" | bc)
     FORECAST_TOTAL=$(echo "$FORECAST_TOTAL + $FORECAST" | bc)

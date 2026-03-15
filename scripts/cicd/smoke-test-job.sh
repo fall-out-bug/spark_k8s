@@ -6,7 +6,7 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../operations/common.sh"
 
 # Configuration
@@ -81,7 +81,7 @@ if kubectl get svc -n "$NAMESPACE" "${RELEASE_NAME}-spark-ui" &>/dev/null; then
             log_info "✓ Spark UI is accessible"
             ((TESTS_PASSED++))
         else
-            log_warn "Spark UI not responding (may be starting up)"
+            log_warn "Spark UI not responding - may be starting up"
         fi
     else
         log_warn "Spark UI service has no external IP"
@@ -128,7 +128,7 @@ if [[ $ERROR_COUNT -eq 0 ]]; then
     log_info "✓ No errors found in logs"
     ((TESTS_PASSED++))
 else
-    log_warn "Found ${ERROR_COUNT} error(s) in logs (may be warnings)"
+    log_warn "Found ${ERROR_COUNT} error(s) in logs - may be warnings"
 fi
 
 # Summary

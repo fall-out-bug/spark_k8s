@@ -9,8 +9,10 @@ POD_NAME="${2}"
 
 if [[ -z "${POD_NAME}" ]]; then
   # Find first Spark pod
-  POD_NAME=$(kubectl get pod -n "${NAMESPACE}" -l spark-role=driver -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || \
-  POD_NAME=$(kubectl get pod -n "${NAMESPACE}" -l app=spark-connect -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+  POD_NAME=$(kubectl get pod -n "${NAMESPACE}" -l spark-role=driver -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+  if [[ -z "${POD_NAME}" ]]; then
+    POD_NAME=$(kubectl get pod -n "${NAMESPACE}" -l app=spark-connect -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+  fi
 fi
 
 if [[ -z "${POD_NAME}" ]]; then

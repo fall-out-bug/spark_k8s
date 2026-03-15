@@ -160,7 +160,7 @@ run_scenarios_parallel() {
     local running=0
     for scenario_file in "${scenario_files_files[@]}"; do
         # Skip if in skip list
-        if [[ " ${skip_list[@]} " =~ " $scenario_file " ]]; then
+        if [[ " ${skip_list[*]} " =~ " $scenario_file " ]]; then
             continue
         fi
 

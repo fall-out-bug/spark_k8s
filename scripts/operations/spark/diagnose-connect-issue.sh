@@ -35,13 +35,13 @@ kubectl get svc "$SERVICE_NAME" -n "$NAMESPACE"
 
 # 2. Get Spark Connect pods
 print_section "2. Spark Connect Pods"
-CONNECT_PODS=$(kubectl get pods -n "$NAMESPACE" -l app=spark-connect -o jsonpath='{.items[*].metadata.name}' 2>/dev/null || "")
+CONNECT_PODS=$(kubectl get pods -n "$NAMESPACE" -l app=spark-connect -o jsonpath='{.items[*].metadata.name}' 2>/dev/null || true)
 if [[ -z "$CONNECT_PODS" ]]; then
     echo "WARNING: No Spark Connect pods found"
     echo "Checking for SparkApplications with Connect enabled..."
 
     # Look for driver pods that might be running Connect server
-    DRIVER_PODS=$(kubectl get pods -n "$NAMESPACE" -l spark-role=driver -o jsonpath='{.items[*].metadata.name}' 2>/dev/null || "")
+    DRIVER_PODS=$(kubectl get pods -n "$NAMESPACE" -l spark-role=driver -o jsonpath='{.items[*].metadata.name}' 2>/dev/null) || true
     if [[ -n "$DRIVER_PODS" ]]; then
         echo "Found driver pods - checking for Connect server..."
         CONNECT_PODS=$DRIVER_PODS

@@ -6,7 +6,7 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../common.sh"
 
 # Configuration
@@ -39,7 +39,7 @@ if ! aws s3 ls "s3://${DEST_BUCKET}" --region "$DEST_REGION" &>/dev/null; then
     log_info "Creating destination bucket: ${DEST_BUCKET}"
 
     aws s3 mb "s3://${DEST_BUCKET}" --region "$DEST_REGION" || \
-        log_warn "Bucket creation failed (may already exist)"
+        log_warn "Bucket creation failed - may already exist"
 fi
 
 # Replicate backup data

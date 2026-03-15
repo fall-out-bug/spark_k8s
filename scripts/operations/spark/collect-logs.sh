@@ -49,7 +49,7 @@ echo "  Saved: $OUTPUT_DIR/driver-logs-previous.txt (if exists)"
 
 # 2. Collect executor logs
 print_section "2. Collecting Executor Logs"
-EXECUTOR_PODS=$(kubectl get pods -n "$NAMESPACE" -l spark-app-name="$APP_NAME",spark-role=executor -o jsonpath='{.items[*].metadata.name}' 2>/dev/null || "")
+EXECUTOR_PODS=$(kubectl get pods -n "$NAMESPACE" -l spark-app-name="$APP_NAME",spark-role=executor -o jsonpath='{.items[*].metadata.name}' 2>/dev/null) || true
 if [[ -n "$EXECUTOR_PODS" ]]; then
     EXECUTOR_COUNT=0
     for EXECUTOR in $EXECUTOR_PODS; do
