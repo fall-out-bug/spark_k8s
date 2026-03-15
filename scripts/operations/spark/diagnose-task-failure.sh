@@ -115,7 +115,10 @@ fi
 print_section "5. Error Pattern Analysis"
 
 # Get executor pods for log analysis
-EXECUTOR_PODS=$(kubectl get pods -n "$NAMESPACE" -l spark-app-name="$APP_NAME",spark-role=executor -o jsonpath='{.items[*].metadata.name}' 2>/dev/null || "")
+EXECUTOR_PODS=""
+if kubectl get pods -n "$NAMESPACE" -l spark-app-name="$APP_NAME",spark-role=executor -o jsonpath='{.items[*].metadata.name}' 2>/dev/null; then
+    EXECUTOR_PODS=$(kubectl get pods -n "$NAMESPACE" -l spark-app-name="$APP_NAME",spark-role=executor -o jsonpath='{.items[*].metadata.name}')
+fi
 SAMPLE_EXECUTOR=$(echo "$EXECUTOR_PODS" | awk '{print $1}')
 
 if [[ -n "$SAMPLE_EXECUTOR" ]]; then

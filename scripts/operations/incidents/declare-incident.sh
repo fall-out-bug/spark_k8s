@@ -191,14 +191,14 @@ log_info "Severity: $SEVERITY_NAME ($SEVERITY)"
 log_info "Post summary to Slack #incidents"
 
 # Output summary
-echo "{'=\"*60}"
+echo "============================================================"
 echo "Incident Declaration Summary"
-echo "{'=\"*60}"
+echo "============================================================"
 echo "ID: $INCIDENT_ID"
 echo "Severity: $SEVERITY ($SEVERITY_NAME)"
 echo "Title: $TITLE"
 echo "File: $INCIDENT_FILE"
-echo "{'=\"*60}"
+echo "============================================================"
 
 # Create Slack notification message (for manual posting)
 SLACK_MSG="*$SEVERITY_COLOR*$SEVERITY_NAME Incident [$INCIDENT_ID] declared: $TITLE*"

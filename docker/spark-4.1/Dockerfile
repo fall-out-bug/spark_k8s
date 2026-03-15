@@ -47,6 +47,10 @@ RUN apt-get update && apt-get install -y maven \
   && mvn dependency:copy-dependencies \
        -f /tmp/deps/pom.xml \
        -DoutputDirectory=$SPARK_HOME/jars \
+       -Dmaven.wagon.http.connectionTimeout=120000 \
+       -Dmaven.wagon.http.readTimeout=120000 \
+       -Dmaven.wagon.http.retryHandler.count=5 \
+       -Dmaven.wagon.http.retryHandler.serviceUnavailable=true \
   && apt-get remove -y maven \
   && apt-get autoremove -y \
   && rm -rf /var/lib/apt/lists/* /root/.m2

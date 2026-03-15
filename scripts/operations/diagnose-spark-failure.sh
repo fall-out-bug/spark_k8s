@@ -219,9 +219,9 @@ else
 fi
 
 # Output recommendations
-echo "{'=\"*60}"
+echo "============================================================"
 echo "Diagnostic Recommendations"
-echo "{'=\"*60}"
+echo "============================================================"
 
 # Common issues and fixes
 ISSUES_FOUND=false
@@ -250,7 +250,7 @@ if [[ "$ISSUES_FOUND" == false ]]; then
     echo "- No critical issues found in logs"
 fi
 
-echo "{'=\"*60}"
+echo "============================================================"
 echo ""
 log_info "Diagnostic complete. Review logs and metrics for root cause analysis."
 
