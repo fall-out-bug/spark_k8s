@@ -1,0 +1,51 @@
+{{/*
+ServiceMonitor for MinIO bucket metrics.
+
+Scrapes MinIO Prometheus endpoints in the spark-infra namespace:
+  - /minio/v2/metrics/cluster (cluster-wide: requests, errors, uptime)
+  - /minio/v2/metrics/bucket  (per-bucket: usage, objects, requests — cost analytics goldmine)
+  - /minio/v2/metrics/resource (CPU/mem/net/drive)
+
+MinIO exposes metrics without auth by default; if you enable auth, inject bearer
+token via secretRef.
+
+Requires:
+- MinIO deployed in targetNamespace (default: spark-infra) with name pattern
+  <release>-minio (chart fullname convention).
+- Prometheus Operator watching this ServiceMonitor via release label.
+
+Refs: https://github.com/minio/minio/blob/master/docs/metrics/prometheus/README.md
+*/}}
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}-minio
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: minio
+    chart: {{ .Chart.Name }}
+    release: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: minio
+  namespaceSelector:
+    matchNames:
+      - {{ .Values.targetNamespace | default "spark-infra" }}
+  endpoints:
+    - port: api
+      path: /minio/v2/metrics/cluster
+      scheme: http
+      interval: 30s
+      scrapeTimeout: 10s
+    - port: api
+      path: /minio/v2/metrics/bucket
+      scheme: http
+      interval: 60s
+      scrapeTimeout: 15s
+    - port: api
+      path: /minio/v2/metrics/resource
+      scheme: http
+      interval: 30s
+      scrapeTimeout: 10s
