@@ -88,6 +88,12 @@ grafana:
         file: dashboards/spark-overview.json
       performance-analysis:
         file: dashboards/performance-analysis.json
+      spark-jvm-performance:
+        file: dashboards/spark-jvm-performance.json
+      jvm-overview:
+        file: dashboards/jvm-overview.json
+      spark-operator-scale:
+        file: dashboards/spark-operator-scale.json
     ops:
       backup-status:
         file: dashboards/backup-status.json
@@ -103,6 +109,14 @@ grafana:
         file: dashboards/incident-metrics.json
       slo-forecast:
         file: dashboards/slo-forecast.json
+      dcgm-exporter:
+        file: dashboards/dcgm-exporter.json
+      minio-overview:
+        file: dashboards/minio-overview.json
+      airflow-cluster:
+        file: dashboards/airflow-cluster.json
+      airflow-statsd:
+        file: dashboards/airflow-statsd.json
 
   # Resource configuration
   resources:
