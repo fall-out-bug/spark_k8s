@@ -1,0 +1,44 @@
+name: "CI Matrix: P1 Nightly (96 scenarios)"
+
+on:
+  schedule:
+    - cron: "17 3 * * *"  # 03:17 UTC daily
+  workflow_dispatch:
+    inputs:
+      scenarios:
+        description: "Optional scenario filter (default: full P1)"
+        required: false
+        default: ""
+
+jobs:
+  p1-nightly:
+    name: P1 Nightly (96 scenarios, k8s + standalone, all features)
+    runs-on: self-hosted
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Minikube
+        run: |
+          minikube start --cpus=6 --memory=16g --disk-size=50g
+      - name: Validate matrix yaml
+        run: python3 scripts/tests/smoke/matrix/validate-smoke-matrix.py
+      - name: Run P1 nightly tier (96 scenarios via run-matrix-96.sh)
+        run: |
+          # run-matrix-96.sh targets P1 nightly tier (k8s + standalone, no connect)
+          ./scripts/run-matrix-96.sh --shared-infra
+      - name: Check demo health (post-run)
+        if: always()
+        run: ./scripts/check-demo-health.sh || ./scripts/restore-demo.sh
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: matrix-p1-results
+          path: tests/results/
+          retention-days: 30
+      - name: Generate summary
+        if: always()
+        run: |
+          python3 scripts/tests/load/matrix/aggregate-matrix-results.py \
+            --input tests/results/ \
+            --output tests/results/matrix-p1-summary.md || true

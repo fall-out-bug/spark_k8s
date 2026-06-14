@@ -9,7 +9,8 @@ You are an AI agent working in **spark_k8s** — Helm charts for Apache Spark on
 **First actions:**
 1. Read this file
 2. Before touching `spark-infra` or `observability`: read [docs/operations/demo-protection.md](docs/operations/demo-protection.md)
-3. For project state (features, gaps, drift): read [docs/workstreams/MEMORIES.md](docs/workstreams/MEMORIES.md)
+3. For project principles: read [specs/_constitution.md](specs/_constitution.md)
+4. For historical project state: read [docs/archive/sdp-workstreams/MEMORIES.md](docs/archive/sdp-workstreams/MEMORIES.md) (read-only provenance archive)
 
 ---
 
@@ -17,15 +18,14 @@ You are an AI agent working in **spark_k8s** — Helm charts for Apache Spark on
 
 | I need to... | Look here |
 |--------------|-----------|
-| **Understand principles & rules** | [.cursorrules](.cursorrules) — Core Principles, Testing, CI, Git |
+| **Understand principles & rules** | [.cursorrules](.cursorrules) + [specs/_constitution.md](specs/_constitution.md) |
 | **Work with demo / spark-infra / observability** | [docs/operations/demo-protection.md](docs/operations/demo-protection.md) — full rules |
-| **Find feature status, gaps, backlog, drift** | [docs/workstreams/MEMORIES.md](docs/workstreams/MEMORIES.md) — meta-library |
-| **Provenance, evidence, trace** | [MEMORIES.md](docs/workstreams/MEMORIES.md) — Key Concepts |
+| **Find project state (legacy archive)** | [docs/archive/sdp-workstreams/MEMORIES.md](docs/archive/sdp-workstreams/MEMORIES.md) — historical meta-library |
 | **Understand repo structure** | [.cursorrules](.cursorrules) — Repository Structure |
 | **Run tests, matrix, quality gates** | `scripts/run-matrix-96.sh`, `tests/`, `pyproject.toml` |
-| **Use SDP / workstreams / skills** | [CLAUDE.md](CLAUDE.md) — skills, @build, @review |
-| **SDP CLI (status, drift, memory, verify)** | [MEMORIES.md](docs/workstreams/MEMORIES.md) — SDP CLI Reference |
-| **Track issues (beads)** | `bd ready`, `bd show`, `bd close` — run `bd onboard` first |
+| **Use spec-kit workflow** | [CLAUDE.md](CLAUDE.md) — `/speckit.*` slash commands |
+| **Track issues (GitHub)** | `/speckit.taskstoissues` — converts tasks to GitHub Issues |
+| **Beads (DEPRECATED, read-only)** | `.beads/` archive — do NOT create new issues here |
 | **End session** | Landing the Plane (below) |
 
 ---
@@ -52,17 +52,17 @@ You are an AI agent working in **spark_k8s** — Helm charts for Apache Spark on
 - If task touches demo: read demo-protection.md, run check-demo-health.sh
 
 ### During work
-- Principles: [.cursorrules](.cursorrules)
-- Project state: [MEMORIES.md](docs/workstreams/MEMORIES.md)
+- Principles: [.cursorrules](.cursorrules) + [specs/_constitution.md](specs/_constitution.md)
+- Spec-Driven: use spec-kit slash commands (`/speckit.*`)
+- Project state: [docs/archive/sdp-workstreams/MEMORIES.md](docs/archive/sdp-workstreams/MEMORIES.md) (legacy)
 
 ### End of session (Landing the Plane)
-1. File issues for remaining work
-2. Run quality gates (if code changed)
-3. Update issue status
+1. File issues for remaining work via `/speckit.taskstoissues` or GitHub Issues UI
+2. Run quality gates (if code changed): `pre-commit run --all-files`, `helm lint charts/spark-3.5`, `helm lint charts/spark-4.1`
+3. Verify demo: `./scripts/check-demo-health.sh`
 4. **PUSH TO REMOTE** (MANDATORY):
    ```bash
    git pull --rebase
-   bd sync
    git push
    git status  # MUST show "up to date with origin"
    ```
@@ -74,30 +74,28 @@ You are an AI agent working in **spark_k8s** — Helm charts for Apache Spark on
 
 ## Quick Reference
 
-### Beads (issue tracking)
-```bash
-bd onboard              # First-time setup
-bd ready                # Find available work
-bd show <id>            # View issue details
-bd update <id> --status in_progress   # Claim work
-bd close <id>           # Complete work
-bd sync                 # Sync with git
+### Spec-Kit workflow
+```
+/speckit.constitution                          # Establish/update project principles
+/speckit.specify "Add metric X"                # Create spec in specs/<feature>/
+/speckit.plan                                  # Technical plan
+/speckit.tasks                                 # Actionable tasks list
+/speckit.implement                             # Execute tasks
+/speckit.analyze                               # Cross-artifact consistency check
 ```
 
-### SDP hooks (after submodule update)
+Optional: `/speckit.clarify` (before plan), `/speckit.checklist` (after plan), `/speckit.taskstoissues` (publish to GitHub Issues).
+
+### Pre-commit hooks (replaces SDP hooks)
 ```bash
-./scripts/install-sdp-hooks.sh   # Symlinks pre-commit, pre-push (scripts/hooks), commit-msg (.sdp/hooks)
+pre-commit install -t pre-commit -t commit-msg
+pre-commit run --all-files
 ```
 
-### SDP CLI (when sdp in PATH)
-```bash
-sdp status --text       # Project state (WS open/completed)
-sdp drift detect [ws]  # Code↔docs drift
-sdp memory search "X"  # Search indexed artifacts
-sdp verify <ws-id>     # Verify WS completion
-sdp log show           # Evidence log
-sdp guard activate <ws-id>  # Before @build
-```
+Conventional Commits enforced via `conventional-pre-commit` hook.
+
+### Beads (DEPRECATED — read-only)
+Beads tracker (`.beads/`, `bd` CLI) is **frozen**. Do NOT create new issues here. Existing issues can still be queried for historical context, but new work goes through spec-kit tasks → GitHub Issues via `/speckit.taskstoissues`.
 
 ### Canonical scripts (demo)
 | Script | Purpose |
@@ -106,3 +104,8 @@ sdp guard activate <ws-id>  # Before @build
 | `scripts/restore-demo.sh` | Recover from any failure |
 | `scripts/deploy-demo-minikube.sh` | Fresh demo deploy |
 | `scripts/tests/minikube/deploy-observability.sh` | Observability stack |
+
+<!-- SPECKIT START -->
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan
+<!-- SPECKIT END -->

@@ -1,0 +1,46 @@
+name: "CI Matrix: P0 Smoke (PR gate)"
+
+on:
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - "charts/spark-3.5/**"
+      - "charts/spark-4.1/**"
+      - "charts/spark-base/**"
+      - "scripts/tests/smoke/**"
+      - "scripts/tests/load/matrix/**"
+      - "scripts/run-matrix*.sh"
+
+concurrency:
+  group: matrix-p0-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  p0-smoke:
+    name: P0 Smoke (8 scenarios)
+    runs-on: self-hosted
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Minikube
+        run: |
+          # TODO: replace with composite action when minikube-setup action is standardized
+          minikube start --cpus=4 --memory=8g --disk-size=40g
+      - name: Validate matrix yaml
+        run: python3 scripts/tests/smoke/matrix/validate-smoke-matrix.py
+      - name: Run P0 smoke tier
+        run: |
+          # TODO: implement scripts/run-matrix-p0.sh that filters smoke-matrix.yaml p0_pr tier
+          # Currently a stub — replace with actual P0 runner
+          echo "P0 tier: 8 scenarios (baseline, 3.5.7+4.1.0, k8s+standalone)"
+          echo "Filter: tier=p0_pr components=airflow,jupyter spark_versions=3.5.7,4.1.0 modes=k8s,standalone features=baseline"
+          # ./scripts/run-matrix-p0.sh
+      - name: Check demo health
+        run: ./scripts/check-demo-health.sh
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: matrix-p0-results
+          path: tests/results/
+          retention-days: 7

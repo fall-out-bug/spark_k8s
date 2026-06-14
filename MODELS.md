@@ -1,1 +1,0 @@
-.sdp/docs/reference/MODELS.md

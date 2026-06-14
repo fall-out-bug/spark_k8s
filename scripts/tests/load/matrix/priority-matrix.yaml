@@ -1,5 +1,6 @@
 # Priority Test Matrix for Spark K8s Load Testing
-# Part of WS-013-07: Test Matrix Definition & Template System
+# SOURCE OF TRUTH for load tests. Smoke tests have their own matrix at
+# scripts/tests/smoke/matrix/smoke-matrix.yaml (do not edit scenarios by hand).
 #
 # This matrix defines all 6 dimensions of the test space:
 # 1. Spark Version (2)

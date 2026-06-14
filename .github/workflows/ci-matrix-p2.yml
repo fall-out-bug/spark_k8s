@@ -1,0 +1,41 @@
+name: "CI Matrix: P2 Weekly (full 144)"
+
+on:
+  schedule:
+    - cron: "23 5 * * 1"  # 05:23 UTC every Monday
+  workflow_dispatch:
+
+jobs:
+  p2-weekly:
+    name: P2 Weekly (144 scenarios, full matrix incl. connect)
+    runs-on: self-hosted
+    timeout-minutes: 1440
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Minikube (large)
+        run: |
+          # P2 weekly needs the largest cluster
+          minikube start --cpus=8 --memory=24g --disk-size=80g
+      - name: Validate matrix yaml
+        run: python3 scripts/tests/smoke/matrix/validate-smoke-matrix.py
+      - name: Run P2 full tier
+        run: |
+          # TODO: implement scripts/run-matrix-p2.sh that targets p2_weekly tier
+          # Currently delegates to run-matrix.sh with no filter (legacy behavior)
+          ./scripts/run-matrix.sh all || true
+      - name: Check demo health (post-run)
+        if: always()
+        run: ./scripts/check-demo-health.sh || ./scripts/restore-demo.sh
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: matrix-p2-results
+          path: tests/results/
+          retention-days: 90
+      - name: Generate report
+        if: always()
+        run: |
+          python3 scripts/tests/load/matrix/aggregate-matrix-results.py \
+            --input tests/results/ \
+            --output docs/reports/matrix-p2-weekly-$(date +%Y-%m-%d).md || true

@@ -6,7 +6,7 @@
 
 ## Problem
 
-Quality gate defined in `quality-gate.toml` but not enforced in practice:
+Quality gate defined in `pyproject.toml` (ruff/black/mypy/shellcheck configs) but not enforced in practice:
 - 13 test files exceed 200 LOC (up to 443 LOC)
 - 3 Python scripts exceed 200 LOC (up to 395 LOC)
 - No unified linter config (pyproject.toml) in repo root
