@@ -20,7 +20,7 @@ Modular Helm charts for deploying Apache Spark on Kubernetes. Deploy Spark Conne
 | **Recipes** | Operations, Troubleshooting, Deployment, Integration | [Recipes](#recipes) |
 | **Project Origins** | Why spark_k8s — problem, solution, vision (EN/RU) | [EN](docs/about/origin-story.md) \| [RU](docs/about/ru/origin-story.md) |
 | **Pre-built Images** | GHCR pull instructions, versioning | [docs/guides/ghcr-images.md](docs/guides/ghcr-images.md) |
-| **SDP Workflow** | Spec-Driven Protocol — skills, workstreams, AI agents | [docs/SDP-ONBOARDING.md](docs/SDP-ONBOARDING.md) |
+| **Spec-Driven Development** | GitHub spec-kit — constitution, specs, plans, tasks | [specs/_constitution.md](specs/_constitution.md) |
 | **What's New** | Changelog and release notes | [CHANGELOG.md](CHANGELOG.md) |
 
 ---

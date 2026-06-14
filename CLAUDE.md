@@ -1,397 +1,145 @@
 # Claude Code Integration Guide
 
-Quick reference for using this Spec-Driven Protocol (SDP) repository with Claude Code.
+Quick reference for working on `spark_k8s` — Helm charts for Apache Spark on Kubernetes.
 
-> **🤖 Agents:** Read [AGENTS.md](AGENTS.md) first — entry point, navigation map, workflow. Then [MEMORIES.md](docs/workstreams/MEMORIES.md) for project state.
-
-> **📝 Meta-note:** This guide was written with AI assistance (Claude Sonnet 4.5). The workflow is based on real development experience.
-
-## SDP Submodule
-
-This repository uses [SDP](https://github.com/fall-out-bug/sdp) as a git submodule:
-
-```bash
-# Initialize submodule (first time)
-git submodule update --init --recursive
-
-# Update submodule to latest (main branch)
-git submodule update --remote .sdp
-
-# Reinstall hooks after submodule update
-./scripts/install-sdp-hooks.sh
-
-# Check SDP version
-cd .sdp && git log --oneline -1 && cd ..
-```
-
-**SDP files (symlinks):**
-- `PROTOCOL.md` → `.sdp/PROTOCOL.md` (Full SDP specification)
-- `CODE_PATTERNS.md` → `.sdp/CODE_PATTERNS.md` (Code patterns)
-- `MODELS.md` → `.sdp/MODELS.md` (Model recommendations)
-
-**SDP Version:** v0.9.8+ (submodule: `git submodule update --remote .sdp`)
+> **🤖 Agents:** Read [AGENTS.md](AGENTS.md) first — entry point, navigation map, workflow. Then [specs/_constitution.md](specs/_constitution.md) for project principles.
 
 ## TL;DR
 
-Use **skills** to execute SDP commands:
+Spec-Driven Development via [GitHub spec-kit](https://github.com/github/spec-kit). Workflow:
 
 ```
-@idea "Add user authentication"
-@design idea-user-auth
-@build WS-001-01
-@review F01
-@deploy F01
+/speckit.constitution                 # Establish/update project principles (already done)
+/speckit.specify "Add metric X"       # Create spec in specs/<feature>/
+/speckit.plan                         # Technical plan
+/speckit.tasks                        # Actionable tasks list
+/speckit.implement                    # Execute tasks
+/speckit.analyze                      # Cross-artifact consistency check
 ```
 
-## Available Skills
+Optional: `/speckit.clarify` (before plan), `/speckit.checklist` (after plan), `/speckit.taskstoissues` (publish to GitHub Issues).
 
-| Skill | Purpose | Example |
-|-------|---------|---------|
-| `@idea` | **Interactive requirements** (AskUserQuestion) | `@idea "Add payment processing"` |
-| `@design` | **Interactive planning** (EnterPlanMode) | `@design idea-payments` |
-| `@build` | Execute workstream (TodoWrite tracking) | `@build WS-001-01` |
-| `@review` | Quality check | `@review F01` |
-| `@deploy` | Production deployment | `@deploy F01` |
-| `@issue` | Debug and route bugs | `@issue "Login fails on Firefox"` |
-| `@hotfix` | Emergency fix (P0) | `@hotfix "Critical API outage"` |
-| `@bugfix` | Quality fix (P1/P2) | `@bugfix "Incorrect totals"` |
-| `@oneshot` | **Autonomous execution** (Task-based) | `@oneshot F01` or `@oneshot F01 --background` |
+## Available Skills (after `specify init`)
 
-Skills are defined in `.claude/skills/{name}/SKILL.md`
-
-**Claude Code Integration Highlights:**
-- `@idea` — Deep interviewing via AskUserQuestion (no obvious questions, explores tradeoffs)
-- `@design` — EnterPlanMode for codebase exploration + AskUserQuestion for architecture decisions
-- `@build` — TodoWrite real-time progress tracking through TDD cycle
-- `@oneshot` — Task tool spawns isolated orchestrator agent with background execution support
+| Skill | Purpose |
+|-------|---------|
+| `/speckit.constitution` | Establish project-wide principles |
+| `/speckit.specify` | Define what to build (requirements, user stories) |
+| `/speckit.plan` | Technical implementation plan |
+| `/speckit.tasks` | Actionable task list |
+| `/speckit.implement` | Execute tasks |
+| `/speckit.analyze` | Cross-artifact consistency report |
+| `/speckit.clarify` | Clarify ambiguous areas (pre-plan) |
+| `/speckit.checklist` | Quality checklist (post-plan) |
+| `/speckit.taskstoissues` | Convert tasks to GitHub Issues |
 
 ## Quick Reference
 
 ### First Time Setup
 
-1. **Read core docs:**
-   - [AGENTS.md](AGENTS.md) — Agent entry point, navigation, workflow (start here)
-   - [README.md](README.md) — Overview and quick start
-   - [PROTOCOL.md](PROTOCOL.md) — Full SDP specification
-   - [RULES_COMMON.md](RULES_COMMON.md) — SDP common rules
+1. **Install spec-kit** (requires [uv](https://docs.astral.sh/uv/)):
+   ```bash
+   uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
+   ```
+
+2. **Initialize in this repo** (already done):
+   ```bash
+   specify init --here --integration claude --ignore-agent-tools --script sh --force
+   ```
+
+3. **Read core docs:**
+   - [AGENTS.md](AGENTS.md) — Agent entry point, navigation, workflow
+   - [specs/_constitution.md](specs/_constitution.md) — Project principles (spec-kit constitution)
    - [.cursorrules](.cursorrules) — Principles, testing, CI (spark_k8s-specific)
-
-2. **Understand key concepts:**
-   - **Workstream (WS)**: Atomic task, one-shot execution
-   - **Feature**: 5-30 workstreams
-   - **Release**: 10-30 features
-
-3. **Review quality gates:**
-   - Files < 200 LOC
-   - No `except: pass`
-   - **spark_k8s:** helm lint, helm template, security tests (see [.cursorrules](.cursorrules) — coverage not a metric for Helm charts)
+   - [PROJECT_CONVENTIONS.md](PROJECT_CONVENTIONS.md) — Repo conventions
+   - [docs/operations/demo-protection.md](docs/operations/demo-protection.md) — Demo rules, regression prevention
 
 ### Typical Workflow
 
 ```bash
-# 1. Gather requirements (Interactive interviewing)
-@idea "User can reset password via email"
-# Claude asks deep questions via AskUserQuestion:
-# - Technical approach (email service, token storage)
-# - UI/UX (where in app, error messages)
-# - Security (token expiry, rate limiting)
-# - Concerns (complexity, failure modes)
-# Result: comprehensive spec in docs/drafts/
+# 1. Define spec
+/speckit.specify "Add Spark Connect GPU profiling dashboard"
+# Result: specs/spark-connect-gpu-dashboard/spec.md
 
-# 2. Design workstreams (Interactive planning)
-@design idea-password-reset
-# Claude enters Plan Mode:
-# - Explores codebase (existing auth, email infrastructure)
-# - Asks architecture questions (JWT vs sessions, etc.)
-# - Designs WS decomposition
-# - Requests approval via ExitPlanMode
-# Result: WS-XXX-01, WS-XXX-02, etc. in docs/workstreams/backlog/
+# 2. Plan
+/speckit.plan
+# Result: specs/spark-connect-gpu-dashboard/plan.md
 
-# 3. Execute each workstream
-@build WS-001-01
-# Claude shows TodoWrite progress tracking:
-#   [in_progress] Pre-build validation
-#   [pending] Write failing test (Red)
-#   [pending] Implement minimum code (Green)
-#   [pending] Refactor implementation
-#   ... (updates in real-time)
+# 3. Tasks
+/speckit.tasks
+# Result: specs/spark-connect-gpu-dashboard/tasks.md
 
-@build WS-001-02
-# ... or use autonomous mode:
-@oneshot F01
+# 4. Implement (executes all tasks)
+/speckit.implement
 
-# 4. Review quality
-@review F01
-
-# 5. Deploy to production
-@deploy F01
+# 5. Analyze (cross-artifact consistency)
+/speckit.analyze
 ```
 
-### Progress Tracking
-
-When using `@build`, Claude Code automatically tracks progress using TodoWrite:
-
-```markdown
-User: @build WS-060-01
-
-Claude:
-→ Creating todo list...
-  ✓ [in_progress] Pre-build validation
-  • [pending] Write failing test (Red)
-  • [pending] Implement minimum code (Green)
-  • [pending] Refactor implementation
-  • [pending] Verify Acceptance Criteria
-  • [pending] Run quality gates
-  • [pending] Append execution report
-  • [pending] Git commit
-
-→ Reading WS file...
-  ✓ [completed] Pre-build validation
-  ✓ [in_progress] Write failing test (Red)
-  • [pending] Implement minimum code (Green)
-  ...
-
-→ Test created, running pytest... FAILED (expected)
-  ✓ [completed] Write failing test (Red)
-  ✓ [in_progress] Implement minimum code (Green)
-  ...
-
-→ Implementation done, running pytest... PASSED
-  ✓ [completed] Implement minimum code (Green)
-  ✓ [in_progress] Refactor implementation
-  ...
-
-[All steps complete]
-  ✓ All tasks completed
-```
-
-This provides real-time visibility into WS execution progress.
-
-### Autonomous Execution with @oneshot
-
-For features with multiple workstreams, use `@oneshot` for autonomous execution:
-
-```markdown
-User: @oneshot F01
-
-Claude Code:
-→ Spawning orchestrator agent via Task tool...
-→ Agent ID: abc123xyz (save for resume)
-
-Orchestrator Agent:
-→ Reading feature specification and workstreams...
-→ Found 4 workstreams to execute
-
-→ Creating todo list...
-  ✓ [in_progress] Wait for PR approval
-  • [pending] Execute WS-001-01: Domain entities
-  • [pending] Execute WS-001-02: Application services
-  • [pending] Execute WS-001-03: Infrastructure layer
-  • [pending] Execute WS-001-04: API endpoints
-  • [pending] Run final review
-  • [pending] Generate UAT guide
-
-→ Creating PR for approval...
-→ Waiting for approval...
-
-[User approves PR in GitHub]
-
-→ PR approved!
-  ✓ [completed] Wait for PR approval
-  ✓ [in_progress] Execute WS-001-01: Domain entities
-
-→ Executing WS-001-01...
-  (internal @build TodoWrite tracking for this WS)
-→ WS-001-01 complete (45m, 85% coverage)
-  ✓ [completed] Execute WS-001-01: Domain entities
-  ✓ [in_progress] Execute WS-001-02: Application services
-
-→ Executing WS-001-02...
-→ WS-001-02 complete (1h 10m, 82% coverage)
-  ✓ [completed] Execute WS-001-02: Application services
-  ✓ [in_progress] Execute WS-001-03: Infrastructure layer
-
-... (continues for all WS)
-
-→ All workstreams complete
-  ✓ [in_progress] Run final review
-
-→ Running /review F01...
-→ Review verdict: APPROVED
-  ✓ [completed] Run final review
-  ✓ [in_progress] Generate UAT guide
-
-→ Generating UAT guide...
-  ✓ [completed] Generate UAT guide
-
-→ All tasks completed! ✅
-
-Main Claude:
-## ✅ Feature F01 Execution Complete
-
-**Agent ID:** abc123xyz (for resume)
-**Duration:** 3h 45m
-**Workstreams:** 4/4 completed
-**Coverage:** avg 86%
-
-### Next Steps
-1. Human UAT (5-10 min)
-2. `@deploy F01` if UAT passes
-```
-
-**Background execution** for large features:
-
-```bash
-User: @oneshot F01 --background
-
-Claude Code:
-→ Starting orchestrator agent in background...
-→ Task ID: xyz789
-→ Output file: /tmp/agent_xyz789.log
-
-You can continue working. I'll notify when complete.
-Check progress: Read("/tmp/agent_xyz789.log")
-
-[5 minutes later]
-✅ Background task xyz789 completed!
-Feature F01 is done and ready for UAT.
-```
-
-**Resume** from interruption:
-
-```bash
-# If execution interrupted
-User: @oneshot F01 --resume abc123xyz
-
-Claude Code:
-→ Resuming agent abc123xyz...
-→ Agent continues from last checkpoint (WS-001-03)
-```
-
-### File Structure Reference
-
-```
-project/
-├── docs/
-│   ├── drafts/           # @idea outputs here
-│   ├── workstreams/
-│   │   ├── backlog/      # @design outputs here
-│   │   ├── in_progress/  # @build moves here
-│   │   └── completed/    # @build finalizes here
-│   └── specs/            # Feature specifications
-├── prompts/commands/     # Skill instructions
-├── .claude/
-│   ├── skills/           # Skill definitions
-│   ├── agents/           # Multi-agent mode (advanced)
-│   └── settings.json     # Claude Code settings
-└── hooks/                # Git hooks for validation
-```
-
-## Key Principles (Quick)
-
-- **SOLID, DRY, KISS, YAGNI** — see [.cursorrules](.cursorrules)
-- **TDD** — Tests first (Red → Green → Refactor)
-- **Regression prevention** — see [docs/operations/demo-protection.md](docs/operations/demo-protection.md)
-
-**Note:** spark_k8s is Helm charts, not a Python app. Quality gates differ — see [.cursorrules](.cursorrules) (no `--cov=tests`, helm lint/template instead).
-
-## Validation
-
-### Pre-build Check
-```bash
-hooks/pre-build.sh WS-001-01
-```
-
-### Post-build Check
-```bash
-hooks/post-build.sh WS-001-01 project.module
-```
-
-### Manual Validation
-```bash
-hooks/pre-build.sh {WS-ID}
-# or
-sdp drift detect
-```
-
-## Quality Gates (Enforced)
+### Quality Gates (Enforced)
 
 | Gate | Requirement |
 |------|-------------|
 | **AI-Readiness** | Files < 200 LOC, CC < 10, type hints |
 | **Error Handling** | No `except: pass` |
-| **No TODOs** | All tasks completed or new WS |
+| **No TODOs** | All tasks completed |
 
 **spark_k8s:** helm lint, helm template, security assertions — see [.cursorrules](.cursorrules). Coverage is not a metric for Helm chart repos.
 
+### Regression Prevention (NON-NEGOTIABLE)
+
+**Critical paths (demo, deploy, smoke) must not regress.**
+
+Before ANY helm/kubectl touching spark-infra or observability:
+1. Run `./scripts/check-demo-health.sh` — if fails → `./scripts/restore-demo.sh` first
+2. Read [docs/operations/demo-protection.md](docs/operations/demo-protection.md)
+
+Canonical scripts only — never raw helm/kubectl for demo:
+- `scripts/deploy-demo-minikube.sh` — fresh deploy
+- `scripts/restore-demo.sh` — recover from failure
+- `scripts/check-demo-health.sh` — verify (exit 0 = OK)
+
 ## Forbidden Patterns
 
-❌ `except: pass` or bare exceptions
-❌ Time-based estimates
-❌ Files > 200 LOC
-❌ TODO without followup WS
-❌ `--cov=tests` (spark_k8s: self-coverage forbidden)
+- `except: pass` or bare exceptions
+- Time-based estimates
+- Files > 200 LOC
+- `--cov=tests` (spark_k8s: self-coverage forbidden)
+- `|| true` in CI test/lint steps
+- `continue-on-error: true` on blocking CI steps
+- pytest tests that only check `Path.exists()`
 
 ## Required Patterns
 
-✅ Type hints everywhere
-✅ Tests first (TDD)
-✅ Explicit error handling
-✅ Clean architecture boundaries
-✅ Conventional commits
-
-## Troubleshooting
-
-### Skill not found
-Check `.claude/skills/{name}/SKILL.md` exists
-
-### Validation fails
-Run `hooks/pre-build.sh {WS-ID}` to see specific issues
-
-### Workstream blocked
-Check dependencies in `docs/workstreams/backlog/{WS-ID}.md`
-
-### Coverage too low
-Run `pytest --cov --cov-report=term-missing` to identify gaps
-
-## Advanced: Multi-Agent Mode
-
-For complex features, use multi-agent orchestration:
-
-```bash
-@orchestrator F01  # Coordinates all agents
-```
-
-Agents defined in `.claude/agents/`:
-- `planner.md` — Breaks features into workstreams
-- `builder.md` — Executes workstreams
-- `reviewer.md` — Quality checks
-- `deployer.md` — Production deployment
-- `orchestrator.md` — Coordinates workflow
+- Type hints everywhere
+- Explicit error handling
+- Clean architecture boundaries
+- Conventional commits: `feat(chart):`, `fix(chart):`, `docs:`, `test:`, `chore:`
 
 ## Configuration
 
-See `.claude/settings.json` for:
-- Custom Git hooks
-- Validation scripts
-- Tool integrations
+- `.claude/settings.json` — Claude Code settings (projectType, specKit integrations)
+- `.claude/settings.local.json` — local permissions (gitignored)
+- `.specify/` — spec-kit core (templates, scripts, workflows, extensions)
+- `specs/` — feature specs (spec/plan/tasks/constitution)
 
 ## Resources
 
 | Resource | Purpose |
 |----------|---------|
 | [AGENTS.md](AGENTS.md) | Agent entry point, navigation, workflow |
-| [docs/workstreams/MEMORIES.md](docs/workstreams/MEMORIES.md) | Project state, provenance/evidence/trace |
+| [specs/_constitution.md](specs/_constitution.md) | Project principles (spec-kit) |
 | [.cursorrules](.cursorrules) | Principles, testing, CI (spark_k8s) |
-| [PROTOCOL.md](PROTOCOL.md) | Full SDP specification |
-| [RULES_COMMON.md](RULES_COMMON.md) | SDP common rules |
-| [CODE_PATTERNS.md](CODE_PATTERNS.md) | Code patterns |
-| [MODELS.md](MODELS.md) | Model recommendations |
+| [PROJECT_CONVENTIONS.md](PROJECT_CONVENTIONS.md) | Repo conventions |
 | [docs/operations/demo-protection.md](docs/operations/demo-protection.md) | Demo rules, regression prevention |
-| [MEMORIES.md](docs/workstreams/MEMORIES.md) § SDP CLI | sdp status, drift, memory, verify, orchestrate |
+| [docs/archive/sdp-workstreams/](docs/archive/sdp-workstreams/) | Historical WS archive (provenance) |
+
+<!-- SPECKIT START -->
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan
+<!-- SPECKIT END -->
 
 ---
 
-**Version:** SDP v0.9.8
-**Claude Code Version:** 0.3+
-**Mode:** Skill-based, one-shot execution
+**Spec-Kit Version:** 0.10.3
+**Mode:** spec-kit SDD (specify → plan → tasks → implement)

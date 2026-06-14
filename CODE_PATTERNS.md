@@ -1,1 +1,0 @@
-.sdp/docs/reference/CODE_PATTERNS.md

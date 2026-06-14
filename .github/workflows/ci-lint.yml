@@ -6,14 +6,12 @@ on:
     paths-ignore:
       - "docs/**"
       - "*.md"
-      - ".sdp/**"
       - "tests/results/**"
   pull_request:
     branches: [main, dev]
     paths-ignore:
       - "docs/**"
       - "*.md"
-      - ".sdp/**"
       - "tests/results/**"
 
 jobs:
