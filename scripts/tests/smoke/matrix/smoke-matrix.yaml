@@ -1,0 +1,135 @@
+# Smoke Test Matrix for Spark K8s
+# Source of truth for 144 smoke scenarios (3 components × 4 spark versions × 3 modes × 4 features).
+# Generator: scripts/tests/smoke/matrix/generate-smoke-matrix.py
+# Validation: scripts/tests/smoke/matrix/validate-smoke-matrix.py
+#
+# Tiers:
+# - P0 (PR gate): 24 scenarios — baseline only, 3.5.7 + 4.1.0, k8s + standalone (no connect)
+# - P1 (nightly): 96 scenarios — k8s + standalone, all features, all versions (run-matrix-96.sh)
+# - P2 (weekly):  144 scenarios — full matrix incl. connect mode
+
+matrix:
+  # Priority tier definitions (filter slices)
+  priority_tiers:
+    p0_pr:
+      description: "PR gate — fast feedback"
+      timeout_minutes: 30
+      components: ["airflow", "jupyter"]
+      spark_versions: ["3.5.7", "4.1.0"]
+      modes: ["k8s", "standalone"]
+      features: ["baseline"]
+
+    p1_nightly:
+      description: "Nightly — full coverage of k8s/standalone"
+      timeout_minutes: 240
+      components: ["airflow", "jupyter", "spark-submit"]
+      spark_versions: ["3.5.7", "3.5.8", "4.1.0", "4.1.1"]
+      modes: ["k8s", "standalone"]
+      features: ["baseline", "gpu", "iceberg", "gpu-iceberg"]
+
+    p2_weekly:
+      description: "Weekly — full matrix incl. connect mode"
+      timeout_minutes: 1440
+      components: ["airflow", "jupyter", "spark-submit"]
+      spark_versions: ["3.5.7", "3.5.8", "4.1.0", "4.1.1"]
+      modes: ["k8s", "standalone", "connect"]
+      features: ["baseline", "gpu", "iceberg", "gpu-iceberg"]
+
+  # Scenario filename template
+  # Renders as: {component}-{feature_suffix}-{mode}-{spark_version_short}.sh
+  # Examples: airflow-connect-k8s-357.sh, jupyter-gpu-k8s-410.sh, spark-submit-iceberg-standalone-411.sh
+  scenario_filename_template: "{component}-{feature_suffix}{mode}-{spark_version_short}.sh"
+
+  # Dimension definitions
+  dimensions:
+    components:
+      - name: "jupyter"
+        description: "Jupyter notebook with PySpark"
+        runner: "jupyter"
+      - name: "airflow"
+        description: "Airflow DAG with spark-submit"
+        runner: "airflow"
+      - name: "spark-submit"
+        description: "Raw spark-submit invocation"
+        runner: "spark-submit"
+
+    spark_versions:
+      - version: "3.5.7"
+        short: "357"
+        chart: "spark-3.5"
+        image_tag: "3.5.7"
+      - version: "3.5.8"
+        short: "358"
+        chart: "spark-3.5"
+        image_tag: "3.5.8"
+      - version: "4.1.0"
+        short: "410"
+        chart: "spark-4.1"
+        image_tag: "4.1.0"
+      - version: "4.1.1"
+        short: "411"
+        chart: "spark-4.1"
+        image_tag: "4.1.1"
+
+    modes:
+      - name: "k8s"
+        description: "Native Kubernetes cluster mode"
+        submit_arg: "--master k8s://https://kubernetes.default.svc"
+      - name: "standalone"
+        description: "Spark Standalone on Kubernetes"
+        submit_arg: "--master spark://spark-master:7077"
+      - name: "connect"
+        description: "Spark Connect server (gRPC)"
+        submit_arg: "--remote sc://spark-connect:15002"
+
+    features:
+      - name: "baseline"
+        suffix: ""
+        description: "Core Spark only"
+        image_suffix: "baseline"
+        spark_conf: {}
+      - name: "gpu"
+        suffix: "gpu-"
+        description: "NVIDIA RAPIDS / GPU acceleration"
+        image_suffix: "gpu"
+        spark_conf:
+          spark.rapids.sql.enabled: "true"
+          spark.executor.resource.gpu.amount: "1"
+      - name: "iceberg"
+        suffix: "iceberg-"
+        description: "Apache Iceberg support"
+        image_suffix: "iceberg"
+        spark_conf:
+          spark.sql.catalog.spark_catalog: "org.apache.iceberg.spark.SparkSessionCatalog"
+          spark.sql.catalog.iceberg: "org.apache.iceberg.spark.SparkCatalog"
+      - name: "gpu-iceberg"
+        suffix: "gpu-iceberg-"
+        description: "GPU + Iceberg combined"
+        image_suffix: "gpu-iceberg"
+        combines: ["gpu", "iceberg"]
+
+# Image pyramid resolution
+# get_runtime_image(spark_version, gpu, iceberg) maps to:
+#   spark-custom:<version>
+#     → spark-k8s-runtime:<short>-<X>-<image_suffix>
+#     → spark-k8s-jupyter:<short>-<X>-<image_suffix> (for jupyter component)
+# where X is a sequential build number (currently 7).
+image_pyramid:
+  base_image_template: "spark-custom:{version}"
+  runtime_image_template: "spark-k8s-runtime:{short}-7-{image_suffix}"
+  jupyter_image_template: "spark-k8s-jupyter:{short}-7-{image_suffix}"
+  function: "scripts/tests/lib/get_runtime_image.sh"
+
+# S3 / History Server requirements (MANDATORY for all scenarios)
+s3_event_log:
+  enabled: true
+  endpoint: "http://minio:9000"
+  bucket: "spark-logs"
+  path_style_access: true
+  ssl_enabled: false
+  event_log_dir: "s3a://spark-logs/{version}/events"
+
+history_server:
+  enabled: true
+  provider: "s3"
+  s3_endpoint: "http://minio:9000"
