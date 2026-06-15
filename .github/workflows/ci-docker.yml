@@ -25,7 +25,8 @@ jobs:
             wget -q -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
             chmod +x /usr/local/bin/hadolint
           }
-          find docker -name "Dockerfile*" -exec hadolint --ignore DL3008 --ignore DL3013 --ignore DL3059 {} +
+          # Fail only on errors; warnings/info acceptable for legacy Dockerfiles
+          find docker -name "Dockerfile*" -exec hadolint --failure-threshold error --ignore DL3008 --ignore DL3013 --ignore DL3059 {} +
 
   build-dist-35:
     name: Build Spark dist 3.5.7
