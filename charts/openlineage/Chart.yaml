@@ -1,0 +1,16 @@
+apiVersion: v2
+name: openlineage
+description: OpenLineage stack (Marquez backend + UI + PostgreSQL) for Spark + Airflow lineage tracking
+type: application
+version: 0.1.0
+appVersion: "0.45.0"
+keywords:
+  - openlineage
+  - marquez
+  - lineage
+  - data-observability
+  - spark
+  - airflow
+maintainers:
+  - name: S7 Spark K8s Team
+    email: spark@s7.ru

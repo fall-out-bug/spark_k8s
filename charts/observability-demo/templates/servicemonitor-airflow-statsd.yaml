@@ -1,0 +1,41 @@
+{{/*
+ServiceMonitor for Airflow statsd-exporter sidecar.
+
+Scrapes the statsd-exporter that converts Airflow's DogStatsD metrics
+(DAG run duration, task duration by operator, scheduler heartbeat,
+executor slots) into Prometheus format.
+
+Requires:
+- Airflow deployed in targetNamespace (default: spark-infra) with
+  statsd-exporter sidecar enabled. Service exposes port 9102 (/metrics).
+- Airflow subchart values: statsd.enabled: true (in spark-3.5 chart)
+
+Refs:
+- https://airflow.apache.org/docs/helm-chart/stable/
+- Grafana dashboards 20994, 14451, 14550
+*/}}
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}-airflow-statsd
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: airflow
+    component: statsd-exporter
+    chart: {{ .Chart.Name }}
+    release: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: airflow-statsd
+  namespaceSelector:
+    matchNames:
+      - {{ .Values.targetNamespace | default "spark-infra" }}
+  endpoints:
+    - port: metrics
+      path: /metrics
+      scheme: http
+      interval: 30s
+      scrapeTimeout: 10s
+      honorLabels: true
