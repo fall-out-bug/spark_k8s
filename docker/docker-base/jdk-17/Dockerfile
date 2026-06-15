@@ -17,8 +17,8 @@ RUN apk add --no-cache \
     && rm -rf /var/cache/apk/*
 
 # Set environment variables
-ENV JAVA_HOME=/opt/java/openjdk \
-    PATH="${JAVA_HOME}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ENV JAVA_HOME=/opt/java/openjdk
+ENV PATH="${JAVA_HOME}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 # Set working directory
 WORKDIR /workspace
