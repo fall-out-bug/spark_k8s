@@ -46,16 +46,9 @@ description: "Task list for Grafana Observability Stand"
 - [x] T024 [US3] `apache-airflow-providers-openlineage==2.3.0` installed in Airflow scheduler + webserver (runtime pip install; image rebuild deferred)
 - [x] T025 [US3] OpenLineage transport configured via Airflow env vars → Marquez HTTP endpoint
 - [x] T026 [US3] Airflow scheduler starts clean with provider loaded (no errors in logs)
-- [ ] T027 [US3] [DEFERRED] Spark OpenLineage listener via `--packages io.openlineage:openlineage-spark_2.12:1.29.0` — requires spark-submit override per scenario
-- [x] T028 [US3] Triggered DAG `spark_standalone_load_demo` — Marquez received 2 RunEvents with ParentRunFacet linking DAG → task `.run_spark_demo_pipeline`
-- [ ] T029 [US3] [OUT OF SCOPE] Jaeger trace containing DAG + Spark spans — requires godatadriven/spot + Airflow 2.10+ native OTel, not OpenLineage
-
-**Note**: New chart `charts/openlineage/` (Chart.yaml + values.yaml + templates/marquez.yaml) deploys Marquez backend + Web UI + PostgreSQL. Airflow integration documented in values.yaml `airflowIntegration` section. Spark integration config in `sparkIntegration` section (disabled by default).
-
-Marquez verified live:
-- `kubectl port-forward -n lineage svc/openlineage-marquez 3000:3000` → http://localhost:3000
-- API: `curl http://openlineage-marquez.lineage.svc.cluster.local:5000/api/v1/namespaces/spark-infra-airflow/jobs`
-- DAG runs visible with ParentRunFacet linking
+- [x] T027 [US3] Spark OpenLineage listener via `--packages io.openlineage:openlineage-spark_2.12:1.29.0` + `--conf spark.extraListeners=io.openlineage.spark.agent.OpenLineageSparkListener` + `spark.openlineage.transport.{url,endpoint,type}` configs. DAG `spark_openlineage_demo.py` runs SparkPi with full lineage.
+- [x] T028 [US3] Triggered DAG `spark_openlineage_demo` → Marquez received RunEvent in namespace `spark-infra-spark`, job `spark_pi` state COMPLETED, with ParentRunFacet linking DAG → task
+- [ ] T029 [US3] [KNOWN ISSUE] Jaeger deployed (chart jaegertracing/jaeger v4.11.1, app v2.19.0), Airflow OTel configured (`AIRFLOW__TRACES__OTEL_ON=True`, `OTEL_HOST=jaeger.observability.svc.cluster.local`, ports 4317 gRPC + 4318 HTTP). Exporter connects but receives HTTP 500 from Jaeger OTLP/HTTP receiver. Direct curl to `:4318/v1/traces` returns OK with `{"partialSuccess":{}}` → Jaeger receiver functional, Airflow exporter protocol mismatch (likely payload encoding). Follow-up: switch to OTel Collector proxy, or upgrade Airflow, or debug Airflow opentelemetry-sdk payload format.
 
 ## Verification + Docs
 
