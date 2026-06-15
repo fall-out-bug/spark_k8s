@@ -56,6 +56,36 @@ helm install spark-connect charts/spark-3.5/charts/spark-connect \
   -n spark
 ```
 
+### Observability стенд
+
+Полный observability стенд на minikube (Prometheus + Grafana + Loki + Jaeger + Marquez):
+
+```bash
+# 1. Деплой observability-demo (Prometheus + Grafana + Loki + OTel)
+./scripts/deploy-observability-stand.sh
+
+# 2. Деплой OpenLineage (Marquez backend)
+helm install openlineage charts/openlineage -n lineage --create-namespace
+
+# 3. Деплой Jaeger
+helm install jaeger jaegertracing/jaeger -n observability \
+  --set provisionDataStore.cassandra=false \
+  --set storage.type=memory \
+  --set allInOne.enabled=true
+
+# 4. Пресет Airflow с OpenLineage DAG
+helm install spark-infra charts/spark-3.5 -n spark-infra \
+  -f charts/spark-3.5/presets/airflow-openlineage.yaml
+
+# Проверка
+./scripts/verify-observability-stand.sh
+```
+
+URL: `minikube service observability-demo-grafana -n observability --url` (admin/admin)
+```
+
+См. `specs/grafana-observability-stand/` для полного spec/plan/tasks.
+
 ### Оверрайд значений
 
 ```bash

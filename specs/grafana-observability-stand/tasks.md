@@ -25,7 +25,7 @@ description: "Task list for Grafana Observability Stand"
 - [x] T009 [US1] Verify all expected pods `Ready` (kubectl wait deployments) — observability + spark-infra namespaces
 - [x] T010 [US1] Verify Grafana URL reachable: `http://192.168.49.2:30030` (NodePort)
 - [x] T011 [US1] Verify Prometheus `/api/v1/targets` shows 15 active (7 system + 4 spark-infra MinIO + 1 statsd + 3 spark-infra others)
-- [ ] T012 [US1] [BLOCKED] Verify Loki LogQL returns Spark driver logs — requires Spark job running
+- [x] T012 [US1] Verify Loki LogQL returns Spark driver logs — promtail deployed (helm install grafana/promtail), URL `http://observability-demo-loki.observability.svc.cluster.local:3100/loki/api/v1/push`, LogQL `{namespace="spark-infra"} |= "Spark"` returns driver pod logs (SparkContext lifecycle, executor shutdown). Initial 429 rate limit on backfill resolved by waiting.
 
 ## US2 — Reference Dashboards Imported (P2)
 
@@ -55,9 +55,9 @@ description: "Task list for Grafana Observability Stand"
 - [x] T030 Create `scripts/verify-observability-stand.sh` — runs AC1, AC2, AC3, AC4, AC5, AC7, AC8, AC9 checks, exits non-zero on failure
 - [x] T031 Run `./scripts/check-demo-health.sh` — stand does NOT touch demo namespaces (only observability); gate preserved
 - [x] T032 Run `helm lint charts/observability-demo` — pre-existing nil pointer in grafana subchart (documented in plan.md risks); deploy works via `--post-renderer`
-- [ ] T033 [DEFERRED] Run `pytest tests/integration/test_observability_*.py -q` — tests target full demo; stand is observability-only subset
+- [x] T033 Run `pytest tests/integration/test_observability_*.py -q` — 40/40 pass (alertmanager, demo, grafana, jaeger, loki, prometheus, spark_ui)
 - [x] T034 Update `specs/grafana-observability-stand/tasks.md` — this file
-- [ ] T035 [PENDING] Update `docs/guides/{en,ru}/quick-reference.md` with stand deploy commands
+- [x] T035 Update `docs/guides/{en,ru}/quick-reference.md` with stand deploy commands — added "Observability stand" section with full deploy sequence
 - [x] T036 Commit conventional commits per task group; open PR (PR #9)
 
 ## Blocked / Out of Scope (deferred)
