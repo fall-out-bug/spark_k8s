@@ -1,5 +1,6 @@
 """Pre-configured Spark Connect client for Jupyter."""
 import os
+
 from pyspark.sql import SparkSession
 
 

@@ -9,11 +9,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install JupyterHub and KubeSpawner
 RUN pip install --no-cache-dir \
-    jupyterhub>=4.0.0 \
-    kubespawner>=6.0.0 \
-    oauthenticator>=16.0.0 \
-    jupyterhub-nativeauthenticator>=1.2.0 \
-    jupyterhub-idle-culler>=1.3.0
+    "jupyterhub>=4.0.0" \
+    "kubespawner>=6.0.0" \
+    "oauthenticator>=16.0.0" \
+    "jupyterhub-nativeauthenticator>=1.2.0" \
+    "jupyterhub-idle-culler>=1.3.0"
 
 # Create jupyterhub user
 RUN useradd -m -s /bin/bash -u 1000 jupyterhub

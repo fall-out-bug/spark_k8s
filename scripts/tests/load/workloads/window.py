@@ -15,7 +15,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import (
@@ -57,8 +57,8 @@ def create_spark_session() -> SparkSession:
 def run_window_workload(
     spark: SparkSession,
     data_path: str,
-    metadata: Dict[str, str],
-) -> Dict[str, Any]:
+    metadata: dict[str, str],
+) -> dict[str, Any]:
     """
     Run window function workload and collect metrics.
 

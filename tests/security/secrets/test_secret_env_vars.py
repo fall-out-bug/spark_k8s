@@ -93,7 +93,6 @@ class TestSecretEnvVars:
         docs = parse_yaml_docs(output)
 
         # Check for containers with envFrom or secretKeyRef
-        found_secret_refs = False
         for doc in docs:
             if doc and doc.get("kind") in ["Deployment", "StatefulSet"]:
                 template = doc.get("spec", {}).get("template", {})
@@ -106,13 +105,12 @@ class TestSecretEnvVars:
                     # Check envFrom
                     for env_from_item in env_from:
                         if "secretRef" in env_from_item:
-                            found_secret_refs = True
+                            pass
 
                     # Check env with secretKeyRef
                     for env_var in env:
-                        if "valueFrom" in env_var:
-                            if "secretKeyRef" in env_var["valueFrom"]:
-                                found_secret_refs = True
+                        if "valueFrom" in env_var and "secretKeyRef" in env_var["valueFrom"]:
+                            pass
 
         # Secret refs may or may not be used depending on configuration
         # This test just verifies the chart can render successfully

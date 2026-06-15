@@ -69,7 +69,7 @@ def generate_forecast(models):
     # Create feature vectors for each day
     # Using average/median values from historical data (simplified)
     predictions = []
-    for i, forecast_date in enumerate(forecast_dates):
+    for _i, forecast_date in enumerate(forecast_dates):
         # Create synthetic features based on day of week
         day_of_week = (datetime.strptime(forecast_date, "%Y-%m-%d").weekday() + 1) % 7 + 1
         is_weekend = 1 if day_of_week in [1, 7] else 0
@@ -168,7 +168,7 @@ def main():
 
     # Save all predictions
     if all_predictions:
-        prediction_key = save_predictions_to_minio(all_predictions)
+        save_predictions_to_minio(all_predictions)
 
         # Print summary
         print("\n=== Forecast Summary ===")

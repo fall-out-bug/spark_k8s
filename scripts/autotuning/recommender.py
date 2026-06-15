@@ -77,10 +77,7 @@ def format_memory_value(bytes_value: int, unit: str = "Gi") -> str:
 
     value = bytes_value / MEMORY_UNITS[unit]
     # Round to reasonable precision
-    if value >= 1:
-        value = round(value)
-    else:
-        value = round(value, 1)
+    value = round(value) if value >= 1 else round(value, 1)
 
     return f"{int(value) if value == int(value) else value}{unit}"
 
@@ -284,10 +281,7 @@ def _apply_numeric_bounds(value: str, current: str, bounds: dict[str, Any], para
         recommended = max_val
 
     # Format output
-    if param_format == "integer":
-        output = str(int(recommended))
-    else:
-        output = str(recommended)
+    output = str(int(recommended)) if param_format == "integer" else str(recommended)
 
     safety = "capped" if recommended != float(value) else "pass"
     return BoundsCheckResult(output, safety)

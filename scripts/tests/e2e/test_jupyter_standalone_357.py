@@ -101,7 +101,6 @@ class TestJupyterStandalone357FullDataset:
 
     def test_standalone_parallel_processing(self, spark_session, dataset_path, standalone_executor_distribution):
         """Test parallel processing across workers."""
-        distribution = standalone_executor_distribution
 
         # Run multiple queries in parallel
         df = spark_session.read.parquet(dataset_path)

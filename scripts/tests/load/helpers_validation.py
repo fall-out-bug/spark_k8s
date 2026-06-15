@@ -2,15 +2,15 @@
 Validation and comparison helpers for load testing.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 
 def validate_load_metrics(
-    metrics: Dict[str, Any],
+    metrics: dict[str, Any],
     max_error_rate: float = 0.01,
     min_throughput: float = 0.5,
     max_latency_p95_ms: Optional[float] = None,
-) -> List[str]:
+) -> list[str]:
     """
     Validate load test metrics against thresholds.
 
@@ -42,11 +42,11 @@ def validate_load_metrics(
 
 
 def generate_comparison_report(
-    metrics_a: Dict[str, Any],
-    metrics_b: Dict[str, Any],
+    metrics_a: dict[str, Any],
+    metrics_b: dict[str, Any],
     label_a: str = "A",
     label_b: str = "B",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Generate a comparison report between two metric sets.
 

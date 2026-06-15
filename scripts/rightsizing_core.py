@@ -1,7 +1,7 @@
 """Rightsizing calculator core logic."""
 
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Optional
 
 
 @dataclass
@@ -32,7 +32,7 @@ class SizingRecommendation:
     justification: str
 
 
-EXECUTOR_PRESETS: Dict[str, ExecutorConfig] = {
+EXECUTOR_PRESETS: dict[str, ExecutorConfig] = {
     "small": ExecutorConfig(
         name="Small",
         cores=1,
@@ -121,7 +121,7 @@ def calculate_recommendation(
         executor_memory_gb = executor_config.memory_mb / 1024
         max_executors = int(cluster_memory_gb / executor_memory_gb)
         executor_count = min(executor_count, max_executors)
-    min_executors = max(1, executor_count // 4)
+    max(1, executor_count // 4)
     driver_memory = f"{max(1, executor_config.memory_mb // 1024)}G"
     driver_cores = str(min(4, executor_config.cores * 2))
     total_memory_gb = executor_count * executor_config.memory_mb / 1024 + executor_config.memory_mb / 1024

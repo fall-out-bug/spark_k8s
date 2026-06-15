@@ -156,7 +156,7 @@ class TestAirflowIceberg357:
         table_name = iceberg_table["table_name"]
 
         # Get initial snapshot
-        initial = spark_session.sql(f"SELECT * FROM {table_name} LIMIT 1")
+        spark_session.sql(f"SELECT * FROM {table_name} LIMIT 1")
 
         # Perform modification (creates new snapshot)
         spark_session.sql(f"INSERT INTO {table_name} SELECT * FROM {table_name} LIMIT 10")

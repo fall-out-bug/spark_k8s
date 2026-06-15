@@ -11,7 +11,7 @@ Usage:
 """
 
 import time
-from pyspark import SparkContext
+
 from pyspark.listener import SparkListener
 
 

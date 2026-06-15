@@ -59,7 +59,7 @@ def main():
         print(f"Read {df.count()} real trips from {raw_path}")
     except Exception as e:
         print(f"Raw data not available ({e}), using synthetic fallback")
-        from pyspark.sql.types import StructType, StructField, IntegerType
+        from pyspark.sql.types import IntegerType, StructField, StructType
 
         schema = StructType([
             StructField("trip_id", IntegerType()),

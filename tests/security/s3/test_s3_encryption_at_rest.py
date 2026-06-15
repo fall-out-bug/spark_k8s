@@ -32,7 +32,7 @@ class TestS3EncryptionAtRest:
         encryption_found = False
         for configmap in configmaps:
             data = configmap.get("data", {})
-            for key, value in data.items():
+            for _key, value in data.items():
                 if "server-side-encryption-algorithm" in value:
                     encryption_found = True
                     break
@@ -63,7 +63,7 @@ class TestS3EncryptionAtRest:
 
         for configmap in configmaps:
             data = configmap.get("data", {})
-            for key, value in data.items():
+            for _key, value in data.items():
                 if "server-side-encryption-algorithm" in value:
                     # Extract algorithm from config
                     for line in value.split("\n"):
@@ -92,7 +92,7 @@ class TestS3EncryptionAtRest:
 
         for configmap in configmaps:
             data = configmap.get("data", {})
-            for key, value in data.items():
+            for _key, value in data.items():
                 if "server-side-encryption-algorithm" in value:
                     if "aws:kms" in value or "KMS" in value:
                         using_kms = True

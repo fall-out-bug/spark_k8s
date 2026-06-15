@@ -10,7 +10,7 @@ Usage:
     df.write.jdbc(get_postgres_url(), "table", properties=get_postgres_properties())
 """
 
-from typing import Any, Dict
+from typing import Any
 
 # Postgres configuration for load testing
 POSTGRES_HOST = "postgres-load-testing.load-testing.svc.cluster.local"
@@ -46,7 +46,7 @@ def get_postgres_properties(
     driver: str = "org.postgresql.Driver",
     batch_size: int = 10000,
     rewrite_batched_inserts: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get Postgres connection properties with batch optimization.
 
@@ -109,7 +109,7 @@ def get_write_options(
     mode: str = "overwrite",
     truncate: bool = True,
     batch_size: int = 10000,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get write options for Spark JDBC writes.
 

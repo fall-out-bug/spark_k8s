@@ -6,7 +6,7 @@ This module provides shared fixtures for all security tests.
 
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import pytest
 import yaml
@@ -49,7 +49,7 @@ def preset_41_baseline(chart_41_path: Path) -> Path:
     return chart_41_path / "presets" / "core-baseline.yaml"
 
 
-def helm_template(chart_path: Path, values_files: List[Path] = None, set_values: Dict[str, str] = None) -> str:
+def helm_template(chart_path: Path, values_files: list[Path] = None, set_values: dict[str, str] = None) -> str:
     """
     Run helm template command and return output.
 
@@ -92,7 +92,7 @@ def helm_template(chart_path: Path, values_files: List[Path] = None, set_values:
     return result.stdout
 
 
-def parse_yaml_docs(yaml_content: str) -> List[Dict[str, Any]]:
+def parse_yaml_docs(yaml_content: str) -> list[dict[str, Any]]:
     """
     Parse YAML content containing multiple documents.
 
@@ -107,7 +107,7 @@ def parse_yaml_docs(yaml_content: str) -> List[Dict[str, Any]]:
     return [doc for doc in yaml.safe_load_all(yaml_content) if doc]
 
 
-def get_pod_specs(yaml_content: str) -> List[Dict[str, Any]]:
+def get_pod_specs(yaml_content: str) -> list[dict[str, Any]]:
     """
     Extract pod specs from rendered YAML.
 

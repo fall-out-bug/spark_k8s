@@ -14,7 +14,7 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 
 class ReportGenerator:
@@ -32,7 +32,7 @@ class ReportGenerator:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def load_results(self) -> List[Dict[str, Any]]:
+    def load_results(self) -> list[dict[str, Any]]:
         """Load all results from directory."""
         all_results = []
 
@@ -46,7 +46,7 @@ class ReportGenerator:
 
         return all_results
 
-    def generate_layer1_executive_summary(self, results: List[Dict[str, Any]]) -> str:
+    def generate_layer1_executive_summary(self, results: list[dict[str, Any]]) -> str:
         """
         Generate Layer 1: Executive summary (Markdown).
 
@@ -94,7 +94,7 @@ class ReportGenerator:
 """
         return md
 
-    def generate_layer2_technical_deep_dive(self, results: List[Dict[str, Any]]) -> str:
+    def generate_layer2_technical_deep_dive(self, results: list[dict[str, Any]]) -> str:
         """
         Generate Layer 2: Technical deep-dive (HTML).
 
@@ -185,7 +185,7 @@ class ReportGenerator:
 """
         return html
 
-    def generate_layer3_detailed_report(self, results: List[Dict[str, Any]]) -> str:
+    def generate_layer3_detailed_report(self, results: list[dict[str, Any]]) -> str:
         """
         Generate Layer 3: Detailed report (Markdown).
 
@@ -243,7 +243,7 @@ class ReportGenerator:
 
         return md
 
-    def generate_layer4_raw_data(self, results: List[Dict[str, Any]]) -> Path:
+    def generate_layer4_raw_data(self, results: list[dict[str, Any]]) -> Path:
         """
         Generate Layer 4: Raw data (JSONL).
 
@@ -261,7 +261,7 @@ class ReportGenerator:
 
         return output_file
 
-    def generate_all(self) -> Dict[str, Path]:
+    def generate_all(self) -> dict[str, Path]:
         """
         Generate all report layers.
 

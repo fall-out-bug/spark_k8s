@@ -68,7 +68,7 @@ class TestContainerReadOnlyFS:
         for pod_spec in pod_specs:
             containers = pod_spec["spec"].get("containers", [])
             for container in containers:
-                volume_mounts = container.get("volumeMounts", [])
+                container.get("volumeMounts", [])
                 # If readOnlyRootFilesystem is true, volume mounts should have readWrite flag
                 # for directories that need to be writable
 

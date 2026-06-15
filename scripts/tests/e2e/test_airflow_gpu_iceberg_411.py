@@ -89,9 +89,7 @@ class TestAirflowGpuIceberg411:
         """Test time travel with GPU queries."""
         table_name = gpu_iceberg_table["table_name"]
 
-        initial = spark_session_with_gpu_and_iceberg.sql(f"SELECT COUNT(*) AS cnt FROM {table_name}").collect()[0][
-            "cnt"
-        ]
+        spark_session_with_gpu_and_iceberg.sql(f"SELECT COUNT(*) AS cnt FROM {table_name}").collect()[0]["cnt"]
 
         spark_session_with_gpu_and_iceberg.sql(f"INSERT INTO {table_name} SELECT * FROM {table_name} LIMIT 10")
 

@@ -42,7 +42,6 @@ class TestPyArrowCompatibility:
     def test_pyarrow_to_pandas(self, spark_session):
         """Test PyArrow-enabled toPandas conversion."""
         try:
-            import pandas as pd
 
             # Create Spark DataFrame
             data = [("Alice", 25), ("Bob", 30), ("Charlie", 35)]

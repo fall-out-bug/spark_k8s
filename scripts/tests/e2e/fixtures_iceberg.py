@@ -8,7 +8,7 @@ catalog configuration, and Iceberg-specific metrics.
 import shutil
 import tempfile
 from collections.abc import Generator
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import pytest
 
@@ -31,7 +31,7 @@ def iceberg_warehouse() -> Generator[str, None, None]:
 
 
 @pytest.fixture(scope="function")
-def iceberg_catalog(spark_session: Any, iceberg_warehouse: str) -> Generator[Dict[str, Any], None, None]:
+def iceberg_catalog(spark_session: Any, iceberg_warehouse: str) -> Generator[dict[str, Any], None, None]:
     """
     Configure Iceberg catalog for Spark session.
 
@@ -71,13 +71,13 @@ def iceberg_catalog(spark_session: Any, iceberg_warehouse: str) -> Generator[Dic
             spark_session.sql(f"DROP TABLE {catalog_name}.{table_name}")
     except Exception:
         # Catalog cleanup failed, may not exist or already cleaned
-        catalog_cleanup_failed = True
+        pass
 
 
 @pytest.fixture(scope="function")
 def iceberg_table(
-    spark_session: Any, iceberg_catalog: Dict[str, Any], sample_dataset_path: str
-) -> Generator[Dict[str, Any], None, None]:
+    spark_session: Any, iceberg_catalog: dict[str, Any], sample_dataset_path: str
+) -> Generator[dict[str, Any], None, None]:
     """
     Create Iceberg table from NYC Taxi dataset.
 
@@ -103,11 +103,11 @@ def iceberg_table(
         spark_session.sql(f"DROP TABLE {table_name}")
     except Exception:
         # Table may not exist or already dropped
-        table_cleanup_failed = True
+        pass
 
 
 @pytest.fixture(scope="function")
-def iceberg_metrics(spark_session: Any, iceberg_catalog: Dict[str, Any]) -> Dict[str, Any]:
+def iceberg_metrics(spark_session: Any, iceberg_catalog: dict[str, Any]) -> dict[str, Any]:
     """
     Collect Iceberg table metrics.
 
@@ -121,7 +121,7 @@ def iceberg_metrics(spark_session: Any, iceberg_catalog: Dict[str, Any]) -> Dict
     catalog_name = iceberg_catalog["catalog_name"]
     table_name = f"{catalog_name}.nyc_taxi"
 
-    metrics: Dict[str, Any] = {}
+    metrics: dict[str, Any] = {}
 
     try:
         # Get snapshot history
@@ -159,7 +159,7 @@ def iceberg_metrics(spark_session: Any, iceberg_catalog: Dict[str, Any]) -> Dict
 
 
 @pytest.fixture(scope="function")
-def iceberg_time_travel(spark_session: Any, iceberg_table: Dict[str, Any]) -> Any:
+def iceberg_time_travel(spark_session: Any, iceberg_table: dict[str, Any]) -> Any:
     """
     Provide Iceberg time travel functionality.
 

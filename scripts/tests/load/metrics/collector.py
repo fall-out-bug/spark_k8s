@@ -15,7 +15,7 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import requests
 
@@ -45,7 +45,7 @@ class MetricsCollector:
         self.output_dir = output_dir or Path("/tmp/load-test-metrics")
         self.metrics = {}
 
-    def collect_tier1_stability(self) -> Dict[str, Any]:
+    def collect_tier1_stability(self) -> dict[str, Any]:
         """
         Collect Tier 1 (Stability) metrics.
 
@@ -59,7 +59,7 @@ class MetricsCollector:
             "failed_stages": self._get_failed_stages(),
         }
 
-    def collect_tier2_efficiency(self) -> Dict[str, Any]:
+    def collect_tier2_efficiency(self) -> dict[str, Any]:
         """
         Collect Tier 2 (Efficiency) metrics.
 
@@ -73,7 +73,7 @@ class MetricsCollector:
             "shuffle_spill_pct": self._get_shuffle_spill(),
         }
 
-    def collect_tier3_performance(self) -> Dict[str, Any]:
+    def collect_tier3_performance(self) -> dict[str, Any]:
         """
         Collect Tier 3 (Performance) metrics.
 
@@ -210,7 +210,7 @@ class MetricsCollector:
         except Exception:
             return 0.0
 
-    def _get_workload_metrics(self) -> Dict[str, Any]:
+    def _get_workload_metrics(self) -> dict[str, Any]:
         """Get workload metrics from results file."""
         try:
             results_file = self.output_dir / f"{self.test_name}.jsonl"
@@ -228,7 +228,7 @@ class MetricsCollector:
         except Exception:
             return {}
 
-    def collect_all(self) -> Dict[str, Any]:
+    def collect_all(self) -> dict[str, Any]:
         """
         Collect all metrics tiers.
 
@@ -260,7 +260,7 @@ class MetricsCollector:
         return metrics_file
 
 
-def collect_metrics(test_name: str, output_dir: Optional[Path] = None) -> Dict[str, Any]:
+def collect_metrics(test_name: str, output_dir: Optional[Path] = None) -> dict[str, Any]:
     """
     Collect all metrics for a test.
 

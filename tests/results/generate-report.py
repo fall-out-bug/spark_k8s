@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 RESULTS_DIR = Path("tests/results")
 
@@ -53,7 +53,7 @@ class TestResult:
 class ReportGenerator:
     def __init__(self, results_dir: Path = RESULTS_DIR):
         self.results_dir = results_dir
-        self.results: List[TestResult] = []
+        self.results: list[TestResult] = []
         self.summary = {
             "total": 0,
             "passed": 0,
@@ -105,7 +105,7 @@ class ReportGenerator:
             print(f"Error parsing {xml_path}: {e}", file=sys.stderr)
             return None
 
-    def parse_csv_history(self, csv_path: Path) -> List[TestResult]:
+    def parse_csv_history(self, csv_path: Path) -> list[TestResult]:
         results = []
         try:
             with open(csv_path) as f:
@@ -185,7 +185,7 @@ class ReportGenerator:
 
             parts = result.scenario_id.split("-")
             if len(parts) >= 2:
-                for i, part in enumerate(parts):
+                for _i, part in enumerate(parts):
                     if part.startswith("3.5") or part.startswith("4.0") or part.startswith("4.1"):
                         self.summary["by_spark_version"][part][result.status] += 1
                     if part in ["k8s", "openshift"]:

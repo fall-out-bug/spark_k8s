@@ -56,7 +56,7 @@ def push_metric(name, value, labels=None):
     metric_data = f"# TYPE {name} gauge\n{name}{{{label_str}}} {value}\n"
 
     try:
-        response = requests.post(
+        requests.post(
             f"{CONFIG['pushgateway_url']}/metrics/job/nyc_taxi_ml_pipeline", data=metric_data, timeout=10
         )
         logger.info(f"Pushed metric {name}={value}")
@@ -345,9 +345,10 @@ def train_borough_model(borough: str, **context):
 
 def validate_models(**context):
     """Validate all trained models meet performance threshold."""
-    import boto3
     import json
     import pickle
+
+    import boto3
 
     s3 = boto3.client(
         "s3",

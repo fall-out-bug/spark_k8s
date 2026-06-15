@@ -4,8 +4,6 @@ Container security tests for dropped capabilities
 Tests for dropped capabilities validation.
 """
 
-from typing import Set
-
 import pytest
 
 from tests.security.conftest import (
@@ -18,7 +16,7 @@ class TestContainerCapabilities:
     """Tests for dropped capabilities validation"""
 
     # Safe capabilities that are acceptable to add
-    SAFE_CAPABILITIES: Set[str] = {"CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"}
+    SAFE_CAPABILITIES: set[str] = {"CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"}
 
     def test_drop_capabilities_are_set(self, chart_35_path, preset_35_baseline):
         """Test that drop capabilities are set"""
@@ -32,7 +30,7 @@ class TestContainerCapabilities:
         for pod_spec in pod_specs:
             containers = pod_spec["spec"].get("containers", [])
             for container in containers:
-                container_name = container.get("name", "unknown")
+                container.get("name", "unknown")
                 sec_ctx = container.get("securityContext", {})
                 capabilities = sec_ctx.get("capabilities", {})
 
@@ -102,7 +100,7 @@ class TestContainerCapabilities:
         for pod_spec in pod_specs:
             containers = pod_spec["spec"].get("containers", [])
             for container in containers:
-                container_name = container.get("name", "unknown")
+                container.get("name", "unknown")
                 sec_ctx = container.get("securityContext", {})
                 capabilities = sec_ctx.get("capabilities", {})
 

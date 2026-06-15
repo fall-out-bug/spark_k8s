@@ -4,9 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
-import os
 import re
-import shutil
 import subprocess
 import tempfile
 import textwrap
@@ -19,7 +17,6 @@ from typing import Any
 import imageio_ffmpeg
 from PIL import Image, ImageDraw, ImageFont
 from playwright.sync_api import sync_playwright
-
 
 FPS = 30
 

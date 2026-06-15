@@ -15,7 +15,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
@@ -82,8 +82,8 @@ def calculate_skew_ratio(spark: SparkSession) -> float:
 def run_join_workload(
     spark: SparkSession,
     data_path: str,
-    metadata: Dict[str, str],
-) -> Dict[str, Any]:
+    metadata: dict[str, str],
+) -> dict[str, Any]:
     """
     Run self-join workload and collect metrics.
 
@@ -124,7 +124,6 @@ def run_join_workload(
     skew_ratio = calculate_skew_ratio(spark)
 
     # Get shuffle bytes
-    sc = spark.sparkContext
     shuffle_bytes = 0  # Placeholder
 
     duration_sec = time.time() - start_time

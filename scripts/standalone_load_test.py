@@ -95,7 +95,7 @@ def run_load_test(spark: SparkSession, mode: str, rows: int, partitions: int) ->
 
     # Operation 2: Filter + Count
     start = time.time()
-    count = df.filter(df.id < rows // 2).count()
+    df.filter(df.id < rows // 2).count()
     filter_time = time.time() - start
     print(f"  Filter+Count: {filter_time:.2f}s")
 

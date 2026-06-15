@@ -7,7 +7,6 @@ import os
 import socket
 
 from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
 
 MINIO_ENDPOINT = os.environ.get("MINIO_ENDPOINT", "http://minio.spark-infra.svc.cluster.local:9000")
 

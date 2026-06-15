@@ -11,10 +11,10 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 
-def aggregate_results(results_dir: str) -> Dict[str, Any]:
+def aggregate_results(results_dir: str) -> dict[str, Any]:
     """Aggregate test results from JSON files."""
     results_path = Path(results_dir)
     result_files = list(results_path.glob("*.json"))
@@ -22,7 +22,7 @@ def aggregate_results(results_dir: str) -> Dict[str, Any]:
     # Exclude aggregated.json itself
     result_files = [f for f in result_files if f.name != "aggregated.json"]
 
-    aggregated: Dict[str, Any] = {
+    aggregated: dict[str, Any] = {
         "timestamp": datetime.now().isoformat(),
         "total": len(result_files),
         "passed": 0,

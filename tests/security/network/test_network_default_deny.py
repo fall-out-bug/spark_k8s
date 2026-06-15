@@ -93,7 +93,7 @@ class TestNetworkDefaultDeny:
                         if "Ingress" not in rule_types:
                             continue
                         # Otherwise, no explicit allow rules for ingress
-                        assert False, "Default-deny should have no allow rules"
+                        raise AssertionError("Default-deny should have no allow rules")
 
                     return
 

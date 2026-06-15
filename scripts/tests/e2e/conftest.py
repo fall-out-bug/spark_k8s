@@ -11,7 +11,7 @@ import tempfile
 import time
 from collections.abc import Generator
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 
@@ -111,7 +111,7 @@ def query_results_dir() -> Path:
 
 
 @pytest.fixture(scope="function")
-def metrics_collector() -> Generator[Dict[str, Any], None, Dict[str, Any]]:
+def metrics_collector() -> Generator[dict[str, Any], None, dict[str, Any]]:
     """
     Collect metrics during test execution.
 
@@ -143,7 +143,7 @@ def metrics_collector() -> Generator[Dict[str, Any], None, Dict[str, Any]]:
 
 
 @pytest.fixture(scope="function")
-def query_metrics(spark_session: Any, query_results_dir: Path) -> Generator[Dict[str, Any], None, None]:
+def query_metrics(spark_session: Any, query_results_dir: Path) -> Generator[dict[str, Any], None, None]:
     """
     Execute a SQL query and collect metrics.
 
@@ -156,7 +156,7 @@ def query_metrics(spark_session: Any, query_results_dir: Path) -> Generator[Dict
     """
     metrics_data = {}
 
-    def execute_query(sql: str, query_name: str, dataset_path: str = None) -> Dict[str, Any]:
+    def execute_query(sql: str, query_name: str, dataset_path: str = None) -> dict[str, Any]:
         """
         Execute a SQL query and collect performance metrics.
 
@@ -179,7 +179,7 @@ def query_metrics(spark_session: Any, query_results_dir: Path) -> Generator[Dict
             row_count = df.count()
 
             # Get some sample rows for validation
-            sample = df.limit(10).collect()
+            df.limit(10).collect()
 
             end_time = time.time()
             end_memory = process.memory_info().rss
@@ -220,7 +220,7 @@ def query_metrics(spark_session: Any, query_results_dir: Path) -> Generator[Dict
 
 
 @pytest.fixture(scope="session")
-def nyc_taxi_schema() -> Dict[str, str]:
+def nyc_taxi_schema() -> dict[str, str]:
     """
     NYC Taxi dataset schema definition.
 
@@ -249,7 +249,7 @@ def nyc_taxi_schema() -> Dict[str, str]:
 
 
 @pytest.fixture(scope="function")
-def load_dataset(spark_session: Any, dataset_path: str, nyc_taxi_schema: Dict[str, str]) -> Any:
+def load_dataset(spark_session: Any, dataset_path: str, nyc_taxi_schema: dict[str, str]) -> Any:
     """
     Load NYC Taxi dataset into Spark.
 

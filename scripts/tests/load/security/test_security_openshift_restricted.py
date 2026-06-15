@@ -12,7 +12,6 @@ import pytest
 
 try:
     from kubernetes import client, config
-    from openshift.dynamic import DynamicClient
 
     K8S_AVAILABLE = True
 except ImportError:

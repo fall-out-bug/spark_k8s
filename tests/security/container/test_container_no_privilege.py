@@ -73,7 +73,7 @@ class TestContainerNoPrivilege:
         for pod_spec in pod_specs:
             containers = pod_spec["spec"].get("containers", [])
             for container in containers:
-                container_name = container.get("name", "unknown")
+                container.get("name", "unknown")
                 sec_ctx = container.get("securityContext", {})
                 capabilities = sec_ctx.get("capabilities", {})
 
