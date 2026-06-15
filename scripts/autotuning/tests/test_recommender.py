@@ -354,7 +354,7 @@ class TestGenerateRecommendations:
         mock_recommender.recommend.return_value = mock_result
         mock_recommender_class.return_value = mock_recommender
 
-        result = generate_recommendations(analysis_file=analysis_file)
+        generate_recommendations(analysis_file=analysis_file)
 
         mock_recommender.recommend.assert_called_once()
 

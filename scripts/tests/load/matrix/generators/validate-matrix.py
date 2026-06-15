@@ -12,7 +12,7 @@ Usage:
 import argparse
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import yaml
 
@@ -30,7 +30,7 @@ class ValidationError:
         return f"[{self.severity.upper()}] {self.path}: {self.message}"
 
 
-def validate_matrix_config(config: Dict[str, Any]) -> List[str]:
+def validate_matrix_config(config: dict[str, Any]) -> list[str]:
     """
     Validate the matrix configuration.
 
@@ -155,7 +155,7 @@ def validate_matrix_config(config: Dict[str, Any]) -> List[str]:
     return errors
 
 
-def validate_combination_counts(config: Dict[str, Any]) -> List[str]:
+def validate_combination_counts(config: dict[str, Any]) -> list[str]:
     """
     Validate that combination counts match expected values.
 
@@ -170,11 +170,6 @@ def validate_combination_counts(config: Dict[str, Any]) -> List[str]:
     tiers = matrix["priority_tiers"]
 
     # Expected counts
-    expected_counts = {
-        "p0_smoke": 64,  # 2 × 1 × 1 × 1 × 1 × 1 = 2 (but specified as 64 in spec)
-        "p1_core": 384,  # 2 × 2 × 2 × 3 × 3 × 2 = 144 (but specified as 384 in spec)
-        "p2_full": 1280,  # 2 × 2 × 2 × 4 × 5 × 2 = 320 (but specified as 1280 in spec)
-    }
 
     # Note: The spec has different numbers, so we validate based on
     # actual configuration

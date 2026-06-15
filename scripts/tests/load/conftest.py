@@ -9,7 +9,7 @@ import os
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import pytest
 from pyspark.sql import SparkSession
@@ -38,7 +38,7 @@ def pytest_configure(config):
 
 
 @pytest.fixture(scope="session")
-def load_test_config() -> Dict[str, Any]:
+def load_test_config() -> dict[str, Any]:
     """Get load test configuration from environment."""
     return {
         "spark_connect_url": os.getenv("SPARK_CONNECT_URL", "sc://localhost:15002"),
@@ -65,7 +65,7 @@ def metrics_output_dir() -> Path:
 
 
 @pytest.fixture(scope="session")
-def spark_connect_client(load_test_config: Dict[str, Any]) -> SparkSession:
+def spark_connect_client(load_test_config: dict[str, Any]) -> SparkSession:
     """
     Create a Spark Connect client for load testing.
 
@@ -108,9 +108,9 @@ def metrics_collector():
 
     Returns a function that collects and aggregates metrics.
     """
-    collected_metrics: List[Dict[str, Any]] = []
+    collected_metrics: list[dict[str, Any]] = []
 
-    def collector(metrics: Dict[str, Any]) -> None:
+    def collector(metrics: dict[str, Any]) -> None:
         """Collect metrics from a test iteration."""
         collected_metrics.append(
             {
@@ -142,7 +142,7 @@ def metrics_collector():
 def calculate_percentiles():
     """Calculate percentiles from a list of values."""
 
-    def helper(values: List[float]) -> Dict[str, float]:
+    def helper(values: list[float]) -> dict[str, float]:
         if not values:
             return {"p50": 0.0, "p95": 0.0, "p99": 0.0}
 
@@ -162,7 +162,7 @@ def calculate_percentiles():
 def calculate_throughput():
     """Calculate throughput from metrics."""
 
-    def helper(total_queries: int, duration_sec: int, success_count: Optional[int] = None) -> Dict[str, float]:
+    def helper(total_queries: int, duration_sec: int, success_count: Optional[int] = None) -> dict[str, float]:
         success = success_count if success_count is not None else total_queries
         return {
             "throughput_qps": total_queries / duration_sec,

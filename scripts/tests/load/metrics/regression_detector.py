@@ -14,7 +14,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from scipy import stats
 
@@ -37,10 +37,10 @@ class RegressionDetector:
 
     def detect_regression(
         self,
-        baseline: List[float],
-        current: List[float],
+        baseline: list[float],
+        current: list[float],
         metric_name: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Detect regression in a single metric.
 
@@ -64,10 +64,7 @@ class RegressionDetector:
         current_mean = sum(current) / len(current)
 
         # Calculate percentage change
-        if baseline_mean > 0:
-            change_pct = ((current_mean - baseline_mean) / baseline_mean) * 100
-        else:
-            change_pct = 0
+        change_pct = (current_mean - baseline_mean) / baseline_mean * 100 if baseline_mean > 0 else 0
 
         # Perform paired t-test if sample sizes match
         p_value = None
@@ -92,9 +89,9 @@ class RegressionDetector:
 
     def detect_resource_tradeoff(
         self,
-        primary_metric: Dict[str, Any],
-        resource_metric: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        primary_metric: dict[str, Any],
+        resource_metric: dict[str, Any],
+    ) -> dict[str, Any]:
         """
         Detect if performance degradation is offset by resource improvement.
 
@@ -117,9 +114,9 @@ class RegressionDetector:
     def analyze_test_result(
         self,
         test_name: str,
-        baseline_metrics: Dict[str, List[float]],
-        current_metrics: Dict[str, List[float]],
-    ) -> Dict[str, Any]:
+        baseline_metrics: dict[str, list[float]],
+        current_metrics: dict[str, list[float]],
+    ) -> dict[str, Any]:
         """
         Analyze a complete test result for regressions.
 
@@ -170,7 +167,7 @@ class RegressionDetector:
             "metrics": results,
         }
 
-    def detect_outliers(self, values: List[float]) -> List[int]:
+    def detect_outliers(self, values: list[float]) -> list[int]:
         """
         Detect outliers using IQR method.
 

@@ -15,7 +15,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import yaml
 
@@ -37,7 +37,7 @@ class BaselineManager:
         self.baseline_file = baseline_file or BASELINE_FILE
         self.baselines = self._load_baselines()
 
-    def _load_baselines(self) -> Dict[str, Any]:
+    def _load_baselines(self) -> dict[str, Any]:
         """Load baselines from file."""
         if self.baseline_file.exists():
             with open(self.baseline_file) as f:
@@ -53,8 +53,8 @@ class BaselineManager:
     def create_baseline(
         self,
         test_name: str,
-        metrics: List[Dict[str, Any]],
-        metadata: Optional[Dict[str, Any]] = None,
+        metrics: list[dict[str, Any]],
+        metadata: Optional[dict[str, Any]] = None,
     ) -> None:
         """
         Create a new baseline from multiple runs.
@@ -81,7 +81,7 @@ class BaselineManager:
         self._save_baselines()
         print(f"Baseline created for {test_name} from {len(metrics)} runs")
 
-    def _calculate_baseline_stats(self, metrics: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _calculate_baseline_stats(self, metrics: list[dict[str, Any]]) -> dict[str, Any]:
         """
         Calculate baseline statistics from metrics.
 
@@ -96,7 +96,7 @@ class BaselineManager:
         throughputs = [m.get("tier3_performance", {}).get("throughput", 0) for m in metrics]
 
         # Calculate statistics
-        def stats(values: List[float]) -> Dict[str, float]:
+        def stats(values: list[float]) -> dict[str, float]:
             if not values or all(v == 0 for v in values):
                 return {"mean": 0, "median": 0, "min": 0, "max": 0, "stddev": 0}
 
@@ -121,7 +121,7 @@ class BaselineManager:
             "throughput": stats(throughputs),
         }
 
-    def get_baseline(self, test_name: str) -> Optional[Dict[str, Any]]:
+    def get_baseline(self, test_name: str) -> Optional[dict[str, Any]]:
         """
         Get baseline for a test.
 
@@ -136,8 +136,8 @@ class BaselineManager:
     def compare_to_baseline(
         self,
         test_name: str,
-        current_metrics: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        current_metrics: dict[str, Any],
+    ) -> dict[str, Any]:
         """
         Compare current metrics to baseline.
 
@@ -188,7 +188,7 @@ class BaselineManager:
             },
         }
 
-    def list_baselines(self) -> List[str]:
+    def list_baselines(self) -> list[str]:
         """
         List all available baselines.
 

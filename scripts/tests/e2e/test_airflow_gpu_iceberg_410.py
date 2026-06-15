@@ -90,9 +90,7 @@ class TestAirflowGpuIceberg410:
         table_name = gpu_iceberg_table["table_name"]
 
         # Get initial data
-        initial = spark_session_with_gpu_and_iceberg.sql(f"SELECT COUNT(*) AS cnt FROM {table_name}").collect()[0][
-            "cnt"
-        ]
+        spark_session_with_gpu_and_iceberg.sql(f"SELECT COUNT(*) AS cnt FROM {table_name}").collect()[0]["cnt"]
 
         # Create new snapshot
         spark_session_with_gpu_and_iceberg.sql(f"INSERT INTO {table_name} SELECT * FROM {table_name} LIMIT 10")

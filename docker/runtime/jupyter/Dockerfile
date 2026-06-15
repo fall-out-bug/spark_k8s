@@ -31,26 +31,26 @@ RUN useradd -m -s /bin/bash -u 1000 jupyter || true
 # Use pip from the base image
 RUN pip3 install --no-cache-dir --upgrade pip && \
     pip3 install --no-cache-dir \
-    jupyterlab>=4.0.0 \
-    jupyterlab-git>=0.50.0 \
-    jupyterhub>=4.0.0 \
-    ipywidgets>=8.0.0 \
+    "jupyterlab>=4.0.0" \
+    "jupyterlab-git>=0.50.0" \
+    "jupyterhub>=4.0.0" \
+    "ipywidgets>=8.0.0" \
     pyspark==${SPARK_VERSION} \
     findspark \
-    pyarrow>=14.0.0 \
-    pandas>=2.0.0 \
-    numpy>=1.24.0 \
-    polars>=0.20.0 \
-    plotly>=5.18.0 \
-    seaborn>=0.13.0 \
-    matplotlib>=3.8.0 \
-    scikit-learn>=1.4.0 \
-    mlflow>=2.10.0 \
-    boto3>=1.34.0 \
-    s3fs>=2024.2.0 \
-    sqlalchemy>=2.0.0 \
-    psycopg2-binary>=2.9.0 \
-    python-dotenv>=1.0.0
+    "pyarrow>=14.0.0" \
+    "pandas>=2.0.0" \
+    "numpy>=1.24.0" \
+    "polars>=0.20.0" \
+    "plotly>=5.18.0" \
+    "seaborn>=0.13.0" \
+    "matplotlib>=3.8.0" \
+    "scikit-learn>=1.4.0" \
+    "mlflow>=2.10.0" \
+    "boto3>=1.34.0" \
+    "s3fs>=2024.2.0" \
+    "sqlalchemy>=2.0.0" \
+    "psycopg2-binary>=2.9.0" \
+    "python-dotenv>=1.0.0"
 
 # GPU-specific packages (RAPIDS)
 RUN if [ "$ENABLE_GPU" = "true" ]; then \

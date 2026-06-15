@@ -15,11 +15,11 @@ Environment variables:
     MINIO_SECRET_KEY: Secret key (default: minioadmin)
 """
 
+import json
 import os
 import pickle
 import socket
 import sys
-import json
 from datetime import datetime
 
 import numpy as np
@@ -163,7 +163,7 @@ def train_catboost_models(pdf, feature_cols, borough):
     # Import inside function to allow runtime installation
     try:
         from sklearn.ensemble import GradientBoostingRegressor
-        from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error
+        from sklearn.metrics import mean_squared_error
         from sklearn.model_selection import train_test_split
     except ImportError as e:
         print(f"ERROR: Missing ML dependencies: {e}")

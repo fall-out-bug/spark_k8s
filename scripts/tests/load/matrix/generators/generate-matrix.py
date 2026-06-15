@@ -17,7 +17,7 @@ import itertools
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import jinja2
 import yaml
@@ -30,13 +30,13 @@ TEMPLATES_DIR = SCRIPT_DIR.parent / "templates"
 OUTPUT_BASE = PROJECT_ROOT / "scripts" / "tests" / "output"
 
 
-def load_matrix_config(matrix_file: Path) -> Dict[str, Any]:
+def load_matrix_config(matrix_file: Path) -> dict[str, Any]:
     """Load the priority matrix configuration."""
     with open(matrix_file) as f:
         return yaml.safe_load(f)
 
 
-def generate_combinations(tier_config: Dict[str, Any]) -> List[Dict[str, str]]:
+def generate_combinations(tier_config: dict[str, Any]) -> list[dict[str, str]]:
     """
     Generate all test combinations for a tier.
 
@@ -82,7 +82,7 @@ def generate_test_name(
 
 
 def generate_helm_values(
-    combo: Dict[str, str],
+    combo: dict[str, str],
     tier: str,
     env: jinja2.Environment,
     output_dir: Path,
@@ -128,9 +128,9 @@ def generate_helm_values(
 
 
 def generate_scenario_script(
-    combo: Dict[str, str],
+    combo: dict[str, str],
     tier: str,
-    tier_config: Dict[str, Any],
+    tier_config: dict[str, Any],
     env: jinja2.Environment,
     output_dir: Path,
 ) -> Path:
@@ -161,10 +161,7 @@ def generate_scenario_script(
 
     # Calculate timeout based on operation and data size
     base_timeout = tier_config["timeout_minutes"] * 60
-    if combo["data_size"] == "11gb":
-        timeout_sec = base_timeout * 3
-    else:
-        timeout_sec = base_timeout
+    timeout_sec = base_timeout * 3 if combo["data_size"] == "11gb" else base_timeout
 
     # Add per-operation multiplier
     operation_multipliers = {
@@ -197,7 +194,7 @@ def generate_scenario_script(
 
 def generate_workflow(
     tier: str,
-    tier_config: Dict[str, Any],
+    tier_config: dict[str, Any],
     env: jinja2.Environment,
     output_dir: Path,
 ) -> Path:
@@ -232,8 +229,8 @@ def generate_workflow(
 
 def generate_summary(
     tier: str,
-    combinations: List[Dict[str, str]],
-    artifacts: List[Tuple[str, Path]],
+    combinations: list[dict[str, str]],
+    artifacts: list[tuple[str, Path]],
     output_dir: Path,
 ) -> Path:
     """

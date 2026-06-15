@@ -4,9 +4,7 @@ NYC Taxi dataset schema definition.
 This module defines the schema for the NYC Taxi dataset used in E2E tests.
 """
 
-from typing import Dict, List
-
-NYC_TAXI_SCHEMA: Dict[str, str] = {
+NYC_TAXI_SCHEMA: dict[str, str] = {
     "VendorID": "bigint",
     "tpep_pickup_datetime": "timestamp",
     "tpep_dropoff_datetime": "timestamp",
@@ -26,7 +24,7 @@ NYC_TAXI_SCHEMA: Dict[str, str] = {
     "total_amount": "double",
 }
 
-NYC_TAXI_COLUMN_NAMES: List[str] = list(NYC_TAXI_SCHEMA.keys())
+NYC_TAXI_COLUMN_NAMES: list[str] = list(NYC_TAXI_SCHEMA.keys())
 
 
 def get_sql_type(pyspark_type: str) -> str:
@@ -49,7 +47,7 @@ def get_create_table_sql(table_name: str = "nyc_taxi") -> str:
 ) USING PARQUET"""
 
 
-def get_sample_row() -> Dict[str, any]:
+def get_sample_row() -> dict[str, any]:
     """Get a sample row for testing."""
     return {
         "VendorID": 1,

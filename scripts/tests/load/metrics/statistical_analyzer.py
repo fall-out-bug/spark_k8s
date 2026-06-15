@@ -13,7 +13,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 from scipy import stats
@@ -24,9 +24,9 @@ class StatisticalAnalyzer:
 
     @staticmethod
     def calculate_confidence_interval(
-        values: List[float],
+        values: list[float],
         confidence: float = 0.95,
-    ) -> Tuple[float, float, float]:
+    ) -> tuple[float, float, float]:
         """
         Calculate confidence interval for a sample.
 
@@ -63,9 +63,9 @@ class StatisticalAnalyzer:
 
     @staticmethod
     def paired_t_test(
-        sample_a: List[float],
-        sample_b: List[float],
-    ) -> Tuple[float, float]:
+        sample_a: list[float],
+        sample_b: list[float],
+    ) -> tuple[float, float]:
         """
         Perform paired t-test between two samples.
 
@@ -83,7 +83,7 @@ class StatisticalAnalyzer:
         return (float(t_statistic), float(p_value))
 
     @staticmethod
-    def detect_outliers_iqr(values: List[float]) -> List[int]:
+    def detect_outliers_iqr(values: list[float]) -> list[int]:
         """
         Detect outliers using IQR (Interquartile Range) method.
 
@@ -115,9 +115,9 @@ class StatisticalAnalyzer:
 
     @staticmethod
     def detect_outliers_zscore(
-        values: List[float],
+        values: list[float],
         threshold: float = 3.0,
-    ) -> List[int]:
+    ) -> list[int]:
         """
         Detect outliers using z-score method.
 
@@ -147,9 +147,9 @@ class StatisticalAnalyzer:
 
     @staticmethod
     def analyze_trend(
-        values: List[float],
+        values: list[float],
         window_size: int = 5,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Analyze trend in time-series data.
 
@@ -195,7 +195,7 @@ class StatisticalAnalyzer:
         }
 
     @staticmethod
-    def calculate_percentiles(values: List[float]) -> Dict[str, float]:
+    def calculate_percentiles(values: list[float]) -> dict[str, float]:
         """
         Calculate percentiles for a dataset.
 

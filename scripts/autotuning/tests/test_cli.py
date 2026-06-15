@@ -310,7 +310,7 @@ class TestCLIErrors:
 
     def test_collector_invalid_prometheus_url(self):
         """Test collector handles invalid Prometheus URL."""
-        result = subprocess.run(
+        subprocess.run(
             [
                 sys.executable,
                 "-m",

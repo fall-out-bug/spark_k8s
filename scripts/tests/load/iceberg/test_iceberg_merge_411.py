@@ -56,7 +56,7 @@ def test_iceberg_merge_load_411(spark_connect_client):
                 """
                 MERGE INTO nyc_iceberg.test_table AS target
                 USING (
-                    SELECT {0} as id, {1} as value, 'load_test' as source
+                    SELECT {} as id, {} as value, 'load_test' as source
                 ) AS source
                 ON target.id = source.id
                 WHEN MATCHED THEN UPDATE SET value = source.value

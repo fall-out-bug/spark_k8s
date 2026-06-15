@@ -8,7 +8,7 @@ Duration: 60 minutes (30 min per version)
 import random
 import time
 from datetime import datetime, timedelta
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 from helpers_validation import generate_comparison_report
@@ -17,7 +17,7 @@ from pyspark.sql import SparkSession
 
 def run_mixed_workload(
     client: SparkSession, queries: list, duration_sec: int, interval_sec: float, label: str
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Run mixed workload test."""
     start_time = datetime.now()
     end_time = start_time + timedelta(seconds=duration_sec)

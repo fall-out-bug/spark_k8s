@@ -5,10 +5,10 @@ HTML metrics calculation for test reports.
 This module handles metrics calculation from aggregated test results.
 """
 
-from typing import Any, Dict
+from typing import Any
 
 
-def calculate_metrics(aggregated: Dict[str, Any]) -> Dict[str, Any]:
+def calculate_metrics(aggregated: dict[str, Any]) -> dict[str, Any]:
     """Calculate test metrics from aggregated results.
 
     Args:

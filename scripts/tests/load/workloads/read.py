@@ -15,7 +15,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from pyspark.sql import SparkSession
 
@@ -45,8 +45,8 @@ def create_spark_session() -> SparkSession:
 def run_read_workload(
     spark: SparkSession,
     data_path: str,
-    metadata: Dict[str, str],
-) -> Dict[str, Any]:
+    metadata: dict[str, str],
+) -> dict[str, Any]:
     """
     Run read workload and collect metrics.
 
@@ -67,7 +67,7 @@ def run_read_workload(
     count = df.count()
 
     # Collect additional metrics
-    read_bytes = df._jdf.sparkContext().statusTracker().getExecutorInfos()  # type: ignore
+    df._jdf.sparkContext().statusTracker().getExecutorInfos()  # type: ignore
 
     # Calculate derived metrics
     duration_sec = time.time() - start_time

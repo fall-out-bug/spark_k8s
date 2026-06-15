@@ -400,7 +400,7 @@ class TestAnalyzeMetricsCLI:
         mock_analyzer.analyze.return_value = mock_result
         mock_analyzer_class.return_value = mock_analyzer
 
-        result = analyze_metrics(metrics_file=metrics_file)
+        analyze_metrics(metrics_file=metrics_file)
 
         mock_analyzer.analyze.assert_called_once()
 

@@ -121,7 +121,7 @@ class TestClusterRoleMinimalPermissions:
             pytest.fail("helm template should succeed")
 
         docs = parse_yaml_docs(output)
-        cluster_roles = [d for d in docs if d and d.get("kind") == "ClusterRole"]
+        [d for d in docs if d and d.get("kind") == "ClusterRole"]
 
         # ClusterRole may not be created for standalone mode
         # (This depends on chart implementation)

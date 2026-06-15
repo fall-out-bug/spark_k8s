@@ -7,7 +7,7 @@ collecting metrics, and validating results.
 
 import subprocess
 from datetime import datetime, timedelta
-from typing import Any, Dict
+from typing import Any
 
 from pyspark.sql import SparkSession
 
@@ -18,7 +18,7 @@ def run_sustained_load(
     duration_sec: int,
     interval_sec: float = 1.0,
     query_name: str = "query",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Run a sustained load test.
 
@@ -101,7 +101,7 @@ def run_sustained_load(
     return metrics
 
 
-def get_gpu_metrics() -> Dict[str, Any]:
+def get_gpu_metrics() -> dict[str, Any]:
     """
     Collect GPU metrics using nvidia-smi.
 

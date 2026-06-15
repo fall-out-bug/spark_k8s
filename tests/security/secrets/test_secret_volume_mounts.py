@@ -78,7 +78,7 @@ class TestSecretVolumeMounts:
 
                     # Secret mounts should ideally be read-only
                     if is_secret:
-                        read_only = mount.get("readOnly", False)
+                        mount.get("readOnly", False)
                         # readOnly can be false (writable secrets) but should be true ideally
                         # This is just a validation, not a hard requirement
 
@@ -116,7 +116,7 @@ class TestSecretVolumeMounts:
         secrets = [d for d in docs if d and d.get("kind") == "Secret"]
 
         # Look for TLS secrets
-        tls_secrets = [s for s in secrets if s.get("type") == "kubernetes.io/tls"]
+        [s for s in secrets if s.get("type") == "kubernetes.io/tls"]
 
         # TLS secrets may or may not be created depending on configuration
         # This test just verifies the chart can render with TLS enabled

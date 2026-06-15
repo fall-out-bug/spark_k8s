@@ -97,13 +97,13 @@ RUN mkdir -p /opt/hive-metastore/lib && \
 # Install Python packages for pandas API and Spark Connect dependencies
 # PySpark is already in the base image, we just need connect extras
 RUN pip install --no-cache-dir \
-    pyarrow>=14.0.0 \
-    pandas>=2.0.0 \
-    numpy>=1.24.0 \
-    boto3>=1.34.0 \
-    grpcio>=1.60.0 \
-    grpcio-status>=1.60.0 \
-    googleapis-common-protos>=1.56.4
+    "pyarrow>=14.0.0" \
+    "pandas>=2.0.0" \
+    "numpy>=1.24.0" \
+    "boto3>=1.34.0" \
+    "grpcio>=1.60.0" \
+    "grpcio-status>=1.60.0" \
+    "googleapis-common-protos>=1.56.4"
 
 # Copy default configurations (with proper permissions)
 COPY --chmod=644 conf/spark-defaults.conf /opt/spark/conf/spark-defaults.conf

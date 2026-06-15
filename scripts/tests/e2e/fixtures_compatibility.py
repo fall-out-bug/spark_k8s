@@ -5,20 +5,20 @@ This module provides fixtures for testing PySpark compatibility
 with different versions of pandas, numpy, and pyarrow.
 """
 
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 
 
 @pytest.fixture(scope="session")
-def library_versions() -> Dict[str, str]:
+def library_versions() -> dict[str, str]:
     """
     Detect and return library versions in the test environment.
 
     Returns:
         Dict: Mapping of library names to version strings.
     """
-    versions: Dict[str, str] = {}
+    versions: dict[str, str] = {}
 
     try:
         import pandas
@@ -52,7 +52,7 @@ def library_versions() -> Dict[str, str]:
 
 
 @pytest.fixture(scope="function")
-def pandas_compatibility(spark_session: Any) -> Dict[str, Any]:
+def pandas_compatibility(spark_session: Any) -> dict[str, Any]:
     """
     Test pandas to Spark DataFrame conversion.
 
@@ -91,7 +91,7 @@ def pandas_compatibility(spark_session: Any) -> Dict[str, Any]:
 
 
 @pytest.fixture(scope="function")
-def numpy_compatibility(spark_session: Any) -> Dict[str, Any]:
+def numpy_compatibility(spark_session: Any) -> dict[str, Any]:
     """
     Test numpy array to Spark DataFrame conversion.
 
@@ -126,7 +126,7 @@ def numpy_compatibility(spark_session: Any) -> Dict[str, Any]:
 
 
 @pytest.fixture(scope="function")
-def pyarrow_compatibility(spark_session: Any) -> Dict[str, Any]:
+def pyarrow_compatibility(spark_session: Any) -> dict[str, Any]:
     """
     Test PyArrow-enabled Spark operations.
 
@@ -161,7 +161,7 @@ def pyarrow_compatibility(spark_session: Any) -> Dict[str, Any]:
 
 
 @pytest.fixture(scope="function")
-def type_compatibility(spark_session: Any) -> Dict[str, Any]:
+def type_compatibility(spark_session: Any) -> dict[str, Any]:
     """
     Test data type compatibility between pandas/PySpark.
 

@@ -215,7 +215,6 @@ def main():
     print("=" * 60)
 
     try:
-        from pyspark.sql.functions import col as spark_col
 
         indexers = Pipeline(
             stages=[

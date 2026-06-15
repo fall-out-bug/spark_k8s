@@ -5,10 +5,8 @@ HTML CSS styles for test report.
 This module contains CSS style definitions for HTML reports.
 """
 
-from typing import Dict
 
-
-def get_css_styles() -> Dict[str, str]:
+def get_css_styles() -> dict[str, str]:
     """Get CSS styles as dictionary for dynamic use."""
     return {
         "passed_bg": "#d4edda",

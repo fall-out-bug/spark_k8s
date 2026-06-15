@@ -29,11 +29,25 @@ target-version = "py39"
 line-length = 120
 exclude = [
     ".git", "__pycache__", ".venv", "venv", "build", "dist", "*.egg-info", ".sdp",
+    "notebooks/",  # Notebooks: pre-existing JSON schema issues, separate lint
+    "examples/*.ipynb",
 ]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "N"]
-ignore = ["E501"]
+ignore = [
+    "E501",  # line too long (handled by black)
+    "E402",  # module-level import not at top (common in scripts/notebooks)
+    "E722",  # bare except (legacy code)
+    "N802",  # function name should be lowercase (Spark Listener onApplicationStart etc.)
+    "N803",  # argument name should be lowercase (X_train, X_test in ML code)
+    "N806",  # variable in function should be lowercase (X_train, X_test in ML code)
+    "N812",  # lowercase imported as non-lowercase (udf as F convention)
+    "F403",  # import * used (pyspark types wildcard)
+    "F821",  # undefined name (false positives in pyspark dynamic imports)
+    "SIM102",  # collapsible if (readability)
+    "SIM105",  # try/except/pass → contextlib.suppress (legibility)
+]
 
 [tool.black]
 line-length = 120

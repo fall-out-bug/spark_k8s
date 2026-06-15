@@ -11,6 +11,7 @@ if spark_home not in sys.path:
 
 # Find PySpark lib
 import glob
+
 pyspark_lib = glob.glob(spark_home + "/python/lib/py4j-*.zip")
 if pyspark_lib:
     for lib in pyspark_lib:
@@ -28,6 +29,7 @@ except ImportError:
 # Set PyArrow timezone fix (if available)
 # Check if pyarrow is available without try/except
 import importlib.util
+
 if importlib.util.find_spec("pyarrow") is not None:
     os.environ["PYARROW_IGNORE_TIMEZONE"] = "1"
 

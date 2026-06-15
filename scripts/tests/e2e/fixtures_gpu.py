@@ -7,12 +7,11 @@ and GPU-specific Spark configuration.
 
 import subprocess
 from collections.abc import Generator
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import pytest
 
 # Type for SparkSession (avoiding circular import)
-Any = object
 
 
 def _check_nvidia_smi() -> bool:
@@ -31,7 +30,7 @@ def _check_nvidia_smi() -> bool:
         return False
 
 
-def _get_gpu_stats() -> Dict[str, Any]:
+def _get_gpu_stats() -> dict[str, Any]:
     """
     Get current GPU statistics.
 
@@ -81,7 +80,7 @@ def gpu_available() -> bool:
 
 
 @pytest.fixture(scope="function")
-def gpu_metrics() -> Generator[Dict[str, Any], None, Dict[str, Any]]:
+def gpu_metrics() -> Generator[dict[str, Any], None, dict[str, Any]]:
     """
     Collect GPU metrics during test execution.
 
@@ -163,7 +162,7 @@ def cuda_version() -> Optional[str]:
 
 
 @pytest.fixture(scope="function")
-def gpu_performance_metrics(spark_session: Any) -> Dict[str, Any]:
+def gpu_performance_metrics(spark_session: Any) -> dict[str, Any]:
     """
     Collect GPU performance metrics for Spark queries.
 

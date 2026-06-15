@@ -300,7 +300,7 @@ class TestE2ESafetyValidation:
         # Apply with validation
         generator = HelmValuesGenerator()
         values_file = tmp_path / "values.yaml"
-        result = generator.save_overlay(rec_set, values_file)
+        generator.save_overlay(rec_set, values_file)
 
         # Validate safety bounds
         content = values_file.read_text()
