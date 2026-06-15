@@ -29,7 +29,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: minio
+      app: minio
   namespaceSelector:
     matchNames:
       - {{ .Values.targetNamespace | default "spark-infra" }}
