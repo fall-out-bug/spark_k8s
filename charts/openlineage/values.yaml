@@ -1,0 +1,67 @@
+# OpenLineage stack: Marquez backend + Web UI + PostgreSQL
+#
+# Usage:
+#   helm install openlineage charts/openlineage -n lineage --create-namespace
+#
+# Then configure Airflow to send events:
+#   AIRFLOW__OPENLINEAGE__TRANSPORT='{"type":"http","url":"http://marquez.lineage.svc.cluster.local:5000","endpoint":"/api/v1/lineage","timeout":30}'
+#   AIRFLOW__OPENLINEAGE__NAMESPACE=spark-infra-airflow
+#   pip install apache-airflow-providers-openlineage
+
+# Marquez API + Web UI deployment
+marquez:
+  image:
+    repository: marquezproject/marquez
+    tag: 0.45.0
+    pullPolicy: IfNotPresent
+  webImage:
+    repository: marquezproject/marquez-web
+    tag: 0.45.0
+    pullPolicy: IfNotPresent
+  namespace: lineage
+  resources:
+    requests: {cpu: 50m, memory: 256Mi}
+    limits: {cpu: 500m, memory: 512Mi}
+  webResources:
+    requests: {cpu: 25m, memory: 64Mi}
+    limits: {cpu: 200m, memory: 256Mi}
+
+# PostgreSQL backend
+postgres:
+  image:
+    repository: postgres
+    tag: "15-alpine"
+    pullPolicy: IfNotPresent
+  database: marquez
+  user: marquez
+  password: marquez  # Local-only; override for production
+  persistence:
+    size: 2Gi
+    storageClass: standard
+  resources:
+    requests: {cpu: 50m, memory: 128Mi}
+    limits: {cpu: 300m, memory: 256Mi}
+
+# Service exposure
+service:
+  apiPort: 5000
+  webPort: 3000
+
+# Airflow OpenLineage integration config (reference)
+# Apply via spark-3.5 chart values: airflow.env.*
+airflowIntegration:
+  transport: |
+    {
+      "type": "http",
+      "url": "http://marquez.lineage.svc.cluster.local:5000",
+      "endpoint": "/api/v1/lineage",
+      "timeout": 30
+    }
+  namespace: spark-infra-airflow
+  providerPackage: apache-airflow-providers-openlineage==2.3.0
+
+# Spark OpenLineage integration (optional, requires --packages at spark-submit)
+sparkIntegration:
+  enabled: false
+  package: io.openlineage:openlineage-spark_2.12:1.29.0
+  transport: http://marquez.lineage.svc.cluster.local:5000
