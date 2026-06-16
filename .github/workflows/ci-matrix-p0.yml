@@ -10,6 +10,8 @@ on:
       - "scripts/tests/smoke/**"
       - "scripts/tests/load/matrix/**"
       - "scripts/run-matrix*.sh"
+      - ".github/workflows/ci-matrix-p0.yml"
+  workflow_dispatch:
 
 concurrency:
   group: matrix-p0-${{ github.ref }}
