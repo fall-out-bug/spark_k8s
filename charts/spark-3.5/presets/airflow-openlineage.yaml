@@ -12,9 +12,25 @@ global:
     secretKey: "minioadmin"
     pathStyleAccess: true
     sslEnabled: false
+  postgresql:
+    host: "spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local"
+    port: 5432
+    user: "postgres"
+    password: "postgres"
 
 spark-base:
-  enabled: false  # Assumes shared-infra already deployed
+  enabled: true  # Required: spark-base templates provide podSecurityContext helper
+  minio:
+    enabled: true
+  postgresql:
+    enabled: true
+    auth:
+      username: "postgres"
+      password: "postgres"
+    databases:
+      - "airflow"
+      - "spark_db"
+    authMethod: "md5"
 
 standalone:
   enabled: true
@@ -33,6 +49,11 @@ airflow:
     repository: spark-k8s/airflow
     tag: "2.11.0"
     pullPolicy: IfNotPresent
+  postgresql:
+    enabled: false
+    externalHost: "spark-infra-spark-base-postgresql.spark-infra.svc.cluster.local"
+    externalPort: 5432
+    auth: { database: "airflow", username: "postgres", password: "postgres" }
   env:
     OPENLINEAGE_TRANSPORT: '{"type":"http","url":"http://openlineage-marquez.lineage.svc.cluster.local:5000","endpoint":"/api/v1/lineage","timeout":30}'
     OPENLINEAGE_NAMESPACE: spark-infra-airflow
