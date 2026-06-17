@@ -34,8 +34,9 @@ of any chart scenario works out-of-the-box for OSS consumers, with no local imag
      (custom Hadoop 3.4.2 + AWS SDK v2 builds, require pre-built `dist/*.tgz`)
    - `spark-k8s-jupyter-spark:<major>-<full>` for the matching Spark versions
      (e.g. `4.1-4.1.1`, `3.5-3.5.7`)
-2. Tagging strategy: version tags (immutable per release) + `latest`-style moving tags
-   for the active dev version.
+2. Tagging strategy: version tags (overwritable on re-publish by default; GHCR
+   tag-protection/immutability is future hardening, not in scope). No `latest`-style
+   moving tags — explicit version pins only.
 3. Trigger: on tag push (`v*`) for releases; manual `workflow_dispatch` for ad-hoc
    builds (mirrors `build-spark-dist.yml` pattern).
 4. `GITHUB_TOKEN` with `packages: write`; images published to the org/user namespace.
@@ -71,7 +72,8 @@ succeeds.
 **so that** releases ship reproducible images without manual steps.
 
 **AC5:** `git tag v0.2.0 && git push --tags` triggers publish of all in-scope images.
-**AC6:** Published tags are immutable (re-publishing same tag fails, not overwrites).
+**AC6:** Re-publishing the same version tag overwrites it (GHCR default). Tag
+   immutability (fail-if-exists) is future hardening, tracked but out of scope.
 
 ### US3 — Fast rebuilds (P2)
 
