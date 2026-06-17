@@ -73,7 +73,7 @@ spark.stop()
 "
 
 # Проверить логи
-kubectl run mc-$(date +%s) --rm -i --restart=Never -n <namespace> --image=quay.io/minio/mc:latest -- \
+kubectl run mc-$(date +%s) --rm -i --restart=Never -n <namespace> --image=minio/mc:RELEASE.2025-08-13T08-35-41Z -- \
   /bin/sh -lc "mc ls minio/spark-logs/4.1/events"
 
 # History Server

@@ -102,8 +102,8 @@ core:
     enabled: false  # Set to true to enable MinIO S3-compatible storage
     fullnameOverride: ""
     image:
-      repository: quay.io/minio/minio
-      tag: "RELEASE.2024-01-01T16-36-33Z"
+      repository: alpine/minio
+      tag: "RELEASE.2025-10-15T17-29-55Z"
       pullPolicy: IfNotPresent
     service:
       port: 9000

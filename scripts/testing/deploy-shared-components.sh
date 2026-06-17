@@ -141,7 +141,7 @@ echo ""
 echo -e "${YELLOW}Step 7: Creating S3 buckets...${NC}"
 kubectl run "mc-buckets-shared-$$" \
     --restart=Never \
-    --image=quay.io/minio/mc:latest \
+    --image=minio/mc:RELEASE.2025-08-13T08-35-41Z \
     -n "$NAMESPACE" \
     --command -- /bin/sh -c "
         mc alias set myminio http://minio:9000 minioadmin minioadmin

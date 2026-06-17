@@ -36,7 +36,7 @@ kubectl get pods -n spark-infra -l app.kubernetes.io/component=spark-connect
 
 ```bash
 kubectl run -n spark-infra minio-check --rm -i --restart=Never \
-  --image=quay.io/minio/mc:latest --command -- /bin/sh -c "
+  --image=minio/mc:RELEASE.2025-08-13T08-35-41Z --command -- /bin/sh -c "
   mc alias set local http://minio:9000 minioadmin minioadmin &&
   mc ls local
 "

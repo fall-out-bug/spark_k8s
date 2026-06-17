@@ -42,7 +42,7 @@ ensure_event_log_prefix() {
   local prefix="$2"
 
   kubectl run "mc-prefix-$(date +%s)-${RANDOM}" --rm -i --restart=Never -n "${ns}" --command \
-    --image=quay.io/minio/mc:latest \
+    --image=minio/mc:RELEASE.2025-08-13T08-35-41Z \
     -- /bin/sh -lc "mc alias set myminio ${endpoint} ${access_key} ${secret_key} >/dev/null 2>&1 && mc mb --ignore-existing myminio/spark-logs >/dev/null 2>&1 && echo '' | mc pipe myminio/${prefix}/.keep >/dev/null 2>&1" \
     >/dev/null 2>&1 || true
 }
@@ -99,7 +99,7 @@ wait_for_event_logs() {
 
   for _ in $(seq 1 12); do
     if kubectl run "mc-check-$(date +%s)-${RANDOM}" --rm -i --restart=Never -n "${ns}" --command \
-      --image=quay.io/minio/mc:latest \
+      --image=minio/mc:RELEASE.2025-08-13T08-35-41Z \
       -- /bin/sh -lc "mc alias set myminio ${endpoint} ${access_key} ${secret_key} >/dev/null 2>&1 && mc ls myminio/${prefix} | grep -v '\\.keep$' | head -n 1" \
       >/dev/null 2>&1; then
       return 0

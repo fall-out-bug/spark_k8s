@@ -16,7 +16,7 @@ kubectl exec -n <namespace> deploy/history-server -- \
   printenv | grep SPARK_HISTORY_OPTS
 
 # Проверить что event logs пишутся
-kubectl run mc-$(date +%s) --rm -i --restart=Never -n <namespace> --image=quay.io/minio/mc:latest -- \
+kubectl run mc-$(date +%s) --rm -i --restart=Never -n <namespace> --image=minio/mc:RELEASE.2025-08-13T08-35-41Z -- \
   /bin/sh -lc "mc ls minio/spark-logs/4.1/events"
 
 # Проверить логи History Server
@@ -90,7 +90,7 @@ spark.stop()
 
 # Подождать и проверить
 sleep 10
-kubectl run mc-$(date +%s) --rm -i --restart=Never -n <namespace> --image=quay.io/minio/mc:latest -- \
+kubectl run mc-$(date +%s) --rm -i --restart=Never -n <namespace> --image=minio/mc:RELEASE.2025-08-13T08-35-41Z -- \
   /bin/sh -lc "mc ls minio/spark-logs/4.1/events | tail -5"
 
 # Открыть UI
