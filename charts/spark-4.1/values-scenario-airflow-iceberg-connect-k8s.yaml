@@ -27,7 +27,7 @@ connect:
   backendMode: k8s
   image:
     repository: spark-custom-iceberg
-    tag: "4.1.0"
+    tag: "4.1.1"
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -74,7 +74,7 @@ jupyter:
   enabled: true
   image:
     repository: jupyter-spark-iceberg
-    tag: "4.1.0"
+    tag: "4.1.1"
   env:
     PYSPARK_PYTHON: "/opt/conda/bin/python"
     PYSPARK_DRIVER_PYTHON: "/opt/conda/bin/python"

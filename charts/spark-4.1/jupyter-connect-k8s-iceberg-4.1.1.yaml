@@ -1,5 +1,5 @@
 # Preset: Jupyter + Spark Connect + Iceberg (smoke test - local mode)
-# Source: Spark 4.1.0 local mode with Iceberg libs
+# Source: Spark 4.1.1 local mode with Iceberg libs
 # Components: Connect + Jupyter (Hive Metastore disabled for smoke test)
 
 global:
@@ -31,7 +31,7 @@ connect:
   backendMode: local
   image:
     repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
-    tag: "4.1.0"
+    tag: "4.1.1"
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -59,7 +59,7 @@ jupyter:
   enabled: true
   image:
     repository: ghcr.io/fall-out-bug/spark-k8s-jupyter-spark
-    tag: "4.1.0"
+    tag: "4.1.1"
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP

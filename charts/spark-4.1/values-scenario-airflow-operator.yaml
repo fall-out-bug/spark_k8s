@@ -70,9 +70,9 @@ security:
 # DAG files for Spark Operator
 # See: charts/spark-3.5/charts/spark-standalone/files/airflow/dags/spark_operator_e2e.py
 # Required Airflow variables:
-# - spark_image: spark-custom:4.1.0
+# - spark_image: spark-custom:4.1.1
 # - spark_namespace: <namespace>
-# - spark_version: 4.1.0
+# - spark_version: 4.1.1
 # - spark_eventlog_dir: s3a://spark-logs/events
 # - spark_operator_serviceaccount: spark-operator-spark-operator
 # - s3_endpoint: http://minio.<namespace>.svc.cluster.local:9000

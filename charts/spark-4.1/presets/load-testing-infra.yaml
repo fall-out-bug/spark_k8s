@@ -69,7 +69,7 @@ hiveMetastore:
 # History Server
 historyServer:
   enabled: true
-  sparkVersion: "4.1.0"
+  sparkVersion: "4.1.1"
   service:
     type: ClusterIP
     port: 18080
