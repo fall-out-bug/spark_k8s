@@ -11,11 +11,13 @@ fi
 
 # Set environment from secrets if available
 if [ -f /etc/spark-secrets/s3-access-key ]; then
-  export AWS_ACCESS_KEY_ID=$(cat /etc/spark-secrets/s3-access-key)
+  AWS_ACCESS_KEY_ID=$(cat /etc/spark-secrets/s3-access-key)
+  export AWS_ACCESS_KEY_ID
 fi
 
 if [ -f /etc/spark-secrets/s3-secret-key ]; then
-  export AWS_SECRET_ACCESS_KEY=$(cat /etc/spark-secrets/s3-secret-key)
+  AWS_SECRET_ACCESS_KEY=$(cat /etc/spark-secrets/s3-secret-key)
+  export AWS_SECRET_ACCESS_KEY
 fi
 
 SPARK_CONF=""
@@ -44,7 +46,7 @@ case "${SPARK_MODE:-connect}" in
   connect)
     echo "Starting Spark Connect server..."
     exec /opt/spark/sbin/start-connect-server.sh \
-      --packages org.apache.spark:spark-connect_2.13:4.1.0 \
+      --packages org.apache.spark:spark-connect_2.13:${SPARK_VERSION} \
       --conf spark.connect.grpc.binding.port=${SPARK_CONNECT_PORT:-15002} \
       $SPARK_CONF
     ;;

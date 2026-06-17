@@ -1,6 +1,7 @@
 FROM eclipse-temurin:17 AS builder
 
 ARG SPARK_VERSION=4.1.0
+ENV SPARK_VERSION=${SPARK_VERSION}
 
 WORKDIR /build
 
