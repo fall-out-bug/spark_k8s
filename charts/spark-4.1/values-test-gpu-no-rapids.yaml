@@ -15,7 +15,7 @@ connect:
   backendMode: k8s
   image:
     repository: apache/spark
-    tag: "4.1.0"
+    tag: "4.1.1"
     pullPolicy: IfNotPresent
   resources:
     requests:
