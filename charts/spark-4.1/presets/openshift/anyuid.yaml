@@ -48,7 +48,7 @@ connect:
   replicas: 1
   image:
     repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
-    tag: "4.1.0"
+    tag: "4.1.1"
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -110,7 +110,7 @@ historyServer:
   enabled: true
   image:
     repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
-    tag: "4.1.0"
+    tag: "4.1.1"
     pullPolicy: IfNotPresent
   logDirectory: "s3a://spark-logs/events"
   service:

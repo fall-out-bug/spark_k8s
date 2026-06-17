@@ -5,11 +5,10 @@ set -e
 # Usage: ./build-4.1.sh
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../../.." && pwd)"
 
 # Variants: baseline, gpu, iceberg, gpu-iceberg
 VARIANTS=("baseline" "gpu" "iceberg" "gpu-iceberg")
-VERSIONS=("4.1.0")
+VERSIONS=("4.1.0" "4.1.1")
 
 echo "Building Jupyter runtime images for Spark 4.1..."
 

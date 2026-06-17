@@ -1,9 +1,9 @@
 # Apache Spark 4.1 on Kubernetes
 
-[![Spark Version](https://img.shields.io/badge/Spark-4.1.0-orange)](https://spark.apache.org/)
+[![Spark Version](https://img.shields.io/badge/Spark-4.1.1-orange)](https://spark.apache.org/)
 [![Helm](https://img.shields.io/badge/Helm-3.x-blue)](https://helm.sh)
 
-Unified Helm chart for deploying Apache Spark 4.1.0 on Kubernetes with support for Spark Connect, GPU acceleration (RAPIDS), Apache Iceberg, Jupyter, and Airflow.
+Unified Helm chart for deploying Apache Spark 4.1.1 on Kubernetes with support for Spark Connect, GPU acceleration (RAPIDS), Apache Iceberg, Jupyter, and Airflow.
 
 ---
 
@@ -437,7 +437,7 @@ connect:
   replicas: 1
   image:
     repository: "apache/spark"
-    tag: "4.1.0"
+    tag: "4.1.1"
   resources:
     requests:
       memory: "2Gi"
@@ -504,7 +504,7 @@ connect:
 # After (Spark 4.1)
 connect:
   image:
-    tag: "4.1.0"
+    tag: "4.1.1"
 ```
 
 #### 2. Update Connect Client URL
@@ -804,5 +804,5 @@ kubectl delete pvc -l app.kubernetes.io/instance=my-spark
 ---
 
 **Chart Version:** 0.1.0
-**Spark Version:** 4.1.0
-**Application Version:** 4.1.0
+**Spark Version:** 4.1.1
+**Application Version:** 4.1.1

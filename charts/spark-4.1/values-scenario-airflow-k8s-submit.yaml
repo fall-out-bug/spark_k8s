@@ -7,7 +7,7 @@
 # For Spark 4.1, use charts/spark-3.5/charts/spark-standalone
 
 # K8s submit scenario uses Airflow variables for Spark configuration:
-# - spark_image: spark-custom:4.1.0
+# - spark_image: spark-custom:4.1.1
 # - spark_namespace: <namespace>
 # - spark_k8s_serviceaccount: spark
 # - spark_eventlog_dir: s3a://spark-logs/events

@@ -4,8 +4,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-VERSIONS=("3.5.7" "4.1.0")
+VERSIONS=("3.5.7" "4.1.0" "4.1.1")
 
 log_info() {
     echo "[INFO] $*"

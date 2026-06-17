@@ -1,8 +1,8 @@
 apiVersion: v2
 name: spark-4.1
 version: 0.1.0
-appVersion: "4.1.0"
-description: Apache Spark 4.1.0 (Spark Connect + K8s Native + optional Celeborn/Operator)
+appVersion: "4.1.1"
+description: Apache Spark 4.1.1 (Spark Connect + K8s Native + optional Celeborn/Operator)
 
 dependencies:
   - name: spark-base

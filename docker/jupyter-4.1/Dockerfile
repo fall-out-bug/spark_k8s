@@ -1,10 +1,10 @@
-FROM apache/spark:4.1.0-python3
+FROM apache/spark:4.1.1-python3
 
 # Install JupyterLab
 USER root
 RUN pip install --no-cache-dir \
     jupyterlab==4.0.0 \
-    pyspark==4.1.0 \
+    pyspark==4.1.1 \
     "grpcio>=1.48.1" \
     "grpcio-status>=1.48.1" \
     "zstandard>=0.25.0" \
