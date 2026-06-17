@@ -25,8 +25,7 @@ def identity_partitioning(spark):
     """
     print("\n=== Identity Partitioning ===")
 
-    spark.sql(
-        """
+    spark.sql("""
         CREATE TABLE IF NOT EXISTS iceberg.examples.events_identity (
             event_id BIGINT,
             event_type STRING,
@@ -34,8 +33,7 @@ def identity_partitioning(spark):
             payload STRING
         ) USING iceberg
         PARTITIONED BY (identity(event_type))
-    """
-    )
+    """)
 
     # Insert sample data
     data = [(i, f"type_{i % 3}") for i in range(100)]
@@ -59,16 +57,14 @@ def bucket_partitioning(spark):
     """
     print("\n=== Bucket Partitioning ===")
 
-    spark.sql(
-        """
+    spark.sql("""
         CREATE TABLE IF NOT EXISTS iceberg.examples.user_events_bucket (
             user_id BIGINT,
             event_time TIMESTAMP,
             action STRING
         ) USING iceberg
         PARTITIONED BY (bucket(16, user_id))
-    """
-    )
+    """)
 
     # Insert sample data
     data = [(i, f"action_{i % 10}") for i in range(1000)]
@@ -77,13 +73,11 @@ def bucket_partitioning(spark):
     df.writeTo("iceberg.examples.user_events_bucket").append()
 
     # Show partition distribution
-    spark.sql(
-        """
+    spark.sql("""
         SELECT partition, record_count, file_count
         FROM iceberg.examples.user_events_bucket.partitions
         ORDER BY partition
-    """
-    ).show()
+    """).show()
 
 
 def day_partitioning(spark):
@@ -94,8 +88,7 @@ def day_partitioning(spark):
     """
     print("\n=== Day Partitioning ===")
 
-    spark.sql(
-        """
+    spark.sql("""
         CREATE TABLE IF NOT EXISTS iceberg.examples.logs_daily (
             log_id BIGINT,
             log_time TIMESTAMP,
@@ -103,8 +96,7 @@ def day_partitioning(spark):
             message STRING
         ) USING iceberg
         PARTITIONED BY (days(log_time))
-    """
-    )
+    """)
 
     # Insert sample data
     data = [(i, f"level_{i % 5}", f"message {i}") for i in range(100)]
@@ -124,16 +116,14 @@ def truncate_partitioning(spark):
     """
     print("\n=== Truncate Partitioning ===")
 
-    spark.sql(
-        """
+    spark.sql("""
         CREATE TABLE IF NOT EXISTS iceberg.examples.urls_truncate (
             url STRING,
             visit_time TIMESTAMP,
             visitor_id STRING
         ) USING iceberg
         PARTITIONED BY (truncate(1, url))
-    """
-    )
+    """)
 
     # Insert sample data
     data = [
@@ -158,8 +148,7 @@ def combined_partitioning(spark):
     """
     print("\n=== Combined Partitioning ===")
 
-    spark.sql(
-        """
+    spark.sql("""
         CREATE TABLE IF NOT EXISTS iceberg.examples.events_combined (
             event_id BIGINT,
             event_time TIMESTAMP,
@@ -168,8 +157,7 @@ def combined_partitioning(spark):
             payload STRING
         ) USING iceberg
         PARTITIONED BY (days(event_time), bucket(8, event_type), identity(region))
-    """
-    )
+    """)
 
     # Insert sample data
     data = [(i, f"type_{i % 4}", f"region_{i % 3}") for i in range(200)]
@@ -199,8 +187,7 @@ def main():
     combined_partitioning(spark)
 
     print("\n=== Partitioning Summary ===")
-    spark.sql(
-        """
+    spark.sql("""
         SELECT
             'events_identity' as table,
             count(*) as partitions
@@ -209,8 +196,7 @@ def main():
         SELECT 'user_events_bucket', count(*) FROM iceberg.examples.user_events_bucket.partitions
         UNION ALL
         SELECT 'logs_daily', count(*) FROM iceberg.examples.logs_daily.partitions
-    """
-    ).show()
+    """).show()
 
     spark.stop()
 

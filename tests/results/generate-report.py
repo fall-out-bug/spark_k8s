@@ -11,7 +11,6 @@ import xml.etree.ElementTree as ET
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 RESULTS_DIR = Path("tests/results")
 
@@ -65,7 +64,7 @@ class ReportGenerator:
             "by_deployment_mode": defaultdict(lambda: {"passed": 0, "failed": 0, "skipped": 0}),
         }
 
-    def parse_junit_xml(self, xml_path: Path) -> Optional[TestResult]:
+    def parse_junit_xml(self, xml_path: Path) -> TestResult | None:
         try:
             tree = ET.parse(xml_path)
             root = tree.getroot()

@@ -40,6 +40,8 @@ quality-gate.toml
 # Secrets and credentials (NEVER commit these)
 *-secrets.yaml
 secrets.yaml
+# Beads tracker (FROZEN per AGENTS.md — read-only local state, large dolt DB)
+.beads/
 # Build artifacts (spark dist)
 dist/
 

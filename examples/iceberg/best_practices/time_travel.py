@@ -20,43 +20,35 @@ def setup_example_table(spark):
     """Create example table with multiple snapshots."""
     spark.sql("CREATE NAMESPACE IF NOT EXISTS iceberg.examples")
 
-    spark.sql(
-        """
+    spark.sql("""
         CREATE TABLE IF NOT EXISTS iceberg.examples.time_travel_demo (
             id BIGINT,
             value STRING,
             version INT
         ) USING iceberg
-    """
-    )
+    """)
 
     # Clear existing data
     spark.sql("DELETE FROM iceberg.examples.time_travel_demo")
 
     # Insert version 1
-    spark.sql(
-        """
+    spark.sql("""
         INSERT INTO iceberg.examples.time_travel_demo
         VALUES (1, 'initial', 1), (2, 'initial', 1), (3, 'initial', 1)
-    """
-    )
+    """)
 
     # Insert version 2
-    spark.sql(
-        """
+    spark.sql("""
         INSERT INTO iceberg.examples.time_travel_demo
         VALUES (4, 'added_v2', 2), (5, 'added_v2', 2)
-    """
-    )
+    """)
 
     # Update to version 3
-    spark.sql(
-        """
+    spark.sql("""
         UPDATE iceberg.examples.time_travel_demo
         SET value = 'updated_v3', version = 3
         WHERE id = 1
-    """
-    )
+    """)
 
     # Delete in version 4
     spark.sql("DELETE FROM iceberg.examples.time_travel_demo WHERE id = 3")
@@ -66,8 +58,7 @@ def list_snapshots(spark, table_name):
     """List all snapshots for a table."""
     print(f"\n=== Snapshots for {table_name} ===")
 
-    snapshots = spark.sql(
-        f"""
+    snapshots = spark.sql(f"""
         SELECT
             snapshot_id,
             committed_at,
@@ -75,8 +66,7 @@ def list_snapshots(spark, table_name):
             summary['spark.app.id'] as app_id
         FROM {table_name}.snapshots
         ORDER BY committed_at DESC
-    """
-    )
+    """)
 
     snapshots.show(truncate=False)
     return snapshots.collect()
@@ -93,12 +83,10 @@ def query_by_snapshot_id(spark, table_name, snapshot_id):
     """
     print(f"\n=== Query as of snapshot {snapshot_id} ===")
 
-    df = spark.sql(
-        f"""
+    df = spark.sql(f"""
         SELECT * FROM {table_name}
         VERSION AS OF {snapshot_id}
-    """
-    )
+    """)
 
     df.show()
     return df
@@ -115,12 +103,10 @@ def query_by_timestamp(spark, table_name, timestamp):
     """
     print(f"\n=== Query as of timestamp {timestamp} ===")
 
-    df = spark.sql(
-        f"""
+    df = spark.sql(f"""
         SELECT * FROM {table_name}
         TIMESTAMP AS OF '{timestamp}'
-    """
-    )
+    """)
 
     df.show()
     return df
@@ -131,13 +117,11 @@ def compare_versions(spark, table_name):
     print("\n=== Comparing Versions ===")
 
     # Get first and last snapshots
-    snapshots = spark.sql(
-        f"""
+    snapshots = spark.sql(f"""
         SELECT snapshot_id, committed_at
         FROM {table_name}.snapshots
         ORDER BY committed_at
-    """
-    ).collect()
+    """).collect()
 
     if len(snapshots) < 2:
         print("Need at least 2 snapshots for comparison")
@@ -147,20 +131,16 @@ def compare_versions(spark, table_name):
     last_snapshot = snapshots[-1]["snapshot_id"]
 
     # Count at first snapshot
-    first_count = spark.sql(
-        f"""
+    first_count = spark.sql(f"""
         SELECT count(*) as cnt FROM {table_name}
         VERSION AS OF {first_snapshot}
-    """
-    ).collect()[0]["cnt"]
+    """).collect()[0]["cnt"]
 
     # Count at last snapshot
-    last_count = spark.sql(
-        f"""
+    last_count = spark.sql(f"""
         SELECT count(*) as cnt FROM {table_name}
         VERSION AS OF {last_snapshot}
-    """
-    ).collect()[0]["cnt"]
+    """).collect()[0]["cnt"]
 
     print(f"First snapshot ({first_snapshot}): {first_count} rows")
     print(f"Last snapshot ({last_snapshot}): {last_count} rows")
@@ -175,14 +155,12 @@ def rollback_to_snapshot(spark, table_name, snapshot_id):
     """
     print(f"\n=== Rolling back to snapshot {snapshot_id} ===")
 
-    spark.sql(
-        f"""
+    spark.sql(f"""
         CALL iceberg.system.rollback_to_snapshot(
             '{table_name}',
             {snapshot_id}
         )
-    """
-    )
+    """)
 
     print("Rollback complete")
     spark.sql(f"SELECT * FROM {table_name}").show()
@@ -193,16 +171,14 @@ def audit_changes(spark, table_name):
     print("\n=== Auditing Changes ===")
 
     # Get recent snapshots
-    snapshots = spark.sql(
-        f"""
+    snapshots = spark.sql(f"""
         SELECT snapshot_id, committed_at, operation,
                summary['added-records'] as added,
                summary['deleted-records'] as deleted
         FROM {table_name}.snapshots
         ORDER BY committed_at DESC
         LIMIT 5
-    """
-    )
+    """)
 
     print("Recent changes:")
     snapshots.show(truncate=False)

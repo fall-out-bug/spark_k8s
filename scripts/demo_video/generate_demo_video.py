@@ -232,16 +232,14 @@ def prepare_spark_master_activity(root: Path) -> None:
         timeout=120,
     ).strip()
     marker = f"video_master_demo_{uuid.uuid4().hex[:8]}"
-    script = textwrap.dedent(
-        f"""
+    script = textwrap.dedent(f"""
         from pyspark.sql import SparkSession
         import time
         spark = SparkSession.builder.appName('{marker}').getOrCreate()
         spark.range(3000000).repartition(48).groupByExpr('id % 20 as bucket').count().collect()
         time.sleep(35)
         spark.stop()
-        """
-    ).strip()
+        """).strip()
     temp_script = root / "assets" / "demo_video_generated" / "video_master_demo.py"
     temp_script.parent.mkdir(parents=True, exist_ok=True)
     temp_script.write_text(script)

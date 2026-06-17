@@ -16,8 +16,7 @@ def create_iceberg_table(spark: SparkSession) -> None:
     """Create Iceberg table with initial schema."""
     print("\n2. Creating Iceberg table...")
     spark.sql("DROP TABLE IF EXISTS iceberg.db_examples.orders")
-    spark.sql(
-        """
+    spark.sql("""
         CREATE TABLE iceberg.db_examples.orders (
             order_id BIGINT,
             customer_id BIGINT,
@@ -28,8 +27,7 @@ def create_iceberg_table(spark: SparkSession) -> None:
         ) USING iceberg
         PARTITIONED BY (days(order_timestamp))
         LOCATION 's3a://warehouse/iceberg/db_examples/orders'
-    """
-    )
+    """)
     print("   Table 'orders' created with partitioning on order_timestamp")
     spark.sql("DESCRIBE EXTENDED iceberg.db_examples.orders").show(truncate=False)
 

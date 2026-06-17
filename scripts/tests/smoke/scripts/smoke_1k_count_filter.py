@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Smoke workload: 1K rows, count, filter. EXECUTES workload, no file-existence checks."""
+
 from pyspark.sql import SparkSession
 
 spark = SparkSession.builder.getOrCreate()

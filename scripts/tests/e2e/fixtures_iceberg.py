@@ -8,7 +8,7 @@ catalog configuration, and Iceberg-specific metrics.
 import shutil
 import tempfile
 from collections.abc import Generator
-from typing import Any, Optional
+from typing import Any
 
 import pytest
 
@@ -172,7 +172,7 @@ def iceberg_time_travel(spark_session: Any, iceberg_table: dict[str, Any]) -> An
     """
     table_name = iceberg_table["table_name"]
 
-    def query_as_of(timestamp: Optional[str] = None, snapshot_id: Optional[int] = None) -> Any:
+    def query_as_of(timestamp: str | None = None, snapshot_id: int | None = None) -> Any:
         """
         Query table at a specific point in time.
 

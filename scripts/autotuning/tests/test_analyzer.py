@@ -22,8 +22,7 @@ class TestLoadRulesConfig:
     def test_load_valid_config(self, tmp_path: Path):
         """Test loading valid rules config."""
         config_path = tmp_path / "rules.yaml"
-        config_path.write_text(
-            """
+        config_path.write_text("""
 detection_rules:
   gc_pressure:
     metric: "gc_ratio"
@@ -31,8 +30,7 @@ detection_rules:
     thresholds:
       warning: 0.10
       critical: 0.20
-"""
-        )
+""")
         config = load_rules_config(config_path)
         assert "detection_rules" in config
         assert "gc_pressure" in config["detection_rules"]

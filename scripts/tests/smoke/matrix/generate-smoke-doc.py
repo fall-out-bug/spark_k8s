@@ -8,6 +8,7 @@ Usage:
     python3 scripts/tests/smoke/matrix/generate-smoke-doc.py
     python3 scripts/tests/smoke/matrix/generate-smoke-doc.py --check  # exit 1 if drift
 """
+
 from __future__ import annotations
 
 import argparse

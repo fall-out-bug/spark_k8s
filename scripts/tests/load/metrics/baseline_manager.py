@@ -15,7 +15,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import yaml
 
@@ -27,7 +27,7 @@ RESULTS_DIR = Path("/tmp/load-test-results")
 class BaselineManager:
     """Manages baseline metrics for load tests."""
 
-    def __init__(self, baseline_file: Optional[Path] = None):
+    def __init__(self, baseline_file: Path | None = None):
         """
         Initialize baseline manager.
 
@@ -54,7 +54,7 @@ class BaselineManager:
         self,
         test_name: str,
         metrics: list[dict[str, Any]],
-        metadata: Optional[dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """
         Create a new baseline from multiple runs.
@@ -121,7 +121,7 @@ class BaselineManager:
             "throughput": stats(throughputs),
         }
 
-    def get_baseline(self, test_name: str) -> Optional[dict[str, Any]]:
+    def get_baseline(self, test_name: str) -> dict[str, Any] | None:
         """
         Get baseline for a test.
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Spark Connect load test. Run inside cluster with CONNECT_URL and LOAD_* env."""
+
 import os
 import sys
 import time

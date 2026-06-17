@@ -57,7 +57,7 @@ def generate_combinations(tier_config: dict[str, Any]) -> list[dict[str, str]]:
 
     combinations = []
     for values in itertools.product(*dimensions.values()):
-        combo = dict(zip(dimensions.keys(), values))
+        combo = dict(zip(dimensions.keys(), values, strict=False))
         combinations.append(combo)
 
     return combinations

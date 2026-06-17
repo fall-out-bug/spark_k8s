@@ -15,7 +15,7 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import requests
 
@@ -33,7 +33,7 @@ POSTGRES_URL = "jdbc:postgresql://postgres-load-testing.load-testing.svc.cluster
 class MetricsCollector:
     """Collects metrics from various sources for load tests."""
 
-    def __init__(self, test_name: str, output_dir: Optional[Path] = None):
+    def __init__(self, test_name: str, output_dir: Path | None = None):
         """
         Initialize metrics collector.
 
@@ -260,7 +260,7 @@ class MetricsCollector:
         return metrics_file
 
 
-def collect_metrics(test_name: str, output_dir: Optional[Path] = None) -> dict[str, Any]:
+def collect_metrics(test_name: str, output_dir: Path | None = None) -> dict[str, Any]:
     """
     Collect all metrics for a test.
 

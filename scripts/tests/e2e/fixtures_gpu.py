@@ -7,7 +7,7 @@ and GPU-specific Spark configuration.
 
 import subprocess
 from collections.abc import Generator
-from typing import Any, Optional
+from typing import Any
 
 import pytest
 
@@ -138,7 +138,7 @@ def spark_session_with_gpu(request, spark_session: Any, gpu_available: bool) -> 
 
 
 @pytest.fixture(scope="session")
-def cuda_version() -> Optional[str]:
+def cuda_version() -> str | None:
     """
     Get CUDA version from nvidia-smi.
 

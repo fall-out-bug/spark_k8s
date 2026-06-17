@@ -10,6 +10,7 @@ Checks:
 
 Exit 0 on success, 1 on validation failure.
 """
+
 from __future__ import annotations
 
 import sys
