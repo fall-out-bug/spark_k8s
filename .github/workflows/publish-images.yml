@@ -55,7 +55,9 @@ jobs:
     runs-on: self-hosted
     timeout-minutes: 120
     # On tag push: publish all in-scope versions via matrix.
-    # On workflow_dispatch: publish the single selected version.
+    # On workflow_dispatch: only run the matrix job matching the selected input
+    # (avoids spawning 3 jobs all building the same version).
+    if: ${{ github.event_name == 'push' || github.event.inputs.spark_version == matrix.spark_version }}
     strategy:
       fail-fast: false
       matrix:
