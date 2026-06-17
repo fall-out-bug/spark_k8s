@@ -49,5 +49,5 @@ echo -e "\n=== 6. Check global.s3 configuration ==="
 kubectl get cm -n "${NAMESPACE}" spark-connect-configmap -o yaml | grep -A 3 "s3:" || echo "S3 config not in ConfigMap"
 
 echo -e "\n=== Test S3 access with mc (MinIO client) ==="
-kubectl run mc-test-$$ --rm -i --restart=Never -n "${NAMESPACE}" --image=quay.io/minio/mc:latest -- \
+kubectl run mc-test-$$ --rm -i --restart=Never -n "${NAMESPACE}" --image=minio/mc:RELEASE.2025-08-13T08-35-41Z -- \
   /bin/sh -lc "mc alias set test http://minio:9000 minioadmin minioadmin >/dev/null 2>&1 && mc ls test/" && echo "✅ mc can access MinIO" || echo "❌ mc cannot access MinIO"

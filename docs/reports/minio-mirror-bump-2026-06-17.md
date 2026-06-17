@@ -48,7 +48,7 @@ MinIO server image `quay.io/minio/minio:RELEASE.2024-*` → `alpine/minio:RELEAS
 
 ## ⚠️ Known gap (tracked, not silent)
 
-### GAP-MC: MinIO Client (`mc`) image still on frozen `quay.io/minio/mc:latest`
+### GAP-MC: MinIO Client (`mc`) image still on frozen `minio/mc:RELEASE.2025-08-13T08-35-41Z`
 
 The MinIO Client is used by bucket-init init-containers and is **hardcoded** in 4
 templates (not values-configurable):
@@ -58,7 +58,7 @@ templates (not values-configurable):
 - `charts/spark-4.0/templates/core/_helpers.tpl:477`
 - `charts/spark-4.1/templates/core/_helpers.tpl:477`
 
-`quay.io/minio/mc:latest` is subject to the same freeze as the server image, and
+`minio/mc:RELEASE.2025-08-13T08-35-41Z` is subject to the same freeze as the server image, and
 `latest` is additionally non-reproducible. **Deferred** because:
 1. `mc` runs only in init jobs (bucket creation), lower blast radius than the server.
 2. Making it values-configurable is a small refactor (expose `mc.image` in values),

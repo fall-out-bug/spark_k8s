@@ -16,7 +16,7 @@ kubectl exec -n <namespace> deploy/spark-connect -- \
   printenv | grep SPARK_EVENTLOG_DIR
 
 # Проверить что файлы создаются в MinIO
-kubectl run mc-$(date +%s) --rm -i --restart=Never -n <namespace> --image=quay.io/minio/mc:latest -- \
+kubectl run mc-$(date +%s) --rm -i --restart=Never -n <namespace> --image=minio/mc:RELEASE.2025-08-13T08-35-41Z -- \
   /bin/sh -lc "mc alias set minio http://minio:9000 minioadmin minioadmin && mc ls minio/spark-logs/events"
 ```
 
@@ -49,7 +49,7 @@ ensure_event_log_prefix() {
   local prefix="spark-logs/events"
 
   kubectl run "mc-prefix-$(date +%s)" --rm -i --restart=Never -n "${ns}" --command \
-    --image=quay.io/minio/mc:latest \
+    --image=minio/mc:RELEASE.2025-08-13T08-35-41Z \
     -- /bin/sh -lc "mc alias set minio ${endpoint} minioadmin minioadmin >/dev/null 2>&1 && \
                   mc mb --ignore-existing minio/spark-logs >/dev/null 2>&1 && \
                   echo '' | mc pipe minio/${prefix}/.keep >/dev/null 2>&1"
@@ -89,7 +89,7 @@ kubectl exec -n <namespace> deploy/jupyter -- \
     /dev/null 2>&1 || true'
 
 # Проверить что log файл создался
-kubectl run mc-$(date +%s) --rm -i --restart=Never -n <namespace> --image=quay.io/minio/mc:latest -- \
+kubectl run mc-$(date +%s) --rm -i --restart=Never -n <namespace> --image=minio/mc:RELEASE.2025-08-13T08-35-41Z -- \
   /bin/sh -lc "mc alias set minio http://minio:9000 minioadmin minioadmin && \
                 mc ls minio/spark-logs/events | tail -5"
 

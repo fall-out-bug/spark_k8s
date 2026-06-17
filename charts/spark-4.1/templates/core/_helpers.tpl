@@ -474,7 +474,7 @@ spec:
           runAsUser: 1000
           runAsGroup: 1000
         {{- end }}
-        image: quay.io/minio/mc:latest
+        image: minio/mc:RELEASE.2025-08-13T08-35-41Z
         command:
         - /bin/sh
         - -c

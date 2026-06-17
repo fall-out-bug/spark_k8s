@@ -3,7 +3,6 @@
 
 set -e
 
-RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
@@ -110,7 +109,7 @@ echo "MinIO IP: $MINIO_IP"
 # Create buckets via mc
 echo -e "${YELLOW}Creating S3 buckets...${NC}"
 kubectl run mc -n "$TEST_NAMESPACE" --rm -i --restart=Never \
-    --image=minio/mc:latest \
+    --image=minio/mc:RELEASE.2025-08-13T08-35-41Z \
     --command=/bin/sh \
     -- \
     -c "

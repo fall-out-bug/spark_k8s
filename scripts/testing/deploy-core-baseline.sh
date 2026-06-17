@@ -220,7 +220,7 @@ echo -e "${YELLOW}Step 8: Configuring MinIO and History Server...${NC}"
 echo "Creating S3 buckets..."
 kubectl run "mc-buckets-$$" \
     --restart=Never \
-    --image=quay.io/minio/mc:latest \
+    --image=minio/mc:RELEASE.2025-08-13T08-35-41Z \
     -n "$NAMESPACE" \
     --command -- /bin/sh -c "
         mc alias set myminio http://minio-spark-41:9000 minioadmin minioadmin
