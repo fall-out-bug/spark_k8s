@@ -92,6 +92,38 @@ jobs:
         if: always()
         run: docker rmi spark-custom:4.1.0-ci-${{ github.sha }} 2>/dev/null || true
 
+  build-dist-411:
+    name: Build Spark dist 4.1.1
+    runs-on: self-hosted
+    needs: hadolint
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Spark distribution
+        run: ./scripts/build-spark-dist.sh 4.1.1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-4.1.1
+          path: dist/
+
+  build-spark-411:
+    name: Build spark-custom 4.1.1
+    runs-on: self-hosted
+    needs: build-dist-411
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist-4.1.1
+          path: .
+      - name: Build image (no push)
+        run: |
+          docker build --build-arg HADOOP_VERSION=${{ env.HADOOP_VERSION }} \
+            -f docker/spark-custom/Dockerfile.4.1.1 \
+            -t spark-custom:4.1.1-ci-${{ github.sha }} .
+      - name: Cleanup
+        if: always()
+        run: docker rmi spark-custom:4.1.1-ci-${{ github.sha }} 2>/dev/null || true
+
   build-jupyter:
     name: Build Jupyter
     runs-on: self-hosted
