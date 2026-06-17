@@ -1,0 +1,155 @@
+# Publish custom runtime images to GHCR.
+#
+# Builds spark-custom + jupyter images for a given Spark version and pushes them to
+# ghcr.io/fall-out-bug/. This is the ONLY workflow that pushes to GHCR; ci-docker.yml
+# remains a fast no-push build gate.
+#
+# See: docs/operations/image-publishing.md
+# See: specs/ghcr-publish-pipeline/
+
+name: "Publish Images"
+
+on:
+  workflow_dispatch:
+    inputs:
+      spark_version:
+        description: "Spark version to publish"
+        required: true
+        type: choice
+        default: "4.1.1"
+        options:
+          - "3.5.7"
+          - "4.1.0"
+          - "4.1.1"
+      rebuild_dist:
+        description: "Rebuild Spark dist from source (30+ min). If false, download existing dist artifact."
+        required: false
+        type: boolean
+        default: false
+
+env:
+  HADOOP_VERSION: "3.4.2"
+  REGISTRY: ghcr.io
+  # Image namespaces — must match the references in charts/spark-*/values.yaml
+  SPARK_IMAGE: ghcr.io/fall-out-bug/spark-k8s-spark-custom
+  JUPYTER_IMAGE: ghcr.io/fall-out-bug/spark-k8s-jupyter-spark
+
+# Single self-hosted runner (spark_k8s_wsl) — jobs serialize naturally, no matrix concurrency.
+# Only one publish at a time to avoid image-tag races.
+concurrency:
+  group: publish-images
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    name: Publish spark-custom + jupyter ${{ github.event.inputs.spark_version || '4.1.1' }}
+    runs-on: self-hosted
+    timeout-minutes: 120
+    steps:
+      - name: Resolve version
+        id: ver
+        run: |
+          V="${{ github.event.inputs.spark_version || '4.1.1' }}"
+          echo "spark_version=$V" >> "$GITHUB_OUTPUT"
+          # major.minor prefix for jupyter tag (e.g. 4.1-4.1.1, 3.5-3.5.7)
+          MAJOR_MINOR="$(printf '%s' "$V" | cut -d. -f1-2)"
+          echo "jupyter_tag=${MAJOR_MINOR}-${V}" >> "$GITHUB_OUTPUT"
+          # Scala version: Spark 3.x -> 2.12, Spark 4.x -> 2.13
+          SCALA="2.12"; [[ "$V" == 4.* ]] && SCALA="2.13"
+          echo "scala_version=$SCALA" >> "$GITHUB_OUTPUT"
+          echo "Publishing Spark $V, jupyter tag ${MAJOR_MINOR}-${V}, scala $SCALA"
+
+      - uses: actions/checkout@v4
+
+      # --- Obtain Spark dist ---
+      - name: Download pre-built dist artifact
+        if: ${{ github.event.inputs.rebuild_dist != 'true' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: spark-dist-${{ steps.ver.outputs.spark_version }}
+          path: dist/
+        continue-on-error: true
+
+      - name: Check dist present
+        if: ${{ github.event.inputs.rebuild_dist != 'true' }}
+        id: distcheck
+        run: |
+          if ls dist/spark-${{ steps.ver.outputs.spark_version }}-bin-custom-hadoop-*.tgz >/dev/null 2>&1; then
+            echo "have_dist=true" >> "$GITHUB_OUTPUT"
+            echo "Found existing dist artifact."
+          else
+            echo "have_dist=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::No dist artifact found for ${{ steps.ver.outputs.spark_version }}. Falling back to rebuild."
+          fi
+
+      - name: Install build deps (Maven + Scala)
+        if: ${{ github.event.inputs.rebuild_dist == 'true' || steps.distcheck.outputs.have_dist != 'true' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openjdk-17-jdk git wget
+          wget -q https://archive.apache.org/dist/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz
+          sudo tar -xzf apache-maven-3.9.6-bin.tar.gz -C /opt
+          sudo mv /opt/apache-maven-3.9.6 /opt/maven
+          echo "/opt/maven/bin" >> "$GITHUB_PATH"
+          echo "MAVEN_HOME=/opt/maven" >> "$GITHUB_ENV"
+          # Scala 2.12 + 2.13
+          wget -q https://downloads.lightbend.com/scala/2.12.19/scala-2.12.19.tgz
+          sudo tar -xzf scala-2.12.19.tgz -C /opt
+          wget -q https://downloads.lightbend.com/scala/2.13.14/scala-2.13.14.tgz
+          sudo tar -xzf scala-2.13.14.tgz -C /opt
+          echo "/opt/scala-2.12.19/bin:/opt/scala-2.13.14/bin" >> "$GITHUB_PATH"
+
+      - name: Build Spark dist from source
+        if: ${{ github.event.inputs.rebuild_dist == 'true' || steps.distcheck.outputs.have_dist != 'true' }}
+        run: ./scripts/build-spark-dist.sh "${{ steps.ver.outputs.spark_version }}"
+
+      - name: Verify dist available
+        run: |
+          ls -lh dist/spark-${{ steps.ver.outputs.spark_version }}-bin-custom-hadoop-*.tgz
+
+      # --- Build + push spark-custom ---
+      - name: Build spark-custom image
+        run: |
+          docker build \
+            --build-arg HADOOP_VERSION=${{ env.HADOOP_VERSION }} \
+            -f docker/spark-custom/Dockerfile.${{ steps.ver.outputs.spark_version }} \
+            -t ${{ env.SPARK_IMAGE }}:${{ steps.ver.outputs.spark_version }} \
+            .
+
+      - name: Build jupyter image
+        run: |
+          # 3.5.x -> docker/jupyter/Dockerfile (parametrized via SPARK_VERSION)
+          # 4.x   -> docker/jupyter-4.1/Dockerfile (hardcoded version)
+          V="${{ steps.ver.outputs.spark_version }}"
+          if [[ "$V" == 3.* ]]; then
+            docker build \
+              --build-arg SPARK_VERSION="$V" \
+              -f docker/jupyter/Dockerfile \
+              -t ${{ env.JUPYTER_IMAGE }}:${{ steps.ver.outputs.jupyter_tag }} \
+              docker/jupyter/
+          else
+            docker build \
+              -f docker/jupyter-4.1/Dockerfile \
+              -t ${{ env.JUPYTER_IMAGE }}:${{ steps.ver.outputs.jupyter_tag }} \
+              docker/jupyter-4.1/
+          fi
+
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+
+      - name: Push images
+        run: |
+          docker push ${{ env.SPARK_IMAGE }}:${{ steps.ver.outputs.spark_version }}
+          docker push ${{ env.JUPYTER_IMAGE }}:${{ steps.ver.outputs.jupyter_tag }}
+
+      - name: Summary
+        run: |
+          echo "::notice::Published images:"
+          echo "::notice::  ${{ env.SPARK_IMAGE }}:${{ steps.ver.outputs.spark_version }}"
+          echo "::notice::  ${{ env.JUPYTER_IMAGE }}:${{ steps.ver.outputs.jupyter_tag }}"
+          echo "::notice::First-time only: set packages public via the GitHub UI or"
+          echo "::notice::  gh api --method PATCH /user/packages/container/spark-k8s-spark-custom -f visibility=public"
