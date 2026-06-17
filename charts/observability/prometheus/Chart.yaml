@@ -24,7 +24,7 @@ sources:
 
 dependencies:
   - name: prometheus-operator
-    version: ">=0.50.0"
+    version: ">=9.3.0,<10.0.0"  # 9.x line (frozen/deprecated; kube-prometheus-stack 86.x migration is separate spec)
     repository: https://prometheus-community.github.io/helm-charts
 
 annotations:

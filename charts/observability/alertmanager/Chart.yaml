@@ -24,7 +24,7 @@ sources:
 
 dependencies:
   - name: alertmanager
-    version: ">=1.0.0"
+    version: ">=1.0.0,<2.0.0"  # 1.x line
     repository: https://prometheus-community.github.io/helm-charts
 
 annotations:
