@@ -59,6 +59,37 @@ Coverage is not a metric here. Quality = `helm lint` passes + `helm template` re
 
 Every touched file must be left better than it was — no regressions, no half-done edits. When unclear, ask before implementing (clarify over assume). When doing something, verify it doesn't contradict existing solutions, presets, or docs.
 
+## Consumers & Invariants (NON-NEGOTIABLE)
+
+This repo has two consumer classes; all updates must respect both:
+
+- **Primary consumer (S7 team)** — uses the repo as the internal analytics platform; technical constraints below are invariants.
+- **OSS consumers** — consume the repo as open-source charts. **Public values schema and preset names MUST stay backward-compatible**; breaking changes require a chart major version bump + migration notes.
+
+### Product invariants (updates must NOT break these)
+
+| # | Invariant | Anchor |
+|---|-----------|--------|
+| 1 | **Spark 3.5.7 pinned** on custom source build (Hadoop 3.4.2 + AWS SDK v2). Do not bump Spark 3.5.x line without explicit decision. | `charts/spark-3.5/`, `docker/spark-custom/Dockerfile.3.5.7` |
+| 2 | **Monitoring + profiling of Airflow + Spark jobs in Grafana** (dashboards, PodMonitor/ServiceMonitor, statsd-exporter, S3A metrics). | `charts/observability-demo/`, `charts/spark-3.5/templates/monitoring/` |
+| 3 | **Apache Iceberg** support (image variants + presets) | image pyramid `iceberg` axis |
+| 4 | **GPU / NVIDIA RAPIDS** support (CUDA images + presets + DCGM dashboard) | image pyramid `gpu` axis |
+| 5 | **Apache Celeborn** disaggregated shuffle (ADR-0005) | `charts/spark-3.5/values.yaml` celeborn block |
+| 6 | **OpenLineage** (Marquez backend + Airflow provider + Spark listener + Jaeger trace correlation) | `charts/openlineage/`, F30 |
+| 7 | **MLflow** experiment tracking (optional subchart) | `charts/spark-standalone` subchart |
+| 8 | **Spark Connect** as primary access model (gRPC server + dynamic K8s executors) | `charts/spark-3.5/charts/spark-connect` |
+| 9 | **MinIO / S3-compatible** storage as default backend | `charts/values-common.yaml`, presets |
+| 10 | **OpenShift** compatibility (Routes, PSS `restricted`, SCC) | presets, security tests |
+
+### Active backlog (real wants, NOT deferred ideas)
+
+These are active requirements tracked as future specs, to be considered during upgrades:
+
+- **SLA/SLO**: 99.9% Spark-Connect availability, RTO < 30 min, RPO < 1 h, MTTR < 30 min (`docs/drafts/feature-production-operations.md`, WS-018-04/07).
+- **Cost attribution**: per-job / per-team + budget alerts in Grafana (WS-018-10/11).
+- **Job-level CI/CD**: validate → promote → rollback with data-quality gates (WS-018-08/09).
+- **HA for Spark Standalone Master** (ADR-0001) — verify chart support; relevant to Spark Operator migration.
+
 ## Additional Constraints
 
 - **Shell scripts**: must pass `shellcheck -S warning`. Use `set -euo pipefail`.
@@ -102,4 +133,8 @@ Each feature lives under `specs/<feature-name>/` with `spec.md`, `plan.md`, `tas
 - Historical WS archive (read-only): `docs/archive/sdp-workstreams/`. New work must not be added there.
 - Beads tracker (`.beads/`, `bd` CLI) is **frozen**. New issues go through spec-kit → GitHub Issues.
 
-**Version**: 1.0.0 | **Ratified**: 2026-06-14 | **Last Amended**: 2026-06-14
+**Version**: 1.1.0 | **Ratified**: 2026-06-14 | **Last Amended**: 2026-06-17
+
+### Amendment Log
+
+- **v1.1.0 (2026-06-17)**: Added "Consumers & Invariants" section. Codifies two consumer classes (S7 primary + OSS), 10 product invariants (Spark 3.5.7 pin, Airflow/Spark Grafana monitoring+profiling, Iceberg, GPU/RAPIDS, Celeborn, OpenLineage, MLflow, Spark Connect, MinIO, OpenShift), and 4 active backlog wants (SLA/SLO, cost attribution, job CI/CD, HA Master). Justification: customer requirements were scattered across `docs/drafts/` and `docs/archive/` with no single source of truth, risking silent breakage during version upgrades.

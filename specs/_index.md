@@ -4,14 +4,15 @@ Active feature specs (spec-kit SDD). Constitution governs all of them.
 
 ## Constitution
 
-- [_constitution.md](_constitution.md) — project-wide principles, ratified 2026-06-14
+- [_constitution.md](_constitution.md) — project-wide principles + Consumers & Invariants, v1.1.0 (ratified 2026-06-14, amended 2026-06-17)
 
 ## Active Features
 
 | Feature | Status | Path |
 |---------|--------|------|
-| Spark Load Tests with 10GB NYC Taxi | Draft | [spark-load-tests-10gb/](spark-load-tests-10gb/) |
-| Harden Default Credentials in Values Files | Draft | [credential-hardening/](credential-hardening/) |
+| Spark Load Tests with 10GB NYC Taxi | Draft (0/30 tasks) | [spark-load-tests-10gb/](spark-load-tests-10gb/) |
+| Harden Default Credentials in Values Files | Draft (0/25 tasks) | [credential-hardening/](credential-hardening/) |
+| Grafana Observability Stand | ✅ Completed (36/36 tasks, PR #9 merged) | [grafana-observability-stand/](grafana-observability-stand/) — ready to archive |
 
 ## Workflow
 
