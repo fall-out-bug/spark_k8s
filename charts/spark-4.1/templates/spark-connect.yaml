@@ -171,7 +171,7 @@ spec:
               {{- if .Values.connect.extraJars.enabled }}
               --jars /tmp/spark-conf/jars/*.jar
               {{- end }}
-              --class org.apache.spark.sql.connect.service.SparkConnectServer local:///opt/spark/jars/spark-connect_2.13-4.1.0.jar
+              --class org.apache.spark.sql.connect.service.SparkConnectServer local:///opt/spark/jars/spark-connect_2.13-4.1.1.jar
           ports:
             - name: grpc
               containerPort: 15002
