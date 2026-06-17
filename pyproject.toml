@@ -3,7 +3,7 @@ name = "spark-k8s"
 version = "0.1.0"
 description = "Spark on Kubernetes Helm charts and tooling"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
@@ -25,7 +25,7 @@ markers = [
 ]
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length = 120
 exclude = [
     ".git", "__pycache__", ".venv", "venv", "build", "dist", "*.egg-info", ".sdp",
@@ -51,7 +51,7 @@ ignore = [
 
 [tool.black]
 line-length = 120
-target-version = ["py39", "py310", "py311"]
+target-version = ["py310", "py311"]
 include = '\\.pyi?$'
 exclude = '''
 /(
@@ -66,7 +66,7 @@ exclude = '''
 '''
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
