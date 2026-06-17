@@ -14,6 +14,7 @@ import pickle
 import socket
 import sys
 from datetime import datetime, timedelta
+from typing import Any
 
 import pandas as pd
 
@@ -24,15 +25,15 @@ MINIO_SECRET_KEY = os.environ.get("MINIO_SECRET_KEY", "minioadmin")
 MODEL_VERSION = os.environ.get("MODEL_VERSION", datetime.now().strftime("%Y%m%d"))
 
 
-def get_pod_ip():
+def get_pod_ip() -> str:
     """Get pod IP address."""
     try:
         return socket.gethostbyname(socket.gethostname())
-    except:
+    except OSError:
         return "127.0.0.1"
 
 
-def load_model_from_minio(borough):
+def load_model_from_minio(borough: str) -> dict[str, Any]:
     """Load trained model from MinIO."""
     import boto3
     from botocore.client import Config
@@ -49,12 +50,12 @@ def load_model_from_minio(borough):
     print(f"Loading model from s3a://ml-models/{model_key}")
 
     response = s3.get_object(Bucket="ml-models", Key=model_key)
-    models = pickle.loads(response["Body"].read())
+    models: dict[str, Any] = pickle.loads(response["Body"].read())
 
     return models
 
 
-def generate_forecast(models):
+def generate_forecast(models: dict[str, Any]) -> list[dict[str, Any]]:
     """Generate 7-day forecast using trained models."""
     model_revenue = models["revenue"]
     model_trips = models["trips"]
@@ -122,7 +123,7 @@ def generate_forecast(models):
     return predictions
 
 
-def save_predictions_to_minio(all_predictions):
+def save_predictions_to_minio(all_predictions: list[dict[str, Any]]) -> str:
     """Save predictions to MinIO as CSV."""
     import boto3
 
@@ -140,7 +141,7 @@ def save_predictions_to_minio(all_predictions):
     return prediction_key
 
 
-def main():
+def main() -> int:
     print("=== NYC Taxi 7-Day Forecast ===")
     print(f"MinIO: {MINIO_ENDPOINT}")
     print(f"Model Version: {MODEL_VERSION}")

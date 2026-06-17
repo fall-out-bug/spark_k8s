@@ -5,7 +5,7 @@ import traceback
 from typing import Any
 
 import psycopg2
-import requests  # type: ignore[import-untyped]
+import requests
 from prometheus_client import Gauge, start_http_server
 
 SPARK_MASTER_JSON = os.getenv(

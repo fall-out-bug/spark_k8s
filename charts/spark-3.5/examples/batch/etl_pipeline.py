@@ -21,11 +21,13 @@ Run:
 import os
 
 from pyspark.sql import SparkSession
+from pyspark.sql.dataframe import DataFrame
 from pyspark.sql.functions import (
     coalesce,
     col,
     dayofmonth,
     lit,
+    lower,
     month,
     to_date,
     trim,
@@ -40,7 +42,7 @@ S3_SECRET_KEY = os.getenv("S3_SECRET_KEY", "minioadmin")
 S3_BUCKET = os.getenv("S3_BUCKET", "warehouse")
 
 
-def create_spark_session():
+def create_spark_session() -> SparkSession:
     """Create SparkSession with S3 configuration."""
     return (
         SparkSession.builder.appName("ETLPipeline")
@@ -57,7 +59,7 @@ def create_spark_session():
     )
 
 
-def extract_customers(spark, path=None):
+def extract_customers(spark: SparkSession, path: str | None = None) -> DataFrame:
     """Extract customer data from source."""
     if path is None:
         path = f"s3a://{S3_BUCKET}/raw/customers/"
@@ -80,7 +82,7 @@ def extract_customers(spark, path=None):
         return spark.createDataFrame([], schema)
 
 
-def extract_orders(spark, path=None):
+def extract_orders(spark: SparkSession, path: str | None = None) -> DataFrame:
     """Extract order data from source."""
     if path is None:
         path = f"s3a://{S3_BUCKET}/raw/orders/"
@@ -103,7 +105,7 @@ def extract_orders(spark, path=None):
         return spark.createDataFrame([], schema)
 
 
-def transform_customers(df):
+def transform_customers(df: DataFrame) -> DataFrame:
     """Cleanse and transform customer data."""
     return (
         df.withColumn("name", trim(upper(col("name"))))
@@ -116,7 +118,7 @@ def transform_customers(df):
     )
 
 
-def transform_orders(df):
+def transform_orders(df: DataFrame) -> DataFrame:
     """Cleanse and transform order data."""
     return (
         df.withColumn("order_date", to_date(col("order_date"), "yyyy-MM-dd"))
@@ -129,7 +131,7 @@ def transform_orders(df):
     )
 
 
-def join_data(customers_df, orders_df):
+def join_data(customers_df: DataFrame, orders_df: DataFrame) -> DataFrame:
     """Join customers and orders with aggregations."""
     joined = customers_df.join(orders_df, "customer_id", "left")
 
@@ -142,7 +144,7 @@ def join_data(customers_df, orders_df):
     )
 
 
-def load_to_s3(df, path, partition_cols=None):
+def load_to_s3(df: DataFrame, path: str, partition_cols: list[str] | None = None) -> None:
     """Load DataFrame to S3 in Parquet format."""
     writer = df.write.mode("overwrite").format("parquet")
 
@@ -153,7 +155,7 @@ def load_to_s3(df, path, partition_cols=None):
     print(f"Data saved to {path}")
 
 
-def run_pipeline(spark):
+def run_pipeline(spark: SparkSession) -> DataFrame:
     """Execute the complete ETL pipeline."""
     print("\n" + "=" * 60)
     print("ETL PIPELINE EXECUTION")
@@ -194,7 +196,7 @@ def run_pipeline(spark):
     return summary
 
 
-def main():
+def main() -> None:
     spark = create_spark_session()
     spark.sparkContext.setLogLevel("WARN")
 

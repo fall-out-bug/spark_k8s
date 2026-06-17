@@ -23,10 +23,11 @@ import time
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import approx_count_distinct, avg, col, count, window
+from pyspark.sql.streaming import StreamingQuery
 from pyspark.sql.types import DoubleType, StringType, StructField, StructType, TimestampType
 
 
-def create_spark_session():
+def create_spark_session() -> SparkSession:
     """Create SparkSession with streaming configuration."""
     return (
         SparkSession.builder.appName("FileStreamBasic")
@@ -43,7 +44,7 @@ def create_spark_session():
     )
 
 
-def rate_source_example(spark):
+def rate_source_example(spark: SparkSession) -> StreamingQuery:
     """
     Example 1: Rate source (built-in)
 
@@ -81,7 +82,7 @@ def rate_source_example(spark):
     return query
 
 
-def file_source_example(spark, input_path="/tmp/stream-input"):
+def file_source_example(spark: SparkSession, input_path: str = "/tmp/stream-input") -> StreamingQuery:
     """
     Example 2: File-based source
 
@@ -131,7 +132,7 @@ def file_source_example(spark, input_path="/tmp/stream-input"):
     return query
 
 
-def windowed_aggregation_example(spark):
+def windowed_aggregation_example(spark: SparkSession) -> StreamingQuery:
     """
     Example 3: Windowed aggregations with watermark
 
@@ -173,7 +174,7 @@ def windowed_aggregation_example(spark):
     return query
 
 
-def memory_sink_query_example(spark):
+def memory_sink_query_example(spark: SparkSession) -> StreamingQuery:
     """
     Example 4: Memory sink for interactive queries
 
@@ -201,14 +202,12 @@ def memory_sink_query_example(spark):
 
     # Count by group
     print("\nGroup counts:")
-    spark.sql(
-        """
+    spark.sql("""
         SELECT group, COUNT(*) as count
         FROM rate_data
         GROUP BY group
         ORDER BY group
-    """
-    ).show()
+    """).show()
 
     # Recent data
     print("\nRecent 10 rows:")
@@ -217,7 +216,7 @@ def memory_sink_query_example(spark):
     return query
 
 
-def main():
+def main() -> None:
     """Run all streaming examples."""
     print("\n" + "=" * 60)
     print("FILE-BASED STREAMING EXAMPLES")

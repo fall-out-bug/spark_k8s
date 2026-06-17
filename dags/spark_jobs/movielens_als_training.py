@@ -12,14 +12,14 @@ from pyspark.sql import SparkSession
 MINIO_ENDPOINT = os.environ.get("MINIO_ENDPOINT", "http://minio.spark-infra.svc.cluster.local:9000")
 
 
-def get_pod_ip():
+def get_pod_ip() -> str:
     try:
         return socket.gethostbyname(socket.gethostname())
     except Exception:
         return "127.0.0.1"
 
 
-def main():
+def main() -> None:
     pod_ip = get_pod_ip()
     spark = (
         SparkSession.builder.appName("movielens-als-training")
