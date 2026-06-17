@@ -9,7 +9,7 @@ import os
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import pytest
 from pyspark.sql import SparkSession
@@ -79,7 +79,7 @@ def spark_connect_client(load_test_config: dict[str, Any]) -> SparkSession:
 
 
 @pytest.fixture(scope="session")
-def spark_358_client() -> Optional[SparkSession]:
+def spark_358_client() -> SparkSession | None:
     """Create Spark 3.5.8 client for version comparison."""
     url = os.getenv("SPARK_358_CONNECT_URL", "sc://spark-358:15002")
     if os.getenv("SPARK_358_ENABLED", "false") == "true":
@@ -88,7 +88,7 @@ def spark_358_client() -> Optional[SparkSession]:
 
 
 @pytest.fixture(scope="session")
-def spark_411_client() -> Optional[SparkSession]:
+def spark_411_client() -> SparkSession | None:
     """Create Spark 4.1.1 client for version comparison."""
     url = os.getenv("SPARK_411_CONNECT_URL", "sc://spark-411:15002")
     if os.getenv("SPARK_411_ENABLED", "false") == "true":
@@ -162,7 +162,7 @@ def calculate_percentiles():
 def calculate_throughput():
     """Calculate throughput from metrics."""
 
-    def helper(total_queries: int, duration_sec: int, success_count: Optional[int] = None) -> dict[str, float]:
+    def helper(total_queries: int, duration_sec: int, success_count: int | None = None) -> dict[str, float]:
         success = success_count if success_count is not None else total_queries
         return {
             "throughput_qps": total_queries / duration_sec,

@@ -20,8 +20,10 @@ Run:
 import os
 
 from pyspark.sql import SparkSession
+from pyspark.sql.dataframe import DataFrame
 from pyspark.sql.functions import col, count, from_json, struct, to_json, window
 from pyspark.sql.functions import sum as spark_sum
+from pyspark.sql.streaming import StreamingQuery
 from pyspark.sql.types import DoubleType, StringType, StructField, StructType, TimestampType
 
 # Configuration
@@ -31,7 +33,7 @@ OUTPUT_TOPIC = os.getenv("KAFKA_OUTPUT_TOPIC", "spark-output")
 CHECKPOINT_LOCATION = os.getenv("CHECKPOINT_LOCATION", "/tmp/spark-checkpoints/exactly-once")
 
 
-def create_spark_session():
+def create_spark_session() -> SparkSession:
     """Create SparkSession with exactly-once configuration."""
     return (
         SparkSession.builder.appName("KafkaExactlyOnce")
@@ -62,7 +64,7 @@ def create_spark_session():
     )
 
 
-def define_transaction_schema():
+def define_transaction_schema() -> StructType:
     """Schema for transaction events (e.g., financial transactions)."""
     return StructType(
         [
@@ -77,7 +79,7 @@ def define_transaction_schema():
     )
 
 
-def read_kafka_exactly_once(spark, schema):
+def read_kafka_exactly_once(spark: SparkSession, schema: StructType) -> DataFrame:
     """
     Read from Kafka with exactly-once guarantees.
 
@@ -108,7 +110,7 @@ def read_kafka_exactly_once(spark, schema):
     )
 
 
-def deduplicate_stream(df, schema):
+def deduplicate_stream(df: DataFrame, schema: StructType) -> DataFrame:
     """
     Perform idempotent processing by deduplicating on transaction_id.
 
@@ -127,7 +129,7 @@ def deduplicate_stream(df, schema):
     return deduped_df
 
 
-def process_transactions(df):
+def process_transactions(df: DataFrame) -> DataFrame:
     """
     Process transactions with aggregations.
 
@@ -144,7 +146,7 @@ def process_transactions(df):
     )
 
 
-def write_to_kafka_exactly_once(df):
+def write_to_kafka_exactly_once(df: DataFrame) -> StreamingQuery:
     """
     Write to Kafka with exactly-once semantics.
 
@@ -176,7 +178,7 @@ def write_to_kafka_exactly_once(df):
     )
 
 
-def write_to_console_debug(df):
+def write_to_console_debug(df: DataFrame) -> StreamingQuery:
     """Console output for debugging."""
     return (
         df.writeStream.outputMode("update")
@@ -188,7 +190,7 @@ def write_to_console_debug(df):
     )
 
 
-def write_to_file_sink(df, output_path="/tmp/stream-output"):
+def write_to_file_sink(df: DataFrame, output_path: str = "/tmp/stream-output") -> StreamingQuery:
     """
     File sink with exactly-once semantics.
 
@@ -207,12 +209,12 @@ def write_to_file_sink(df, output_path="/tmp/stream-output"):
         df.writeStream.foreachBatch(write_batch)
         .option("checkpointLocation", f"{CHECKPOINT_LOCATION}/file-output")
         .outputMode("update")
-        .trigger(processingTime("10 seconds"))
+        .trigger(processingTime="10 seconds")
         .start()
     )
 
 
-def main():
+def main() -> None:
     """Run exactly-once Kafka streaming."""
     print("\n" + "=" * 60)
     print("EXACTLY-ONCE KAFKA STREAMING")

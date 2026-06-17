@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Load workload: S3 parquet read + 3 agg iterations. EXECUTES, no in-memory fallback."""
+
 import os
 import sys
 import time

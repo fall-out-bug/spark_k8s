@@ -19,12 +19,13 @@ from pyspark.ml import Pipeline
 from pyspark.ml.evaluation import RegressionEvaluator
 from pyspark.ml.feature import StandardScaler, VectorAssembler
 from pyspark.ml.regression import GBTRegressor, LinearRegression, RandomForestRegressor
-from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
+from pyspark.ml.tuning import CrossValidator, CrossValidatorModel, ParamGridBuilder
 from pyspark.sql import SparkSession
+from pyspark.sql.dataframe import DataFrame
 from pyspark.sql.functions import col, rand, when
 
 
-def create_spark_session():
+def create_spark_session() -> SparkSession:
     """Create SparkSession for ML workloads."""
     return (
         SparkSession.builder.appName("RegressionSparkML")
@@ -36,7 +37,7 @@ def create_spark_session():
     )
 
 
-def generate_regression_data(spark, n_samples=100000):
+def generate_regression_data(spark: SparkSession, n_samples: int = 100000) -> DataFrame:
     """Generate synthetic regression dataset with known relationships."""
     df = spark.range(n_samples).select(
         col("id").alias("sample_id"),
@@ -63,7 +64,7 @@ def generate_regression_data(spark, n_samples=100000):
     return df
 
 
-def build_linear_regression_pipeline():
+def build_linear_regression_pipeline() -> Pipeline:
     """Build linear regression pipeline with feature preprocessing."""
     assembler = VectorAssembler(
         inputCols=["feature_1", "feature_2", "feature_3", "feature_4", "feature_5", "categorical_1", "categorical_2"],
@@ -84,7 +85,7 @@ def build_linear_regression_pipeline():
     return Pipeline(stages=[assembler, scaler, lr])
 
 
-def build_gbt_pipeline():
+def build_gbt_pipeline() -> Pipeline:
     """Build Gradient Boosted Trees regression pipeline."""
     assembler = VectorAssembler(
         inputCols=["feature_1", "feature_2", "feature_3", "feature_4", "feature_5", "categorical_1", "categorical_2"],
@@ -104,7 +105,9 @@ def build_gbt_pipeline():
     return Pipeline(stages=[assembler, gbt])
 
 
-def evaluate_regression(predictions, label_col="target", prediction_col="prediction"):
+def evaluate_regression(
+    predictions: DataFrame, label_col: str = "target", prediction_col: str = "prediction"
+) -> dict[str, float]:
     """Calculate regression metrics."""
     evaluator_rmse = RegressionEvaluator(predictionCol=prediction_col, labelCol=label_col, metricName="rmse")
 
@@ -119,7 +122,7 @@ def evaluate_regression(predictions, label_col="target", prediction_col="predict
     }
 
 
-def cross_validate_model(pipeline, train_df):
+def cross_validate_model(pipeline: Pipeline, train_df: DataFrame) -> CrossValidatorModel:
     """Perform cross-validation with hyperparameter tuning."""
     param_grid = (
         ParamGridBuilder()
@@ -137,7 +140,7 @@ def cross_validate_model(pipeline, train_df):
     return crossval.fit(train_df)
 
 
-def main():
+def main() -> None:
     """Run regression model comparison."""
     print("\n" + "=" * 60)
     print("REGRESSION WITH SPARK MLlib")
@@ -201,7 +204,7 @@ def main():
     gbt_model_stage = gbt_model.stages[-1]
     print("\nFeature Importances:")
     feature_names = ["feature_1", "feature_2", "feature_3", "feature_4", "feature_5", "categorical_1", "categorical_2"]
-    for name, importance in zip(feature_names, gbt_model_stage.featureImportances):
+    for name, importance in zip(feature_names, gbt_model_stage.featureImportances, strict=False):
         print(f"  {name}: {importance:.4f}")
 
     print("\n" + "=" * 60)

@@ -26,8 +26,7 @@ def setup_database(spark):
 
 def create_iceberg_table(spark):
     """Create an Iceberg table with initial schema."""
-    spark.sql(
-        """
+    spark.sql("""
         CREATE TABLE IF NOT EXISTS iceberg.db_examples.users (
             id BIGINT,
             name STRING,
@@ -36,8 +35,7 @@ def create_iceberg_table(spark):
             updated_at TIMESTAMP
         ) USING iceberg
         PARTITIONED BY (days(created_at))
-    """
-    )
+    """)
 
 
 def insert_initial_data(spark):

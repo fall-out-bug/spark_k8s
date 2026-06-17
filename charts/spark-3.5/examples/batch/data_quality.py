@@ -15,8 +15,10 @@ Run:
 """
 
 import os
+from typing import Any
 
 from pyspark.sql import SparkSession
+from pyspark.sql.dataframe import DataFrame
 from pyspark.sql.functions import col, max, when
 
 S3_ENDPOINT = os.getenv("S3_ENDPOINT", "http://minio-spark-35:9000")
@@ -24,7 +26,7 @@ S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY", "minioadmin")
 S3_SECRET_KEY = os.getenv("S3_SECRET_KEY", "minioadmin")
 
 
-def create_spark_session():
+def create_spark_session() -> SparkSession:
     return (
         SparkSession.builder.appName("DataQuality")
         .master("spark://airflow-sc-standalone-master:7077")
@@ -37,13 +39,13 @@ def create_spark_session():
 
 
 class DataQualityChecker:
-    def __init__(self, df, table_name="table"):
+    def __init__(self, df: DataFrame, table_name: str = "table") -> None:
         self.df = df
         self.table_name = table_name
-        self.results = []
+        self.results: list[dict[str, Any]] = []
         self.total_count = df.count()
 
-    def check_nulls(self, columns, threshold=0.05):
+    def check_nulls(self, columns: list[str], threshold: float = 0.05) -> "DataQualityChecker":
         for col_name in columns:
             null_count = self.df.filter(col(col_name).isNull()).count()
             null_pct = null_count / self.total_count if self.total_count > 0 else 0
@@ -61,7 +63,7 @@ class DataQualityChecker:
             )
         return self
 
-    def check_duplicates(self, columns):
+    def check_duplicates(self, columns: list[str]) -> "DataQualityChecker":
         total = self.total_count
         distinct = self.df.select(*columns).distinct().count()
         dup_count = total - distinct
@@ -79,7 +81,7 @@ class DataQualityChecker:
         )
         return self
 
-    def check_range(self, column, min_val, max_val):
+    def check_range(self, column: str, min_val: float, max_val: float) -> "DataQualityChecker":
         out_of_range = self.df.filter((col(column) < min_val) | (col(column) > max_val)).count()
         passed = out_of_range == 0
 
@@ -94,7 +96,9 @@ class DataQualityChecker:
         )
         return self
 
-    def check_distinct_values(self, column, min_expected=1, max_expected=None):
+    def check_distinct_values(
+        self, column: str, min_expected: int = 1, max_expected: int | None = None
+    ) -> "DataQualityChecker":
         distinct_count = self.df.select(column).distinct().count()
         passed = distinct_count >= min_expected
         if max_expected:
@@ -112,7 +116,7 @@ class DataQualityChecker:
         )
         return self
 
-    def check_pattern(self, column, pattern):
+    def check_pattern(self, column: str, pattern: str) -> "DataQualityChecker":
         invalid_count = self.df.filter(~col(column).rlike(pattern)).count()
         passed = invalid_count == 0
 
@@ -127,7 +131,7 @@ class DataQualityChecker:
         )
         return self
 
-    def check_freshness(self, column, max_age_hours=24):
+    def check_freshness(self, column: str, max_age_hours: int = 24) -> "DataQualityChecker":
         from pyspark.sql.functions import current_timestamp, hour
 
         max_time = self.df.agg(max(col(column))).collect()[0][0]
@@ -150,7 +154,7 @@ class DataQualityChecker:
         )
         return self
 
-    def get_report(self):
+    def get_report(self) -> dict[str, Any]:
         passed = sum(1 for r in self.results if r["passed"])
         total = len(self.results)
 
@@ -164,7 +168,7 @@ class DataQualityChecker:
             "details": self.results,
         }
 
-    def print_report(self):
+    def print_report(self) -> dict[str, Any]:
         report = self.get_report()
 
         print("\n" + "=" * 70)
@@ -197,7 +201,7 @@ class DataQualityChecker:
         return report
 
 
-def generate_test_data(spark, n=10000):
+def generate_test_data(spark: SparkSession, n: int = 10000) -> DataFrame:
     from pyspark.sql.functions import rand
 
     return spark.range(n).select(
@@ -210,7 +214,7 @@ def generate_test_data(spark, n=10000):
     )
 
 
-def main():
+def main() -> None:
     spark = create_spark_session()
     spark.sparkContext.setLogLevel("WARN")
 

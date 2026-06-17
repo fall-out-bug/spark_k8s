@@ -49,8 +49,8 @@ connect:
     host: ""
     port: 7078
   # eventLog:
-    # DISABLED FOR SMOKE TESTS
-    /spark-logs/events"
+  #   # DISABLED FOR SMOKE TESTS
+  #   dir: "s3a://spark-logs/events"
   dynamicAllocation:
     # DISABLED FOR SMOKE TESTS
     minExecutors: 0

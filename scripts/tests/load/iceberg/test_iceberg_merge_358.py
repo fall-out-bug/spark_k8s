@@ -52,8 +52,7 @@ def test_iceberg_merge_load_358(spark_connect_client):
             query_start = datetime.now()
 
             # Run MERGE operation
-            spark_connect_client.sql(
-                """
+            spark_connect_client.sql("""
                 MERGE INTO nyc_iceberg.test_table AS target
                 USING (
                     SELECT {} as id, {} as value, 'load_test' as source
@@ -61,10 +60,7 @@ def test_iceberg_merge_load_358(spark_connect_client):
                 ON target.id = source.id
                 WHEN MATCHED THEN UPDATE SET value = source.value
                 WHEN NOT MATCHED THEN INSERT *
-            """.format(
-                    metrics["queries_total"] % 100, 10.5 + (metrics["queries_total"] % 100)
-                )
-            ).collect()
+            """.format(metrics["queries_total"] % 100, 10.5 + (metrics["queries_total"] % 100))).collect()
 
             query_end = datetime.now()
 

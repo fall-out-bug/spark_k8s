@@ -21,13 +21,16 @@ import pickle
 import socket
 import sys
 from datetime import datetime
+from typing import Any
 
 import numpy as np
+import pandas as pd
 
 # ML imports - pandas/numpy available in spark-custom image
 # Spark imports
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
+from pyspark.sql.dataframe import DataFrame
 from pyspark.sql.types import *
 
 # CatBoost imported inside functions to allow runtime installation
@@ -44,15 +47,15 @@ FEATURES_PATHS = [
 MODELS_BUCKET = "ml-models"
 
 
-def get_pod_ip():
+def get_pod_ip() -> str:
     """Get pod IP address."""
     try:
         return socket.gethostbyname(socket.gethostname())
-    except:
+    except OSError:
         return "127.0.0.1"
 
 
-def create_spark_session():
+def create_spark_session() -> SparkSession:
     """Create Spark session with MinIO config."""
     pod_ip = get_pod_ip()
     print(f"Pod IP: {pod_ip}")
@@ -74,7 +77,7 @@ def create_spark_session():
     return spark
 
 
-def load_features(spark):
+def load_features(spark: SparkSession) -> DataFrame:
     """Load features from MinIO."""
     for features_path in FEATURES_PATHS:
         print(f"Loading features from {features_path}...")
@@ -90,7 +93,7 @@ def load_features(spark):
     raise RuntimeError(f"No usable feature dataset found. Checked: {FEATURES_PATHS}")
 
 
-def prepare_training_data(df, borough):
+def prepare_training_data(df: DataFrame, borough: str) -> tuple[pd.DataFrame, list[str]]:
     """Prepare training data for a specific borough."""
     print(f"Preparing training data for {borough}...")
 
@@ -158,7 +161,7 @@ def prepare_training_data(df, borough):
     return pdf, feature_cols
 
 
-def train_catboost_models(pdf, feature_cols, borough):
+def train_catboost_models(pdf: pd.DataFrame, feature_cols: list[str], borough: str) -> dict[str, Any]:
     """Train GradientBoosting models for revenue and trips prediction."""
     # Import inside function to allow runtime installation
     try:
@@ -223,7 +226,7 @@ def train_catboost_models(pdf, feature_cols, borough):
     }
 
 
-def save_model_to_minio(models, borough):
+def save_model_to_minio(models: dict[str, Any], borough: str) -> str:
     """Save trained models to MinIO using boto3."""
     import boto3
     from botocore.client import Config
@@ -241,7 +244,7 @@ def save_model_to_minio(models, borough):
     # Create models bucket if not exists
     try:
         s3.head_bucket(Bucket=MODELS_BUCKET)
-    except:
+    except Exception:
         s3.create_bucket(Bucket=MODELS_BUCKET)
 
     # Serialize and upload
@@ -268,7 +271,7 @@ def save_model_to_minio(models, borough):
     return f"s3a://{MODELS_BUCKET}/{model_key}"
 
 
-def main():
+def main() -> int:
     print("=== NYC Taxi CatBoost Training ===")
     print(f"MinIO: {MINIO_ENDPOINT}")
     print(f"Features (candidates): {FEATURES_PATHS}")

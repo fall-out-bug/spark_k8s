@@ -2,14 +2,14 @@
 Validation and comparison helpers for load testing.
 """
 
-from typing import Any, Optional
+from typing import Any
 
 
 def validate_load_metrics(
     metrics: dict[str, Any],
     max_error_rate: float = 0.01,
     min_throughput: float = 0.5,
-    max_latency_p95_ms: Optional[float] = None,
+    max_latency_p95_ms: float | None = None,
 ) -> list[str]:
     """
     Validate load test metrics against thresholds.

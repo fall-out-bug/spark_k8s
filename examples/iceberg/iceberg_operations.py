@@ -7,21 +7,17 @@ def delete_operations(spark):
     print("=== Delete Operations ===")
 
     # Delete by condition
-    spark.sql(
-        """
+    spark.sql("""
         DELETE FROM iceberg.db_examples.users
         WHERE id = 3
-    """
-    )
+    """)
 
     # Update with condition
-    spark.sql(
-        """
+    spark.sql("""
         UPDATE iceberg.db_examples.users
         SET email = 'alice.new@example.com'
         WHERE id = 1
-    """
-    )
+    """)
 
     # Show results
     spark.sql("SELECT * FROM iceberg.db_examples.users").show()

@@ -14,6 +14,7 @@ All tasks push metrics to Prometheus Pushgateway.
 
 import logging
 from datetime import datetime, timedelta
+from typing import Any
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
@@ -22,7 +23,7 @@ from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperato
 logger = logging.getLogger(__name__)
 
 # Configuration
-CONFIG = {
+CONFIG: dict[str, Any] = {
     "namespace": "spark-airflow",
     "spark_master": "spark://airflow-sc-standalone-master:7077",
     "minio_endpoint": "http://minio.spark-infra.svc.cluster.local:9000",
@@ -40,14 +41,14 @@ default_args = {
 }
 
 
-def push_metric(name, value, labels=None):
+def push_metric(name: str, value: float | int, labels: dict[str, str] | None = None) -> None:
     """Push a single metric to Prometheus Pushgateway."""
     import requests
 
     if labels is None:
-        labels = {"version": CONFIG["model_version"]}
+        labels = {"version": str(CONFIG["model_version"])}
     else:
-        labels["version"] = CONFIG["model_version"]
+        labels["version"] = str(CONFIG["model_version"])
 
     # Format labels
     label_str = ",".join([f'{k}="{v}"' for k, v in labels.items()])
@@ -64,7 +65,9 @@ def push_metric(name, value, labels=None):
         logger.warning(f"Could not push metric: {e}")
 
 
-def build_spark_submit_pod_task(task_id: str, script_name: str, extra_env: dict | None = None):
+def build_spark_submit_pod_task(
+    task_id: str, script_name: str, extra_env: dict[str, str] | None = None
+) -> KubernetesPodOperator:
     """Create a KubernetesPodOperator task that downloads and runs an existing Spark job script."""
     env_vars = {
         "MINIO_ENDPOINT": CONFIG["minio_endpoint"],
@@ -117,7 +120,7 @@ def build_spark_submit_pod_task(task_id: str, script_name: str, extra_env: dict 
     )
 
 
-def check_data_availability(**context):
+def check_data_availability(**context: Any) -> dict[str, int]:
     """Check if required data exists in MinIO."""
     import boto3
     from botocore.client import Config
@@ -145,7 +148,7 @@ def check_data_availability(**context):
     return {"file_count": file_count}
 
 
-def run_feature_engineering(**context):
+def run_feature_engineering(**context: Any) -> dict[str, Any]:
     """Run Spark feature engineering job and push metrics."""
     import subprocess
     import time
@@ -153,10 +156,10 @@ def run_feature_engineering(**context):
     start_time = time.time()
 
     # Spark submit command
-    cmd = [
+    cmd: list[str] = [
         "/opt/spark/bin/spark-submit",
         "--master",
-        CONFIG["spark_master"],
+        str(CONFIG["spark_master"]),
         "--conf",
         f"spark.hadoop.fs.s3a.endpoint={CONFIG['minio_endpoint']}",
         "--conf",
@@ -195,7 +198,7 @@ def run_feature_engineering(**context):
     return {"duration": duration, "success": True}
 
 
-def train_borough_model(borough: str, **context):
+def train_borough_model(borough: str, **context: Any) -> dict[str, Any]:
     """Train model for a specific borough with metrics."""
     import time
 
@@ -343,7 +346,7 @@ def train_borough_model(borough: str, **context):
     }
 
 
-def validate_models(**context):
+def validate_models(**context: Any) -> list[dict[str, Any]]:
     """Validate all trained models meet performance threshold."""
     import json
     import pickle
@@ -398,7 +401,7 @@ def validate_models(**context):
     return results
 
 
-def generate_predictions(**context):
+def generate_predictions(**context: Any) -> dict[str, Any]:
     """Generate 7-day forecast using trained models."""
     import time
     from datetime import datetime, timedelta

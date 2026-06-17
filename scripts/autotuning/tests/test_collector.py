@@ -22,14 +22,12 @@ class TestLoadMetricsConfig:
     def test_load_valid_config(self, tmp_path: Path):
         """Test loading valid metrics config."""
         config_path = tmp_path / "metrics.yaml"
-        config_path.write_text(
-            """
+        config_path.write_text("""
 prometheus_queries:
   gc_time:
     query: 'rate(jvm_gc_time_seconds_sum[5m])'
     aggregation: sum
-"""
-        )
+""")
         config = load_metrics_config(config_path)
         assert "prometheus_queries" in config
         assert "gc_time" in config["prometheus_queries"]

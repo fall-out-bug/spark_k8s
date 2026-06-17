@@ -1,7 +1,6 @@
 """Rightsizing calculator core logic."""
 
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
@@ -105,8 +104,8 @@ def calculate_memory_needed(data_size_mb: int, executor_memory_mb: int) -> int:
 def calculate_recommendation(
     data_size_mb: int,
     executor_preset: str = "medium",
-    cluster_cores: Optional[int] = None,
-    cluster_memory_gb: Optional[int] = None,
+    cluster_cores: int | None = None,
+    cluster_memory_gb: int | None = None,
     spot_instances: bool = False,
 ) -> SizingRecommendation:
     """Calculate optimal sizing recommendation."""

@@ -22,16 +22,18 @@ Run:
 """
 
 import time
+from typing import Any
 
 from pyspark.ml import Pipeline
 from pyspark.ml.classification import RandomForestClassifier
 from pyspark.ml.evaluation import BinaryClassificationEvaluator, MulticlassClassificationEvaluator
 from pyspark.ml.feature import StandardScaler, StringIndexer, VectorAssembler
 from pyspark.sql import SparkSession
+from pyspark.sql.dataframe import DataFrame
 from pyspark.sql.functions import col, rand, when
 
 
-def create_spark_session():
+def create_spark_session() -> SparkSession:
     """Create SparkSession with ML configuration."""
     return (
         SparkSession.builder.appName("ClassificationCatBoost")
@@ -45,7 +47,7 @@ def create_spark_session():
     )
 
 
-def generate_sample_data(spark, n_samples=100000):
+def generate_sample_data(spark: SparkSession, n_samples: int = 100000) -> DataFrame:
     """Generate synthetic classification dataset."""
 
     df = spark.range(n_samples).select(
@@ -66,7 +68,7 @@ def generate_sample_data(spark, n_samples=100000):
     return df
 
 
-def build_spark_ml_pipeline():
+def build_spark_ml_pipeline() -> Pipeline:
     """Build Spark ML Pipeline for classification."""
     gender_indexer = StringIndexer(inputCol="gender", outputCol="gender_idx", handleInvalid="keep")
 
@@ -99,7 +101,7 @@ def build_spark_ml_pipeline():
     return pipeline
 
 
-def train_catboost_model(train_pdf, test_pdf):
+def train_catboost_model(train_pdf: Any, test_pdf: Any) -> tuple[Any, dict[str, float]]:
     """Train CatBoost model on pandas DataFrame."""
     from catboost import CatBoostClassifier
     from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, roc_auc_score
@@ -154,7 +156,7 @@ def train_catboost_model(train_pdf, test_pdf):
     return model, metrics
 
 
-def evaluate_spark_model(predictions):
+def evaluate_spark_model(predictions: DataFrame) -> dict[str, float]:
     """Evaluate Spark ML model predictions."""
     binary_evaluator = BinaryClassificationEvaluator(
         rawPredictionCol="rawPrediction", labelCol="label", metricName="areaUnderROC"
@@ -171,7 +173,7 @@ def evaluate_spark_model(predictions):
     return {"auc_roc": auc, "accuracy": accuracy, "precision": precision, "recall": recall, "f1": f1}
 
 
-def main():
+def main() -> None:
     """Run classification comparison: CatBoost vs Spark MLlib."""
     print("\n" + "=" * 60)
     print("BINARY CLASSIFICATION: CatBoost vs Spark MLlib")

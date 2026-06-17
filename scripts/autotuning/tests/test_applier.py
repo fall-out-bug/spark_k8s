@@ -79,28 +79,24 @@ class TestValidateHelmValues:
     def test_validate_valid_yaml(self, tmp_path: Path):
         """Test validating valid YAML file."""
         values_file = tmp_path / "values.yaml"
-        values_file.write_text(
-            """
+        values_file.write_text("""
 connect:
   executor:
     memory: "8Gi"
     cores: 4
-"""
-        )
+""")
         result = validate_helm_values(values_file)
         assert result.valid is True
 
     def test_validate_invalid_yaml(self, tmp_path: Path):
         """Test validating invalid YAML file."""
         values_file = tmp_path / "values.yaml"
-        values_file.write_text(
-            """
+        values_file.write_text("""
 connect:
   executor:
     memory: "8Gi"
     - invalid list
-"""
-        )
+""")
         result = validate_helm_values(values_file)
         assert result.valid is False
         assert len(result.errors) > 0
@@ -108,13 +104,11 @@ connect:
     def test_validate_memory_format(self, tmp_path: Path):
         """Test memory format validation."""
         values_file = tmp_path / "values.yaml"
-        values_file.write_text(
-            """
+        values_file.write_text("""
 connect:
   executor:
     memory: "invalid"
-"""
-        )
+""")
         result = validate_helm_values(values_file)
         assert len(result.errors) > 0
 

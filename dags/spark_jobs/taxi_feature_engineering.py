@@ -23,6 +23,7 @@ from datetime import datetime
 import requests
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
+from pyspark.sql.dataframe import DataFrame
 from pyspark.sql.types import *
 from pyspark.sql.window import Window
 
@@ -33,10 +34,10 @@ MINIO_SECRET_KEY = os.environ.get("MINIO_SECRET_KEY", "minioadmin")
 PUSHGATEWAY_URL = os.environ.get("PUSHGATEWAY_URL", "http://prometheus-pushgateway.spark-operations:9091")
 
 # Metrics
-METRICS = {}
+METRICS: dict[str, float] = {}
 
 
-def push_metric(name, value, labels=None):
+def push_metric(name: str, value: float | int, labels: dict[str, str] | None = None) -> None:
     """Push metric to Prometheus Pushgateway."""
     if labels is None:
         labels = {}
@@ -56,18 +57,18 @@ def push_metric(name, value, labels=None):
         print(f"  Warning: Could not push metric: {e}")
 
 
-def get_pod_ip():
+def get_pod_ip() -> str:
     """Get pod IP address."""
     try:
         return socket.gethostbyname(socket.gethostname())
-    except:
+    except OSError:
         return "127.0.0.1"
 
 RAW_PATH = "s3a://nyc-taxi/raw/"
 FEATURES_PATH = "s3a://nyc-taxi/features/"
 
 
-def create_spark_session():
+def create_spark_session() -> SparkSession:
     """Create Spark session with MinIO and Iceberg config."""
     # Get pod IP for driver host (required for K8s networking)
     pod_ip = get_pod_ip()
@@ -90,7 +91,7 @@ def create_spark_session():
     return spark
 
 
-def load_raw_data(spark):
+def load_raw_data(spark: SparkSession) -> DataFrame:
     """Load raw TLC parquet files."""
     print(f"Loading raw data from {RAW_PATH}...")
 
@@ -144,7 +145,7 @@ def load_raw_data(spark):
     return df
 
 
-def add_temporal_features(df):
+def add_temporal_features(df: DataFrame) -> DataFrame:
     """Add temporal features."""
     print("Adding temporal features...")
 
@@ -189,7 +190,7 @@ def add_temporal_features(df):
     return df
 
 
-def add_geospatial_features(df):
+def add_geospatial_features(df: DataFrame) -> DataFrame:
     """Add geospatial features."""
     print("Adding geospatial features...")
 
@@ -226,7 +227,7 @@ def add_geospatial_features(df):
     return df
 
 
-def add_historical_features(df):
+def add_historical_features(df: DataFrame) -> DataFrame:
     """Add historical aggregate features using window functions."""
     print("Adding historical features...")
 
@@ -262,7 +263,7 @@ def add_historical_features(df):
     return df
 
 
-def create_target_variables(df):
+def create_target_variables(df: DataFrame) -> DataFrame:
     """Create 7-day ahead target variables."""
     print("Creating target variables...")
 
@@ -295,7 +296,7 @@ def create_target_variables(df):
     return df
 
 
-def save_features(df, output_path):
+def save_features(df: DataFrame, output_path: str) -> DataFrame:
     """Save features to parquet."""
     print(f"Saving features to {output_path}...")
 
@@ -324,7 +325,7 @@ def save_features(df, output_path):
     return df_features
 
 
-def main():
+def main() -> int:
     global METRICS
     start_time = time.time()
 

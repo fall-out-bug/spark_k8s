@@ -7,7 +7,6 @@ This module provides fixtures for loading and managing the NYC Taxi dataset.
 import os
 import subprocess
 from pathlib import Path
-from typing import Optional
 
 import pytest
 
@@ -98,7 +97,7 @@ def _generate_with_python(output_path: str, rows: int) -> str:
         pytest.skip(f"Cannot generate dataset: {e}")
 
 
-def ensure_dataset_available(full_path: Optional[str] = None, sample_path: Optional[str] = None) -> str:
+def ensure_dataset_available(full_path: str | None = None, sample_path: str | None = None) -> str:
     """
     Ensure a dataset is available, generate if needed.
 

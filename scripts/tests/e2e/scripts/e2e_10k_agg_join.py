@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """E2E workload: 10K rows, aggregations, joins. EXECUTES workload, no file-existence checks."""
+
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as f
 

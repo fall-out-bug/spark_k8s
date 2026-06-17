@@ -21,7 +21,9 @@ import signal
 import sys
 
 from pyspark.sql import SparkSession
+from pyspark.sql.dataframe import DataFrame
 from pyspark.sql.functions import col, count, from_json, struct, to_json, window
+from pyspark.sql.streaming import StreamingQuery
 from pyspark.sql.types import DoubleType, StringType, StructField, StructType, TimestampType
 
 # Kafka configuration
@@ -35,7 +37,7 @@ MAX_OFFSETS_PER_TRIGGER = int(os.getenv("MAX_OFFSETS_PER_TRIGGER", "1000"))
 MAX_RATE_PER_PARTITION = int(os.getenv("MAX_RATE_PER_PARTITION", "2000"))
 
 
-def create_spark_session():
+def create_spark_session() -> SparkSession:
     """Create SparkSession with backpressure and streaming optimization."""
     return (
         SparkSession.builder.appName("KafkaBackpressureStreaming")
@@ -72,7 +74,7 @@ def create_spark_session():
     )
 
 
-def define_event_schema():
+def define_event_schema() -> StructType:
     """Define schema for Kafka message parsing."""
     return StructType(
         [
@@ -91,7 +93,7 @@ def define_event_schema():
     )
 
 
-def read_from_kafka(spark, schema):
+def read_from_kafka(spark: SparkSession, schema: StructType) -> DataFrame:
     """
     Read from Kafka with backpressure protection.
 
@@ -121,7 +123,7 @@ def read_from_kafka(spark, schema):
     )
 
 
-def process_stream(raw_df, schema):
+def process_stream(raw_df: DataFrame, schema: StructType) -> DataFrame:
     """
     Process Kafka stream with transformations.
 
@@ -164,7 +166,7 @@ def process_stream(raw_df, schema):
     return processed_df
 
 
-def aggregate_stream(df):
+def aggregate_stream(df: DataFrame) -> DataFrame:
     """
     Perform windowed aggregations on the stream.
 
@@ -180,7 +182,7 @@ def aggregate_stream(df):
     )
 
 
-def write_to_kafka(df):
+def write_to_kafka(df: DataFrame) -> StreamingQuery:
     """Write processed data back to Kafka."""
     # Prepare output format
     output_df = df.select(
@@ -201,7 +203,7 @@ def write_to_kafka(df):
     )
 
 
-def write_to_console(df):
+def write_to_console(df: DataFrame) -> StreamingQuery:
     """Write to console for debugging."""
     return (
         df.writeStream.outputMode("update")
@@ -213,7 +215,7 @@ def write_to_console(df):
     )
 
 
-def setup_graceful_shutdown(spark):
+def setup_graceful_shutdown(spark: SparkSession) -> None:
     """Setup signal handler for graceful shutdown."""
 
     def signal_handler(sig, frame):
@@ -228,7 +230,7 @@ def setup_graceful_shutdown(spark):
     signal.signal(signal.SIGINT, signal_handler)
 
 
-def main():
+def main() -> None:
     """Run Kafka streaming with backpressure."""
     print("\n" + "=" * 60)
     print("KAFKA STREAMING WITH BACKPRESSURE")

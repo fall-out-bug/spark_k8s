@@ -49,8 +49,7 @@ def print_helm_values(recommendation: SizingRecommendation) -> None:
     """Print Helm values snippet."""
     print("\n# Helm Values")
     print("-" * 70)
-    print(
-        f"""
+    print(f"""
 connect:
   executor:
     cores: "{recommendation.executor_config.cores}"
@@ -74,8 +73,7 @@ connect:
     "spark.executor.cores": "{recommendation.executor_config.cores}"
     "spark.memory.fraction": "0.8"
     "spark.memory.storageFraction": "0.3"
-"""
-    )
+""")
     print("-" * 70)
 
 
