@@ -10,6 +10,7 @@ Active feature specs (spec-kit SDD). Constitution governs all of them.
 
 | Feature | Status | Path |
 |---------|--------|------|
+| Observability Charts Migration | Draft (plan resolved) | [observability-charts-migration/](observability-charts-migration/) |
 | Smoke Scenario Generator Cleanup | Draft (backlog skeleton) | [smoke-scenario-generator-cleanup/](smoke-scenario-generator-cleanup/) |
 | GHCR Publish Pipeline | Plan + impl (workflow created) | [ghcr-publish-pipeline/](ghcr-publish-pipeline/) |
 | Spark Operator v2 Migration | Draft (audit + open questions) | [spark-operator-v2-migration/](spark-operator-v2-migration/) |
