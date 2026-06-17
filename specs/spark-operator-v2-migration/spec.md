@@ -30,11 +30,14 @@ Different registries AND different Spark-version suffixes (3.1.1 vs 3.5.0) — b
   - `scheduledsparkapplication-crd.yaml` (33 lines, looks truncated/placeholder)
   - `operator-deployment.yaml`, `rbac.yaml`, `webhook-service.yaml`
   - No upstream Helm dependency — everything vendored
-- **Usage in scenarios:** `values-scenario-airflow-operator.yaml` (3.5, 4.0, 4.1) enables
-  `sparkOperator.enabled: true`; 4.x scenarios reference it across many files.
-- **Grafana dashboard** `spark-operator-scale.json` scrapes metrics via label
-  `namespace="spark-operator"` + container `spark-operator-controller` — these metric
-  names/labels may change in v2.x.
+- **Usage in scenarios:** `values-scenario-airflow-operator.yaml` exists only in
+  `charts/spark-4.0/` and `charts/spark-4.1/`. Spark 3.5 wires the operator via
+  `presets/spark-infra.yaml` and the `airflow-*-3.5.*.yaml` scenario files. All three
+  Spark versions enable `sparkOperator` in some form.
+- **Grafana dashboard** `spark-operator-scale.json` scrapes metrics via PromQL filters
+  on BOTH `namespace="spark-operator"` AND `container="spark-operator-controller"`
+  (e.g. `workqueue_depth{container="spark-operator-controller"}`). Either selector may
+  change in v2.x — must be re-verified post-migration.
 
 ## Goal
 
