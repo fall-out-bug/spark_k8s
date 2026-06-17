@@ -12,6 +12,7 @@ Active feature specs (spec-kit SDD). Constitution governs all of them.
 |---------|--------|------|
 | Smoke Scenario Generator Cleanup | Draft (backlog skeleton) | [smoke-scenario-generator-cleanup/](smoke-scenario-generator-cleanup/) |
 | GHCR Publish Pipeline | Plan + impl (workflow created) | [ghcr-publish-pipeline/](ghcr-publish-pipeline/) |
+| Spark Operator v2 Migration | Draft (audit + open questions) | [spark-operator-v2-migration/](spark-operator-v2-migration/) |
 | Spark Load Tests with 10GB NYC Taxi | Draft (0/30 tasks) | [spark-load-tests-10gb/](spark-load-tests-10gb/) |
 | Harden Default Credentials in Values Files | Draft (0/25 tasks) | [credential-hardening/](credential-hardening/) |
 | Grafana Observability Stand | ✅ Completed (36/36 tasks, PR #9 merged) | [grafana-observability-stand/](grafana-observability-stand/) — ready to archive |
