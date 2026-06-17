@@ -84,6 +84,13 @@ succeeds.
 **AC7:** A `workflow_dispatch` run with "rebuild dist: no" downloads the existing
 dist artifact and skips Maven.
 
+> **Note (2026-06-17, review feedback):** AC7 fast-path requires **cross-workflow
+> artifact access** — `build-spark-dist.yml` produces `spark-dist-*` but
+> `publish-images.yml` is a separate workflow run. GitHub Actions v4 does not share
+> artifacts across workflow runs by default (needs explicit `github-token` + `run-id`).
+> Therefore `rebuild_dist` defaults to **true** (source build) until cross-workflow
+> access is wired. Fast-path code is present but always falls back. Tracked as future work.
+
 ## Risks
 
 - **R1:** Spark dist build is 30+ min on self-hosted runner; parallel matrix may
