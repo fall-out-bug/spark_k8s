@@ -175,7 +175,7 @@ historyServer:
   fullnameOverride: ""
   image:
     repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
-    tag: "4.1.0"
+    tag: "4.1.1"
     pullPolicy: IfNotPresent
   logDirectory: "s3a://spark-logs/events"
   updateInterval: "10s"
@@ -269,13 +269,13 @@ features:
       file:
         path: "/tmp/openlineage/events.json"
 
-# Spark Connect server (4.1.0)
+# Spark Connect server (4.1.1)
 connect:
   enabled: true
   replicas: 1
   image:
     repository: ghcr.io/fall-out-bug/spark-k8s-spark-custom
-    tag: "4.1.0"
+    tag: "4.1.1"
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -332,7 +332,7 @@ connect:
     enabled: false
     configMap: ""
 
-# Hive Metastore 4.0.0 (separate instance for Spark 4.1.0)
+# Hive Metastore 4.0.0 (separate instance for Spark 4.1.1)
 hiveMetastore:
   enabled: false
   image:
@@ -377,7 +377,7 @@ jupyter:
   enabled: true
   image:
     repository: spark-k8s-jupyter
-    tag: "4.1-4.1.0"
+    tag: "4.1-4.1.1"
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -407,7 +407,7 @@ celeborn:
   masterEndpoints: "celeborn-master-0.celeborn-master:9097,celeborn-master-1.celeborn-master:9097,celeborn-master-2.celeborn-master:9097"
   image:
     repository: apache/celeborn
-    tag: "0.6.1"
+    tag: "0.6.3"
     pullPolicy: IfNotPresent
   masters:
     replicas: 3

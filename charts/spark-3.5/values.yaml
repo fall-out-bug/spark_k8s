@@ -595,7 +595,7 @@ celeborn:
   masterEndpoints: "celeborn-master-0.celeborn-master:9097,celeborn-master-1.celeborn-master:9097,celeborn-master-2.celeborn-master:9097"
   image:
     repository: apache/celeborn
-    tag: "0.6.1"
+    tag: "0.6.3"
     pullPolicy: IfNotPresent
   masters:
     replicas: 3
