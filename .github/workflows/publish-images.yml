@@ -51,13 +51,14 @@ permissions:
 
 jobs:
   publish:
-    name: Publish spark-custom + jupyter ${{ github.event.inputs.spark_version || matrix.spark_version || '4.1.1' }}
+    name: Publish spark-custom + jupyter ${{ matrix.spark_version }}
     runs-on: self-hosted
     timeout-minutes: 120
-    # On tag push: publish all in-scope versions via matrix.
-    # On workflow_dispatch: only run the matrix job matching the selected input
-    # (avoids spawning 3 jobs all building the same version).
-    if: ${{ github.event_name == 'push' || github.event.inputs.spark_version == matrix.spark_version }}
+    # Matrix publishes all 3 in-scope Spark versions. On workflow_dispatch this
+    # spawns 3 jobs (all build their matrix version) — wasteful if the operator
+    # only wanted one, but correct and simple. The self-hosted runner serializes
+    # them. (A job-level `if` cannot reference `matrix` — that context is unset
+    # at job-eval time — so we accept the redundancy over a fragile exclude hack.)
     strategy:
       fail-fast: false
       matrix:
