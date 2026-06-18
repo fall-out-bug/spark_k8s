@@ -90,7 +90,7 @@ DEFAULT_ARGS = {
     "sla": timedelta(hours=2),
 }
 
-def sla_miss_callback(dag, task_list, slas, blocking_tis):
+def sla_miss_callback(*, dag, task_list=None, slas=None, blocking_tis=None):  # keyword-only in Airflow 3
     # Send alert
     pass
 ```
