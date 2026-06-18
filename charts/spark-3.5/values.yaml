@@ -412,8 +412,8 @@ airflow:
     spark_image: "spark-custom:3.5.7"
     spark_namespace: "spark"
     s3_endpoint: "http://minio:9000"
-    s3_access_key: "minioadmin"
-    s3_secret_key: "minioadmin"
+    s3_access_key: ""  # REQUIRED: set via --set or ExternalSecrets
+    s3_secret_key: ""  # REQUIRED: set via --set or ExternalSecrets
   connections: []
 
 # Spark Connect server (3.5.7)

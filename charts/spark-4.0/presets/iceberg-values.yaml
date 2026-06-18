@@ -40,8 +40,9 @@ connect:
     "spark.hadoop.fs.s3a.path.style.access": "true"
     "spark.hadoop.fs.s3a.impl": "org.apache.hadoop.fs.s3a.S3AFileSystem"
     "spark.hadoop.fs.s3a.endpoint": "http://minio:9000"
-    "spark.hadoop.fs.s3a.access.key": "minioadmin"
-    "spark.hadoop.fs.s3a.secret.key": "minioadmin"
+    # S3 creds: override via values (do NOT hardcode). See credential-management recipe.
+    "spark.hadoop.fs.s3a.access.key": ""
+    "spark.hadoop.fs.s3a.secret.key": ""
 
     # Iceberg write properties
     "spark.sql.iceberg.vectorization.enabled": "true"

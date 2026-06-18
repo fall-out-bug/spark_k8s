@@ -11,10 +11,13 @@ Default `values.yaml` files do **NOT** contain hardcoded credentials. All passwo
 ### Option 1: Helm --set (Development)
 
 ```bash
+# Source secrets from .env (never hardcode on the command line in scripts)
+set -a; source .env; set +a
+
 helm install spark charts/spark-4.1 \
-  --set global.s3.accessKey=minioadmin \
-  --set global.s3.secretKey=minioadmin \
-  --set global.postgresql.password=hive123
+  --set global.s3.accessKey="$S3_ACCESS_KEY" \
+  --set global.s3.secretKey="$S3_SECRET_KEY" \
+  --set core.hiveMetastore.postgresql.password="$POSTGRESQL_PASSWORD"
 ```
 
 ### Option 2: values-override.yaml (Development)
@@ -114,11 +117,12 @@ kubeseal --format=yaml < secret.yaml > sealed-secret.yaml
 ### Development
 
 ```bash
-# Quick dev setup with defaults (NOT for production!)
+# Quick dev setup — source real secrets from .env (NOT for production!)
+set -a; source .env; set +a
 helm install spark charts/spark-4.1 \
-  --set global.s3.accessKey=minioadmin \
-  --set global.s3.secretKey=minioadmin \
-  --set global.postgresql.password=dev123
+  --set global.s3.accessKey="$S3_ACCESS_KEY" \
+  --set global.s3.secretKey="$S3_SECRET_KEY" \
+  --set core.hiveMetastore.postgresql.password="$POSTGRESQL_PASSWORD"
 ```
 
 ### Staging

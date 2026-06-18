@@ -294,8 +294,8 @@ metadata:
     {{- include "spark.core.labels" (dict "Component" "minio" "Chart" .Chart "Release" .Release) | nindent 4 }}
 type: Opaque
 stringData:
-  access-key: {{ .Values.global.s3.accessKey | default "minioadmin" }}
-  secret-key: {{ .Values.global.s3.secretKey | default "minioadmin" }}
+  access-key: {{ .Values.global.s3.accessKey | required "global.s3.accessKey is REQUIRED (constitution IV)" | quote }}
+  secret-key: {{ .Values.global.s3.secretKey | required "global.s3.secretKey is REQUIRED (constitution IV)" | quote }}
 {{- end -}}
 {{- end -}}
 
