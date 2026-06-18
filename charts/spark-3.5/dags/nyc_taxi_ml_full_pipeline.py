@@ -166,7 +166,7 @@ with DAG(
     "nyc_taxi_ml_full_pipeline",
     default_args=default_args,
     description="NYC Taxi ML Pipeline with Metrics",
-    schedule_interval="0 6 * * *",
+    schedule="0 6 * * *",
     catchup=False,
     tags=["ml", "nyc-taxi", "production"],
     max_active_runs=1,

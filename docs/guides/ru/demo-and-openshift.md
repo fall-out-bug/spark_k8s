@@ -30,7 +30,7 @@
 - `kubectl`, `helm`.
 - Доступные образы:
   - `spark-custom:3.5.7`
-  - `spark-k8s/airflow:2.11.0`
+  - `spark-k8s/airflow:3.2.2`
 - Ресурсы (минимум для стабильного NYC Taxi demo):
   - 6 vCPU
   - 12+ Gi RAM (лучше 16+ Gi)

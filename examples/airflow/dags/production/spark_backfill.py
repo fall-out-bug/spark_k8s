@@ -8,14 +8,13 @@ This DAG is designed for historical data backfills:
 """
 
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 
 from airflow import DAG
 from airflow.exceptions import AirflowSkipException
 from airflow.models import Variable
 from airflow.operators.python import PythonOperator
 from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
-from airflow.utils.dates import days_ago
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +42,7 @@ def check_date_range(**context):
 
 def verify_data_exists(**context):
     """Verify source data exists for the execution date."""
-    execution_date = context["execution_date"].strftime("%Y-%m-%d")
+    execution_date = context["data_interval_start"].strftime("%Y-%m-%d")
     # Add your verification logic here
     logger.info(f"Verifying data for {execution_date}")
     return True
@@ -53,8 +52,8 @@ with DAG(
     dag_id="spark_backfill",
     default_args=DEFAULT_ARGS,
     description="Idempotent backfill DAG for historical data",
-    schedule_interval=None,  # Manual trigger only
-    start_date=days_ago(1),
+    schedule=None,  # Manual trigger only
+    start_date=(datetime.now(timezone.utc) - timedelta(days=1)),
     catchup=False,
     max_active_runs=3,  # Allow parallel backfills
     tags=["production", "backfill", "spark"],

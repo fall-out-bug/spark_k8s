@@ -17,7 +17,7 @@ SPARK_OPENLINEAGE_NS = "spark-infra-spark"
 with DAG(
     dag_id="spark_openlineage_demo",
     start_date=datetime(2024, 1, 1),
-    schedule_interval=None,
+    schedule=None,
     catchup=False,
     tags=["spark", "openlineage", "lineage", "demo"],
 ) as dag:

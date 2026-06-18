@@ -92,7 +92,7 @@ spark.sql("""
 from airflow import DAG
 from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
 
-with DAG("iceberg_compaction", schedule_interval="0 3 * * *"):
+with DAG("iceberg_compaction", schedule="0 3 * * *"):
     compact = SparkSubmitOperator(
         task_id="compact_tables",
         application="s3a://scripts/iceberg/compaction.py",

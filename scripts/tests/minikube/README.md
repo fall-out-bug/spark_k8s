@@ -1,4 +1,4 @@
-# Minikube scenarios (Spark 3.5.7, Airflow 2.11)
+# Minikube scenarios (Spark 3.5.7, Airflow 3.2.2)
 
 Запуск сценариев в minikube: инфра, Jupyter+Spark Connect (standalone)+Spark SA, Airflow+Spark SA.
 

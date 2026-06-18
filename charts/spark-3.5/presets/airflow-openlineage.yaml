@@ -47,7 +47,7 @@ airflow:
   enabled: true
   image:
     repository: spark-k8s/airflow
-    tag: "2.11.0"
+    tag: "3.2.2"
     pullPolicy: IfNotPresent
   postgresql:
     enabled: false

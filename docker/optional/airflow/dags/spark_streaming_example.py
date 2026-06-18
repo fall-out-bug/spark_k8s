@@ -113,7 +113,7 @@ with DAG(
     'spark_streaming_manager',
     default_args=default_args,
     description='Manage Spark Streaming jobs',
-    schedule_interval=None,  # Manual trigger only
+    schedule=None,  # Manual trigger only
     start_date=datetime(2024, 1, 1),
     catchup=False,
     tags=['spark', 'streaming', 'kafka'],
@@ -144,7 +144,7 @@ with DAG(
     'spark_streaming_stop',
     default_args=default_args,
     description='Stop Spark Streaming job',
-    schedule_interval=None,
+    schedule=None,
     start_date=datetime(2024, 1, 1),
     catchup=False,
     tags=['spark', 'streaming'],

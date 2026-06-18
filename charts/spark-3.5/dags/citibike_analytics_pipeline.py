@@ -114,7 +114,7 @@ with DAG(
     "citibike_analytics_pipeline",
     default_args=default_args,
     description="Citibike Trip Analytics Pipeline",
-    schedule_interval="0 8 * * *",
+    schedule="0 8 * * *",
     catchup=False,
     tags=["analytics", "citibike", "transportation"],
     max_active_runs=1,

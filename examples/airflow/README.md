@@ -90,7 +90,7 @@ DEFAULT_ARGS = {
     "sla": timedelta(hours=2),
 }
 
-def sla_miss_callback(dag, task_list, slas, blocking_tis):
+def sla_miss_callback(*, dag, task_list=None, slas=None, blocking_tis=None):  # keyword-only in Airflow 3
     # Send alert
     pass
 ```
@@ -144,7 +144,7 @@ SparkSubmitOperator(
 
 2. Modify:
    - `dag_id`: Unique identifier
-   - `schedule_interval`: Cron expression
+   - `schedule`: Cron expression (Airflow 3.x; was schedule_interval in 2.x)
    - Tasks: Add/modify as needed
    - Tags: Update for filtering
 
