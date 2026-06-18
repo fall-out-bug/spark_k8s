@@ -51,13 +51,14 @@ permissions:
 
 jobs:
   publish:
-    name: Publish spark-custom + jupyter ${{ github.event.inputs.spark_version || matrix.spark_version || '4.1.1' }}
+    name: Publish spark-custom + jupyter ${{ matrix.spark_version }}
     runs-on: self-hosted
     timeout-minutes: 120
-    # On tag push: publish all in-scope versions via matrix.
-    # On workflow_dispatch: only run the matrix job matching the selected input
-    # (avoids spawning 3 jobs all building the same version).
-    if: ${{ github.event_name == 'push' || github.event.inputs.spark_version == matrix.spark_version }}
+    # Matrix publishes all 3 in-scope Spark versions. On workflow_dispatch this
+    # spawns 3 jobs (all build their matrix version) — wasteful if the operator
+    # only wanted one, but correct and simple. The self-hosted runner serializes
+    # them. (A job-level `if` cannot reference `matrix` — that context is unset
+    # at job-eval time — so we accept the redundancy over a fragile exclude hack.)
     strategy:
       fail-fast: false
       matrix:
@@ -66,8 +67,11 @@ jobs:
       - name: Resolve version
         id: ver
         run: |
-          # workflow_dispatch input takes precedence; otherwise matrix (tag push)
-          V="${{ github.event.inputs.spark_version || matrix.spark_version }}"
+          # matrix.spark_version is always defined in steps (unlike job-level if).
+          # On tag push all 3 matrix versions run; on dispatch all 3 also run but
+          # the operator gets the one they want (the other two are harmless rebuilds
+          # of their own matrix version, NOT duplicates of the input).
+          V="${{ matrix.spark_version }}"
           echo "spark_version=$V" >> "$GITHUB_OUTPUT"
           # major.minor prefix for jupyter tag (e.g. 4.1-4.1.1, 3.5-3.5.7)
           MAJOR_MINOR="$(printf '%s' "$V" | cut -d. -f1-2)"
