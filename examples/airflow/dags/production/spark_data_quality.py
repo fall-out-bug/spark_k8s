@@ -8,12 +8,11 @@ This DAG runs data quality checks:
 """
 
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
-from airflow.utils.dates import days_ago
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +78,7 @@ with DAG(
     default_args=DEFAULT_ARGS,
     description="Data quality checks with alerting",
     schedule="0 */6 * * *",  # Every 6 hours
-    start_date=days_ago(1),
+    start_date=(datetime.now(timezone.utc) - timedelta(days=1)),
     catchup=False,
     max_active_runs=1,
     tags=["production", "data-quality", "spark"],

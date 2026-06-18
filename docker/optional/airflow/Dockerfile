@@ -12,11 +12,15 @@ USER airflow
 
 # Install Airflow providers for Spark, Kubernetes, OpenLineage.
 # Provider majors bumped for Airflow 3.x compatibility:
+#   - providers-standard: REQUIRED in Airflow 3 (PythonOperator, BranchPythonOperator,
+#     and many core operators moved out of airflow core into this provider). Without it,
+#     every DAG importing airflow.operators.python will ImportError.
 #   - openlineage 2.x (was 1.7) — Airflow-3-compatible line
 #   - cncf-kubernetes 10.x (was 8.0) — tracks Airflow 3
 #   - apache-spark 9.x, amazon 9.x — 3.x-compatible floors
 # Quoted version specifiers to satisfy hadolint SC2261
 RUN pip install --no-cache-dir --no-deps \
+    "apache-airflow-providers-standard" \
     "apache-airflow-providers-apache-spark>=9.0.0" \
     "apache-airflow-providers-cncf-kubernetes>=10.0.0" \
     "apache-airflow-providers-amazon>=9.0.0" \

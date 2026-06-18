@@ -9,11 +9,10 @@ This DAG demonstrates production-grade patterns:
 """
 
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 
 from airflow import DAG
 from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
-from airflow.utils.dates import days_ago
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +41,7 @@ def send_failure_alert(context):
     """Send alert on task failure."""
     task_id = context.get("task_instance").task_id
     dag_id = context.get("dag").dag_id
-    execution_date = context.get("execution_date")
+    execution_date = context.get("data_interval_start")
     exception = context.get("exception")
 
     message = f"""
@@ -58,7 +57,7 @@ def send_failure_alert(context):
     # requests.post(SLACK_WEBHOOK, json={"text": message})
 
 
-def send_sla_miss_alert(dag, task_list, blocking_task_list, slas, blocking_tis):
+def send_sla_miss_alert(*, dag, task_list=None, blocking_task_list=None, slas=None, blocking_tis=None):
     """Send alert on SLA miss."""
     message = f"""
     :warning: **SLA Miss**
@@ -74,7 +73,7 @@ with DAG(
     default_args=DEFAULT_ARGS,
     description="Daily ETL pipeline with production patterns",
     schedule="0 2 * * *",  # Run at 2 AM daily
-    start_date=days_ago(1),
+    start_date=(datetime.now(timezone.utc) - timedelta(days=1)),
     catchup=False,
     max_active_runs=1,
     tags=["production", "etl", "spark"],
