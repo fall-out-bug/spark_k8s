@@ -144,7 +144,7 @@ SparkSubmitOperator(
 
 2. Modify:
    - `dag_id`: Unique identifier
-   - `schedule_interval`: Cron expression
+   - `schedule`: Cron expression (Airflow 3.x; was schedule_interval in 2.x)
    - Tasks: Add/modify as needed
    - Tags: Update for filtering
 

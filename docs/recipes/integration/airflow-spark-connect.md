@@ -90,7 +90,7 @@ default_args = {
     'depends_on_past': False,
 }
 
-dag = DAG('spark_connect_etl', default_args=default_args, schedule_interval='@daily')
+dag = DAG('spark_connect_etl', default_args=default_args, schedule='@daily')
 
 spark_job = SparkSubmitOperator(
     task_id='process_data',
@@ -174,7 +174,7 @@ from airflow import DAG
 from airflow.providers.spark.operators.spark_submit import SparkSubmitOperator
 from datetime import datetime
 
-dag = DAG('etl_job', start_date=datetime(2025, 1, 26), schedule_interval='@daily')
+dag = DAG('etl_job', start_date=datetime(2025, 1, 26), schedule='@daily')
 
 etl_task = SparkSubmitOperator(
     task_id='etl',
@@ -191,7 +191,7 @@ etl_task = SparkSubmitOperator(
 ### ML Pipeline
 
 ```python
-dag = DAG('ml_pipeline', start_date=datetime(2025, 1, 26), schedule_interval='@weekly')
+dag = DAG('ml_pipeline', start_date=datetime(2025, 1, 26), schedule='@weekly')
 
 ml_task = SparkSubmitOperator(
     task_id='ml_training',

@@ -123,7 +123,7 @@ from airflow import DAG
 from airflow.providers.spark.operators.spark_submit import SparkSubmitOperator
 from datetime import datetime
 
-dag = DAG('ml_training', start_date=datetime(2025, 1, 26), schedule_interval='@weekly')
+dag = DAG('ml_training', start_date=datetime(2025, 1, 26), schedule='@weekly')
 
 ml_task = SparkSubmitOperator(
     task_id='train_model',

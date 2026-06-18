@@ -156,7 +156,7 @@ spark.stop()
 from airflow import DAG
 from airflow.providers.spark.operators.spark_submit import SparkSubmitOperator
 
-dag = DAG('kerberos_job', start_date=datetime(2025, 1, 26), schedule_interval='@daily')
+dag = DAG('kerberos_job', start_date=datetime(2025, 1, 26), schedule='@daily')
 
 spark_job = SparkSubmitOperator(
     task_id='secured_etl',

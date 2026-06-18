@@ -73,7 +73,7 @@ with DAG(
     dag_id="spark_etl_daily",
     default_args=DEFAULT_ARGS,
     description="Daily ETL pipeline with production patterns",
-    schedule_interval="0 2 * * *",  # Run at 2 AM daily
+    schedule="0 2 * * *",  # Run at 2 AM daily
     start_date=days_ago(1),
     catchup=False,
     max_active_runs=1,

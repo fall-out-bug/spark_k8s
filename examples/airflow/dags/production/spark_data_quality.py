@@ -78,7 +78,7 @@ with DAG(
     dag_id="spark_data_quality",
     default_args=DEFAULT_ARGS,
     description="Data quality checks with alerting",
-    schedule_interval="0 */6 * * *",  # Every 6 hours
+    schedule="0 */6 * * *",  # Every 6 hours
     start_date=days_ago(1),
     catchup=False,
     max_active_runs=1,

@@ -53,7 +53,7 @@ with DAG(
     dag_id="spark_backfill",
     default_args=DEFAULT_ARGS,
     description="Idempotent backfill DAG for historical data",
-    schedule_interval=None,  # Manual trigger only
+    schedule=None,  # Manual trigger only
     start_date=days_ago(1),
     catchup=False,
     max_active_runs=3,  # Allow parallel backfills
