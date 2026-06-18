@@ -10,6 +10,7 @@ Active feature specs (spec-kit SDD). Constitution governs all of them.
 
 | Feature | Status | Path |
 |---------|--------|------|
+| Airflow 3 Migration | Plan + impl (3.2.2 + OTel fix) | [airflow3-migration/](airflow3-migration/) |
 | Observability Charts Migration | Draft (plan resolved) | [observability-charts-migration/](observability-charts-migration/) |
 | Smoke Scenario Generator Cleanup | Draft (backlog skeleton) | [smoke-scenario-generator-cleanup/](smoke-scenario-generator-cleanup/) |
 | GHCR Publish Pipeline | Plan + impl (workflow created) | [ghcr-publish-pipeline/](ghcr-publish-pipeline/) |

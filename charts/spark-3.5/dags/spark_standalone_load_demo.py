@@ -8,7 +8,7 @@ from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperato
 with DAG(
     dag_id="spark_standalone_load_demo",
     start_date=datetime(2024, 1, 1),
-    schedule_interval=None,
+    schedule=None,
     catchup=False,
     tags=["spark", "standalone", "load", "demo"],
 ) as dag:

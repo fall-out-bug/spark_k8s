@@ -153,7 +153,7 @@ with DAG(
     "movielens_recommendation_pipeline",
     default_args=default_args,
     description="MovieLens Collaborative Filtering Recommendations",
-    schedule_interval="0 3 * * 0",  # Weekly on Sunday at 3am
+    schedule="0 3 * * 0",  # Weekly on Sunday at 3am
     catchup=False,
     tags=["ml", "recommendations", "movielens"],
     max_active_runs=1,

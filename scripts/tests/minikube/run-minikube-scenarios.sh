@@ -81,7 +81,7 @@ run_scenario_2() {
     --set connect.eventLog.dir=s3a://spark-logs/events \
     --set connect.openTelemetry.enabled=false \
     --set airflow.image.repository=apache/airflow \
-    --set airflow.image.tag="2.11.0" \
+    --set airflow.image.tag="3.2.2" \
     --set airflow.image.pullPolicy=IfNotPresent \
     --set standalone.image.repository=spark-custom \
     --set standalone.image.tag="${SPARK_VERSION}-new" \

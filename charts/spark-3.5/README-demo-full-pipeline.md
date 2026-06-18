@@ -69,7 +69,7 @@ Complete Spark + Airflow + Monitoring stack for batch ETL workloads on Kubernete
    docker build -t spark-k8s-jupyter:3.5-3.5.7 -f docker/jupyter/Dockerfile docker/jupyter/
 
    # Airflow image
-   docker build -t spark-k8s/airflow:2.11.0 -f docker/optional/airflow/Dockerfile docker/optional/airflow/
+   docker build -t spark-k8s/airflow:3.2.2 -f docker/optional/airflow/Dockerfile docker/optional/airflow/
 
    # Hive Metastore image
    docker build -t spark-k8s/hive:3.1.3-pg -f docker/hive/Dockerfile docker/hive/
