@@ -115,8 +115,8 @@ sparkHistoryServer:
   cores: 1
   logStore: s3a://checkpoint/spark-logs/
   fs.s3a.endpoint: http://spark-infra-minio:9000
-  fs.s3a.access.key: minioadmin
-  fs.s3a.secret.key: minioadmin
+  fs.s3a.access.key: ""  # REQUIRED: set via --set or ExternalSecrets
+  fs.s3a.secret.key: ""  # REQUIRED: set via --set or ExternalSecrets
   resources:
     requests:
       memory: 1Gi

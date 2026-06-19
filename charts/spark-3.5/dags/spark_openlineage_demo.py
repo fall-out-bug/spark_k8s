@@ -5,6 +5,7 @@ via --packages io.openlineage:openlineage-spark_2.12, links Spark application to
 Airflow DAG run through OpenLineage parentRunFacet.
 """
 
+import os
 from datetime import datetime
 
 from airflow import DAG
@@ -57,8 +58,8 @@ with DAG(
             "--conf spark.eventLog.enabled=true "
             "--conf spark.eventLog.dir=s3a://spark-logs/events "
             "--conf spark.hadoop.fs.s3a.endpoint=http://minio.spark-infra.svc.cluster.local:9000 "
-            "--conf spark.hadoop.fs.s3a.access.key=minioadmin "
-            "--conf spark.hadoop.fs.s3a.secret.key=minioadmin "
+            "--conf spark.hadoop.fs.s3a.access.key=" + os.environ.get("MINIO_ACCESS_KEY", "") + " "
+            "--conf spark.hadoop.fs.s3a.secret.key=" + os.environ.get("MINIO_SECRET_KEY", "") + " "
             "--conf spark.hadoop.fs.s3a.path.style.access=true "
             "--conf spark.hadoop.fs.s3a.connection.ssl.enabled=false "
             "--conf spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem "

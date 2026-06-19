@@ -10,8 +10,8 @@ Usage (in cluster):
 
 Environment variables:
     MINIO_ENDPOINT: MinIO endpoint (default: http://minio.spark-infra.svc.cluster.local:9000)
-    MINIO_ACCESS_KEY: Access key (default: minioadmin)
-    MINIO_SECRET_KEY: Secret key (default: minioadmin)
+    MINIO_ACCESS_KEY: Access key (set via env, no default)
+    MINIO_SECRET_KEY: Secret key (set via env, no default)
 """
 
 import os
@@ -29,8 +29,8 @@ from pyspark.sql.window import Window
 
 # Configuration
 MINIO_ENDPOINT = os.environ.get("MINIO_ENDPOINT", "http://minio.spark-infra.svc.cluster.local:9000")
-MINIO_ACCESS_KEY = os.environ.get("MINIO_ACCESS_KEY", "minioadmin")
-MINIO_SECRET_KEY = os.environ.get("MINIO_SECRET_KEY", "minioadmin")
+MINIO_ACCESS_KEY = os.environ.get("MINIO_ACCESS_KEY", os.environ.get("MINIO_ACCESS_KEY", ""))
+MINIO_SECRET_KEY = os.environ.get("MINIO_SECRET_KEY", os.environ.get("MINIO_SECRET_KEY", ""))
 PUSHGATEWAY_URL = os.environ.get("PUSHGATEWAY_URL", "http://prometheus-pushgateway.spark-operations:9091")
 
 # Metrics

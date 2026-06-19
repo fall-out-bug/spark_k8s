@@ -73,7 +73,7 @@ spec:
           DO \$\$
           BEGIN
             IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'hive') THEN
-              CREATE USER hive WITH PASSWORD 'hive123';
+              CREATE USER hive WITH PASSWORD {{ .Values.core.hiveMetastore.postgresql.password | required "core.hiveMetastore.postgresql.password is REQUIRED (set via --set or ExternalSecrets). Hardcoded default removed per constitution §IV." | quote }};
             END IF;
           END \$\$;
           GRANT ALL PRIVILEGES ON DATABASE {{ .Values.core.hiveMetastore.database.name | default "metastore" }} TO hive;

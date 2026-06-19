@@ -51,8 +51,8 @@ def push_metric(name, value, labels=None):
 def build_spark_submit_pod_task(task_id: str, script_name: str, extra_env: dict | None = None):
     env_vars = {
         "MINIO_ENDPOINT": CONFIG["minio_endpoint"],
-        "MINIO_ACCESS_KEY": "minioadmin",
-        "MINIO_SECRET_KEY": "minioadmin",
+        "MINIO_ACCESS_KEY": os.environ.get("MINIO_ACCESS_KEY", ""),
+        "MINIO_SECRET_KEY": os.environ.get("MINIO_SECRET_KEY", ""),
         "PUSHGATEWAY_URL": CONFIG["pushgateway_url"],
     }
     if extra_env:
@@ -75,8 +75,8 @@ def build_spark_submit_pod_task(task_id: str, script_name: str, extra_env: dict 
         "--conf spark.sql.shuffle.partitions=4 "
         "--conf spark.default.parallelism=1 "
         "--conf spark.hadoop.fs.s3a.endpoint=http://minio.spark-infra.svc.cluster.local:9000 "
-        "--conf spark.hadoop.fs.s3a.access.key=minioadmin "
-        "--conf spark.hadoop.fs.s3a.secret.key=minioadmin "
+        "--conf spark.hadoop.fs.s3a.access.key=" + os.environ.get("MINIO_ACCESS_KEY", "") + " "
+        "--conf spark.hadoop.fs.s3a.secret.key=" + os.environ.get("MINIO_SECRET_KEY", "") + " "
         "--conf spark.hadoop.fs.s3a.path.style.access=true "
         "--conf spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem "
         "--conf spark.eventLog.enabled=true "
@@ -110,8 +110,8 @@ def check_data_availability(**context):
     s3 = boto3.client(
         "s3",
         endpoint_url=CONFIG["minio_endpoint"],
-        aws_access_key_id="minioadmin",
-        aws_secret_access_key="minioadmin",
+        aws_access_key_id=os.environ.get("MINIO_ACCESS_KEY", ""),
+        aws_secret_access_key=os.environ.get("MINIO_SECRET_KEY", ""),
         config=Config(signature_version="s3v4"),
     )
     file_count = s3.list_objects_v2(Bucket="nyc-taxi", Prefix="raw/").get("KeyCount", 0)
@@ -130,8 +130,8 @@ def validate_models(**context):
     s3 = boto3.client(
         "s3",
         endpoint_url=CONFIG["minio_endpoint"],
-        aws_access_key_id="minioadmin",
-        aws_secret_access_key="minioadmin",
+        aws_access_key_id=os.environ.get("MINIO_ACCESS_KEY", ""),
+        aws_secret_access_key=os.environ.get("MINIO_SECRET_KEY", ""),
     )
 
     boroughs = ["manhattan", "brooklyn", "queens", "bronx", "staten_island"]

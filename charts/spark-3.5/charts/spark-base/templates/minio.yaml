@@ -9,8 +9,8 @@ metadata:
     {{- include "spark-base.labels" . | nindent 4 }}
 type: Opaque
 stringData:
-  access-key: {{ .Values.s3.accessKey | default "minioadmin" }}
-  secret-key: {{ .Values.s3.secretKey | default "minioadmin" }}
+  access-key: {{ .Values.s3.accessKey | required "s3.accessKey is REQUIRED (constitution IV)" | quote }}
+  secret-key: {{ .Values.s3.secretKey | required "s3.secretKey is REQUIRED (constitution IV)" | quote }}
 ---
 {{- end }}
 apiVersion: apps/v1
