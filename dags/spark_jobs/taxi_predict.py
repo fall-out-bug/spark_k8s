@@ -20,8 +20,8 @@ import pandas as pd
 
 # Configuration
 MINIO_ENDPOINT = os.environ.get("MINIO_ENDPOINT", "http://minio.spark-infra.svc.cluster.local:9000")
-MINIO_ACCESS_KEY = os.environ.get("MINIO_ACCESS_KEY", "minioadmin")
-MINIO_SECRET_KEY = os.environ.get("MINIO_SECRET_KEY", "minioadmin")
+MINIO_ACCESS_KEY = os.environ.get("MINIO_ACCESS_KEY", os.environ.get("MINIO_ACCESS_KEY", ""))
+MINIO_SECRET_KEY = os.environ.get("MINIO_SECRET_KEY", os.environ.get("MINIO_SECRET_KEY", ""))
 MODEL_VERSION = os.environ.get("MODEL_VERSION", datetime.now().strftime("%Y%m%d"))
 
 

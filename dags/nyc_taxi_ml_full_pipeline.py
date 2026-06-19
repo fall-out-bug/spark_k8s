@@ -13,6 +13,7 @@ All tasks push metrics to Prometheus Pushgateway.
 """
 
 import logging
+import os
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -71,8 +72,8 @@ def build_spark_submit_pod_task(
     """Create a KubernetesPodOperator task that downloads and runs an existing Spark job script."""
     env_vars = {
         "MINIO_ENDPOINT": CONFIG["minio_endpoint"],
-        "MINIO_ACCESS_KEY": "minioadmin",
-        "MINIO_SECRET_KEY": "minioadmin",
+        "MINIO_ACCESS_KEY": os.environ.get("MINIO_ACCESS_KEY", ""),
+        "MINIO_SECRET_KEY": os.environ.get("MINIO_SECRET_KEY", ""),
         "PUSHGATEWAY_URL": CONFIG["pushgateway_url"],
     }
     if extra_env:
@@ -94,8 +95,8 @@ def build_spark_submit_pod_task(
         "--conf spark.sql.shuffle.partitions=4 "
         "--conf spark.default.parallelism=1 "
         "--conf spark.hadoop.fs.s3a.endpoint=http://minio.spark-infra.svc.cluster.local:9000 "
-        "--conf spark.hadoop.fs.s3a.access.key=minioadmin "
-        "--conf spark.hadoop.fs.s3a.secret.key=minioadmin "
+        "--conf spark.hadoop.fs.s3a.access.key=" + os.environ.get("MINIO_ACCESS_KEY", "") + " "
+        "--conf spark.hadoop.fs.s3a.secret.key=" + os.environ.get("MINIO_SECRET_KEY", "") + " "
         "--conf spark.hadoop.fs.s3a.path.style.access=true "
         "--conf spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem "
         f"/tmp/{script_name}"
@@ -128,8 +129,8 @@ def check_data_availability(**context: Any) -> dict[str, int]:
     s3 = boto3.client(
         "s3",
         endpoint_url=CONFIG["minio_endpoint"],
-        aws_access_key_id="minioadmin",
-        aws_secret_access_key="minioadmin",
+        aws_access_key_id=os.environ.get("MINIO_ACCESS_KEY", ""),
+        aws_secret_access_key=os.environ.get("MINIO_ACCESS_KEY", ""),
         config=Config(signature_version="s3v4"),
     )
 
@@ -163,9 +164,9 @@ def run_feature_engineering(**context: Any) -> dict[str, Any]:
         "--conf",
         f"spark.hadoop.fs.s3a.endpoint={CONFIG['minio_endpoint']}",
         "--conf",
-        "spark.hadoop.fs.s3a.access.key=minioadmin",
+        "spark.hadoop.fs.s3a.access.key=" + os.environ.get("MINIO_ACCESS_KEY", "") + "",
         "--conf",
-        "spark.hadoop.fs.s3a.secret.key=minioadmin",
+        "spark.hadoop.fs.s3a.secret.key=" + os.environ.get("MINIO_SECRET_KEY", "") + "",
         "--conf",
         "spark.hadoop.fs.s3a.path.style.access=true",
         "--conf",
@@ -217,8 +218,8 @@ def train_borough_model(borough: str, **context: Any) -> dict[str, Any]:
     s3 = boto3.client(
         "s3",
         endpoint_url=CONFIG["minio_endpoint"],
-        aws_access_key_id="minioadmin",
-        aws_secret_access_key="minioadmin",
+        aws_access_key_id=os.environ.get("MINIO_ACCESS_KEY", ""),
+        aws_secret_access_key=os.environ.get("MINIO_ACCESS_KEY", ""),
     )
 
     # Read features (parquet via pandas)
@@ -228,8 +229,8 @@ def train_borough_model(borough: str, **context: Any) -> dict[str, Any]:
 
     fs = pa.fs.S3FileSystem(
         endpoint_override=CONFIG["minio_endpoint"].replace("http://", ""),
-        access_key="minioadmin",
-        secret_key="minioadmin",
+        access_key=os.environ.get("MINIO_ACCESS_KEY", ""),
+        secret_key=os.environ.get("MINIO_SECRET_KEY", ""),
         scheme="http",
     )
 
@@ -356,8 +357,8 @@ def validate_models(**context: Any) -> list[dict[str, Any]]:
     s3 = boto3.client(
         "s3",
         endpoint_url=CONFIG["minio_endpoint"],
-        aws_access_key_id="minioadmin",
-        aws_secret_access_key="minioadmin",
+        aws_access_key_id=os.environ.get("MINIO_ACCESS_KEY", ""),
+        aws_secret_access_key=os.environ.get("MINIO_ACCESS_KEY", ""),
     )
 
     boroughs = ["manhattan", "brooklyn", "queens", "bronx", "staten_island"]
@@ -416,8 +417,8 @@ def generate_predictions(**context: Any) -> dict[str, Any]:
     s3 = boto3.client(
         "s3",
         endpoint_url=CONFIG["minio_endpoint"],
-        aws_access_key_id="minioadmin",
-        aws_secret_access_key="minioadmin",
+        aws_access_key_id=os.environ.get("MINIO_ACCESS_KEY", ""),
+        aws_secret_access_key=os.environ.get("MINIO_ACCESS_KEY", ""),
     )
 
     boroughs = ["manhattan", "brooklyn", "queens", "bronx", "staten_island"]
