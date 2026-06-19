@@ -104,7 +104,7 @@ def download_movielens_data(**context):
         "s3",
         endpoint_url=CONFIG["minio_endpoint"],
         aws_access_key_id=os.environ.get("MINIO_ACCESS_KEY", ""),
-        aws_secret_access_key=os.environ.get("MINIO_ACCESS_KEY", ""),
+        aws_secret_access_key=os.environ.get("MINIO_SECRET_KEY", ""),
     )
 
     # Create bucket if needed
@@ -133,7 +133,7 @@ def validate_recommendations(**context):
         "s3",
         endpoint_url=CONFIG["minio_endpoint"],
         aws_access_key_id=os.environ.get("MINIO_ACCESS_KEY", ""),
-        aws_secret_access_key=os.environ.get("MINIO_ACCESS_KEY", ""),
+        aws_secret_access_key=os.environ.get("MINIO_SECRET_KEY", ""),
     )
 
     # Check recommendations exist

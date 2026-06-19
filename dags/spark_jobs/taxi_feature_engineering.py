@@ -10,8 +10,8 @@ Usage (in cluster):
 
 Environment variables:
     MINIO_ENDPOINT: MinIO endpoint (default: http://minio.spark-infra.svc.cluster.local:9000)
-    MINIO_ACCESS_KEY: Access key (default: " + os.environ.get("MINIO_ACCESS_KEY", "") + ")
-    MINIO_SECRET_KEY: Secret key (default: " + os.environ.get("MINIO_SECRET_KEY", "") + ")
+    MINIO_ACCESS_KEY: Access key (set via env, no default)
+    MINIO_SECRET_KEY: Secret key (set via env, no default)
 """
 
 import os

@@ -93,7 +93,7 @@ def check_data_availability(**context):
         "s3",
         endpoint_url=CONFIG["minio_endpoint"],
         aws_access_key_id=os.environ.get("MINIO_ACCESS_KEY", ""),
-        aws_secret_access_key=os.environ.get("MINIO_ACCESS_KEY", ""),
+        aws_secret_access_key=os.environ.get("MINIO_SECRET_KEY", ""),
         config=Config(signature_version="s3v4"),
     )
 

@@ -130,7 +130,7 @@ def check_data_availability(**context: Any) -> dict[str, int]:
         "s3",
         endpoint_url=CONFIG["minio_endpoint"],
         aws_access_key_id=os.environ.get("MINIO_ACCESS_KEY", ""),
-        aws_secret_access_key=os.environ.get("MINIO_ACCESS_KEY", ""),
+        aws_secret_access_key=os.environ.get("MINIO_SECRET_KEY", ""),
         config=Config(signature_version="s3v4"),
     )
 
@@ -219,7 +219,7 @@ def train_borough_model(borough: str, **context: Any) -> dict[str, Any]:
         "s3",
         endpoint_url=CONFIG["minio_endpoint"],
         aws_access_key_id=os.environ.get("MINIO_ACCESS_KEY", ""),
-        aws_secret_access_key=os.environ.get("MINIO_ACCESS_KEY", ""),
+        aws_secret_access_key=os.environ.get("MINIO_SECRET_KEY", ""),
     )
 
     # Read features (parquet via pandas)
@@ -358,7 +358,7 @@ def validate_models(**context: Any) -> list[dict[str, Any]]:
         "s3",
         endpoint_url=CONFIG["minio_endpoint"],
         aws_access_key_id=os.environ.get("MINIO_ACCESS_KEY", ""),
-        aws_secret_access_key=os.environ.get("MINIO_ACCESS_KEY", ""),
+        aws_secret_access_key=os.environ.get("MINIO_SECRET_KEY", ""),
     )
 
     boroughs = ["manhattan", "brooklyn", "queens", "bronx", "staten_island"]
@@ -418,7 +418,7 @@ def generate_predictions(**context: Any) -> dict[str, Any]:
         "s3",
         endpoint_url=CONFIG["minio_endpoint"],
         aws_access_key_id=os.environ.get("MINIO_ACCESS_KEY", ""),
-        aws_secret_access_key=os.environ.get("MINIO_ACCESS_KEY", ""),
+        aws_secret_access_key=os.environ.get("MINIO_SECRET_KEY", ""),
     )
 
     boroughs = ["manhattan", "brooklyn", "queens", "bronx", "staten_island"]
