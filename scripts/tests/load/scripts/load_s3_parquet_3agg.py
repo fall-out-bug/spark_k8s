@@ -16,8 +16,8 @@ if not endpoint:
 
 spark = (
     SparkSession.builder.config("spark.hadoop.fs.s3a.endpoint", endpoint)
-    .config("spark.hadoop.fs.s3a.access.key", os.environ.get("S3_ACCESS_KEY", "minioadmin"))
-    .config("spark.hadoop.fs.s3a.secret.key", os.environ.get("S3_SECRET_KEY", "minioadmin"))
+    .config("spark.hadoop.fs.s3a.access.key", os.environ.get("S3_ACCESS_KEY", ""))
+    .config("spark.hadoop.fs.s3a.secret.key", os.environ.get("S3_SECRET_KEY", ""))
     .config("spark.hadoop.fs.s3a.path.style.access", "true")
     .getOrCreate()
 )

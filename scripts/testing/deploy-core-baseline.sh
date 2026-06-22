@@ -78,7 +78,7 @@ if kubectl -n "$NAMESPACE" get secret "${CHART_NAME}-metastore-db" &>/dev/null; 
 else
     kubectl create secret generic "${CHART_NAME}-metastore-db" \
         --from-literal=POSTGRES_USER=hive \
-        --from-literal=POSTGRES_PASSWORD=hive123 \
+        --from-literal=POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-hive123}" \
         -n "$NAMESPACE"
     echo -e "${GREEN}✓ metastore-db secret created${NC}"
 fi
@@ -136,7 +136,7 @@ PG_CONTAINER=$(minikube ssh "docker ps | grep $PG_POD | head -1 | cut -d' ' -f1"
 
 # Use minikube ssh to initialize database directly
 echo "Creating database metastore_spark41 and user hive..."
-minikube ssh "docker exec $PG_CONTAINER psql -U spark -c 'CREATE USER hive WITH PASSWORD \"hive123\";'" 2>/dev/null || echo "User may already exist"
+minikube ssh "docker exec $PG_CONTAINER psql -U spark -c 'CREATE USER hive WITH PASSWORD \"${POSTGRES_PASSWORD:-hive123}\";'" 2>/dev/null || echo "User may already exist"
 
 minikube ssh "docker exec $PG_CONTAINER psql -U spark -c 'CREATE DATABASE metastore_spark41;'" 2>/dev/null || echo "Database may already exist"
 
@@ -160,7 +160,7 @@ kubectl run "hive-init-$$" \
     --env="POSTGRES_PORT=5432" \
     --env="POSTGRES_DB=metastore_spark41" \
     --env="POSTGRES_USER=hive" \
-    --env="POSTGRES_PASSWORD=hive123" \
+    --env="POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-hive123}" \
     --command -- /bin/bash -c "
         mkdir -p /tmp/hive-conf
         cat > /tmp/hive-conf/hive-site.xml <<'EOF'
@@ -238,7 +238,7 @@ kubectl delete pod "mc-buckets-$$" -n "$NAMESPACE" --ignore-not-found=true &>/de
 echo "Updating History Server configuration..."
 kubectl patch configmap history-server-41-config -n "$NAMESPACE" \
     --type='json' -p='[
-        {"op": "replace", "path": "/data/spark-defaults.conf", "value": "# Spark History Server Configuration\nspark.history.fs.logDirectory s3a://spark-logs/events\nspark.history.fs.update.interval 10s\nspark.history.provider org.apache.spark.deploy.history.FsHistoryProvider\n\n# S3 Configuration for Event Logs\nspark.hadoop.fs.s3a.endpoint http://minio-spark-41:9000\nspark.hadoop.fs.s3a.path.style.access true\nspark.hadoop.fs.s3a.connection.ssl.enabled false\nspark.hadoop.fs.s3a.impl org.apache.hadoop.fs.s3a.S3AFileSystem\nspark.hadoop.fs.s3a.aws.credentials.provider org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider\nspark.hadoop.fs.s3a.access.key minioadmin\nspark.hadoop.fs.s3a.secret.key minioadmin\n\n# S3 connection settings\nspark.hadoop.fs.s3a.connection.maximum 200\nspark.hadoop.fs.s3a.connection.timeout 200000\n\n# History Server UI Settings\nspark.history.ui.port 18080\nspark.history.ui.maxApplications 1000\nspark.history.fs.cleaner.enabled true\nspark.history.fs.cleaner.interval 1d\nspark.history.fs.cleaner.maxAge 7d"}
+        {"op": "replace", "path": "/data/spark-defaults.conf", "value": "# Spark History Server Configuration\nspark.history.fs.logDirectory s3a://spark-logs/events\nspark.history.fs.update.interval 10s\nspark.history.provider org.apache.spark.deploy.history.FsHistoryProvider\n\n# S3 Configuration for Event Logs\nspark.hadoop.fs.s3a.endpoint http://minio-spark-41:9000\nspark.hadoop.fs.s3a.path.style.access true\nspark.hadoop.fs.s3a.connection.ssl.enabled false\nspark.hadoop.fs.s3a.impl org.apache.hadoop.fs.s3a.S3AFileSystem\nspark.hadoop.fs.s3a.aws.credentials.provider org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider\nspark.hadoop.fs.s3a.access.key ${S3_ACCESS_KEY}\nspark.hadoop.fs.s3a.secret.key ${S3_SECRET_KEY}\n\n# S3 connection settings\nspark.hadoop.fs.s3a.connection.maximum 200\nspark.hadoop.fs.s3a.connection.timeout 200000\n\n# History Server UI Settings\nspark.history.ui.port 18080\nspark.history.ui.maxApplications 1000\nspark.history.fs.cleaner.enabled true\nspark.history.fs.cleaner.interval 1d\nspark.history.fs.cleaner.maxAge 7d"}
     ]' &>/dev/null || echo "Configmap may already be patched"
 
 # Restart History Server and Hive Metastore to apply changes

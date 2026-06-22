@@ -52,8 +52,8 @@ spark:
   # S3 configuration for Minio
   hadoop:
     fs.s3a.endpoint: "http://minio.load-testing.svc.cluster.local:9000"
-    fs.s3a.access.key: "minioadmin"
-    fs.s3a.secret.key: "minioadmin"
+    fs.s3a.access.key: "{{ s3_access_key }}"
+    fs.s3a.secret.key: "{{ s3_secret_key }}"
     fs.s3a.path.style.access: "true"
     fs.s3a.connection.maximum: 100
 

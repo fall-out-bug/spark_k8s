@@ -91,7 +91,7 @@ if kubectl -n "$NAMESPACE" get secret hive-credentials &>/dev/null; then
 else
     kubectl create secret generic hive-credentials \
         --from-literal=POSTGRES_USER=hive \
-        --from-literal=POSTGRES_PASSWORD=hive123 \
+        --from-literal=POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-hive123}" \
         -n "$NAMESPACE"
     echo -e "${GREEN}✓ hive-credentials secret created${NC}"
 fi
@@ -124,7 +124,7 @@ kubectl wait --for=condition=ready pod "$PG_POD" -n "$NAMESPACE" --timeout=300s
 PG_CONTAINER=$(minikube ssh "docker ps | grep $PG_POD | head -1 | cut -d' ' -f1")
 
 echo "Creating databases for Spark 3.5 and 4.1..."
-minikube ssh "docker exec $PG_CONTAINER psql -U spark -c \"CREATE USER hive WITH PASSWORD 'hive123';\" 2>/dev/null || echo 'User exists'"
+minikube ssh "docker exec $PG_CONTAINER psql -U spark -c \"CREATE USER hive WITH PASSWORD "${POSTGRES_PASSWORD:-hive123}";\" 2>/dev/null || echo 'User exists'"
 
 minikube ssh "docker exec $PG_CONTAINER psql -U spark -c 'CREATE DATABASE metastore_spark35;' 2>/dev/null || echo 'Database exists'"
 minikube ssh "docker exec $PG_CONTAINER psql -U spark -c 'GRANT ALL PRIVILEGES ON DATABASE metastore_spark35 TO hive;' 2>/dev/null"

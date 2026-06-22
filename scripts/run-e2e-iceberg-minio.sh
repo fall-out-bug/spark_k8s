@@ -64,9 +64,9 @@ spec:
         - containerPort: 9000
         env:
         - name: MINIO_ROOT_USER
-          value: minioadmin
+          value: "$S3_ACCESS_KEY"
         - name: MINIO_ROOT_PASSWORD
-          value: minioadmin
+          value: "$S3_SECRET_KEY"
         command:
         - /bin/sh
         - -c
@@ -146,8 +146,8 @@ helm install spark-e2e charts/spark-4.1 \
     --set connect.sparkConf."spark.sql.catalog.iceberg.warehouse"="s3a://warehouse/iceberg" \
     --set connect.sparkConf."spark.sql.catalog.iceberg.io-impl"=org.apache.iceberg.aws.s3.S3FileIO \
     --set connect.sparkConf."spark.sql.catalog.iceberg.s3.endpoint"="http://$MINIO_IP:9000" \
-    --set connect.sparkConf."spark.hadoop.fs.s3a.access.key"=minioadmin \
-    --set connect.sparkConf."spark.hadoop.fs.s3a.secret.key"=minioadmin \
+    --set connect.sparkConf."spark.hadoop.fs.s3a.access.key"="${S3_ACCESS_KEY:?required}" \
+    --set connect.sparkConf."spark.hadoop.fs.s3a.secret.key"="${S3_SECRET_KEY:?required}" \
     --set connect.sparkConf."spark.hadoop.fs.s3a.path.style.access"=true \
     --set connect.sparkConf."spark.hadoop.fs.s3a.connection.ssl.enabled"=false \
     --wait --timeout 10m 2>&1 | tail -20

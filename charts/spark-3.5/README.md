@@ -149,7 +149,7 @@ core:
     fullnameOverride: "postgresql-metastore-35"
     auth:
       username: hive
-      password: "hive123"
+      password: "$POSTGRES_PASSWORD"
       database: metastore
 ```
 
@@ -414,7 +414,7 @@ global:
     host: "postgresql-metastore-35"
     port: 5432
     user: "hive"
-    password: "hive123"
+    password: "$POSTGRES_PASSWORD"
 ```
 
 ### RBAC

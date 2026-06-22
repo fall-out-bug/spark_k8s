@@ -37,8 +37,8 @@ from pyspark.sql.functions import (
 from pyspark.sql.types import DoubleType, IntegerType, StringType, StructField, StructType
 
 S3_ENDPOINT = os.getenv("S3_ENDPOINT", "http://minio-spark-35:9000")
-S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY", "minioadmin")
-S3_SECRET_KEY = os.getenv("S3_SECRET_KEY", "minioadmin")
+S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY", "")
+S3_SECRET_KEY = os.getenv("S3_SECRET_KEY", "")
 S3_BUCKET = os.getenv("S3_BUCKET", "warehouse")
 
 

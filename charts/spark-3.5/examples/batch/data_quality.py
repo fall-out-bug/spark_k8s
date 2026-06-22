@@ -22,8 +22,8 @@ from pyspark.sql.dataframe import DataFrame
 from pyspark.sql.functions import col, max, when
 
 S3_ENDPOINT = os.getenv("S3_ENDPOINT", "http://minio-spark-35:9000")
-S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY", "minioadmin")
-S3_SECRET_KEY = os.getenv("S3_SECRET_KEY", "minioadmin")
+S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY", "")
+S3_SECRET_KEY = os.getenv("S3_SECRET_KEY", "")
 
 
 def create_spark_session() -> SparkSession:
