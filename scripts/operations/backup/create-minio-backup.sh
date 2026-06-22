@@ -11,8 +11,8 @@ source "${SCRIPT_DIR}/../common.sh"
 
 # Configuration
 MINIO_ENDPOINT=${MINIO_ENDPOINT:-"http://minio:9000"}
-MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-"minioadmin"}
-MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-"minioadmin"}
+MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:?MINIO_ACCESS_KEY required}
+MINIO_SECRET_KEY=${MINIO_SECRET_KEY:?MINIO_SECRET_KEY required}
 BACKUP_BUCKET=${BACKUP_BUCKET:-"spark-backups"}
 BACKUP_PREFIX=${BACKUP_PREFIX:-"minio-$(date +%Y%m%d)"}
 

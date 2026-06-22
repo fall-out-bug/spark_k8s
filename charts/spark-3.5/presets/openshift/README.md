@@ -113,7 +113,7 @@ helm install my-spark charts/spark-3.5 \
   -f charts/spark-3.5/presets/openshift/restricted.yaml \
   --set hiveMetastore.postgresql.host='postgresql.example.com' \
   --set hiveMetastore.postgresql.username='hive' \
-  --set hiveMetastore.postgresql.password='hive123' \
+  --set hiveMetastore.postgresql.password='$POSTGRES_PASSWORD' \
   --set hiveMetastore.postgresql.database='metastore_spark35' \
   -n spark-openshift
 ```

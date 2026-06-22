@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import re
 import subprocess
 import tempfile
@@ -592,8 +593,8 @@ def _minio_login(page) -> None:
     page.goto("http://127.0.0.1:19001", wait_until="domcontentloaded", timeout=120_000)
     if page.locator("input").count() >= 2:
         inputs = page.locator("input")
-        inputs.nth(0).fill("minioadmin")
-        inputs.nth(1).fill("minioadmin")
+        inputs.nth(0).fill(os.environ.get("S3_ACCESS_KEY", ""))
+        inputs.nth(1).fill(os.environ.get("S3_SECRET_KEY", ""))
         if page.locator("button").count():
             page.locator("button").last.click()
         else:

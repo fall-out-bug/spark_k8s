@@ -20,7 +20,7 @@ global:
     host: "postgresql-metastore-35"
     port: 5432
     user: "hive"
-    password: "hive123"
+    password: "$POSTGRES_PASSWORD"
   monitoring:
     openTelemetry:
       enabled: false
@@ -172,7 +172,7 @@ core:
       port: 5432
       database: "metastore_spark35"
       username: "hive"
-      password: "hive123"
+      password: "$POSTGRES_PASSWORD"
       persistence:
         enabled: true
         size: 5Gi
@@ -378,7 +378,7 @@ hiveMetastore:
     port: 5432
     database: "metastore_spark35"
     username: "hive"
-    password: "hive123"
+    password: "$POSTGRES_PASSWORD"
     persistence:
       enabled: true
       size: 5Gi

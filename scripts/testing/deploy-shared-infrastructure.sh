@@ -99,7 +99,7 @@ if kubectl -n "$NAMESPACE" get secret hive-credentials &>/dev/null; then
 else
     kubectl create secret generic hive-credentials \
         --from-literal=POSTGRES_USER=hive \
-        --from-literal=POSTGRES_PASSWORD=hive123 \
+        --from-literal=POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-hive123}" \
         -n "$NAMESPACE"
     echo -e "${GREEN}✓ hive-credentials secret created${NC}"
 fi

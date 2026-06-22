@@ -78,7 +78,7 @@ if kubectl -n "$NAMESPACE" get secret "${CHART_NAME}-metastore-db" &>/dev/null; 
 else
     kubectl create secret generic "${CHART_NAME}-metastore-db" \
         --from-literal=POSTGRES_USER=hive \
-        --from-literal=POSTGRES_PASSWORD=hive123 \
+        --from-literal=POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-hive123}" \
         -n "$NAMESPACE"
     echo -e "${GREEN}✓ metastore-db secret created${NC}"
 fi
@@ -136,7 +136,7 @@ PG_SVC="postgresql-metastore-35"
 
 # Use kubectl exec to initialize database directly
 echo "Creating database metastore_spark35 and user hive..."
-kubectl exec -n "$NAMESPACE" "$PG_POD" -- psql -U spark -c "CREATE USER hive WITH PASSWORD 'hive123';" 2>/dev/null || echo "User may already exist"
+kubectl exec -n "$NAMESPACE" "$PG_POD" -- psql -U spark -c "CREATE USER hive WITH PASSWORD "${POSTGRES_PASSWORD:-hive123}";" 2>/dev/null || echo "User may already exist"
 
 kubectl exec -n "$NAMESPACE" "$PG_POD" -- psql -U spark -c "CREATE DATABASE metastore_spark35;" 2>/dev/null || echo "Database may already exist"
 
@@ -160,7 +160,7 @@ kubectl run "hive-init-$$" \
     --env="POSTGRES_PORT=5432" \
     --env="POSTGRES_DB=metastore_spark35" \
     --env="POSTGRES_USER=hive" \
-    --env="POSTGRES_PASSWORD=hive123" \
+    --env="POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-hive123}"" \
     --command -- /bin/bash -c "
         mkdir -p /tmp/hive-conf
         cat > /tmp/hive-conf/hive-site.xml <<'EOF'

@@ -5,6 +5,7 @@ These tests REQUIRE:
 - MinIO or S3-compatible storage
 """
 
+import os
 import subprocess
 
 import pytest
@@ -27,9 +28,9 @@ class TestRealIcebergWorkload:
                 "minio",
                 "minio/minio",
                 "--set",
-                "accessKey=minioadmin",
+                f'accessKey={os.environ.get("S3_ACCESS_KEY", "")}',
                 "--set",
-                "secretKey=minioadmin",
+                f'secretKey={os.environ.get("S3_SECRET_KEY", "")}',
                 "--set",
                 "persistence.enabled=false",
                 "--namespace",
