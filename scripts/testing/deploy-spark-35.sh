@@ -62,7 +62,7 @@ kubectl create configmap hive-init-35 -n "$NAMESPACE" \
   </property>
   <property>
     <name>javax.jdo.option.ConnectionPassword</name>
-    <value>${POSTGRES_PASSWORD:-hive123}</value>
+    <value>'"${POSTGRES_PASSWORD:-hive123}"'</value>
   </property>
 </configuration>' &>/dev/null || echo "ConfigMap exists"
 

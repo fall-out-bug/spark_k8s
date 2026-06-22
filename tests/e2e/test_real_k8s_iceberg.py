@@ -1,5 +1,6 @@
 """Real E2E: Iceberg workload and cleanup tests."""
 
+import os
 import subprocess
 
 import pytest
@@ -21,9 +22,9 @@ class TestRealIcebergWorkload:
                 "minio",
                 "minio/minio",
                 "--set",
-                "accessKey=$S3_ACCESS_KEY",
+                f'accessKey={os.environ.get("S3_ACCESS_KEY", "")}',
                 "--set",
-                "secretKey=$S3_SECRET_KEY",
+                f'secretKey={os.environ.get("S3_SECRET_KEY", "")}',
                 "--set",
                 "persistence.enabled=false",
                 "--namespace",
