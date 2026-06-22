@@ -33,10 +33,20 @@ jobs:
         run: |
           # Self-hosted runner may lack passwordless sudo. Tarballs -> $HOME/.local.
           mkdir -p "$HOME/.local"
+          # JDK: install BOTH 17 (default, Spark 4.x) and 11 (Spark 3.5.x source-build
+          # — JDK 17 removed sun.security.action which Spark 3.5 source references).
+          # Spark 3.5.x build fails on JDK 17 with:
+          #   "object action is not a member of package sun.security"
           if ! command -v javac >/dev/null 2>&1; then
             sudo apt-get update && sudo apt-get install -y openjdk-17-jdk || \
-              echo "::warning::apt-get needs sudo; assuming JDK pre-installed on runner"
+              echo "::warning::apt-get needs sudo; assuming JDK 17 pre-installed on runner"
           fi
+          # JDK 11 for Spark 3.5.x source builds (best-effort if sudo available)
+          sudo apt-get install -y openjdk-11-jdk 2>/dev/null || \
+            echo "::warning::JDK 11 not installed (sudo unavailable). Spark 3.5.x source-build may fail."
+          # Set JAVA_HOME per Spark version later (in build step)
+          echo "JAVA_HOME_17=/usr/lib/jvm/java-17-openjdk-amd64" >> "$GITHUB_ENV"
+          echo "JAVA_HOME_11=/usr/lib/jvm/java-11-openjdk-amd64" >> "$GITHUB_ENV"
           # Maven (tarball -> user-space)
           wget -q https://archive.apache.org/dist/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz
           tar -xzf apache-maven-3.9.6-bin.tar.gz -C "$HOME/.local"
@@ -53,7 +63,18 @@ jobs:
         run: |
           SPARK_VERSION="${{ github.event.inputs.version || '3.5.7' }}"
           # Maven + Scala already on PATH via GITHUB_PATH (user-space install).
-          # Previously exported /opt/maven paths here, but those no longer exist.
+          # JDK selection: Spark 3.5.x source-build requires JDK 11 (JDK 17 removed
+          # sun.security.action internal package that Spark 3.5 references).
+          # Spark 4.x builds on JDK 17.
+          if [[ "$SPARK_VERSION" == 3.5.* ]] && [[ -d "$JAVA_HOME_11" ]]; then
+            export JAVA_HOME="$JAVA_HOME_11"
+            echo "Using JDK 11 for Spark 3.5.x source build: $JAVA_HOME"
+          elif [[ -d "$JAVA_HOME_17" ]]; then
+            export JAVA_HOME="$JAVA_HOME_17"
+            echo "Using JDK 17 for Spark $SPARK_VERSION: $JAVA_HOME"
+          fi
+          export PATH="$JAVA_HOME/bin:$PATH"
+          java -version
 
           mkdir -p dist/build
           cd dist/build
