@@ -37,7 +37,7 @@ kubectl get pods -n spark-infra -l app.kubernetes.io/component=spark-connect
 ```bash
 kubectl run -n spark-infra minio-check --rm -i --restart=Never \
   --image=minio/mc:RELEASE.2025-08-13T08-35-41Z --command -- /bin/sh -c "
-  mc alias set local http://minio:9000 minioadmin minioadmin &&
+  mc alias set local http://minio:9000 "$S3_ACCESS_KEY" "$S3_SECRET_KEY" &&
   mc ls local
 "
 ```

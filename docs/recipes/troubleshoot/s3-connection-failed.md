@@ -32,8 +32,8 @@ kubectl exec -n <namespace> deploy/spark-connect -- \
 ```bash
 helm upgrade spark-connect charts/spark-4.1 -n <namespace> \
   --set global.s3.endpoint=http://minio:9000 \
-  --set global.s3.accessKey=minioadmin \
-  --set global.s3.secretKey=minioadmin \
+  --set global.s3.accessKey="$S3_ACCESS_KEY" \
+  --set global.s3.secretKey="$S3_SECRET_KEY" \
   --set global.s3.pathStyleAccess=true \
   --set global.s3.sslEnabled=false \
   --reuse-values
@@ -44,8 +44,8 @@ helm upgrade spark-connect charts/spark-4.1 -n <namespace> \
 ```bash
 helm upgrade spark-connect charts/spark-3.5/charts/spark-connect -n <namespace> \
   --set s3.endpoint=http://minio:9000 \
-  --set s3.accessKey=minioadmin \
-  --set s3.secretKey=minioadmin \
+  --set s3.accessKey="$S3_ACCESS_KEY" \
+  --set s3.secretKey="$S3_SECRET_KEY" \
   --set s3.pathStyleAccess=true \
   --reuse-values
 ```
@@ -56,8 +56,8 @@ helm upgrade spark-connect charts/spark-3.5/charts/spark-connect -n <namespace> 
 # 1. Создать secret
 kubectl create secret generic s3-credentials \
   -n <namespace> \
-  --from-literal=access-key=minioadmin \
-  --from-literal=secret-key=minioadmin
+  --from-literal=access-key="$S3_ACCESS_KEY" \
+  --from-literal=secret-key="$S3_SECRET_KEY"
 
 # 2. Использовать secret
 helm upgrade spark-connect charts/spark-4.1 -n <namespace> \
@@ -86,8 +86,8 @@ kubectl exec -n <namespace> deploy/spark-connect -- \
   /opt/spark/bin/spark-submit --master local[*] \
   --conf spark.hadoop.fs.s3a.endpoint=http://minio:9000 \
   --conf spark.hadoop.fs.s3a.path.style.access=true \
-  --conf spark.hadoop.fs.s3a.access.key=minioadmin \
-  --conf spark.hadoop.fs.s3a.secret.key=minioadmin \
+  --conf spark.hadoop.fs.s3a.access.key=$S3_ACCESS_KEY \
+  --conf spark.hadoop.fs.s3a.secret.key=$S3_SECRET_KEY \
   /dev/null 2>&1 | head -20
 
 # Тест через Jupyter

@@ -37,8 +37,8 @@ ensure_namespace() {
 ensure_event_log_prefix() {
   local ns="$1"
   local endpoint="${S3_ENDPOINT:-http://minio.${ns}.svc.cluster.local:9000}"
-  local access_key="${S3_ACCESS_KEY:-minioadmin}"
-  local secret_key="${S3_SECRET_KEY:-minioadmin}"
+  local access_key="${S3_ACCESS_KEY:?S3_ACCESS_KEY required}"
+  local secret_key="${S3_SECRET_KEY:?S3_SECRET_KEY required}"
   local prefix="$2"
 
   kubectl run "mc-prefix-$(date +%s)-${RANDOM}" --rm -i --restart=Never -n "${ns}" --command \
@@ -94,8 +94,8 @@ wait_for_event_logs() {
   local ns="$1"
   local endpoint="$2"
   local prefix="$3"
-  local access_key="${S3_ACCESS_KEY:-minioadmin}"
-  local secret_key="${S3_SECRET_KEY:-minioadmin}"
+  local access_key="${S3_ACCESS_KEY:?S3_ACCESS_KEY required}"
+  local secret_key="${S3_SECRET_KEY:?S3_SECRET_KEY required}"
 
   for _ in $(seq 1 12); do
     if kubectl run "mc-check-$(date +%s)-${RANDOM}" --rm -i --restart=Never -n "${ns}" --command \

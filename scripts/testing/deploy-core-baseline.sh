@@ -66,8 +66,8 @@ if kubectl -n "$NAMESPACE" get secret s3-credentials &>/dev/null; then
     echo -e "${YELLOW}⚠ Secret s3-credentials already exists${NC}"
 else
     kubectl create secret generic s3-credentials \
-        --from-literal=access-key=minioadmin \
-        --from-literal=secret-key=minioadmin \
+        --from-literal=access-key=$S3_ACCESS_KEY \
+        --from-literal=secret-key=$S3_SECRET_KEY \
         -n "$NAMESPACE"
     echo -e "${GREEN}✓ s3-credentials secret created${NC}"
 fi
@@ -223,7 +223,7 @@ kubectl run "mc-buckets-$$" \
     --image=minio/mc:RELEASE.2025-08-13T08-35-41Z \
     -n "$NAMESPACE" \
     --command -- /bin/sh -c "
-        mc alias set myminio http://minio-spark-41:9000 minioadmin minioadmin
+        mc alias set myminio http://minio-spark-41:9000 $S3_ACCESS_KEY $S3_SECRET_KEY
         mc mb myminio/spark-logs
         mc cp /etc/hostname myminio/spark-logs/events/.keep
         mc ls myminio/

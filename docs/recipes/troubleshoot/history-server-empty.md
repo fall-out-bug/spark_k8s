@@ -41,8 +41,8 @@ helm upgrade spark-connect charts/spark-4.1 -n <namespace> \
 # Добавить credentials
 kubectl create secret generic s3-credentials \
   -n <namespace> \
-  --from-literal=access-key=minioadmin \
-  --from-literal=secret-key=minioadmin
+  --from-literal=access-key="$S3_ACCESS_KEY" \
+  --from-literal=secret-key="$S3_SECRET_KEY"
 
 helm upgrade spark-connect charts/spark-4.1 -n <namespace> \
   --set global.s3.existingSecret=s3-credentials \
@@ -68,8 +68,8 @@ helm upgrade spark-connect charts/spark-4.1 -n <namespace> \
   --set historyServer.enabled=true \
   --set historyServer.logDirectory=s3a://spark-logs/4.1/events \
   --set global.s3.endpoint=http://minio:9000 \
-  --set global.s3.accessKey=minioadmin \
-  --set global.s3.secretKey=minioadmin \
+  --set global.s3.accessKey="$S3_ACCESS_KEY" \
+  --set global.s3.secretKey="$S3_SECRET_KEY" \
   --reuse-values
 ```
 

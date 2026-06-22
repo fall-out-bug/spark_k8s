@@ -148,8 +148,8 @@ if [[ "$needs_reinstall" == "true" ]]; then
   helm upgrade --install "$RELEASE" "$CHART_PATH" \
     -n "$NAMESPACE" \
     -f "$PRESET" \
-    --set global.s3.accessKey=minioadmin \
-    --set global.s3.secretKey=minioadmin \
+    --set global.s3.accessKey=$S3_ACCESS_KEY \
+    --set global.s3.secretKey=$S3_SECRET_KEY \
     --set spark-base.postgresql.auth.password=postgres \
     "${airflow_args[@]}" \
     --timeout 10m \
@@ -159,8 +159,8 @@ else
   helm upgrade "$RELEASE" "$CHART_PATH" \
     -n "$NAMESPACE" \
     -f "$PRESET" \
-    --set global.s3.accessKey=minioadmin \
-    --set global.s3.secretKey=minioadmin \
+    --set global.s3.accessKey=$S3_ACCESS_KEY \
+    --set global.s3.secretKey=$S3_SECRET_KEY \
     --set spark-base.postgresql.auth.password=postgres \
     "${airflow_args[@]}" \
     --timeout 10m \

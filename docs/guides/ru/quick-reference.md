@@ -102,8 +102,8 @@ helm upgrade spark charts/spark-4.1 -n spark \
 # S3 конфигурация
 helm upgrade spark charts/spark-4.1 -n spark \
   --set global.s3.endpoint=http://minio:9000 \
-  --set global.s3.accessKey=minioadmin \
-  --set global.s3.secretKey=minioadmin
+  --set global.s3.accessKey="$S3_ACCESS_KEY" \
+  --set global.s3.secretKey="$S3_SECRET_KEY"
 ```
 
 ### Валидация

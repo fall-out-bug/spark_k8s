@@ -55,8 +55,8 @@ Secret будет создан автоматически при установ�
 ```bash
 kubectl create secret generic s3-credentials \
   -n <namespace> \
-  --from-literal=access-key=minioadmin \
-  --from-literal=secret-key=minioadmin
+  --from-literal=access-key="$S3_ACCESS_KEY" \
+  --from-literal=secret-key="$S3_SECRET_KEY"
 
 # Или использовать существующий secret
 helm upgrade spark charts/spark-4.1 -n <namespace> \

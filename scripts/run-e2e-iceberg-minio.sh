@@ -98,8 +98,8 @@ kubectl wait --for=condition=available deployment/minio -n "$TEST_NAMESPACE" --t
 
 # Create S3 secret
 kubectl create secret generic s3-credentials \
-    --from-literal=access-key=minioadmin \
-    --from-literal=secret-key=minioadmin \
+    --from-literal=access-key=$S3_ACCESS_KEY \
+    --from-literal=secret-key=$S3_SECRET_KEY \
     -n "$TEST_NAMESPACE" 2>/dev/null || true
 
 # Get MinIO service
@@ -113,7 +113,7 @@ kubectl run mc -n "$TEST_NAMESPACE" --rm -i --restart=Never \
     --command=/bin/sh \
     -- \
     -c "
-        mc alias set minio http://$MINIO_IP:9000 minioadmin minioadmin
+        mc alias set minio http://$MINIO_IP:9000 $S3_ACCESS_KEY $S3_SECRET_KEY
         mc mb minio/warehouse --ignore-existing
         mc mb minio/spark-logs --ignore-existing
         echo 'Buckets created'

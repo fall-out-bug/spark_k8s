@@ -51,7 +51,7 @@ docker run --rm --network "$NETWORK" \
     -v "$DATA_DIR:/data" \
     --entrypoint="" \
     minio/mc:RELEASE.2025-08-13T08-35-41Z /bin/sh -c "
-        mc alias set myminio http://minio:9000 minioadmin minioadmin
+        mc alias set myminio http://minio:9000 $S3_ACCESS_KEY $S3_SECRET_KEY
         mc mb --ignore-existing myminio/$BUCKET/$PREFIX
         mc cp /data/*.parquet myminio/$BUCKET/$PREFIX/
         echo ''

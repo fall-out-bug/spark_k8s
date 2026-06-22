@@ -333,8 +333,8 @@ kubectl exec -n datascience deploy/spark-connect -- \
 # Решение:
 helm upgrade spark-datascience charts/spark-4.1 -n datascience \
   --set global.s3.endpoint=http://minio:9000 \
-  --set global.s3.accessKey=minioadmin \
-  --set global.s3.secretKey=minioadmin \
+  --set global.s3.accessKey="$S3_ACCESS_KEY" \
+  --set global.s3.secretKey="$S3_SECRET_KEY" \
   --set global.s3.pathStyleAccess=true
 ```
 

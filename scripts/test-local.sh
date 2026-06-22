@@ -39,7 +39,7 @@ docker-compose exec -T spark-connect nc -z localhost 15002 && echo " Spark Conne
 
 echo ""
 echo "Core services are running. Access:"
-echo "  - MinIO Console: http://localhost:9001 (minioadmin/minioadmin)"
+echo "  - MinIO Console: http://localhost:9001 ($S3_ACCESS_KEY/$S3_SECRET_KEY)"
 echo "  - Spark UI: http://localhost:4040"
 echo ""
 echo "To start all services: docker-compose up -d"

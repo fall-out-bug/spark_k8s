@@ -102,8 +102,8 @@ ensure_namespace() {
 
 ensure_s3_secret() {
   local ns="$1"
-  local access_key="${S3_ACCESS_KEY:-minioadmin}"
-  local secret_key="${S3_SECRET_KEY:-minioadmin}"
+  local access_key="${S3_ACCESS_KEY:?S3_ACCESS_KEY required}"
+  local secret_key="${S3_SECRET_KEY:?S3_SECRET_KEY required}"
   if ! kubectl get secret -n "${ns}" s3-credentials >/dev/null 2>&1; then
     kubectl create secret generic s3-credentials \
       -n "${ns}" \
@@ -115,8 +115,8 @@ ensure_s3_secret() {
 ensure_event_log_prefix() {
   local ns="$1"
   local endpoint="${S3_ENDPOINT:-http://minio:9000}"
-  local access_key="${S3_ACCESS_KEY:-minioadmin}"
-  local secret_key="${S3_SECRET_KEY:-minioadmin}"
+  local access_key="${S3_ACCESS_KEY:?S3_ACCESS_KEY required}"
+  local secret_key="${S3_SECRET_KEY:?S3_SECRET_KEY required}"
   local prefix="$2"
 
   kubectl run "mc-prefix-$(date +%s)-${RANDOM}" --rm -i --restart=Never -n "${ns}" --command \
@@ -147,8 +147,8 @@ wait_for_event_logs() {
   local ns="$1"
   local prefix="$2"
   local endpoint="${S3_ENDPOINT:-http://minio:9000}"
-  local access_key="${S3_ACCESS_KEY:-minioadmin}"
-  local secret_key="${S3_SECRET_KEY:-minioadmin}"
+  local access_key="${S3_ACCESS_KEY:?S3_ACCESS_KEY required}"
+  local secret_key="${S3_SECRET_KEY:?S3_SECRET_KEY required}"
 
   for _ in $(seq 1 12); do
     if kubectl run "mc-check-$(date +%s)-${RANDOM}" --rm -i --restart=Never -n "${ns}" --command \
@@ -236,8 +236,8 @@ install_connect() {
       --set spark-base.minio.persistence.enabled=false \
       --set spark-base.postgresql.enabled=false \
       --set global.s3.endpoint="${S3_ENDPOINT:-http://minio:9000}" \
-      --set global.s3.accessKey="${S3_ACCESS_KEY:-minioadmin}" \
-      --set global.s3.secretKey="${S3_SECRET_KEY:-minioadmin}" \
+      --set global.s3.accessKey="${S3_ACCESS_KEY:?S3_ACCESS_KEY required}" \
+      --set global.s3.secretKey="${S3_SECRET_KEY:?S3_SECRET_KEY required}" \
       "${extra_args[@]}" \
       >/dev/null
     kubectl rollout restart deployment -n "${ns}" -l app=spark-connect >/dev/null 2>&1 || true

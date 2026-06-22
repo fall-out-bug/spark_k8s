@@ -143,8 +143,8 @@ core:
 **Access credentials:**
 - Default console: `http://minio-spark-41:9001`
 - Default API: `http://minio-spark-41:9000`
-- Default access key: `minioadmin`
-- Default secret key: `minioadmin`
+- Default access key: `$S3_ACCESS_KEY` (from .env)
+- Default secret key: `$S3_ACCESS_KEY` (from .env)
 
 **S3 Configuration in Spark:**
 ```python

@@ -41,8 +41,8 @@ else
   echo "❌ S3 credentials secret not found"
   echo "Create it with:"
   echo "kubectl create secret generic s3-credentials -n ${NAMESPACE} \\"
-  echo "  --from-literal=access-key=minioadmin \\"
-  echo "  --from-literal=secret-key=minioadmin"
+  echo "  --from-literal=access-key=$S3_ACCESS_KEY \\"
+  echo "  --from-literal=secret-key=$S3_SECRET_KEY"
 fi
 
 echo -e "\n=== 6. Check global.s3 configuration ==="
@@ -50,4 +50,4 @@ kubectl get cm -n "${NAMESPACE}" spark-connect-configmap -o yaml | grep -A 3 "s3
 
 echo -e "\n=== Test S3 access with mc (MinIO client) ==="
 kubectl run mc-test-$$ --rm -i --restart=Never -n "${NAMESPACE}" --image=minio/mc:RELEASE.2025-08-13T08-35-41Z -- \
-  /bin/sh -lc "mc alias set test http://minio:9000 minioadmin minioadmin >/dev/null 2>&1 && mc ls test/" && echo "✅ mc can access MinIO" || echo "❌ mc cannot access MinIO"
+  /bin/sh -lc "mc alias set test http://minio:9000 $S3_ACCESS_KEY $S3_SECRET_KEY >/dev/null 2>&1 && mc ls test/" && echo "✅ mc can access MinIO" || echo "❌ mc cannot access MinIO"
