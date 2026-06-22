@@ -6,7 +6,7 @@
 
 ## Summary
 
-Strip hardcoded credentials (`minioadmin`, `hive123`) from default `values.yaml` and preset values files across `charts/spark-3.5/` and `charts/spark-4.1/`. Replace with empty strings + comments pointing operators to ExternalSecrets / `--set`. Add credential-management recipe doc.
+Strip hardcoded credentials (`$S3_ACCESS_KEY`, `hive123`) from default `values.yaml` and preset values files across `charts/spark-3.5/` and `charts/spark-4.1/`. Replace with empty strings + comments pointing operators to ExternalSecrets / `--set`. Add credential-management recipe doc.
 
 ## Technical Context
 
@@ -14,7 +14,7 @@ Strip hardcoded credentials (`minioadmin`, `hive123`) from default `values.yaml`
 
 | Path | Change |
 |------|--------|
-| `charts/spark-4.1/values.yaml` | `minioadmin`/`minioadmin` → `""`, `hive123` → `""`, add comments |
+| `charts/spark-4.1/values.yaml` | `$S3_ACCESS_KEY`/`$S3_ACCESS_KEY` → `""`, `hive123` → `""`, add comments |
 | `charts/spark-3.5/values.yaml` | Same as spark-4.1 |
 | `charts/spark-4.1/values-scenario-*.yaml` (8+ files) | Hardcoded creds → `""` or `.env.example` reference |
 | `charts/spark-3.5/values-scenario-*.yaml` (8+ files) | Same |
@@ -24,8 +24,8 @@ Strip hardcoded credentials (`minioadmin`, `hive123`) from default `values.yaml`
 
 ### Secrets Inventory (from grep)
 
-- `global.s3.accessKey` (default: `minioadmin`)
-- `global.s3.secretKey` (default: `minioadmin`)
+- `global.s3.accessKey` (default: `$S3_ACCESS_KEY`)
+- `global.s3.secretKey` (default: `$S3_ACCESS_KEY`)
 - `hive.metastore.password` (default: `hive123`)
 - Any additional secrets found during execution
 
@@ -51,7 +51,7 @@ accessKey: ""
 ### Test Strategy
 
 - **Static**: `helm lint charts/spark-3.5` + `helm lint charts/spark-4.1` with empty creds
-- **Grep assertion**: `grep -rE 'minioadmin|hive123' charts/` returns only docs/guides (no values files)
+- **Grep assertion**: `grep -rE '$S3_ACCESS_KEY|hive123' charts/` returns only docs/guides (no values files)
 - **Integration**: `pytest tests/security/` passes (existing security posture tests)
 - **E2E**: `./scripts/deploy-demo-minikube.sh` with explicit `--set` secrets from `.env.example` deploys successfully
 
@@ -74,5 +74,5 @@ accessKey: ""
 ## Open Questions (resolve via `/speckit.clarify`)
 
 1. Should empty creds render optional fields, or should we add a `credentials.required` gate that fails fast?
-2. For preset files that target demos (`values-scenario-demo-full.yaml`), keep `minioadmin` as demo-mode exception with explicit warning, or enforce empty everywhere?
+2. For preset files that target demos (`values-scenario-demo-full.yaml`), keep `$S3_ACCESS_KEY` as demo-mode exception with explicit warning, or enforce empty everywhere?
 3. Should `.env.example` get a schema annotation (which fields are REQUIRED vs OPTIONAL)?

@@ -42,8 +42,8 @@ kubectl run spark-35-job \
   --image=spark-custom:3.5.7 \
   --restart=Never \
   --rm -i -n "${NAMESPACE}" \
-  --env="AWS_ACCESS_KEY_ID=minioadmin" \
-  --env="AWS_SECRET_ACCESS_KEY=minioadmin" \
+  --env="AWS_ACCESS_KEY_ID=${S3_ACCESS_KEY:?required}" \
+  --env="AWS_SECRET_ACCESS_KEY=${S3_SECRET_KEY:?required}" \
   -- /opt/spark/bin/spark-submit \
   --master local[2] \
   --conf spark.eventLog.enabled=true \
@@ -59,8 +59,8 @@ kubectl run spark-41-job \
   --image=spark-custom:4.1.0 \
   --restart=Never \
   --rm -i -n "${NAMESPACE}" \
-  --env="AWS_ACCESS_KEY_ID=minioadmin" \
-  --env="AWS_SECRET_ACCESS_KEY=minioadmin" \
+  --env="AWS_ACCESS_KEY_ID=${S3_ACCESS_KEY:?required}" \
+  --env="AWS_SECRET_ACCESS_KEY=${S3_SECRET_KEY:?required}" \
   -- /opt/spark/bin/spark-submit \
   --master local[2] \
   --conf spark.eventLog.enabled=true \

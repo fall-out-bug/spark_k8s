@@ -220,8 +220,8 @@ global:
   s3:
     enabled: true
     endpoint: "http://minio:9000"
-    accessKey: "minioadmin"
-    secretKey: "minioadmin"
+    accessKey: "$S3_ACCESS_KEY"
+    secretKey: "$S3_SECRET_KEY"
     pathStyleAccess: true
     sslEnabled: false
 

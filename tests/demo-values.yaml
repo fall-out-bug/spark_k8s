@@ -19,7 +19,7 @@ global:
     # NOTE: spark-base postgresql chart does not yet support auth.existingSecret
     # (templates/postgresql.yaml uses envFrom secretRef but without existingSecret wiring).
     # For now, set password explicitly via --set on deploy. Chart enhancement tracked separately.
-    password: "spark123"  # override via --set core.postgresql.auth.password="$POSTGRESQL_PASSWORD"
+    password: "${POSTGRES_PASSWORD:-spark123}"  # override via --set core.postgresql.auth.password="$POSTGRESQL_PASSWORD"
 
 security:
   podSecurityStandards: false
@@ -40,7 +40,7 @@ spark-base:
     auth:
       username: "spark"
       # spark-base postgresql chart doesn't support auth.existingSecret yet; set via --set.
-      password: "spark123"  # override via --set on deploy
+      password: "${POSTGRES_PASSWORD:-spark123}"  # override via --set on deploy
     databases:
       - "metastore_spark35"
     authMethod: "md5"

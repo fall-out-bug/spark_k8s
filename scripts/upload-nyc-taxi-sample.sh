@@ -24,7 +24,7 @@ import requests
 endpoint = os.environ["MINIO_ENDPOINT"]
 tlc_base = os.environ.get("TLC_BASE", "https://d37ci6vzurychx.cloudfront.net/trip-data")
 
-s3 = boto3.client("s3", endpoint_url=endpoint, aws_access_key_id="minioadmin", aws_secret_access_key="minioadmin")
+s3 = boto3.client("s3", endpoint_url=endpoint, aws_access_key_id=os.environ.get("MINIO_ACCESS_KEY", ""), aws_secret_access_key=os.environ.get("MINIO_SECRET_KEY", ""))
 
 try:
     s3.head_bucket(Bucket="nyc-taxi")

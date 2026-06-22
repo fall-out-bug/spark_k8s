@@ -42,8 +42,8 @@ But the secret is not automatically created by the chart.
 
 ```yaml
 s3:
-  accessKey: "minioadmin"
-  secretKey: "minioadmin"
+  accessKey: "$S3_ACCESS_KEY"
+  secretKey: "$S3_SECRET_KEY"
   endpoint: ""
   existingSecret: ""  # Оставить пустым для автосоздания
 ```

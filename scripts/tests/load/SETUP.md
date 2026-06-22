@@ -90,8 +90,8 @@ helm repo add minio https://charts.min.io/
 helm install minio minio/minio \
   --namespace load-testing \
   --create-namespace \
-  --set rootUser=minioadmin \
-  --set rootPassword=minioadmin \
+  --set rootUser=$S3_ACCESS_KEY \
+  --set rootPassword=$S3_ACCESS_KEY \
   --set persistence.size=20Gi
 ```
 
@@ -165,7 +165,7 @@ kubectl get events -n load-testing
 kubectl port-forward -n load-testing svc/minio 9000:9000
 
 # Solution: Check buckets
-mc alias set local http://localhost:9000 minioadmin minioadmin
+mc alias set local http://localhost:9000 $S3_ACCESS_KEY $S3_ACCESS_KEY
 mc ls local/
 ```
 
@@ -219,7 +219,7 @@ curl http://localhost:18080/api/v1/applications
 
 ```bash
 # List Minio buckets
-mc alias set local http://localhost:9000 minioadmin minioadmin
+mc alias set local http://localhost:9000 $S3_ACCESS_KEY $S3_ACCESS_KEY
 mc ls local/test-data/
 ```
 

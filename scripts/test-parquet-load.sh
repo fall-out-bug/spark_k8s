@@ -87,8 +87,8 @@ spark = SparkSession.builder \\
     .appName("ParquetLoadTest") \\
     .remote("sc://localhost:15002") \\
     .config("spark.hadoop.fs.s3a.endpoint", "${PARQUET_S3_ENDPOINT}") \\
-    .config("spark.hadoop.fs.s3a.access.key", "minioadmin") \\
-    .config("spark.hadoop.fs.s3a.secret.key", "minioadmin") \\
+    .config("spark.hadoop.fs.s3a.access.key", os.environ.get("MINIO_ACCESS_KEY", "")) \\
+    .config("spark.hadoop.fs.s3a.secret.key", os.environ.get("MINIO_SECRET_KEY", "")) \\
     .config("spark.hadoop.fs.s3a.path.style.access", "true") \\
     .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \\
     .getOrCreate()

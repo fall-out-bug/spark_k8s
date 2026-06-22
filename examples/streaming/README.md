@@ -42,8 +42,8 @@ done
 spark-submit \
   --packages org.apache.spark:spark-sql-kafka-0-10_2.13:4.1.0,org.apache.iceberg:iceberg-spark-runtime-3.5_2.13:1.5.0 \
   --conf spark.hadoop.fs.s3a.endpoint=http://minio:9000 \
-  --conf spark.hadoop.fs.s3a.access.key=minioadmin \
-  --conf spark.hadoop.fs.s3a.secret.key=minioadmin \
+  --conf spark.hadoop.fs.s3a.access.key=$S3_ACCESS_KEY \
+  --conf spark.hadoop.fs.s3a.secret.key=$S3_SECRET_KEY \
   --conf spark.hadoop.fs.s3a.path.style.access=true \
   examples/streaming/kafka_to_iceberg.py
 ```

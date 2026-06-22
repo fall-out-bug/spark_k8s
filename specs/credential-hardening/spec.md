@@ -12,12 +12,12 @@
 
 ### User Story 1 - No Default Production-Like Credentials (Priority: P1)
 
-As a platform engineer deploying to production, I want the chart's `values.yaml` to ship with empty credentials rather than `minioadmin/minioadmin` or `hive123`, so that accidental production deploys don't expose weak defaults.
+As a platform engineer deploying to production, I want the chart's `values.yaml` to ship with empty credentials rather than `$S3_ACCESS_KEY/$S3_ACCESS_KEY` or `hive123`, so that accidental production deploys don't expose weak defaults.
 
 **Why this priority**: Security baseline. Without this US, the chart is unsafe for production.
 
 **Test scenarios**:
-- AC1: `charts/spark-4.1/values.yaml` has empty `minioadmin`/`minioadmin` replaced with `""` + comment "REQUIRED: set via --set or ExternalSecrets"
+- AC1: `charts/spark-4.1/values.yaml` has empty `$S3_ACCESS_KEY`/`$S3_ACCESS_KEY` replaced with `""` + comment "REQUIRED: set via --set or ExternalSecrets"
 - AC2: `charts/spark-3.5/values.yaml` same treatment
 - AC3: `charts/spark-4.1/values.yaml` has empty `hive123` replaced with `""` + comment
 - AC4: All preset values files (8+ per chart) replace hardcoded creds with `""` or `.env.example` reference
@@ -58,7 +58,7 @@ As a new operator onboarding to spark_k8s, I want clear documentation on credent
 
 ### Acceptance Criteria
 
-- [ ] AC1: `charts/spark-4.1/values.yaml`: `minioadmin` → `""` + comment "REQUIRED: set via --set or ExternalSecrets"
+- [ ] AC1: `charts/spark-4.1/values.yaml`: `$S3_ACCESS_KEY` → `""` + comment "REQUIRED: set via --set or ExternalSecrets"
 - [ ] AC2: `charts/spark-3.5/values.yaml`: same treatment
 - [ ] AC3: `charts/spark-4.1/values.yaml`: `hive123` → `""` + comment
 - [ ] AC4: All preset values files: hardcoded creds → `""` or `.env.example` reference
@@ -70,7 +70,7 @@ As a new operator onboarding to spark_k8s, I want clear documentation on credent
 ### Test Strategy
 
 - Static: `helm lint` + `helm template` for each modified chart (empty creds and explicit creds)
-- Grep assertion: no occurrence of `minioadmin`, `hive123`, or other default creds in `values*.yaml`
+- Grep assertion: no occurrence of `$S3_ACCESS_KEY`, `hive123`, or other default creds in `values*.yaml`
 - Integration: existing security tests in `tests/security/` pass
 - E2E: demo deploy works end-to-end (with explicit `--set` secrets from `.env.example`)
 

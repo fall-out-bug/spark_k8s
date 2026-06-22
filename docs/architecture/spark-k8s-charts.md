@@ -268,8 +268,8 @@ sparkConnect:
 global:
   s3:
     endpoint: "http://minio:9000"
-    accessKey: "minioadmin"
-    secretKey: "minioadmin"
+    accessKey: "$S3_ACCESS_KEY"
+    secretKey: "$S3_SECRET_KEY"
     pathStyleAccess: true
     existingSecret: "s3-credentials"  # опционально
 ```

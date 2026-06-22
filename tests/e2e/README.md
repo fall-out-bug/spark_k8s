@@ -197,8 +197,8 @@ kubectl get pods -n spark-e2e-test -l app=minio
 kubectl port-forward -n spark-e2e-test svc/minio 9000:9000 9001:9001
 
 # Access at http://localhost:9000
-# Username: minioadmin
-# Password: minioadmin
+# Username: $S3_ACCESS_KEY
+# Password: $S3_ACCESS_KEY
 ```
 
 ## Cleanup
