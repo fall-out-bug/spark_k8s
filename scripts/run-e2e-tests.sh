@@ -188,8 +188,8 @@ test_iceberg_workload() {
     echo -e "${YELLOW}Deploying MinIO...${NC}"
     helm repo add minio https://charts.min.io/ &> /dev/null || true
     helm install minio minio/minio \
-        --set accessKey=minioadmin \
-        --set secretKey=minioadmin \
+        --set accessKey=$S3_ACCESS_KEY \
+        --set secretKey=$S3_SECRET_KEY \
         --set persistence.enabled=false \
         --namespace "$TEST_NAMESPACE" &> /dev/null || true
 

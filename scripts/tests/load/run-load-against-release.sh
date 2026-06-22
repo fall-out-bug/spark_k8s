@@ -15,8 +15,8 @@ if [[ -n "${SHARED_INFRA_NS:-}" ]]; then
 else
     S3_ENDPOINT="http://${RELEASE}-minio.${NAMESPACE}.svc.cluster.local:9000"
 fi
-S3_ACCESS_KEY="${S3_ACCESS_KEY:-minioadmin}"
-S3_SECRET_KEY="${S3_SECRET_KEY:-minioadmin}"
+S3_ACCESS_KEY="${S3_ACCESS_KEY:?S3_ACCESS_KEY required}"
+S3_SECRET_KEY="${S3_SECRET_KEY:?S3_SECRET_KEY required}"
 
 load_script="${SCRIPT_DIR}/scripts/load_s3_parquet_3agg.py"
 case "$DEPLOY_MODE" in
@@ -29,8 +29,8 @@ case "$DEPLOY_MODE" in
         kubectl cp "$load_script" "$NAMESPACE/$connect_pod:/tmp/load_s3.py"
         kubectl exec -n "$NAMESPACE" "$connect_pod" -- /bin/sh -c "
             export S3_ENDPOINT='$S3_ENDPOINT'
-            export S3_ACCESS_KEY='${S3_ACCESS_KEY:-minioadmin}'
-            export S3_SECRET_KEY='${S3_SECRET_KEY:-minioadmin}'
+            export S3_ACCESS_KEY='${S3_ACCESS_KEY:?S3_ACCESS_KEY required}'
+            export S3_SECRET_KEY='${S3_SECRET_KEY:?S3_SECRET_KEY required}'
             /opt/spark/bin/spark-submit \
                 --master local[*] \
                 --conf spark.driver.memory=1g \

@@ -95,8 +95,8 @@ test_iceberg() {
     echo -e "${YELLOW}Deploying MinIO...${NC}"
     helm repo add minio https://charts.min.io/ 2>/dev/null || true
     helm install minio minio/minio \
-        --set accessKey=minioadmin \
-        --set secretKey=minioadmin \
+        --set accessKey=$S3_ACCESS_KEY \
+        --set secretKey=$S3_SECRET_KEY \
         --set persistence.enabled=false \
         --set resources.requests.memory=256Mi \
         --namespace "$TEST_NAMESPACE" 2>/dev/null || true
@@ -106,8 +106,8 @@ test_iceberg() {
 
     # Create S3 secret
     kubectl create secret generic s3-credentials \
-        --from-literal=access-key=minioadmin \
-        --from-literal=secret-key=minioadmin \
+        --from-literal=access-key=$S3_ACCESS_KEY \
+        --from-literal=secret-key=$S3_SECRET_KEY \
         -n "$TEST_NAMESPACE" 2>/dev/null || true
 
     # Get MinIO service

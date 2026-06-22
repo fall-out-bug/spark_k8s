@@ -183,8 +183,8 @@ install_infrastructure() {
         --set buckets[0].name=spark-logs \
         --set buckets[1].name=test-data \
         --set buckets[2].name=iceberg-warehouse \
-        --set rootUser=minioadmin \
-        --set rootPassword=minioadmin \
+        --set rootUser=$S3_ACCESS_KEY \
+        --set rootPassword=$S3_SECRET_KEY \
         --wait \
         --timeout 5m
 
@@ -251,7 +251,7 @@ print_summary() {
     echo "  - Minio (S3):"
     echo "    kubectl port-forward -n load-testing svc/minio 9000:9000"
     echo "    URL: http://localhost:9000"
-    echo "    Credentials: minioadmin/minioadmin"
+    echo "    Credentials: $S3_ACCESS_KEY/$S3_SECRET_KEY"
     echo ""
     echo "  - Postgres:"
     echo "    kubectl port-forward -n load-testing svc/postgres-load-testing 5432:5432"

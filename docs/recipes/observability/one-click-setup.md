@@ -20,8 +20,8 @@ helm dependency update charts/spark-4.1
 helm install spark charts/spark-4.1 \
   -f charts/spark-4.1/presets/observability-values.yaml \
   --set observability.grafana.adminPassword=admin123 \
-  --set global.s3.accessKey=minioadmin \
-  --set global.s3.secretKey=minioadmin \
+  --set global.s3.accessKey="$S3_ACCESS_KEY" \
+  --set global.s3.secretKey="$S3_SECRET_KEY" \
   -n spark-operations \
   --create-namespace
 ```

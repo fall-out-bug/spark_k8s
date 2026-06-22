@@ -29,8 +29,8 @@ case "$DEPLOY_MODE" in
         RELEASE="${RELEASE:?RELEASE required}"
         SPARK_IMAGE="${SPARK_IMAGE:-spark-custom:3.5.7}"
         driver_service_account="${DRIVER_SERVICE_ACCOUNT:-spark-35}"
-        S3_ACCESS_KEY="${S3_ACCESS_KEY:-minioadmin}"
-        S3_SECRET_KEY="${S3_SECRET_KEY:-minioadmin}"
+        S3_ACCESS_KEY="${S3_ACCESS_KEY:?S3_ACCESS_KEY required}"
+        S3_SECRET_KEY="${S3_SECRET_KEY:?S3_SECRET_KEY required}"
         if [[ -n "${SHARED_INFRA_NS:-}" ]]; then
             S3_ENDPOINT="http://minio.${SHARED_INFRA_NS}.svc.cluster.local:9000"
         else

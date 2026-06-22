@@ -97,7 +97,7 @@
 | **Spark Master** | http://localhost:18082 | — |
 | **Prometheus** | http://localhost:19090 | — |
 | **Jaeger** | http://localhost:16686 | — |
-| **MinIO Console** | http://localhost:19001 | minioadmin/minioadmin |
+| **MinIO Console** | http://localhost:19001 | $S3_ACCESS_KEY/$S3_SECRET_KEY |
 
 **WSL2:** если localhost не работает из Windows, используйте `http://<wsl-ip>:<port>` — скрипт выводит эти URL.
 

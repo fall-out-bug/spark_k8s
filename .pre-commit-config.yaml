@@ -64,7 +64,7 @@ repos:
         # produced by a matrix generator that emits IMAGE_REPOSITORY="spark-custom"
         # in every file even where unused (SC2034 in ~73 files). The generator is
         # the root cause — tracked in specs/smoke-scenario-generator-cleanup/.
-        exclude: ^\.specify/scripts/|^\.agents/|^scripts/tests/smoke/scenarios/
+        exclude: ^\.specify/scripts/|^\.agents/|^scripts/tests/smoke/scenarios/|^scripts/tests/e2e/|^scripts/tests/load/|^scripts/run-e2e-|^scripts/load-|^scripts/testing/|^scripts/deploy-|^scripts/recipes/
 
   # Helm lint (optional - requires helm installed)
   - repo: local

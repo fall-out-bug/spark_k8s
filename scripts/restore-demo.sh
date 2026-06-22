@@ -5,6 +5,11 @@
 #   --minimal  Delegate to deploy-shared-infra-minikube.sh (demo=0, shared infra + Observability)
 set -euo pipefail
 
+# Demo default credentials (local minikube only — MinIO default. Override via env for real deploys.)
+: "${S3_ACCESS_KEY:=minioadmin}"
+: "${S3_SECRET_KEY:=minioadmin}"
+
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 NAMESPACE="spark-infra"
@@ -148,8 +153,8 @@ if [[ "$needs_reinstall" == "true" ]]; then
   helm upgrade --install "$RELEASE" "$CHART_PATH" \
     -n "$NAMESPACE" \
     -f "$PRESET" \
-    --set global.s3.accessKey=minioadmin \
-    --set global.s3.secretKey=minioadmin \
+    --set global.s3.accessKey=$S3_ACCESS_KEY \
+    --set global.s3.secretKey=$S3_SECRET_KEY \
     --set spark-base.postgresql.auth.password=postgres \
     "${airflow_args[@]}" \
     --timeout 10m \
@@ -159,8 +164,8 @@ else
   helm upgrade "$RELEASE" "$CHART_PATH" \
     -n "$NAMESPACE" \
     -f "$PRESET" \
-    --set global.s3.accessKey=minioadmin \
-    --set global.s3.secretKey=minioadmin \
+    --set global.s3.accessKey=$S3_ACCESS_KEY \
+    --set global.s3.secretKey=$S3_SECRET_KEY \
     --set spark-base.postgresql.auth.password=postgres \
     "${airflow_args[@]}" \
     --timeout 10m \

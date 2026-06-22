@@ -66,8 +66,8 @@ if kubectl -n "$NAMESPACE" get secret s3-credentials &>/dev/null; then
     echo -e "${YELLOW}⚠ Secret s3-credentials already exists${NC}"
 else
     kubectl create secret generic s3-credentials \
-        --from-literal=access-key=minioadmin \
-        --from-literal=secret-key=minioadmin \
+        --from-literal=access-key=$S3_ACCESS_KEY \
+        --from-literal=secret-key=$S3_SECRET_KEY \
         -n "$NAMESPACE"
     echo -e "${GREEN}✓ s3-credentials secret created${NC}"
 fi

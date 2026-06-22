@@ -177,7 +177,7 @@ check_test_data() {
 
     log_warn "Test data check requires Minio access (skipped)"
     log_warn "Run: kubectl port-forward -n load-testing svc/minio 9000:9000"
-    log_warn "Then: mc alias set local http://localhost:9000 minioadmin minioadmin"
+    log_warn "Then: mc alias set local http://localhost:9000 $S3_ACCESS_KEY $S3_SECRET_KEY"
     log_warn "Then: mc ls local/test-data/nyc-taxi/"
 }
 

@@ -171,7 +171,7 @@ echo "Download complete."
 echo ""
 echo "Creating bucket in MinIO..."
 kubectl exec -n "${NAMESPACE}" "${MINIO_POD}" -- \
-  mc alias set local http://localhost:9000 minioadmin minioadmin >/dev/null 2>&1
+  mc alias set local http://localhost:9000 $S3_ACCESS_KEY $S3_SECRET_KEY >/dev/null 2>&1
 
 kubectl exec -n "${NAMESPACE}" "${MINIO_POD}" -- \
   mc mb --ignore-existing local/"${BUCKET}" >/dev/null 2>&1

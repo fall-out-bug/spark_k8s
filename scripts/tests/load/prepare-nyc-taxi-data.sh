@@ -12,8 +12,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DATA_SIZE="${DATA_SIZE:-11gb}"
 OUTPUT_DIR="${OUTPUT_DIR:-/tmp/nyc-taxi-generated}"
 MINIO_ENDPOINT="${MINIO_ENDPOINT:-http://minio.load-testing.svc.cluster.local:9000}"
-MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY:-minioadmin}"
-MINIO_SECRET_KEY="${MINIO_SECRET_KEY:-minioadmin}"
+MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY:?MINIO_ACCESS_KEY required}"
+MINIO_SECRET_KEY="${MINIO_SECRET_KEY:?MINIO_SECRET_KEY required}"
 BUCKET_NAME="${BUCKET_NAME:-raw-data}"
 
 # Colors for output
