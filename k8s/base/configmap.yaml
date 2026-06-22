@@ -15,10 +15,10 @@ data:
     spark.connect.grpc.maxInboundMessageSize=134217728
 
     # S3A Configuration for MinIO (Hadoop 3.4.1 + AWS SDK v2)
+    # Credentials come from env (AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY) or the
+    # s3-credentials Secret mounted as env — NOT hardcoded here (constitution §IV).
     spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem
     spark.hadoop.fs.s3a.endpoint=http://minio:9000
-    spark.hadoop.fs.s3a.access.key=minioadmin
-    spark.hadoop.fs.s3a.secret.key=minioadmin
     spark.hadoop.fs.s3a.path.style.access=true
     spark.hadoop.fs.s3a.connection.ssl.enabled=false
     spark.hadoop.fs.s3a.aws.credentials.provider=org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider
