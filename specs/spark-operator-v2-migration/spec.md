@@ -55,13 +55,42 @@ Two options:
 - **(B) Keep our chart, update the image + CRD to v2.x.** Preserves our values API,
   but means maintaining the 12k-line CRD manually (ongoing burden).
 
-### Q2: v2.x API compatibility with our scenarios
+### Q1-Q4 RESOLVED (spike research, 2026-06-22)
 
-v2.x may change:
-- CRD field names / defaults (affects `values-scenario-airflow-operator.yaml`)
-- RBAC permissions (affects our `rbac.yaml`)
-- Metric label names (affects `spark-operator-scale.json` dashboard)
-- Webhook mechanics
+**Surprise finding: the vendored CRD is ALREADY v2.x-aligned.** The
+`sparkapplication-crd.yaml` carries Kubeflow-era annotations
+(`api-approved.kubernetes.io: kubeflow/spark-operator#1298`,
+`controller-gen v0.17.1`) and serves `v1beta2` — matching upstream v2.5.1
+byte-essentially. Only the **metadata drifted**: `Chart.yaml appVersion`
+still says `v1beta2-1.3.8-3.1.1` and `values.yaml` image points at the dead
+`gcr.io/spark-operator/spark-operator` path.
+
+**Q1 → Replace with upstream Helm dependency.** Upstream publishes
+`https://kubeflow.github.io/spark-operator/` (chart `spark-operator`).
+Vendored chart is a strict subset — missing `image.pullSecrets`,
+`hook.upgradeCrd` CRD-lifecycle job, leader-election, PDB, full
+proxy/affinity/tolerations. Value keys remap cleanly (`sparkJobNamespace` →
+`spark.jobNamespaces`, image path changes to `ghcr.io/kubeflow/spark-operator/controller`).
+
+**Q2 → CRD no breaking change; RBAC + ScheduledSparkApplication do.**
+- CRD apiVersion stays `sparkoperator.k8s.io/v1beta2`.
+- `scheduledsparkapplication-crd.yaml` is a **33-line stub** (truncated, references
+  nonexistent `.Values.crds.create`). Upstream has the full 12,473-line schema —
+  ScheduledSparkApplication validation is currently disabled. Migration must adopt full CRD.
+- RBAC (`templates/rbac.yaml`) is **overly broad and missing permissions**: no
+  `events`, `ingresses`, `customresourcedefinitions`, `*/finalizers`, or the new
+  `sparkconnects` resources. Upstream v2.5.1 applied least-privilege (PR #2914).
+- New `SparkConnect` CRD exists upstream (not in vendored) — optional but standard.
+
+**Q3 → Pin v2.5.1** (latest stable, 2026-06-15). Image
+`ghcr.io/kubeflow/spark-operator/controller:v2.5.1`. Operator is NOT Spark-version-coupled
+at runtime (app images are user-supplied via `spec.image`). 3.5.x and 4.0.x are safe;
+4.1.x is NOT yet officially validated (open issue kubeflow/spark-operator#2883).
+
+**Q4 → Operator IS used.** RBAC, KEDA scaledobject
+(`charts/spark-4.0/templates/autoscaling/keda-operator-scaledobject.yaml`), grafana
+dashboard, alertmanager rules all reference SparkApplication CRD. Not redundant with
+Spark Connect. Migration needed.
 
 Need to diff our vendored CRD against v2.x CRD before deciding.
 
