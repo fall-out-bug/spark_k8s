@@ -227,7 +227,7 @@ ERROR: Path does not exist: s3a://test-data/nyc-taxi/...
 **Solutions:**
 ```bash
 # Check buckets
-mc alias set local http://minio.load-testing.svc.cluster.local:9000 minioadmin minioadmin
+mc alias set local http://minio.load-testing.svc.cluster.local:9000 $S3_ACCESS_KEY $S3_ACCESS_KEY
 mc ls local/
 
 # Regenerate test data

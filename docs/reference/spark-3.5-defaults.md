@@ -11,8 +11,8 @@ global:
   s3:
     enabled: true
     endpoint: "http://minio:9000"
-    accessKey: "minioadmin"
-    secretKey: "minioadmin"
+    accessKey: "$S3_ACCESS_KEY"
+    secretKey: "$S3_SECRET_KEY"
     pathStyleAccess: true
     sslEnabled: false
     existingSecret: ""
@@ -137,7 +137,7 @@ core:
       pullPolicy: IfNotPresent
     auth:
       username: "spark"
-      password: "spark123"
+      password: "${POSTGRES_PASSWORD:-spark123}"
     service:
       port: 5432
     persistence:

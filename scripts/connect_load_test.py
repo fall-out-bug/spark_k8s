@@ -29,16 +29,16 @@ def main() -> None:
         )
         builder = (
             builder.config("spark.hadoop.fs.s3a.endpoint", load_s3_endpoint)
-            .config("spark.hadoop.fs.s3a.access.key", "minioadmin")
-            .config("spark.hadoop.fs.s3a.secret.key", "minioadmin")
+            .config("spark.hadoop.fs.s3a.access.key", os.environ.get("MINIO_ACCESS_KEY", ""))
+            .config("spark.hadoop.fs.s3a.secret.key", os.environ.get("MINIO_SECRET_KEY", ""))
             .config("spark.hadoop.fs.s3a.path.style.access", "true")
             .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
         )
     if load_mode == "parquet":
         builder = (
             builder.config("spark.hadoop.fs.s3a.endpoint", load_s3_endpoint)
-            .config("spark.hadoop.fs.s3a.access.key", "minioadmin")
-            .config("spark.hadoop.fs.s3a.secret.key", "minioadmin")
+            .config("spark.hadoop.fs.s3a.access.key", os.environ.get("MINIO_ACCESS_KEY", ""))
+            .config("spark.hadoop.fs.s3a.secret.key", os.environ.get("MINIO_SECRET_KEY", ""))
             .config("spark.hadoop.fs.s3a.path.style.access", "true")
             .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
         )

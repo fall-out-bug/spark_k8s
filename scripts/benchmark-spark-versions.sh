@@ -100,8 +100,8 @@ run_query() {
     --image="spark-custom:${version}" \
     --restart=Never \
     --rm -i -n "${NAMESPACE}" \
-    --env="AWS_ACCESS_KEY_ID=minioadmin" \
-    --env="AWS_SECRET_ACCESS_KEY=minioadmin" \
+    --env="AWS_ACCESS_KEY_ID=${S3_ACCESS_KEY:?required}" \
+    --env="AWS_SECRET_ACCESS_KEY=${S3_SECRET_KEY:?required}" \
     -- /opt/spark/bin/spark-sql \
     --conf spark.app.name="${app_name}" \
     --conf spark.eventLog.enabled=true \

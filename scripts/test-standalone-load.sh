@@ -110,9 +110,9 @@ spec:
     - name: S3_ENDPOINT
       value: "${LOAD_S3_ENDPOINT}"
     - name: AWS_ACCESS_KEY_ID
-      value: "minioadmin"
+      value: "$S3_ACCESS_KEY"
     - name: AWS_SECRET_ACCESS_KEY
-      value: "minioadmin"
+      value: "$S3_SECRET_KEY"
     volumeMounts:
     - name: script
       mountPath: /script

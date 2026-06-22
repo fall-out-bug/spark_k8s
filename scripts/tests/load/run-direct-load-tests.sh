@@ -141,9 +141,10 @@ run_workload() {
     case "$workload" in
         read)
             workload_code="
+import os
 import time
 from pyspark.sql import SparkSession
-spark = SparkSession.builder.remote('${connect_url}').config('spark.hadoop.fs.s3a.endpoint', '${minio_endpoint}').config('spark.hadoop.fs.s3a.access.key', 'minioadmin').config('spark.hadoop.fs.s3a.secret.key', 'minioadmin').config('spark.hadoop.fs.s3a.path.style.access', 'true').appName('load-test-read').getOrCreate()
+spark = SparkSession.builder.remote('${connect_url}').config('spark.hadoop.fs.s3a.endpoint', '${minio_endpoint}').config('spark.hadoop.fs.s3a.access.key', os.environ.get('MINIO_ACCESS_KEY', '')).config('spark.hadoop.fs.s3a.secret.key', os.environ.get('MINIO_SECRET_KEY', '')).config('spark.hadoop.fs.s3a.path.style.access', 'true').appName('load-test-read').getOrCreate()
 start = time.time()
 df = spark.read.parquet('s3a://raw-data/*.parquet')
 count = df.count()
@@ -154,10 +155,11 @@ spark.stop()
             ;;
         aggregate)
             workload_code="
+import os
 import time
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, count, spark_sum, avg
-spark = SparkSession.builder.remote('${connect_url}').config('spark.hadoop.fs.s3a.endpoint', '${minio_endpoint}').config('spark.hadoop.fs.s3a.access.key', 'minioadmin').config('spark.hadoop.fs.s3a.secret.key', 'minioadmin').config('spark.hadoop.fs.s3a.path.style.access', 'true').config('spark.sql.shuffle.partitions', '200').appName('load-test-aggregate').getOrCreate()
+spark = SparkSession.builder.remote('${connect_url}').config('spark.hadoop.fs.s3a.endpoint', '${minio_endpoint}').config('spark.hadoop.fs.s3a.access.key', os.environ.get('MINIO_ACCESS_KEY', '')).config('spark.hadoop.fs.s3a.secret.key', os.environ.get('MINIO_SECRET_KEY', '')).config('spark.hadoop.fs.s3a.path.style.access', 'true').config('spark.sql.shuffle.partitions', '200').appName('load-test-aggregate').getOrCreate()
 start = time.time()
 df = spark.read.parquet('s3a://raw-data/*.parquet')
 result = df.groupBy('PULocationID').agg(count('*').alias('trip_count'), spark_sum('fare_amount').alias('total_fare'), avg('trip_distance').alias('avg_distance'))
@@ -169,9 +171,10 @@ spark.stop()
             ;;
         join)
             workload_code="
+import os
 import time
 from pyspark.sql import SparkSession
-spark = SparkSession.builder.remote('${connect_url}').config('spark.hadoop.fs.s3a.endpoint', '${minio_endpoint}').config('spark.hadoop.fs.s3a.access.key', 'minioadmin').config('spark.hadoop.fs.s3a.secret.key', 'minioadmin').config('spark.hadoop.fs.s3a.path.style.access', 'true').config('spark.sql.shuffle.partitions', '200').appName('load-test-join').getOrCreate()
+spark = SparkSession.builder.remote('${connect_url}').config('spark.hadoop.fs.s3a.endpoint', '${minio_endpoint}').config('spark.hadoop.fs.s3a.access.key', os.environ.get('MINIO_ACCESS_KEY', '')).config('spark.hadoop.fs.s3a.secret.key', os.environ.get('MINIO_SECRET_KEY', '')).config('spark.hadoop.fs.s3a.path.style.access', 'true').config('spark.sql.shuffle.partitions', '200').appName('load-test-join').getOrCreate()
 start = time.time()
 df = spark.read.parquet('s3a://raw-data/*.parquet')
 df_cached = df.cache()
@@ -185,12 +188,13 @@ spark.stop()
             ;;
         window)
             workload_code="
+import os
 import time
 from pyspark.sql import SparkSession
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, avg, row_number
 from pyspark.sql.window import Window
-spark = SparkSession.builder.remote('${connect_url}').config('spark.hadoop.fs.s3a.endpoint', '${minio_endpoint}').config('spark.hadoop.fs.s3a.access.key', 'minioadmin').config('spark.hadoop.fs.s3a.secret.key', 'minioadmin').config('spark.hadoop.fs.s3a.path.style.access', 'true').config('spark.sql.shuffle.partitions', '200').appName('load-test-window').getOrCreate()
+spark = SparkSession.builder.remote('${connect_url}').config('spark.hadoop.fs.s3a.endpoint', '${minio_endpoint}').config('spark.hadoop.fs.s3a.access.key', os.environ.get('MINIO_ACCESS_KEY', '')).config('spark.hadoop.fs.s3a.secret.key', os.environ.get('MINIO_SECRET_KEY', '')).config('spark.hadoop.fs.s3a.path.style.access', 'true').config('spark.sql.shuffle.partitions', '200').appName('load-test-window').getOrCreate()
 start = time.time()
 df = spark.read.parquet('s3a://raw-data/*.parquet')
 window_spec = Window.partitionBy('PULocationID').orderBy('tpep_pickup_datetime')
@@ -203,10 +207,11 @@ spark.stop()
             ;;
         write)
             workload_code="
+import os
 import time
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, count, spark_sum, avg
-spark = SparkSession.builder.remote('${connect_url}').config('spark.hadoop.fs.s3a.endpoint', '${minio_endpoint}').config('spark.hadoop.fs.s3a.access.key', 'minioadmin').config('spark.hadoop.fs.s3a.secret.key', 'minioadmin').config('spark.hadoop.fs.s3a.path.style.access', 'true').config('spark.sql.shuffle.partitions', '200').appName('load-test-write').getOrCreate()
+spark = SparkSession.builder.remote('${connect_url}').config('spark.hadoop.fs.s3a.endpoint', '${minio_endpoint}').config('spark.hadoop.fs.s3a.access.key', os.environ.get('MINIO_ACCESS_KEY', '')).config('spark.hadoop.fs.s3a.secret.key', os.environ.get('MINIO_SECRET_KEY', '')).config('spark.hadoop.fs.s3a.path.style.access', 'true').config('spark.sql.shuffle.partitions', '200').appName('load-test-write').getOrCreate()
 start = time.time()
 df = spark.read.parquet('s3a://raw-data/*.parquet')
 summary = df.groupBy('PULocationID').agg(count('*').alias('trip_count'), spark_sum('fare_amount').alias('total_fare'), avg('trip_distance').alias('avg_distance'))

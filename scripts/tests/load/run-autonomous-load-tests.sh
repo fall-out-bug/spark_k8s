@@ -369,8 +369,8 @@ from pyspark.sql import SparkSession
 spark = SparkSession.builder \\
     .remote('${connect_url}') \\
     .config('spark.hadoop.fs.s3a.endpoint', '${MINIO_ENDPOINT}') \\
-    .config('spark.hadoop.fs.s3a.access.key', 'minioadmin') \\
-    .config('spark.hadoop.fs.s3a.secret.key', 'minioadmin') \\
+    .config('spark.hadoop.fs.s3a.access.key', os.environ.get('MINIO_ACCESS_KEY', '')) \\
+    .config('spark.hadoop.fs.s3a.secret.key', os.environ.get('MINIO_SECRET_KEY', '')) \\
     .config('spark.hadoop.fs.s3a.path.style.access', 'true') \\
     .config('spark.sql.shuffle.partitions', '200') \\
     .appName('load-test-${workload_name}') \\

@@ -53,7 +53,7 @@ kubectl get pods -n spark
 - **JupyterHub:** `kubectl port-forward svc/spark-platform-jupyterhub 8000:8000 -n spark` → http://localhost:8000 (admin / admin123)
 - **Spark UI:** `kubectl port-forward svc/spark-platform-spark-connect 4040:4040 -n spark` → http://localhost:4040
 - **History Server:** `kubectl port-forward svc/spark-platform-history-server 18080:18080 -n spark` → http://localhost:18080
-- **MinIO Console:** `kubectl port-forward svc/spark-platform-minio 9001:9001 -n spark` → http://localhost:9001 (minioadmin / minioadmin)
+- **MinIO Console:** `kubectl port-forward svc/spark-platform-minio 9001:9001 -n spark` → http://localhost:9001 ($S3_ACCESS_KEY / $S3_ACCESS_KEY)
 
 ## Key Configuration Values
 

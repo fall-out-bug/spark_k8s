@@ -133,8 +133,8 @@ core:
 **S3 Configuration in Spark:**
 ```bash
 spark.sparkContext.hadoopConfiguration.set("fs.s3a.endpoint", "http://minio-spark-35:9000")
-spark.sparkContext.hadoopConfiguration.set("fs.s3a.access.key", "minioadmin")
-spark.sparkContext.hadoopConfiguration.set("fs.s3a.secret.key", "minioadmin")
+spark.sparkContext.hadoopConfiguration.set("fs.s3a.access.key', os.environ.get('MINIO_ACCESS_KEY', '')")
+spark.sparkContext.hadoopConfiguration.set("fs.s3a.secret.key', os.environ.get('MINIO_SECRET_KEY', '')")
 spark.sparkContext.hadoopConfiguration.set("fs.s3a.path.style.access", "true")
 ```
 
@@ -405,8 +405,8 @@ global:
   imagePullSecrets: []
   s3:
     endpoint: "http://minio:9000"
-    accessKey: "minioadmin"
-    secretKey: "minioadmin"
+    accessKey: "$S3_ACCESS_KEY"
+    secretKey: "$S3_SECRET_KEY"
     pathStyleAccess: true
     sslEnabled: false
     existingSecret: "s3-credentials"
@@ -526,8 +526,8 @@ kubectl logs deployment/hive-metastore-35
 
 **Check S3 access:**
 ```python
-spark.sparkContext.hadoopConfiguration.set("fs.s3a.access.key", "minioadmin")
-spark.sparkContext.hadoopConfiguration.set("fs.s3a.secret.key", "minioadmin")
+spark.sparkContext.hadoopConfiguration.set("fs.s3a.access.key', os.environ.get('MINIO_ACCESS_KEY', '')")
+spark.sparkContext.hadoopConfiguration.set("fs.s3a.secret.key', os.environ.get('MINIO_SECRET_KEY', '')")
 ```
 
 **Verify warehouse location:**

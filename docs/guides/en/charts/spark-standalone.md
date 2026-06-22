@@ -60,7 +60,7 @@ kubectl get pods -n spark-sa
 - **Spark Master UI:** `kubectl port-forward svc/spark-sa-standalone-master 8080:8080 -n spark-sa` → http://localhost:8080
 - **Airflow UI:** `kubectl port-forward svc/spark-standalone-airflow-webserver 8080:8080 -n spark-sa` → http://localhost:8080 (admin / admin)
 - **MLflow UI:** `kubectl port-forward svc/spark-standalone-mlflow 5000:5000 -n spark-sa` → http://localhost:5000
-- **MinIO Console:** `kubectl port-forward svc/spark-standalone-minio 9001:9001 -n spark-sa` → http://localhost:9001 (minioadmin / minioadmin)
+- **MinIO Console:** `kubectl port-forward svc/spark-standalone-minio 9001:9001 -n spark-sa` → http://localhost:9001 ($S3_ACCESS_KEY / $S3_ACCESS_KEY)
 
 ## Key Configuration Values
 
