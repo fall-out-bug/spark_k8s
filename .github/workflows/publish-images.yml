@@ -109,11 +109,16 @@ jobs:
         run: |
           # Self-hosted runner may lack passwordless sudo. Install tarballs to $HOME/.local.
           mkdir -p "$HOME/.local"
-          # JDK: try apt (best-effort), else assume pre-installed on runner
+          # JDK: install 17 (default, Spark 4.x) + 11 (Spark 3.5.x source-build — JDK 17
+          # removed sun.security.action that Spark 3.5 references, causing Scala compile fail).
           if ! command -v javac >/dev/null 2>&1; then
             sudo apt-get update && sudo apt-get install -y openjdk-17-jdk || \
-              echo "::warning::apt-get needs sudo; assuming JDK pre-installed on runner"
+              echo "::warning::apt-get needs sudo; assuming JDK 17 pre-installed on runner"
           fi
+          sudo apt-get install -y openjdk-11-jdk 2>/dev/null || \
+            echo "::warning::JDK 11 not installed (sudo unavailable). Spark 3.5.x source-build may fail."
+          echo "JAVA_HOME_17=/usr/lib/jvm/java-17-openjdk-amd64" >> "$GITHUB_ENV"
+          echo "JAVA_HOME_11=/usr/lib/jvm/java-11-openjdk-amd64" >> "$GITHUB_ENV"
           # Maven (tarball -> user-space)
           wget -q https://archive.apache.org/dist/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz
           tar -xzf apache-maven-3.9.6-bin.tar.gz -C "$HOME/.local"
@@ -128,7 +133,18 @@ jobs:
 
       - name: Build Spark dist from source
         if: ${{ github.event.inputs.rebuild_dist == 'true' || steps.distcheck.outputs.have_dist != 'true' }}
-        run: ./scripts/build-spark-dist.sh "${{ steps.ver.outputs.spark_version }}"
+        run: |
+          # JDK selection: Spark 3.5.x needs JDK 11 (JDK 17 removed sun.security.action).
+          SPARK_VERSION="${{ steps.ver.outputs.spark_version }}"
+          if [[ "$SPARK_VERSION" == 3.5.* ]] && [[ -d "$JAVA_HOME_11" ]]; then
+            export JAVA_HOME="$JAVA_HOME_11"
+            echo "Using JDK 11 for Spark 3.5.x source build"
+          elif [[ -d "$JAVA_HOME_17" ]]; then
+            export JAVA_HOME="$JAVA_HOME_17"
+          fi
+          export PATH="$JAVA_HOME/bin:$PATH"
+          java -version
+          ./scripts/build-spark-dist.sh "$SPARK_VERSION"
 
       - name: Verify dist available
         run: |
