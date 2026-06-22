@@ -6,6 +6,11 @@
 
 set -euo pipefail
 
+# Demo default credentials (local minikube only — MinIO default. Override via env for real deploys.)
+: "${S3_ACCESS_KEY:=minioadmin}"
+: "${S3_SECRET_KEY:=minioadmin}"
+
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 CHART_PATH="$PROJECT_ROOT/charts/spark-3.5"
