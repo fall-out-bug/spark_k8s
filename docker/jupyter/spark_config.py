@@ -4,13 +4,12 @@ Provides functions to connect to Spark via Spark Connect
 """
 
 import os
-from typing import Optional
 
 
 def get_spark_session(
     app_name: str = "JupyterSparkSession",
-    connect_server: Optional[str] = None,
-    extra_configs: Optional[dict] = None
+    connect_server: str | None = None,
+    extra_configs: dict | None = None
 ):
     """
     Create a Spark session via Spark Connect.
