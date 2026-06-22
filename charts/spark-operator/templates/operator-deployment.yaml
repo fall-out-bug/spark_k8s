@@ -19,7 +19,7 @@ spec:
       serviceAccountName: {{ include "spark-operator.serviceAccountName" . }}
       containers:
         - name: spark-operator
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
             - -v=2

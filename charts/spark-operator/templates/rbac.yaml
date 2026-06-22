@@ -13,15 +13,42 @@ metadata:
   labels:
     {{- include "spark-operator.labels" . | nindent 4 }}
 rules:
+  # Core resources (least-privilege per upstream v2.5.1)
   - apiGroups: [""]
-    resources: ["pods", "services", "configmaps"]
-    verbs: ["create", "get", "list", "watch", "delete", "update", "patch"]
+    resources: ["pods"]
+    verbs: ["create", "delete", "get", "list", "update", "watch"]
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["create", "get", "list", "patch", "update", "watch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch", "update"]
+  - apiGroups: ["extensions", "networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["create", "delete", "get", "update"]
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["get"]
+  # SparkApplication + ScheduledSparkApplication (status, finalizers)
   - apiGroups: ["sparkoperator.k8s.io"]
     resources: ["sparkapplications", "scheduledsparkapplications"]
-    verbs: ["create", "get", "list", "watch", "delete", "update", "patch"]
+    verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
   - apiGroups: ["sparkoperator.k8s.io"]
     resources: ["sparkapplications/status", "scheduledsparkapplications/status"]
-    verbs: ["update", "patch"]
+    verbs: ["update"]
+  - apiGroups: ["sparkoperator.k8s.io"]
+    resources: ["sparkapplications/finalizers", "scheduledsparkapplications/finalizers"]
+    verbs: ["update"]
+  # SparkConnect CRD (new in v2.5.x)
+  - apiGroups: ["sparkoperator.k8s.io"]
+    resources: ["sparkconnects"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["sparkoperator.k8s.io"]
+    resources: ["sparkconnects/status", "sparkconnects/finalizers"]
+    verbs: ["update"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
