@@ -112,7 +112,7 @@ spec:
     - name: AWS_ACCESS_KEY_ID
       value: "$S3_ACCESS_KEY"
     - name: AWS_SECRET_ACCESS_KEY
-      value: "$S3_ACCESS_KEY"
+      value: "$S3_SECRET_KEY"
     volumeMounts:
     - name: script
       mountPath: /script

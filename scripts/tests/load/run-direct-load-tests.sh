@@ -141,6 +141,7 @@ run_workload() {
     case "$workload" in
         read)
             workload_code="
+import os
 import time
 from pyspark.sql import SparkSession
 spark = SparkSession.builder.remote('${connect_url}').config('spark.hadoop.fs.s3a.endpoint', '${minio_endpoint}').config('spark.hadoop.fs.s3a.access.key', os.environ.get('MINIO_ACCESS_KEY', '')).config('spark.hadoop.fs.s3a.secret.key', os.environ.get('MINIO_SECRET_KEY', '')).config('spark.hadoop.fs.s3a.path.style.access', 'true').appName('load-test-read').getOrCreate()
@@ -154,6 +155,7 @@ spark.stop()
             ;;
         aggregate)
             workload_code="
+import os
 import time
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, count, spark_sum, avg
@@ -169,6 +171,7 @@ spark.stop()
             ;;
         join)
             workload_code="
+import os
 import time
 from pyspark.sql import SparkSession
 spark = SparkSession.builder.remote('${connect_url}').config('spark.hadoop.fs.s3a.endpoint', '${minio_endpoint}').config('spark.hadoop.fs.s3a.access.key', os.environ.get('MINIO_ACCESS_KEY', '')).config('spark.hadoop.fs.s3a.secret.key', os.environ.get('MINIO_SECRET_KEY', '')).config('spark.hadoop.fs.s3a.path.style.access', 'true').config('spark.sql.shuffle.partitions', '200').appName('load-test-join').getOrCreate()
@@ -185,6 +188,7 @@ spark.stop()
             ;;
         window)
             workload_code="
+import os
 import time
 from pyspark.sql import SparkSession
 from pyspark.sql import SparkSession
@@ -203,6 +207,7 @@ spark.stop()
             ;;
         write)
             workload_code="
+import os
 import time
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, count, spark_sum, avg

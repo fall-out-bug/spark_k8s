@@ -229,7 +229,7 @@ def generate_custom_report(self, results):
 ## Security Considerations
 
 ### Credentials
-- Minio: `$S3_ACCESS_KEY/$S3_ACCESS_KEY` (local only)
+- Minio: `$S3_ACCESS_KEY/$S3_SECRET_KEY` (local only)
 - Postgres: `postgres/sparktest` (local only)
 
 ### Network Policies
