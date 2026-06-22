@@ -16,8 +16,6 @@ s3:
   accessKey: ""  # leave empty when using existingSecret
   secretKey: ""  # leave empty when using existingSecret
   existingSecret: "spark-s3-creds"
-  existingSecretAccessKey: "access-key"
-  existingSecretSecretKey: "secret-key"
   pathStyleAccess: true  # Set to false for AWS S3
   sslEnabled: false  # Set to true for HTTPS endpoints
 

@@ -11,6 +11,7 @@ Usage:
 
 import argparse
 import json
+import os
 import sys
 import time
 from datetime import datetime
@@ -48,8 +49,14 @@ def create_spark_session() -> SparkSession:
     return (
         SparkSession.builder.appName("load-test-aggregate")
         .config("spark.hadoop.fs.s3a.endpoint", "http://minio.spark-infra.svc.cluster.local:9000")
-        .config("spark.hadoop.fs.s3a.access.key", "minioadmin")
-        .config("spark.hadoop.fs.s3a.secret.key", "minioadmin")
+        .config(
+            "spark.hadoop.fs.s3a.access.key",
+            os.environ.get("MINIO_ACCESS_KEY", os.environ.get("AWS_ACCESS_KEY_ID", "")),
+        )
+        .config(
+            "spark.hadoop.fs.s3a.secret.key",
+            os.environ.get("MINIO_SECRET_KEY", os.environ.get("AWS_SECRET_ACCESS_KEY", "")),
+        )
         .config("spark.hadoop.fs.s3a.path.style.access", "true")
         .config("spark.sql.shuffle.partitions", "200")
         .config("spark.eventLog.enabled", "true")

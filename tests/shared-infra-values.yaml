@@ -19,8 +19,6 @@ global:
     accessKey: ""  # leave empty when using existingSecret
     secretKey: ""  # leave empty when using existingSecret
     existingSecret: "spark-s3-creds"
-    existingSecretAccessKey: "access-key"
-    existingSecretSecretKey: "secret-key"
     pathStyleAccess: true
     sslEnabled: false
 
