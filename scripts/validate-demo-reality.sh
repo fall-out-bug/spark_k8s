@@ -5,6 +5,11 @@
 # Exit 0 = demo usable; exit 1 = decoration only (nothing works when you click).
 set -euo pipefail
 
+# Credentials from env (local demo default = MinIO factory; override for real clusters)
+: "${S3_ACCESS_KEY:=minioadmin}"
+: "${S3_SECRET_KEY:=minioadmin}"
+
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$PROJECT_ROOT"
@@ -47,7 +52,7 @@ check "Jupyter Lab reachable (localhost:18888)" "$([[ "$jupyter_code" =~ ^(200|3
 # 3. MinIO has spark-jobs (DAGs need this)
 spark_jobs_count=$(kubectl run minio-check --rm -i --restart=Never -n "$NAMESPACE" \
   --image=python:3.11-slim \
-  --overrides='{"spec":{"containers":[{"name":"c","image":"python:3.11-slim","command":["/bin/sh","-c"],"args":["pip install -q boto3 && python3 -c \"import os,boto3; s3=boto3.client(\\\"s3\\\",endpoint_url=os.environ[\\\"E\\\"],aws_access_key_id=\\\"minioadmin\\\",aws_secret_access_key=\\\"minioadmin\\\"); objs=s3.list_objects_v2(Bucket=\\\"spark-jobs\\\",Prefix=\\\"dags/spark_jobs/\\\") or {}; print(len([x for x in objs.get(\\\"Contents\\\",[]) if x[\\\"Key\\\"].endswith(\\\".py\\\")]))\""],"env":[{"name":"E","value":"http://minio.'"$NAMESPACE"'.svc.cluster.local:9000"}]}]}}' \
+  --overrides='{"spec":{"containers":[{"name":"c","image":"python:3.11-slim","command":["/bin/sh","-c"],"args":["pip install -q boto3 && python3 -c \"import os,boto3; s3=boto3.client(\\\"s3\\\",endpoint_url=os.environ[\\\"E\\\"],aws_access_key_id=os.environ[\\\"S3_ACCESS_KEY\\\"],aws_secret_access_key=os.environ[\\\"S3_SECRET_KEY\\\"]); objs=s3.list_objects_v2(Bucket=\\\"spark-jobs\\\",Prefix=\\\"dags/spark_jobs/\\\") or {}; print(len([x for x in objs.get(\\\"Contents\\\",[]) if x[\\\"Key\\\"].endswith(\\\".py\\\")]))\""],"env":[{"name":"S3_ACCESS_KEY","value":"'"$S3_ACCESS_KEY"'"},{"name":"S3_SECRET_KEY","value":"'"$S3_SECRET_KEY"'"},{"name":"E","value":"http://minio.'"$NAMESPACE"'.svc.cluster.local:9000"}]}]}}' \
   2>/dev/null | grep -oE '^[0-9]+$' | tail -1 || echo "0")
 spark_jobs_count="${spark_jobs_count:-0}"
 check "Spark jobs in MinIO (spark-jobs/dags/spark_jobs/*.py, got $spark_jobs_count)" "$([[ "${spark_jobs_count:-0}" -ge 1 ]] && echo ok || echo "run upload-spark-jobs-to-minio.sh")"
@@ -55,7 +60,7 @@ check "Spark jobs in MinIO (spark-jobs/dags/spark_jobs/*.py, got $spark_jobs_cou
 # 4. MinIO has nyc-taxi data (nyc_taxi DAG needs this)
 nyc_count=$(kubectl run minio-check2 --rm -i --restart=Never -n "$NAMESPACE" \
   --image=python:3.11-slim \
-  --overrides='{"spec":{"containers":[{"name":"c","image":"python:3.11-slim","command":["/bin/sh","-c"],"args":["pip install -q boto3 && python3 -c \"import os,boto3; s3=boto3.client(\\\"s3\\\",endpoint_url=os.environ[\\\"E\\\"],aws_access_key_id=\\\"minioadmin\\\",aws_secret_access_key=\\\"minioadmin\\\"); objs=s3.list_objects_v2(Bucket=\\\"nyc-taxi\\\",Prefix=\\\"raw/\\\") or {}; print(len([x for x in objs.get(\\\"Contents\\\",[]) if x[\\\"Key\\\"].endswith(\\\".parquet\\\")]))\""],"env":[{"name":"E","value":"http://minio.'"$NAMESPACE"'.svc.cluster.local:9000"}]}]}}' \
+  --overrides='{"spec":{"containers":[{"name":"c","image":"python:3.11-slim","command":["/bin/sh","-c"],"args":["pip install -q boto3 && python3 -c \"import os,boto3; s3=boto3.client(\\\"s3\\\",endpoint_url=os.environ[\\\"E\\\"],aws_access_key_id=os.environ[\\\"S3_ACCESS_KEY\\\"],aws_secret_access_key=os.environ[\\\"S3_SECRET_KEY\\\"]); objs=s3.list_objects_v2(Bucket=\\\"nyc-taxi\\\",Prefix=\\\"raw/\\\") or {}; print(len([x for x in objs.get(\\\"Contents\\\",[]) if x[\\\"Key\\\"].endswith(\\\".parquet\\\")]))\""],"env":[{"name":"S3_ACCESS_KEY","value":"'"$S3_ACCESS_KEY"'"},{"name":"S3_SECRET_KEY","value":"'"$S3_SECRET_KEY"'"},{"name":"E","value":"http://minio.'"$NAMESPACE"'.svc.cluster.local:9000"}]}]}}' \
   2>/dev/null | grep -oE '^[0-9]+$' | tail -1 || echo "0")
 nyc_count="${nyc_count:-0}"
 check "NYC Taxi data in MinIO (nyc-taxi/raw/*.parquet, got $nyc_count)" "$([[ "${nyc_count:-0}" -ge 4 ]] && echo ok || echo "run upload-nyc-taxi-sample.sh")"
@@ -63,7 +68,7 @@ check "NYC Taxi data in MinIO (nyc-taxi/raw/*.parquet, got $nyc_count)" "$([[ "$
 # 5. Citibike data (optional — DAG/notebook use synthetic fallback if missing)
 citibike_count=$(kubectl run minio-check3 --rm -i --restart=Never -n "$NAMESPACE" \
   --image=python:3.11-slim \
-  --overrides='{"spec":{"containers":[{"name":"c","image":"python:3.11-slim","command":["/bin/sh","-c"],"args":["pip install -q boto3 && python3 -c \"import os,boto3; s3=boto3.client(\\\"s3\\\",endpoint_url=os.environ[\\\"E\\\"],aws_access_key_id=\\\"minioadmin\\\",aws_secret_access_key=\\\"minioadmin\\\"); objs=s3.list_objects_v2(Bucket=\\\"citibike\\\",Prefix=\\\"raw/\\\") or {}; print(len([x for x in objs.get(\\\"Contents\\\",[]) if x[\\\"Key\\\"].endswith(\\\".parquet\\\")]))\""],"env":[{"name":"E","value":"http://minio.'"$NAMESPACE"'.svc.cluster.local:9000"}]}]}}' \
+  --overrides='{"spec":{"containers":[{"name":"c","image":"python:3.11-slim","command":["/bin/sh","-c"],"args":["pip install -q boto3 && python3 -c \"import os,boto3; s3=boto3.client(\\\"s3\\\",endpoint_url=os.environ[\\\"E\\\"],aws_access_key_id=os.environ[\\\"S3_ACCESS_KEY\\\"],aws_secret_access_key=os.environ[\\\"S3_SECRET_KEY\\\"]); objs=s3.list_objects_v2(Bucket=\\\"citibike\\\",Prefix=\\\"raw/\\\") or {}; print(len([x for x in objs.get(\\\"Contents\\\",[]) if x[\\\"Key\\\"].endswith(\\\".parquet\\\")]))\""],"env":[{"name":"S3_ACCESS_KEY","value":"'"$S3_ACCESS_KEY"'"},{"name":"S3_SECRET_KEY","value":"'"$S3_SECRET_KEY"'"},{"name":"E","value":"http://minio.'"$NAMESPACE"'.svc.cluster.local:9000"}]}]}}' \
   2>/dev/null | grep -oE '^[0-9]+$' | tail -1 || echo "0")
 citibike_count="${citibike_count:-0}"
 [[ "$QUIET" != "--quiet" ]] && echo "  INFO: Citibike data (citibike/raw/*.parquet, got $citibike_count) — optional, run upload-citibike-sample.sh for real data"

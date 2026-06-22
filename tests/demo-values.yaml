@@ -1,17 +1,25 @@
+# Demo values for spark-3.5 chart.
+# S3/PG credentials are NOT hardcoded — reference a pre-created Secret.
+# Create it before deploying:
+#   kubectl create secret generic spark-s3-creds --from-literal=access-key="$S3_ACCESS_KEY" --from-literal=secret-key="$S3_SECRET_KEY"
+#   kubectl create secret generic spark-pg-creds --from-literal=password="$POSTGRESQL_PASSWORD"
 global:
   s3:
     enabled: true
     endpoint: "http://minio:9000"
-    accessKey: "minioadmin"
-    secretKey: "minioadmin"
-    existingSecret: ""
+    accessKey: ""  # leave empty when using existingSecret
+    secretKey: ""  # leave empty when using existingSecret
+    existingSecret: "spark-s3-creds"  # Secret must have keys: access-key, secret-key (chart hardcodes these key names)
     pathStyleAccess: true
     sslEnabled: false
   postgresql:
     host: "spark-demo-spark-base-postgresql"
     port: 5432
     user: "spark"
-    password: "spark123"
+    # NOTE: spark-base postgresql chart does not yet support auth.existingSecret
+    # (templates/postgresql.yaml uses envFrom secretRef but without existingSecret wiring).
+    # For now, set password explicitly via --set on deploy. Chart enhancement tracked separately.
+    password: "spark123"  # override via --set core.postgresql.auth.password="$POSTGRESQL_PASSWORD"
 
 security:
   podSecurityStandards: false
@@ -19,9 +27,9 @@ security:
 spark-base:
   enabled: true
   s3:
-    accessKey: "minioadmin"
-    secretKey: "minioadmin"
-    existingSecret: ""
+    accessKey: ""  # leave empty when using existingSecret
+    secretKey: ""  # leave empty when using existingSecret
+    existingSecret: "spark-s3-creds"  # same Secret as global.s3.existingSecret
   minio:
     enabled: true
     persistence:
@@ -31,7 +39,8 @@ spark-base:
     enabled: true
     auth:
       username: "spark"
-      password: "spark123"
+      # spark-base postgresql chart doesn't support auth.existingSecret yet; set via --set.
+      password: "spark123"  # override via --set on deploy
     databases:
       - "metastore_spark35"
     authMethod: "md5"
