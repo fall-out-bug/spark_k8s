@@ -29,7 +29,7 @@ jobs:
       - name: Lint spark-4.1
         run: helm lint charts/spark-4.1
       - name: Lint spark-operator
-        run: helm lint charts/spark-operator || true
+        run: helm lint charts/spark-operator
 
   template-tests:
     name: Template Tests

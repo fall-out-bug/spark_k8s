@@ -22,7 +22,7 @@ jobs:
         run: |
           # TODO: implement scripts/run-matrix-p2.sh that targets p2_weekly tier
           # Currently delegates to run-matrix.sh with no filter (legacy behavior)
-          ./scripts/run-matrix.sh all || true
+          ./scripts/run-matrix.sh all
       - name: Check demo health (post-run)
         if: always()
         run: ./scripts/check-demo-health.sh || ./scripts/restore-demo.sh

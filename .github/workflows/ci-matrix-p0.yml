@@ -1,17 +1,12 @@
-name: "CI Matrix: P0 Smoke (PR gate)"
+name: "CI Matrix: P0 Smoke (manual — runner not implemented)"
 
 on:
-  pull_request:
-    branches: [main, dev]
-    paths:
-      - "charts/spark-3.5/**"
-      - "charts/spark-4.1/**"
-      - "charts/spark-base/**"
-      - "scripts/tests/smoke/**"
-      - "scripts/tests/load/matrix/**"
-      - "scripts/run-matrix*.sh"
-      - ".github/workflows/ci-matrix-p0.yml"
   workflow_dispatch:
+  # NOTE: pull_request trigger removed 2026-08-09. The P0 smoke runner
+  # (scripts/run-matrix-p0.sh, filtering smoke-matrix.yaml priority_tiers.p0_pr)
+  # is not implemented, so this workflow previously gated NOTHING on PRs while
+  # echoing "8 scenarios" as if they ran. Re-add `pull_request:` once the runner
+  # exists.
 
 concurrency:
   group: matrix-p0-${{ github.ref }}
@@ -19,7 +14,7 @@ concurrency:
 
 jobs:
   p0-smoke:
-    name: P0 Smoke (8 scenarios)
+    name: P0 Smoke (manual; runner pending)
     runs-on: self-hosted
     timeout-minutes: 30
     steps:
@@ -37,21 +32,15 @@ jobs:
           docker image inspect spark-k8s/hive:3.1.3-pg >/dev/null 2>&1 || \
             docker build -f docker/hive/Dockerfile --build-arg HIVE_VERSION=3.1.3 -t spark-k8s/hive:3.1.3-pg docker/hive
       - name: Deploy demo (shared infra + standalone + airflow + jupyter)
-        continue-on-error: true
-        run: |
-          ./scripts/deploy-demo-minikube.sh || \
-            echo "WARN: deploy failed, will skip demo-health check"
+        run: ./scripts/deploy-demo-minikube.sh
       - name: Validate matrix yaml
         run: python3 scripts/tests/smoke/matrix/validate-smoke-matrix.py
       - name: Run P0 smoke tier
         run: |
-          # TODO: implement scripts/run-matrix-p0.sh that filters smoke-matrix.yaml p0_pr tier
-          # Currently a stub — replace with actual P0 runner
-          echo "P0 tier: 8 scenarios (baseline, 3.5.7+4.1.0, k8s+standalone)"
-          echo "Filter: tier=p0_pr components=airflow,jupyter spark_versions=3.5.7,4.1.0 modes=k8s,standalone features=baseline"
-          # ./scripts/run-matrix-p0.sh
-      - name: Check demo health (non-blocking warning)
-        continue-on-error: true
+          echo "NOT IMPLEMENTED: scripts/run-matrix-p0.sh does not exist."
+          echo "8 P0 scenarios are defined in tests/smoke-matrix.yaml (priority_tiers.p0_pr)"
+          echo "but not wired to a runner. Implement the runner, then re-add the pull_request trigger."
+      - name: Check demo health
         run: ./scripts/check-demo-health.sh
       - name: Upload results
         if: always()
