@@ -28,7 +28,7 @@ Operational SLOs that are **measurable and alerted**:
 - SLO dashboards in Grafana (`spark-connect` availability, error budget)
 - AlertManager rules: SLO burn-rate, Spark-Connect down, backup failure
 - Restore-from-backup runbook + a tested restore drill
-- Wire into existing `docs/operations/procedures/on-call/escalation-paths.md`
+- Define an escalation-paths runbook (the prior `on-call/escalation-paths.md` was archived 2026-08-09 as enterprise-SRE theater; recreate a Spark-specific one when implementing)
 
 ### Likely out of scope
 - Multi-cluster federation
