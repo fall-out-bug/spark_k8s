@@ -13,7 +13,7 @@ created: 2026-06-17
 > `ghcr.io/googlecloudplatform/spark-operator` (deprecated). The divergence shifted,
 > not resolved: standalone chart ✓ kubeflow · Spark-version charts ✗ googlecloudplatform.
 > A THIRD operator now exists — official `apache/spark-kubernetes-operator` (ASF,
-> May 2025) — see Q0. **Operator decision still OPEN.**
+> May 2025) — resolved in Q0 (2026-08-09): **kubeflow**. Per-version image migration still pending.
 
 ## Problem
 
@@ -55,17 +55,27 @@ A working, maintained Spark Operator that supports the Spark versions we ship (3
 
 ## Open questions (must resolve BEFORE plan.md)
 
-### Q0: kubeflow/spark-operator vs apache/spark-kubernetes-operator?
+### Q0: kubeflow/spark-operator vs apache/spark-kubernetes-operator? — DECISION: kubeflow (now)
 
-A new official ASF option appeared after this spec was written:
-- `apache/spark-kubernetes-operator` — `github.com/apache/spark-kubernetes-operator`,
-  ASF subproject, ~v0.2.x (launched May 2025), built from scratch, targets long-running apps.
-  Official upstream direction, but younger / less battle-tested.
-- `kubeflow/spark-operator` — current target, v2.5.1, mature, already adopted in the
-  standalone `charts/spark-operator/`.
+Researched 2026-08-09. **Decision: migrate to kubeflow/spark-operator now; re-evaluate
+apache in 6-12 months at the Spark 4.x upgrade.**
 
-Decide the target BEFORE the per-version image migration (Q1-Q4 assume kubeflow).
-See the 2026-08-09 operator-maturity research brief for the recommendation.
+Key finding: `apache/spark-kubernetes-operator` **1.0.0 (2026-07-26) dropped Spark 3.5**
+(Spark 4.0/4.1/4.2 only). This repo ships Spark 3.5.7, so apache 1.0.0 is a hard blocker;
+apache 0.9.0 (last 3.5-supporting) is a dead-end branch. Meanwhile kubeflow is the
+official, lowest-friction successor to the GCP operator already vendored here — same API
+group (`sparkoperator.k8s.io`), same `SparkApplication` kind, supports Spark 2.3+ incl 3.5.
+
+- `kubeflow/spark-operator` v2.5.2 (2026-07-31): operationally mature (large deployed
+  base, ~2y stable v2.x, OpenSSF badge), but API still `v1beta2` / self-declared "beta".
+- `apache/spark-kubernetes-operator` 1.0.0 (2026-07-26, ~2 weeks old): API-mature (stable
+  CRD, `spark.apache.org` group), ASF-official, adds `SparkCluster` CRD + YuniKorn gang
+  scheduling + native acceleration — but operationally young, JVM operator, full rewrite
+  to adopt, and drops Spark 3.5.
+
+Q1-Q4 proceed assuming kubeflow. apache re-evaluation deferred to the Spark 4.x upgrade.
+Sources: github.com/apache/spark-kubernetes-operator/releases, github.com/kubeflow/spark-operator/releases,
+blog.kubeflow.org migration announcement (Apr 2024 — only official GCP-migration guidance → kubeflow).
 
 ### Q1: Vendored chart vs upstream dependency?
 
