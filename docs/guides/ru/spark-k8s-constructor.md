@@ -156,14 +156,11 @@ kubectl port-forward -n datascience svc/jupyter 8888:8888
 
 ### Тестируемые сценарии
 
-| Сценарий | Тест | Backend | Компоненты |
-|----------|------|---------|------------|
-| Jupyter + Connect + K8s | `test-e2e-jupyter-connect.sh` | k8s | Jupyter + Connect + MinIO |
-| Jupyter + Connect + Standalone | `test-e2e-jupyter-connect.sh` | standalone | Jupyter + Connect + Standalone + MinIO |
-| Airflow + Connect + K8s | `test-e2e-airflow-connect.sh` | k8s | Airflow + Connect + MinIO |
-| Airflow + Connect + Standalone | `test-e2e-airflow-connect.sh` | standalone | Airflow + Connect + Standalone + MinIO |
-| Airflow + K8s submit | `test-e2e-airflow-k8s-submit.sh` | - | Airflow + MinIO |
-| Airflow + Operator | `test-e2e-airflow-operator.sh` | operator | Airflow + Spark Operator + MinIO |
+Сценарии задаются файлами значений (см. «Планируемые пресеты» ниже). Ручной прогон — через matrix-runner:
+
+```bash
+./scripts/run-matrix.sh --filter "platform=k8s" smoke
+```
 
 ### Планируемые пресеты
 
@@ -181,29 +178,22 @@ charts/spark-4.1/
 
 ## Использование --set флагов
 
-### Паттерн: Тестовые скрипты как референс
+### Паттерн: Файлы сценариев как референс
 
-**Шаг 1: Находим нужный тест-сценарий**
+**Шаг 1: Берём готовый values-файл сценария**
 
 ```bash
-# Data Science: Jupyter + Connect
-scripts/test-e2e-jupyter-connect.sh
-
-# Data Engineering: Airflow + Connect
-scripts/test-e2e-airflow-connect.sh
-
-# Data Engineering: Airflow + K8s submit
-scripts/test-e2e-airflow-k8s-submit.sh
-
-# Data Engineering: Airflow + Spark Operator
-scripts/test-e2e-airflow-operator.sh
+charts/spark-4.1/values-scenario-jupyter-connect-k8s.yaml
+charts/spark-4.1/values-scenario-airflow-connect-k8s.yaml
+charts/spark-4.1/values-scenario-airflow-operator.yaml
 ```
 
-**Шаг 2: Извлекаем helm команду**
+**Шаг 2: Деплой через файл сценария**
 
 ```bash
-# Смотрим в скрипт для 4.1
-grep -A 30 "helm upgrade --install" scripts/test-e2e-jupyter-connect.sh
+helm upgrade --install spark-<release> charts/spark-4.1 \
+  -f charts/spark-4.1/values-scenario-<scenario>.yaml \
+  -n "${NAMESPACE}" --create-namespace
 ```
 
 **Шаг 3: Деплой (пример для Jupyter + Connect)**

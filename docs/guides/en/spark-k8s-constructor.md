@@ -189,27 +189,24 @@ helm install spark-connect charts/spark-3.5/charts/spark-connect \
 
 ## Using --set Flags
 
-### Pattern: Test scripts as reference
+### Pattern: Scenario values files as reference
 
-**Step 1: Find your test scenario**
+Each integration scenario ships as a ready-to-use values file under
+`charts/spark-4.1/values-scenario-*.yaml`:
 
 ```bash
 # Data Science: Jupyter + Connect
-scripts/test-e2e-jupyter-connect.sh
+charts/spark-4.1/values-scenario-jupyter-connect-k8s.yaml
 
-# Data Engineering: Airflow + Connect
-scripts/test-e2e-airflow-connect.sh
-
-# Data Engineering: Airflow + K8s submit
-scripts/test-e2e-airflow-k8s-submit.sh
-
-# Data Engineering: Airflow + Spark Operator
-scripts/test-e2e-airflow-operator.sh
+# Data Engineering: Airflow + Connect / K8s submit / Operator
+charts/spark-4.1/values-scenario-airflow-connect-k8s.yaml
+charts/spark-4.1/values-scenario-airflow-k8s-submit.yaml
+charts/spark-4.1/values-scenario-airflow-operator.yaml
 ```
 
 **Step 2: Extract helm command**
 
-From the test script, find the `helm upgrade` command:
+Or compose a `helm upgrade` directly with `--set` flags:
 
 ```bash
 helm upgrade spark-connect charts/spark-3.5/charts/spark-connect -n "${NAMESPACE}" \
@@ -467,7 +464,7 @@ helm template test charts/spark-4.1 -f charts/spark-4.1/values-scenario-*.yaml -
 |----------|------|
 | **Issues** | [docs/issues/](../issues/) |
 | **Architecture** | [Architecture](../architecture/spark-k8s-charts.md) |
-| **Quick Reference** | [Quick Reference](../guides/ru/quick-reference.md) |
+| **Quick Reference** | [Quick Reference](../ru/quick-reference.md) |
 | **Repository Map** | [Project Map](../PROJECT_MAP.md) |
 
 ---

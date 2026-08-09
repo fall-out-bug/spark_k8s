@@ -1,5 +1,9 @@
 # F06 E2E Matrix Report
 
+> **Historical (2026-01-25).** The `test-e2e-*` scripts referenced below were
+> removed 2026-08-09 (CI-uncalled manual tools). Scenario coverage now lives in
+> `charts/*/values-scenario-*.yaml` + the `scripts/run-matrix.sh` runner.
+
 **Feature:** F06 - Spark Connect Standalone Parity (E2E matrix)
 **Date:** 2026-01-25
 **Tester:** Auto (agent) + Runtime Validation
