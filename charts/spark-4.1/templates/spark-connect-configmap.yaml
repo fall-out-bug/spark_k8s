@@ -28,6 +28,10 @@ data:
     spark.kubernetes.executor.limit.cores={{ .Values.connect.executor.coresLimit }}
     spark.kubernetes.executor.request.memory={{ .Values.connect.executor.memory }}
     spark.kubernetes.container.image={{ .Values.connect.image.repository }}:{{ .Values.connect.image.tag }}
+    # Spark 4.0+ K8s scheduler behaviors relied upon (NOT overridden — using Spark defaults):
+    #   spark.kubernetes.allocation.batch.size defaults to 10 (executors allocated in batches of 10 since 4.0).
+    #   Executor pod completion checks ALL containers since 4.0 (affects status/teardown detection).
+    #   Pin explicitly here only if a Spark bump changes these defaults undesirably.
     spark.driver.bindAddress=0.0.0.0
     spark.driver.host={{ default (printf "%s-connect" (include "spark-4.1.fullname" .)) .Values.connect.driver.host }}
     spark.driver.port={{ .Values.connect.driver.port }}

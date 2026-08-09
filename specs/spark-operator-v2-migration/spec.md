@@ -6,6 +6,15 @@ created: 2026-06-17
 
 # Spec: Spark Operator v2 Migration (GoogleCloudPlatform → Kubeflow)
 
+> **Update 2026-08-09 — state re-audited.** The standalone `charts/spark-operator/`
+> now ships `ghcr.io/kubeflow/spark-operator/controller:v2.5.1` (kubeflow migration
+> landed for the operator chart itself). **BUT** the per-version operator image refs
+> in `charts/spark-{3.5,4.0,4.1}/values.yaml` STILL point at
+> `ghcr.io/googlecloudplatform/spark-operator` (deprecated). The divergence shifted,
+> not resolved: standalone chart ✓ kubeflow · Spark-version charts ✗ googlecloudplatform.
+> A THIRD operator now exists — official `apache/spark-kubernetes-operator` (ASF,
+> May 2025) — see Q0. **Operator decision still OPEN.**
+
 ## Problem
 
 The Spark Operator image referenced in this repo points at the **deprecated**
@@ -45,6 +54,18 @@ A working, maintained Spark Operator that supports the Spark versions we ship (3
 4.1.x), on a non-deprecated image, without the registry/tag divergence.
 
 ## Open questions (must resolve BEFORE plan.md)
+
+### Q0: kubeflow/spark-operator vs apache/spark-kubernetes-operator?
+
+A new official ASF option appeared after this spec was written:
+- `apache/spark-kubernetes-operator` — `github.com/apache/spark-kubernetes-operator`,
+  ASF subproject, ~v0.2.x (launched May 2025), built from scratch, targets long-running apps.
+  Official upstream direction, but younger / less battle-tested.
+- `kubeflow/spark-operator` — current target, v2.5.1, mature, already adopted in the
+  standalone `charts/spark-operator/`.
+
+Decide the target BEFORE the per-version image migration (Q1-Q4 assume kubeflow).
+See the 2026-08-09 operator-maturity research brief for the recommendation.
 
 ### Q1: Vendored chart vs upstream dependency?
 
