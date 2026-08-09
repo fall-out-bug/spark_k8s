@@ -1,39 +1,51 @@
-# Specs Index
+# Specs Index (legacy spec-kit)
 
-Active feature specs (spec-kit SDD). Constitution governs all of them.
+> **These are legacy spec-kit specs, kept as reference.** New work goes through
+> **OpenSpec** (`openspec/`). Do not add new specs here.
+>
+> This index was reconciled 2026-08-09 against shipped reality. Previous versions
+> overstated several specs as "Plan + impl" when the work was aspirational or
+> only partially delivered.
 
 ## Constitution
 
-- [_constitution.md](_constitution.md) — project-wide principles + Consumers & Invariants, v1.1.0 (ratified 2026-06-14, amended 2026-06-17)
+- [_constitution.md](_constitution.md) — project-wide principles + Consumers & Invariants, v1.1.0
 
-## Active Features
+## Status legend
 
-| Feature | Status | Path |
-|---------|--------|------|
-| Airflow 3 Migration | Plan + impl (3.2.2 + OTel fix) | [airflow3-migration/](airflow3-migration/) |
-| Observability Charts Migration | Draft (plan resolved) | [observability-charts-migration/](observability-charts-migration/) |
-| Smoke Scenario Generator Cleanup | Draft (backlog skeleton) | [smoke-scenario-generator-cleanup/](smoke-scenario-generator-cleanup/) |
-| GHCR Publish Pipeline | Plan + impl (workflow created) | [ghcr-publish-pipeline/](ghcr-publish-pipeline/) |
-| Spark Operator v2 Migration | Draft (audit + open questions) | [spark-operator-v2-migration/](spark-operator-v2-migration/) |
-| Cost Attribution | Draft (backlog skeleton) | [cost-attribution/](cost-attribution/) |
-| Job-Level CI/CD Pipeline | Draft (backlog skeleton) | [job-cicd-pipeline/](job-cicd-pipeline/) |
-| HA for Spark Standalone Master | Draft (backlog skeleton) | [spark-standalone-master-ha/](spark-standalone-master-ha/) |
-| Production SLA/SLO | Draft (backlog skeleton) | [production-sla-slo/](production-sla-slo/) |
-| Spark Load Tests with 10GB NYC Taxi | Draft (0/30 tasks) | [spark-load-tests-10gb/](spark-load-tests-10gb/) |
-| Harden Default Credentials in Values Files | Draft (0/25 tasks) | [credential-hardening/](credential-hardening/) |
-| Grafana Observability Stand | ✅ Completed (36/36 tasks, PR #9 merged) | [grafana-observability-stand/](grafana-observability-stand/) — ready to archive |
+- ✅ **DELIVERED** — work shipped and verified
+- 🔧 **OPEN** — actively in progress or decision pending
+- 💤 **ASPIRATIONAL** — idea / backlog skeleton, no plan or tasks; not started
 
-## Workflow
+## Specs
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Grafana Observability Stand | ✅ DELIVERED | 36/36 tasks, PR #9. The one fully completed spec. |
+| Harden Default Credentials | ✅ DELIVERED | 25/25 shipped (PRs #23/#28/#29/#30/#31). 0 hardcoded creds, `required`-enforced, `test_credential_leak.py` guard. |
+| GHCR Publish Pipeline | ✅ DELIVERED | 23/23 shipped (PRs #15/#22/#24/#33). `publish-images.yml` + ci-docker 4.1.1. GAP-1/GAP-3 resolved. |
+| Spark Load Tests (10GB NYC Taxi) | 🔧 OPEN | 0/30 tasks. Infra exists; load tests not yet run. |
+| Spark Operator v2 Migration | 🔧 OPEN | Decision pending: apache/spark-kubernetes-operator vs kubeflow/spark-operator. Current chart on deprecated googlecloudplatform image + 24,888 LOC vendored CRDs. |
+| Airflow 3 Migration | 💤 ASPIRATIONAL | Chart still pins Airflow 2.11.0. Spec is open-questions only, no plan/tasks. (Index previously claimed impl — incorrect.) |
+| Observability Charts Migration | 💤 ASPIRATIONAL | spark-4.1 observability deps still commented out. No tasks. |
+| Smoke Scenario Generator Cleanup | 💤 ASPIRATIONAL | Backlog skeleton. Scripts-only, no chart change. |
+| Cost Attribution | 💤 ASPIRATIONAL | cost-exporter exists; attribution/alerting loop unclosed. Spec only. |
+| Job-Level CI/CD Pipeline | 💤 ASPIRATIONAL | No GitOps / Great-Expectations. Env values dirs only. |
+| HA for Spark Standalone Master | 💤 ASPIRATIONAL | `master.yaml` hardcodes `replicas: 1`; no leader election. Spec only. |
+| Production SLA/SLO | 💤 ASPIRATIONAL | Only primitive is backup-cronjob. No burn-rate alerts. Spec only. |
+
+## New work
+
+Use OpenSpec:
 
 ```
-/speckit.constitution                         # one-time setup (DONE)
-/speckit.specify "Add feature X"              # create new spec
-/speckit.plan                                 # technical plan
-/speckit.tasks                                # actionable tasks
-/speckit.implement                            # execute
-/speckit.analyze                              # consistency check
-/speckit.taskstoissues                        # publish to GitHub Issues
+openspec new change "Add feature X"   # openspec/changes/<id>/
+openspec apply <id>
+openspec verify <id>
+openspec archive <id>
 ```
+
+Slash commands: `/opsx:new`, `/opsx:apply`, `/opsx:verify`, `/opsx:archive`.
 
 ## Historical Archive
 
@@ -41,7 +53,5 @@ Pre-migration (SDP workstream format, 35+ features, 28+ completed WS):
 
 - [docs/archive/sdp-workstreams/MEMORIES.md](../docs/archive/sdp-workstreams/MEMORIES.md) — meta-library of historical project state (read-only provenance)
 - [docs/archive/sdp-workstreams/INDEX.md](../docs/archive/sdp-workstreams/INDEX.md) — feature/WS index
-- [docs/archive/sdp-workstreams/completed/](../docs/archive/sdp-workstreams/completed/) — 28+ completed workstreams
-- [docs/archive/sdp-workstreams/backlog/](../docs/archive/sdp-workstreams/backlog/) — 2 backlog WS (migrated to specs/ above)
 
-Do NOT add new work to the archive. New features use `specs/<name>/` only.
+Do NOT add new work to the archive or to `specs/`. New features use OpenSpec only.
