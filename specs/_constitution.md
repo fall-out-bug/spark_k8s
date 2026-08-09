@@ -1,6 +1,6 @@
 # spark_k8s Constitution
 
-Project-wide principles governing all spec-kit features. Applies to every `specs/<feature>/` directory. Amendments require PR + ratification note in Governance section.
+Project-wide principles governing all features. **Workflow is now OpenSpec** (`openspec/`); legacy `specs/` is reference only (see `specs/_index.md`). Amendments require PR + ratification note in Governance section.
 
 ## Core Principles
 
@@ -99,18 +99,15 @@ These are active requirements tracked as future specs, to be considered during u
 
 ## Development Workflow
 
-Spec-Driven Development via GitHub spec-kit:
+Spec-Driven Development via **OpenSpec** — work is modeled as changes (proposed
+deltas to specs) in `openspec/changes/<id>/`:
 
-1. `/speckit.specify` → define what + why (requirements, user stories)
-2. (optional) `/speckit.clarify` → resolve ambiguity before plan
-3. `/speckit.plan` → technical implementation plan
-4. (optional) `/speckit.checklist` → quality checklist
-5. `/speckit.tasks` → actionable, dependency-ordered task list
-6. `/speckit.analyze` → cross-artifact consistency check (NON-NEGOTIABLE before implement)
-7. `/speckit.implement` → execute tasks
-8. `/speckit.taskstoissues` → publish to GitHub Issues for tracking
+1. `openspec new change` (or `/opsx:new`) → create a change proposal
+2. `/opsx:apply` → implement the change's tasks
+3. `/opsx:verify` → validate spec + implementation consistency
+4. `/opsx:archive` → merge delta into main specs, archive the change
 
-Each feature lives under `specs/<feature-name>/` with `spec.md`, `plan.md`, `tasks.md`.
+Legacy spec-kit specs under `specs/` are reference only (status board: `specs/_index.md`).
 
 ## Quality Gates
 
@@ -131,10 +128,11 @@ Each feature lives under `specs/<feature-name>/` with `spec.md`, `plan.md`, `tas
 - Amendments require: PR with diff, justification, ratification date update below.
 - Conflict resolution: constitution > `.cursorrules` > `PROJECT_CONVENTIONS.md` > ad-hoc.
 - Historical WS archive (read-only): `docs/archive/sdp-workstreams/`. New work must not be added there.
-- Beads tracker (`.beads/`, `bd` CLI) is **frozen**. New issues go through spec-kit → GitHub Issues.
+- Issue tracking via GitHub Issues. (The `.beads/` tracker was removed 2026-08-09.)
 
-**Version**: 1.1.0 | **Ratified**: 2026-06-14 | **Last Amended**: 2026-06-17
+**Version**: 1.2.0 | **Ratified**: 2026-06-14 | **Last Amended**: 2026-08-09
 
 ### Amendment Log
 
 - **v1.1.0 (2026-06-17)**: Added "Consumers & Invariants" section. Codifies two consumer classes (S7 primary + OSS), 10 product invariants (Spark 3.5.7 pin, Airflow/Spark Grafana monitoring+profiling, Iceberg, GPU/RAPIDS, Celeborn, OpenLineage, MLflow, Spark Connect, MinIO, OpenShift), and 4 active backlog wants (SLA/SLO, cost attribution, job CI/CD, HA Master). Justification: customer requirements were scattered across `docs/drafts/` and `docs/archive/` with no single source of truth, risking silent breakage during version upgrades.
+- **v1.2.0 (2026-08-09)**: SDD framework swapped spec-kit → **OpenSpec** (spec-kit removed: 8% spec yield, 1/12 completed; cloned across 4 agent dirs). `.beads/` tracker deleted. `specs/` is now legacy reference; new work via `openspec/`. Development Workflow section rewritten.
