@@ -53,7 +53,7 @@ repos:
       - id: check-merge-conflict
       - id: detect-private-key
 
-  # ShellCheck for shell scripts (excludes spec-kit upstream scripts)
+  # ShellCheck for shell scripts (excludes upstream/generated scripts)
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.11.0.1
     hooks:
@@ -64,7 +64,7 @@ repos:
         # produced by a matrix generator that emits IMAGE_REPOSITORY="spark-custom"
         # in every file even where unused (SC2034 in ~73 files). The generator is
         # the root cause — tracked in specs/smoke-scenario-generator-cleanup/.
-        exclude: ^\.specify/scripts/|^\.agents/|^scripts/tests/smoke/scenarios/|^scripts/tests/e2e/|^scripts/tests/load/|^scripts/run-e2e-|^scripts/load-|^scripts/testing/|^scripts/deploy-|^scripts/recipes/
+        exclude: ^scripts/tests/smoke/scenarios/|^scripts/tests/e2e/|^scripts/tests/load/|^scripts/run-e2e-|^scripts/load-|^scripts/testing/|^scripts/deploy-|^scripts/recipes/
 
   # Helm lint (optional - requires helm installed)
   - repo: local

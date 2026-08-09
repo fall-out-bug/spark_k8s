@@ -3,7 +3,7 @@
 This repository is primarily **Helm charts + Kubernetes manifests + bash scripts** for running Apache Spark
 in Kubernetes (Minikube/k3s and OpenShift-like constraints).
 
-These conventions complement the spec-kit constitution at `specs/_constitution.md`.
+These conventions complement the project constitution at `specs/_constitution.md`.
 
 ---
 
@@ -17,7 +17,7 @@ These conventions complement the spec-kit constitution at `specs/_constitution.m
 ## Repo Structure
 
 - **Charts**: `charts/*`
-- **Specs (spec-kit)**: `specs/` (constitution, feature spec/plan/tasks)
+- **Specs (OpenSpec)**: `openspec/` (current specs + in-flight changes); legacy `specs/` kept as reference
 - **Docs**: `docs/` (guides, operations, recipes, archive of legacy workstreams)
 - **Scripts**: `scripts/` (idempotent smoke/E2E helpers)
 - **Docker images**: `docker/` (Spark/Jupyter/etc)
@@ -73,9 +73,10 @@ If any smoke test fails → **equivalent to regression failure (BLOCKING)**.
 
 ---
 
-## Documentation Requirements (spec-kit)
+## Documentation Requirements (OpenSpec)
 
-- Feature work lives under `specs/<feature-name>/` with `spec.md`, `plan.md`, `tasks.md`.
-- Run `/speckit.constitution` once for project-wide principles.
-- Workflow: `/speckit.specify` → `/speckit.plan` → `/speckit.tasks` → `/speckit.implement` → `/speckit.analyze`.
+- Feature work is modeled as changes under `openspec/changes/<id>/` (proposal, tasks, delta specs).
+- Workflow: `/opsx:new` → `/opsx:apply` → `/opsx:verify` → `/opsx:archive`.
+- Project principles: `specs/_constitution.md`.
+- Legacy spec-kit specs under `specs/` are reference only (not for new work).
 - Historical WS archive (read-only provenance): `docs/archive/sdp-workstreams/`.

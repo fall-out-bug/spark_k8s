@@ -15,9 +15,8 @@ Thank you for your interest in contributing.
 git clone https://github.com/fall-out-bug/spark_k8s.git
 cd spark_k8s
 
-# Spec-Driven Development toolkit (optional, for AI-assisted workflows)
-uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
-specify init --here --integration claude --ignore-agent-tools --script sh --force
+# OpenSpec (optional, for AI-assisted spec-driven workflows) — already initialized
+# See openspec/ and https://github.com/Fission-AI/OpenSpec
 
 # Validate Helm charts
 helm lint charts/spark-3.5 charts/spark-4.1 charts/spark-base
@@ -32,19 +31,18 @@ See [specs/_constitution.md](specs/_constitution.md) for project principles and
 
 ## Spec-Driven Development Workflow
 
-This repo uses [GitHub spec-kit](https://github.com/github/spec-kit) for
-spec-driven feature development:
+This repo uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for spec-driven
+feature development. Work is modeled as **changes** (proposed deltas):
 
 ```
-/speckit.constitution                         # one-time setup
-/speckit.specify "Add feature X"              # create spec
-/speckit.plan                                 # technical plan
-/speckit.tasks                                # actionable tasks
-/speckit.implement                            # execute
-/speckit.analyze                              # consistency check
+openspec new change "Add feature X"           # create change in openspec/changes/
+openspec apply <id>                           # implement
+openspec verify <id>                          # validate consistency
+openspec archive <id>                         # merge delta into main specs
 ```
 
-Features live under `specs/<feature-name>/` with `spec.md`, `plan.md`, `tasks.md`.
+Slash commands: `/opsx:new`, `/opsx:apply`, `/opsx:verify`, `/opsx:archive`.
+Legacy specs live under `specs/` (reference only).
 
 ## Pull Request Process
 

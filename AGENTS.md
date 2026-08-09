@@ -23,9 +23,8 @@ You are an AI agent working in **spark_k8s** — Helm charts for Apache Spark on
 | **Find project state (legacy archive)** | [docs/archive/sdp-workstreams/MEMORIES.md](docs/archive/sdp-workstreams/MEMORIES.md) — historical meta-library |
 | **Understand repo structure** | [.cursorrules](.cursorrules) — Repository Structure |
 | **Run tests, matrix, quality gates** | `scripts/run-matrix-96.sh`, `tests/`, `pyproject.toml` |
-| **Use spec-kit workflow** | [CLAUDE.md](CLAUDE.md) — `/speckit.*` slash commands |
-| **Track issues (GitHub)** | `/speckit.taskstoissues` — converts tasks to GitHub Issues |
-| **Beads (DEPRECATED, read-only)** | `.beads/` archive — do NOT create new issues here |
+| **Use OpenSpec workflow** | [CLAUDE.md](CLAUDE.md) — `/opsx:*` slash commands |
+| **Track issues (GitHub)** | GitHub Issues UI |
 | **End session** | Landing the Plane (below) |
 
 ---
@@ -53,11 +52,11 @@ You are an AI agent working in **spark_k8s** — Helm charts for Apache Spark on
 
 ### During work
 - Principles: [.cursorrules](.cursorrules) + [specs/_constitution.md](specs/_constitution.md)
-- Spec-Driven: use spec-kit slash commands (`/speckit.*`)
+- Spec-Driven: use OpenSpec slash commands (`/opsx:*`) — changes live in `openspec/changes/`
 - Project state: [docs/archive/sdp-workstreams/MEMORIES.md](docs/archive/sdp-workstreams/MEMORIES.md) (legacy)
 
 ### End of session (Landing the Plane)
-1. File issues for remaining work via `/speckit.taskstoissues` or GitHub Issues UI
+1. File issues for remaining work via GitHub Issues UI
 2. Run quality gates (if code changed): `pre-commit run --all-files`, `helm lint charts/spark-3.5`, `helm lint charts/spark-4.1`
 3. Verify demo: `./scripts/check-demo-health.sh`
 4. **PUSH TO REMOTE** (MANDATORY):
@@ -74,28 +73,25 @@ You are an AI agent working in **spark_k8s** — Helm charts for Apache Spark on
 
 ## Quick Reference
 
-### Spec-Kit workflow
+### OpenSpec workflow
 ```
-/speckit.constitution                          # Establish/update project principles
-/speckit.specify "Add metric X"                # Create spec in specs/<feature>/
-/speckit.plan                                  # Technical plan
-/speckit.tasks                                 # Actionable tasks list
-/speckit.implement                             # Execute tasks
-/speckit.analyze                               # Cross-artifact consistency check
+openspec new change "Add feature X"   # create change in openspec/changes/
+openspec apply <id>                   # implement
+openspec verify <id>                  # validate consistency
+openspec archive <id>                 # merge delta into main specs
 ```
 
-Optional: `/speckit.clarify` (before plan), `/speckit.checklist` (after plan), `/speckit.taskstoissues` (publish to GitHub Issues).
+Slash commands: `/opsx:new`, `/opsx:propose`, `/opsx:apply`, `/opsx:verify`, `/opsx:archive`, `/opsx:sync`, `/opsx:explore`.
 
-### Pre-commit hooks (replaces SDP hooks)
+Legacy specs live in `specs/` (reference only). New work goes through OpenSpec.
+
+### Pre-commit hooks
 ```bash
 pre-commit install -t pre-commit -t commit-msg
 pre-commit run --all-files
 ```
 
 Conventional Commits enforced via `conventional-pre-commit` hook.
-
-### Beads (DEPRECATED — read-only)
-Beads tracker (`.beads/`, `bd` CLI) is **frozen**. Do NOT create new issues here. Existing issues can still be queried for historical context, but new work goes through spec-kit tasks → GitHub Issues via `/speckit.taskstoissues`.
 
 ### Canonical scripts (demo)
 | Script | Purpose |
@@ -105,7 +101,8 @@ Beads tracker (`.beads/`, `bd` CLI) is **frozen**. Do NOT create new issues here
 | `scripts/deploy-demo-minikube.sh` | Fresh demo deploy |
 | `scripts/tests/minikube/deploy-observability.sh` | Observability stack |
 
-<!-- SPECKIT START -->
+<!-- OPENSPEC START -->
 For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
-<!-- SPECKIT END -->
+shell commands, and other important information, read the current OpenSpec
+change under `openspec/changes/` or the agreed specs in `openspec/`.
+<!-- OPENSPEC END -->

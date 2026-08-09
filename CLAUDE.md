@@ -6,75 +6,47 @@ Quick reference for working on `spark_k8s` — Helm charts for Apache Spark on K
 
 ## TL;DR
 
-Spec-Driven Development via [GitHub spec-kit](https://github.com/github/spec-kit). Workflow:
+Spec-Driven Development via [OpenSpec](https://github.com/Fission-AI/OpenSpec). OpenSpec models work as **changes** — proposed deltas to specs that are proposed, implemented, verified, then archived. The main specs in `openspec/` always reflect the agreed current state; in-flight work lives under `openspec/changes/`.
 
 ```
-/speckit.constitution                 # Establish/update project principles (already done)
-/speckit.specify "Add metric X"       # Create spec in specs/<feature>/
-/speckit.plan                         # Technical plan
-/speckit.tasks                        # Actionable tasks list
-/speckit.implement                    # Execute tasks
-/speckit.analyze                      # Cross-artifact consistency check
+openspec new change "Add metric X"   # Create a change (openspec/changes/<id>/)
+openspec apply <id>                  # Implement the change's tasks
+openspec verify <id>                 # Validate spec + implementation
+openspec archive <id>                # Merge delta into main specs, archive
 ```
 
-Optional: `/speckit.clarify` (before plan), `/speckit.checklist` (after plan), `/speckit.taskstoissues` (publish to GitHub Issues).
+Slash commands (`/opsx:*`): `new`, `propose`, `apply`, `update`, `verify`, `archive`, `sync`, `explore`, `continue`, `ff`, `bulk-archive`.
 
-## Available Skills (after `specify init`)
+## Available Skills
 
 | Skill | Purpose |
 |-------|---------|
-| `/speckit.constitution` | Establish project-wide principles |
-| `/speckit.specify` | Define what to build (requirements, user stories) |
-| `/speckit.plan` | Technical implementation plan |
-| `/speckit.tasks` | Actionable task list |
-| `/speckit.implement` | Execute tasks |
-| `/speckit.analyze` | Cross-artifact consistency report |
-| `/speckit.clarify` | Clarify ambiguous areas (pre-plan) |
-| `/speckit.checklist` | Quality checklist (post-plan) |
-| `/speckit.taskstoissues` | Convert tasks to GitHub Issues |
+| `openspec-new-change` (`/opsx:new`) | Start a new change proposal |
+| `openspec-propose` (`/opsx:propose`) | Author / extend a change proposal |
+| `openspec-apply-change` (`/opsx:apply`) | Implement a change's tasks |
+| `openspec-update-change` (`/opsx:update`) | Update an in-flight change |
+| `openspec-verify-change` (`/opsx:verify`) | Validate change consistency |
+| `openspec-archive-change` (`/opsx:archive`) | Merge delta into main specs |
+| `openspec-sync-specs` (`/opsx:sync`) | Sync delta specs without archiving |
+| `openspec-explore` (`/opsx:explore`) | Search / read specs |
+| `openspec-continue-change` (`/opsx:continue`) | Resume an in-flight change |
+
+## Legacy `specs/`
+
+`specs/` holds pre-OpenSpec feature specs (spec/plan/tasks) kept as **historical reference**. **New work goes through OpenSpec** (`openspec/`). Do not add new specs under `specs/`.
 
 ## Quick Reference
 
-### First Time Setup
+### Setup
 
-1. **Install spec-kit** (requires [uv](https://docs.astral.sh/uv/)):
-   ```bash
-   uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
-   ```
+OpenSpec is already initialized — `openspec/` is the spec root; the `openspec` CLI drives the workflow.
 
-2. **Initialize in this repo** (already done):
-   ```bash
-   specify init --here --integration claude --ignore-agent-tools --script sh --force
-   ```
-
-3. **Read core docs:**
-   - [AGENTS.md](AGENTS.md) — Agent entry point, navigation, workflow
-   - [specs/_constitution.md](specs/_constitution.md) — Project principles (spec-kit constitution)
-   - [.cursorrules](.cursorrules) — Principles, testing, CI (spark_k8s-specific)
-   - [PROJECT_CONVENTIONS.md](PROJECT_CONVENTIONS.md) — Repo conventions
-   - [docs/operations/demo-protection.md](docs/operations/demo-protection.md) — Demo rules, regression prevention
-
-### Typical Workflow
-
-```bash
-# 1. Define spec
-/speckit.specify "Add Spark Connect GPU profiling dashboard"
-# Result: specs/spark-connect-gpu-dashboard/spec.md
-
-# 2. Plan
-/speckit.plan
-# Result: specs/spark-connect-gpu-dashboard/plan.md
-
-# 3. Tasks
-/speckit.tasks
-# Result: specs/spark-connect-gpu-dashboard/tasks.md
-
-# 4. Implement (executes all tasks)
-/speckit.implement
-
-# 5. Analyze (cross-artifact consistency)
-/speckit.analyze
-```
+### Read core docs
+- [AGENTS.md](AGENTS.md) — Agent entry point, navigation, workflow
+- [specs/_constitution.md](specs/_constitution.md) — Project principles
+- [.cursorrules](.cursorrules) — Principles, testing, CI (spark_k8s-specific)
+- [PROJECT_CONVENTIONS.md](PROJECT_CONVENTIONS.md) — Repo conventions
+- [docs/operations/demo-protection.md](docs/operations/demo-protection.md) — Demo rules, regression prevention
 
 ### Quality Gates (Enforced)
 
@@ -118,28 +90,23 @@ Canonical scripts only — never raw helm/kubectl for demo:
 
 ## Configuration
 
-- `.claude/settings.json` — Claude Code settings (projectType, specKit integrations)
+- `.claude/settings.json` — Claude Code settings
 - `.claude/settings.local.json` — local permissions (gitignored)
-- `.specify/` — spec-kit core (templates, scripts, workflows, extensions)
-- `specs/` — feature specs (spec/plan/tasks/constitution)
+- `openspec/` — OpenSpec spec root (current state + in-flight changes)
+- `.zcode/` — OpenSpec skills + commands (agent harness)
+- `specs/` — legacy spec-kit specs (reference only, not for new work)
 
 ## Resources
 
 | Resource | Purpose |
 |----------|---------|
 | [AGENTS.md](AGENTS.md) | Agent entry point, navigation, workflow |
-| [specs/_constitution.md](specs/_constitution.md) | Project principles (spec-kit) |
+| [specs/_constitution.md](specs/_constitution.md) | Project principles |
 | [.cursorrules](.cursorrules) | Principles, testing, CI (spark_k8s) |
 | [PROJECT_CONVENTIONS.md](PROJECT_CONVENTIONS.md) | Repo conventions |
 | [docs/operations/demo-protection.md](docs/operations/demo-protection.md) | Demo rules, regression prevention |
 | [docs/archive/sdp-workstreams/](docs/archive/sdp-workstreams/) | Historical WS archive (provenance) |
 
-<!-- SPECKIT START -->
-For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
-<!-- SPECKIT END -->
-
 ---
 
-**Spec-Kit Version:** 0.10.3
-**Mode:** spec-kit SDD (specify → plan → tasks → implement)
+**SDD framework:** OpenSpec · **Mode:** OpenSpec changes (`new → apply → verify → archive`)

@@ -1,13 +1,10 @@
 {
     "chat.promptFilesRecommendations": {
-        "speckit.constitution": true,
-        "speckit.specify": true,
-        "speckit.plan": true,
-        "speckit.tasks": true,
-        "speckit.implement": true
+        "openspec-new-change": true,
+        "openspec-propose": true,
+        "openspec-apply-change": true,
+        "openspec-verify-change": true,
+        "openspec-archive-change": true
     },
-    "chat.tools.terminal.autoApprove": {
-        ".specify/scripts/bash/": true,
-        ".specify/scripts/powershell/": true
-    }
+    "chat.tools.terminal.autoApprove": {}
 }
