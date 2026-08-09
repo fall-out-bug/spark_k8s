@@ -2,6 +2,12 @@
 
 Branch: `chore/spark41-celeborn-bump`
 
+> **Reconciled 2026-08-09:** GAP-1 (Spark 4.1.1 images to GHCR) and GAP-3
+> (ci-docker 4.1.0 hardcoding) are **RESOLVED**. The publish pipeline landed in
+> `.github/workflows/publish-images.yml` (4.1.1 in matrix, PRs #15/#22/#24/#33)
+> and `ci-docker.yml` now builds 4.1.1. The BLOCKING caveats below are stale and
+> kept only as historical context. See `specs/ghcr-publish-pipeline/`.
+
 ## What changed
 
 1. **Celeborn `0.6.1` → `0.6.3`** (patch bump, upstream image)
@@ -21,7 +27,7 @@ Branch: `chore/spark41-celeborn-bump`
 
 ## ⚠️ Known gaps after this PR (tracked, not silent)
 
-### GAP-1: Spark 4.1.1 images NOT published to GHCR (BLOCKING for live 4.1 deployments)
+### GAP-1: Spark 4.1.1 images NOT published to GHCR (BLOCKING for live 4.1 deployments) — RESOLVED via #15/#33
 
 The chart now references `ghcr.io/fall-out-bug/spark-k8s-spark-custom:4.1.1` and
 `spark-k8s-jupyter:4.1-4.1.1`, but **no CI pipeline publishes images to GHCR**.
@@ -53,7 +59,7 @@ Build-path strings (`spark-4.1.0-bin-hadoop3/...` in extraLibraryPath) are
 intentionally left as-is — they reference paths inside the compiled Spark
 distribution and must match whatever the image was built with.
 
-### GAP-3: `ci-docker.yml` still hardcodes 4.1.0 build jobs
+### GAP-3: `ci-docker.yml` still hardcodes 4.1.0 build jobs — RESOLVED (ci-docker.yml builds 4.1.1)
 
 `ci-docker.yml` has `build-dist-41` + `build-spark-41` jobs hardcoded to `4.1.0`.
 Once GAP-1 (publish pipeline) lands, these jobs should be parametrized or
