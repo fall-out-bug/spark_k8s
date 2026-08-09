@@ -14,8 +14,8 @@ Step-by-step procedures for common operational tasks and incident response.
 | Procedure | Description | Frequency |
 |-----------|-------------|-----------|
 | [Health Check](../../scripts/diagnostics/spark-health-check.sh) | Quick cluster diagnostics | As needed |
-| [Scaling](scaling.md) | Add/remove executor capacity | On demand |
-| [Backup/Recovery](data-recovery.md) | Restore from backup | Emergency |
+| [Scaling](scaling/spark-executor-scaling.md) | Add/remove executor capacity | On demand |
+| [Backup/Recovery](data/) | Restore from backup | Emergency |
 
 ## 🔧 Quick Actions
 
@@ -43,10 +43,9 @@ kubectl rollout restart deployment/spark-connect
 ## 📖 Related Resources
 
 - [Troubleshooting Guide](../troubleshooting.md) — Decision trees for common issues
-- [Production Checklist](../production-checklist.md) — Go-live requirements
+- [Disaster Recovery](../disaster-recovery.md) — RTO/RPO, backup/restore
 - [Alert Configuration](../alert-configuration.md) — Monitoring setup
 
 ---
 
-**Last Updated:** 2026-02-04
-**Part of:** [F18: Production Operations Suite](../../drafts/feature-production-operations.md)
+**Last Updated:** 2026-08-09
