@@ -348,8 +348,8 @@ spec:
     - name: cleanup
       template: cleanup-resources
 
-  # Cleanup template
-  - name: cleanup-resources
+    # Cleanup template
+    - name: cleanup-resources
       container:
         name: cleanup
         image: bitnami/kubectl:latest
