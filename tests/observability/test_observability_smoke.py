@@ -90,3 +90,22 @@ def test_demo_metrics_exporter_enabled() -> None:
     output = _helm_template()
     assert "name: demo-metrics-exporter" in output
     assert "9108" in output or "metrics" in output
+
+
+@pytest.mark.observability
+def test_demo_alert_rules_installed() -> None:
+    """Demo alert rules render as a PrometheusRule built on exporter series."""
+    output = _helm_template()
+    assert "kind: PrometheusRule" in output, "alert-rules.yaml did not render"
+    for alert in ("SparkMasterDown", "SparkWorkerDown", "AirflowDAGFailed", "AirflowTaskFailed"):
+        assert f"alert: {alert}" in output, f"missing alert {alert}"
+    # Every expr references only exporter-exported series families.
+    for metric in (
+        "demo_metrics_exporter_spark_up",
+        "spark_workers_alive",
+        "spark_apps_waiting",
+        "airflow_dag_runs_state",
+        "airflow_task_instances_state",
+        "airflow_latest_dag_run_age_seconds",
+    ):
+        assert metric in output, f"missing metric reference {metric}"

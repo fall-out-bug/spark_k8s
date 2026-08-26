@@ -1,0 +1,76 @@
+{{- if .Values.alerts.enabled }}
+{{/*
+Demo alert rules built ONLY on signals the demo-metrics-exporter actually
+exports (docs/observability/examples/alerts.yaml used to document these as a
+wish list; this manifest installs them). No Alertmanager is deployed in the
+demo preset, so notifications are out of scope — rules are visible in
+Prometheus /alerts.
+*/}}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ .Release.Name }}-demo-alerts
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: observability-demo
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    prometheus: kube-prometheus
+    role: alert-rules
+spec:
+  groups:
+    - name: spark-demo-health
+      rules:
+        - alert: SparkMasterDown
+          annotations:
+            summary: "Spark Standalone Master unreachable"
+            description: "demo-metrics-exporter cannot scrape the Spark Master JSON API."
+          expr: demo_metrics_exporter_spark_up == 0
+          for: 3m
+          labels:
+            severity: critical
+
+        - alert: SparkWorkerDown
+          annotations:
+            summary: "Spark worker(s) lost"
+            description: "Alive workers dropped below the registered total for 5 minutes."
+          expr: spark_workers_alive < spark_workers_total
+          for: 5m
+          labels:
+            severity: critical
+
+        - alert: SparkAppsBacklog
+          annotations:
+            summary: "Spark apps queued"
+            description: "Apps waiting in the Master queue for more than 10 minutes."
+          expr: spark_apps_waiting > 0
+          for: 10m
+          labels:
+            severity: warning
+
+    - name: airflow-demo-health
+      rules:
+        - alert: AirflowDAGFailed
+          annotations:
+            summary: "Airflow DAG run failed"
+            description: "New failed dag_run rows appeared within the last 15 minutes."
+          expr: increase(airflow_dag_runs_state{state="failed"}[15m]) > 0
+          labels:
+            severity: critical
+
+        - alert: AirflowTaskFailed
+          annotations:
+            summary: "Airflow task failed"
+            description: "Task instances moved to failed state within the last 15 minutes."
+          expr: increase(airflow_task_instances_state{state="failed"}[15m]) > 0
+          labels:
+            severity: warning
+
+        - alert: AirflowStaleDagRun
+          annotations:
+            summary: "Stale DAG run"
+            description: "Latest dag_run older than one hour — scheduler may be stuck."
+          expr: airflow_latest_dag_run_age_seconds > 3600
+          for: 10m
+          labels:
+            severity: warning
+{{- end }}

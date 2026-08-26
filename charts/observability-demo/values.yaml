@@ -3,6 +3,12 @@
 
 targetNamespace: spark-operations
 
+# Demo alert rules (templates/alert-rules.yaml): built on demo-metrics-exporter
+# series only. No Alertmanager in the demo preset — rules surface in /alerts.
+alerts:
+  enabled: true
+
+
 # demo-metrics-exporter: scrapes Spark Master, History API, Airflow PG (demo-specific)
 demoMetricsExporter:
   enabled: false
