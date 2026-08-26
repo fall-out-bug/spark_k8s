@@ -19,7 +19,9 @@
 # The last --set is required because the subchart PostgreSQL service name is
 # always "<release>-spark-base-postgresql" and cannot be renamed.
 
-# Global S3 configuration (used by History Server and Hive Metastore)
+# Global S3 configuration (used by History Server and Hive Metastore).
+# Credentials come from the pre-created "s3-credentials" Secret; alternatively
+# drop existingSecret and pass --set global.s3.accessKey/secretKey instead.
 global:
   s3:
     enabled: true

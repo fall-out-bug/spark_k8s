@@ -2,6 +2,11 @@
 
 > **Audience:** Operators
 > **Dependencies:** F16 (Observability stack)
+>
+> [!WARNING]
+> **Drift alert (2026-08):** references a non-existent external chart repo
+> (`charts.example.com`). Use the vendored stack via
+> `scripts/tests/minikube/deploy-observability.sh`; see `docs/observability/INVENTORY.md`.
 
 ## Overview
 

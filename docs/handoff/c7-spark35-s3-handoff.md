@@ -107,6 +107,12 @@ kubectl port-forward -n observability svc/observability-grafana 30030:30030
 `airflow-cluster` (метрики DAG'ов идут от demo-metrics-exporter).
 Пошаговые рецепты по ролям: `docs/observability/recipes/*-5min.md`.
 
+Алерты инсталлируются вместе со стеком (`charts/observability-demo`,
+`alerts.enabled=true`): `SparkMasterDown`, `SparkWorkerDown`,
+`SparkAppsBacklog`, `AirflowDAGFailed`, `AirflowTaskFailed`,
+`AirflowStaleDagRun`. Alertmanager в демо не разворачивается —
+уведомления подключаются отдельно.
+
 ## Известные ограничения (честно)
 
 1. **Два опциональных MinIO-деплоя в spark-3.5**: per-release

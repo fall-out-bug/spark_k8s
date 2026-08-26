@@ -1,5 +1,9 @@
 # Dashboard Reference
 
+> [!NOTE]
+> **Coverage note (2026-08):** this page lists only 5 of the ~20 provisioned
+> dashboards. Full inventory lives in `docs/observability/INVENTORY.md`.
+
 > **Audience:** Operators
 > **Location:** `charts/observability/grafana/dashboards/`
 

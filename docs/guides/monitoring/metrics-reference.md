@@ -1,5 +1,12 @@
 # Spark Metrics Reference
 
+> [!WARNING]
+> **Drift alert (2026-08):** metric names below do NOT match what the demo
+> demo-metrics-exporter exports (`spark_workers_alive`, `spark_apps_completed`,
+> `airflow_dag_runs_state`, …). Authoritative list: scrape
+> `demo-metrics-exporter:9108/metrics` or read its source in
+> `charts/observability-demo/files/exporter.py`.
+
 Complete reference of available Spark metrics for monitoring.
 
 ## Metric Categories

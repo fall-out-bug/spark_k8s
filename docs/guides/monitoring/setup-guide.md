@@ -1,5 +1,12 @@
 # Monitoring Setup Guide
 
+> [!WARNING]
+> **Drift alert (2026-08):** this guide describes a generic kube-prometheus-stack +
+> Pushgateway install that does not match the shipped demo stack. The deployed
+> stack is prometheus-operator 9.x + Grafana + Loki via
+> `scripts/tests/minikube/deploy-observability.sh` — see
+> `docs/observability/INVENTORY.md` and `docs/handoff/c7-spark35-s3-handoff.md`.
+
 This guide explains how to set up comprehensive monitoring for Spark on Kubernetes.
 
 ## Overview

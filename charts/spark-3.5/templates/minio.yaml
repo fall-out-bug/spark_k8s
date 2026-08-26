@@ -36,10 +36,25 @@ spec:
           mkdir -p /data/{raw-data,processed-data,checkpoint,warehouse,spark-logs,spark-jobs}
           minio server /data --console-address ":9001"
         env:
+{{- if .Values.global.s3.existingSecret }}
+        # Credentials live in a pre-provisioned Secret (keys: access-key,
+        # secret-key) — see spark-base subchart for its layout.
         - name: MINIO_ROOT_USER
-          value: {{ .Values.global.s3.accessKey | required "global.s3.accessKey is REQUIRED for MinIO root user (constitution §IV)" | quote }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.global.s3.existingSecret }}
+              key: access-key
         - name: MINIO_ROOT_PASSWORD
-          value: {{ .Values.global.s3.secretKey | required "global.s3.secretKey is REQUIRED for MinIO root password (constitution §IV)" | quote }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.global.s3.existingSecret }}
+              key: secret-key
+{{- else }}
+        - name: MINIO_ROOT_USER
+          value: {{ .Values.global.s3.accessKey | required "global.s3.accessKey is REQUIRED for MinIO root user (or provide global.s3.existingSecret; constitution §IV)" | quote }}
+        - name: MINIO_ROOT_PASSWORD
+          value: {{ .Values.global.s3.secretKey | required "global.s3.secretKey is REQUIRED for MinIO root password (or provide global.s3.existingSecret; constitution §IV)" | quote }}
+{{- end }}
         ports:
         - containerPort: 9000
         - containerPort: 9001
