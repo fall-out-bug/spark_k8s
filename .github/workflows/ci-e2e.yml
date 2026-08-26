@@ -7,6 +7,12 @@ on:
       - "charts/**"
       - "docker/**"
       - "scripts/**"
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - "charts/**"
+      - "docker/**"
+      - "scripts/**"
   workflow_dispatch:
     inputs:
       preset:
@@ -26,6 +32,10 @@ on:
 
 env:
   NAMESPACE: spark-e2e
+
+concurrency:
+  group: ci-e2e-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
 
 jobs:
   deploy-and-test:
@@ -94,7 +104,7 @@ jobs:
   matrix-smoke:
     name: Matrix Smoke (SCENARIO-0036)
     runs-on: self-hosted
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
 
@@ -110,9 +120,13 @@ jobs:
       - name: Deploy shared infra
         run: ./scripts/deploy-shared-infra-minikube.sh
 
-      - name: Run matrix scenario (deploy + smoke)
+      - name: Run matrix scenario (deploy + smoke + e2e with s3a round-trip)
         run: |
-          ./scripts/run-matrix.sh --filter "id=SCENARIO-0036" --shared-infra deploy smoke
+          # Defaults match deploy-shared-infra-minikube.sh bootstrap creds.
+          export E2E_S3_ROUNDTRIP=1
+          export S3_ACCESS_KEY="${S3_ACCESS_KEY:-minioadmin}"
+          export S3_SECRET_KEY="${S3_SECRET_KEY:-minioadmin}"
+          ./scripts/run-matrix.sh --filter "id=SCENARIO-0036" --shared-infra deploy smoke e2e
 
       - name: Cleanup
         if: always()
