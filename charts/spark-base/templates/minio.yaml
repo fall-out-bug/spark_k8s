@@ -9,8 +9,8 @@ metadata:
     {{- include "spark-base.labels" . | nindent 4 }}
 type: Opaque
 stringData:
-  access-key: {{ .Values.s3.accessKey | required "s3.accessKey is REQUIRED (set via --set or ExternalSecrets). Default removed per constitution §IV." | quote }}
-  secret-key: {{ .Values.s3.secretKey | required "s3.secretKey is REQUIRED (set via --set or ExternalSecrets). Default removed per constitution §IV." | quote }}
+  access-key: {{ .Values.s3.accessKey | default (dig "s3" "accessKey" "" .Values.global) | required "s3.accessKey (or global.s3.accessKey) is REQUIRED (set via --set or ExternalSecrets). Default removed per constitution §IV." | quote }}
+  secret-key: {{ .Values.s3.secretKey | default (dig "s3" "secretKey" "" .Values.global) | required "s3.secretKey (or global.s3.secretKey) is REQUIRED (set via --set or ExternalSecrets). Default removed per constitution §IV." | quote }}
 ---
 {{- end }}
 apiVersion: apps/v1
