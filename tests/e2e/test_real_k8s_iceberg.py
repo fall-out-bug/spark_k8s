@@ -5,6 +5,10 @@ import subprocess
 
 import pytest
 
+# Deploys real components into a live cluster — must never run under the
+# GH-hosted "-m 'not e2e and not slow'" filter.
+pytestmark = [pytest.mark.e2e, pytest.mark.slow]
+
 
 class TestRealIcebergWorkload:
     """Test real Iceberg workload in K8s."""
