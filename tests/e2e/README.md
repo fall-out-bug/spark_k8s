@@ -61,38 +61,28 @@ helm version
 
 ## Running E2E Tests
 
-### Quick Start (Basic Tests Only)
+The `scripts/run-e2e-tests.sh` family was removed during the e2e-script
+cleanup. E2E validation now flows through the matrix runners (which execute
+real spark-submit workloads against a deployed release):
 
 ```bash
-# Run basic deployment and simple job
-./scripts/run-e2e-tests.sh
+# Single real cell: deploy → smoke → e2e against shared infra
+./scripts/run-matrix.sh --filter "id=SCENARIO-0036" --shared-infra deploy smoke e2e
 
-# Or use pytest directly
-python -m pytest tests/e2e/test_real_k8s_deployment.py::TestRealK8sDeployment -v -s
+# Optional: verify the s3a round-trip stage (write parquet to MinIO + read back)
+E2E_S3_ROUNDTRIP=1 \
+S3_ACCESS_KEY=minioadmin S3_SECRET_KEY=minioadmin \
+  ./scripts/tests/e2e/run-e2e-against-release.sh   # after deploy of the release
+
+# Full k8s/no-gpu matrix (96 cells, hours)
+./scripts/run-matrix-96.sh --shared-infra
 ```
 
-### With GPU Tests
+Live-cluster pytest suites (`tests/e2e/test_real_*.py`) are marked
+`e2e`/`slow` and are excluded from CI; run them explicitly on a cluster:
 
 ```bash
-# Requires GPU nodes in cluster
-./scripts/run-e2e-tests.sh --gpu
-
-# Or skip GPU if no nodes available
-./scripts/run-e2e-tests.sh --skip-gpu
-```
-
-### With Iceberg Tests
-
-```bash
-# Requires S3/MinIO for data storage
-./scripts/run-e2e-tests.sh --iceberg
-```
-
-### Full Matrix (All Tests)
-
-```bash
-# Run everything
-./scripts/run-e2e-tests.sh --all
+python -m pytest tests/e2e -m "e2e" -v -s
 ```
 
 ## What Gets Tested

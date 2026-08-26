@@ -8,13 +8,12 @@ This directory contains comprehensive tests for the Lego-Spark project.
 tests/
 ├── smoke/              # Quick validation tests
 │   └── run-smoke-tests.sh
-├── e2e/               # End-to-end scenario tests
-│   └── run-e2e-tests.sh
+├── e2e/               # Live-cluster pytest suites (marked e2e/slow; not in CI)
+│   ├── test_real_k8s_iceberg.py
+│   └── test_real_iceberg_workload.py
 ├── load/              # Performance and load tests
-│   └── run-load-tests.sh
-├── results/           # Test results and reports
-│   └── test-report-*.md
-└── run-all-tests.sh   # Main test runner
+├── results/           # Test results and reports (matrix-96-summary.json etc.)
+└── test-matrix.yaml   # 320-scenario matrix consumed by scripts/run-matrix.sh
 ```
 
 ## Quick Start
@@ -24,16 +23,16 @@ Run all tests:
 ./tests/run-all-tests.sh
 ```
 
-Run specific test suite:
+Run specific suite:
 ```bash
 # Smoke tests (5-10 minutes)
 ./tests/smoke/run-smoke-tests.sh
 
-# E2E tests (15-30 minutes)
-./tests/e2e/run-e2e-tests.sh
+# Single real matrix cell with an executed Spark job
+./scripts/run-matrix.sh --filter "id=SCENARIO-0036" --shared-infra deploy smoke e2e
 
-# Load tests (30-60 minutes)
-./tests/load/run-load-tests.sh
+# k8s/no-gpu matrix — 96 cells, hours
+./scripts/run-matrix-96.sh --shared-infra
 ```
 
 ## Test Suites
@@ -110,22 +109,14 @@ Test results are saved to `tests/results/`:
 
 For CI/CD pipelines:
 ```bash
-# Run smoke tests (fast feedback)
-./tests/smoke/run-smoke-tests.sh
-if [ $? -ne 0 ]; then
-    echo "Smoke tests failed"
-    exit 1
-fi
+# Fast, cluster-free feedback (helm lint + template asserts + shellcheck)
+pytest -m "not e2e and not slow"
 
-# Run E2E tests (full validation)
-./tests/e2e/run-e2e-tests.sh
-if [ $? -ne 0 ]; then
-    echo "E2E tests failed"
-    exit 1
-fi
+# One real k8s cell in the dev/self-hosted gate (see .github/workflows/ci-e2e.yml)
+./scripts/run-matrix.sh --filter "id=SCENARIO-0036" --shared-infra deploy smoke e2e
 
-# Optional: Run load tests (performance gate)
-# ./tests/load/run-load-tests.sh
+# Optional nightly: full 96-cell matrix (performance/load gates)
+# ./scripts/run-matrix-96.sh --shared-infra
 ```
 
 ## Troubleshooting

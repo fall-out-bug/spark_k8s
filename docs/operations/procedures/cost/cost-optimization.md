@@ -1,1 +1,1 @@
-../capacity/cost-optimization.md
+../../../archive/operations-theater/procedures/capacity/cost-optimization.md

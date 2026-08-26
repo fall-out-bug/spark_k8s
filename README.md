@@ -260,7 +260,7 @@ df.show()
 ### 3. Run E2E Test
 
 ```bash
-scripts/test-e2e-jupyter-connect.sh spark-test spark-connect 4.1
+./scripts/run-matrix.sh --filter "id=SCENARIO-0036" --shared-infra deploy smoke e2e
 ```
 
 ---

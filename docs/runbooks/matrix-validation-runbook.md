@@ -35,8 +35,8 @@ bash tests/run-matrix.sh smoke --filter "spark_version=3.5.7,platform=k8s,gpu=fa
 ## Все уровни для подмножества
 
 ```bash
-export SCENARIO_FILTER="spark_version=3.5.7,platform=k8s,gpu=false"
-bash scripts/run-matrix-validation.sh
+# Фиксированный набор: gpu=false,platform=k8s (96 ячеек)
+bash scripts/run-matrix-96.sh --shared-infra
 ```
 
 ## NYC Taxi pipeline

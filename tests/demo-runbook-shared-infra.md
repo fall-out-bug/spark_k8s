@@ -28,8 +28,8 @@
 # 96 scenarios (gpu=false, k8s)
 ./scripts/run-matrix-96.sh --shared-infra
 
-# All 320 scenarios
-./scripts/run-matrix-320.sh --shared-infra
+# All scenarios (full 320-scenario matrix)
+./scripts/run-matrix.sh --shared-infra all
 ```
 
 ## What Shared Infra Does
