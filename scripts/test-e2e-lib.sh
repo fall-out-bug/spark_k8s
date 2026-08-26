@@ -68,13 +68,13 @@ ensure_spark_custom_image() {
   local tag
   tag="$(resolve_spark_tag "${version}")"
   local image="spark-custom:${tag}"
-  local context
-  if [[ "${tag}" == "4.1.0" ]]; then
-    context="$(dirname "${BASH_SOURCE[0]}")/../docker/spark-4.1"
-  else
-    context="$(dirname "${BASH_SOURCE[0]}")/../docker/spark"
-  fi
-  ensure_image "${image}" "${context}"
+  # Canonical lineage: docker/spark-custom/Dockerfile.<ver> (pinned fresh
+  # Hadoop/AWS libs). docker/spark was a legacy variant producing colliding
+  # spark-custom tags with older AWS pins and was removed.
+  local lib_dir context
+  lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  context="${lib_dir}/../docker/spark-custom"
+  ensure_image "${image}" "${context}" "Dockerfile.${tag}"
 }
 
 ensure_jupyter_image() {

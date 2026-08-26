@@ -26,7 +26,10 @@ updates:
 
   # Docker - weekly updates
   - package-ecosystem: "docker"
-    directory: "/docker/spark"
+    directories:
+      - "/docker/spark-custom"
+      - "/docker/hive"
+      - "/docker/optional/airflow"
     schedule:
       interval: "weekly"
       day: "monday"

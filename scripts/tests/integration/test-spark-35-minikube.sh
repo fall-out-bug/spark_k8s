@@ -135,7 +135,7 @@ check_prerequisites() {
     else
         log_warning "Image ${IMAGE_REPOSITORY}:${IMAGE_TAG} not found in minikube"
         log_info "Load the image with:"
-        echo "  docker build -t ${IMAGE_REPOSITORY}:${IMAGE_TAG} docker/spark-${SPARK_VERSION}/"
+        echo "  docker build -f docker/spark-custom/Dockerfile.${SPARK_VERSION} -t ${IMAGE_REPOSITORY}:${IMAGE_TAG} docker/spark-custom/"
         echo "  minikube image load ${IMAGE_REPOSITORY}:${IMAGE_TAG}"
         read -p "Continue anyway? (y/N) " -n 1 -r
         echo

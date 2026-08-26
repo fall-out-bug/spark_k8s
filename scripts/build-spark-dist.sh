@@ -7,6 +7,10 @@
 #   ./scripts/build-spark-dist.sh all
 #
 # Output: dist/spark-{version}-bin-custom-hadoop-{hadoop}.tgz
+#
+# NOTE: the canonical docker/spark-custom/Dockerfile.<ver> images currently
+# self-build Spark inside Docker and do NOT consume these tarballs; dist/ is
+# an optional local cache used by some CI workflows.
 
 set -euo pipefail
 
