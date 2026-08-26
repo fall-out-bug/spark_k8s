@@ -11,7 +11,13 @@
 # - Iceberg: disabled
 #
 # Usage:
-#   helm install my-spark charts/spark-3.5 -f charts/spark-3.5/presets/core-baseline.yaml
+#   helm install my-spark charts/spark-3.5 -f charts/spark-3.5/presets/core-baseline.yaml \
+#     --set global.s3.accessKey=... --set global.s3.secretKey=... \
+#     --set spark-base.postgresql.auth.password=... \
+#     --set global.postgresql.host=my-spark-spark-base-postgresql
+#
+# The last --set is required because the subchart PostgreSQL service name is
+# always "<release>-spark-base-postgresql" and cannot be renamed.
 
 # Global S3 configuration (used by History Server and Hive Metastore)
 global:
@@ -23,20 +29,35 @@ global:
     existingSecret: "s3-credentials"
 
 # Core Infrastructure Components (using top-level values for Spark 3.5)
-minio:
-  enabled: true
-  fullnameOverride: "minio-spark-35"
-  buckets:
-    - spark-logs
-    - warehouse
+# MinIO is deployed by this chart itself (gated by core.minio.enabled).
+core:
+  minio:
+    enabled: true
+    fullnameOverride: "minio-spark-35"
 
-postgresql:
-  enabled: true
-  fullnameOverride: "postgresql-metastore-35"
-  auth:
-    user: hive
-    database: metastore_spark35
-  existingSecret: "spark-35-metastore-db"
+# PostgreSQL for the metastore is provided exclusively by the spark-base
+# subchart; there is no chart-local postgres deployer.
+spark-base:
+  postgresql:
+    enabled: true
+    # Password intentionally empty here: REQUIRED via --set or ExternalSecrets
+    # (constitution §IV). Example:
+    #   --set spark-base.postgresql.auth.password=...
+    auth:
+      username: hive
+      password: ""
+  # The subchart mirrors the parent "core" defaults through spark-base.core;
+  # silence those embedded copies so every component deploys exactly once
+  # (same technique shared-infra runs use).
+  core:
+    minio:
+      enabled: false
+    postgresql:
+      enabled: false
+    hiveMetastore:
+      enabled: false
+    historyServer:
+      enabled: false
 
 hiveMetastore:
   enabled: true

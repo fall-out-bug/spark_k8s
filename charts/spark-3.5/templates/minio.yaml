@@ -1,9 +1,16 @@
 {{- if .Values.core.minio.enabled }}
+{{/*
+Per-release lightweight MinIO (emptyDir, buckets via mkdir).
+The spark-base subchart carries a fuller alternative (PVC, bucket-init Job,
+s3-credentials Secret) gated by spark-base.minio.enabled — both default OFF;
+enable exactly one. Shared-infra deployments disable both and point
+global.s3.endpoint at an external MinIO.
+*/}}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "spark-3.5.fullname" . }}-minio
+  name: {{ include "spark.core.minio.fullname" . }}
   labels:
     app: minio
     {{- include "spark-3.5.labels" . | nindent 4 }}
@@ -26,7 +33,7 @@ spec:
         - /bin/bash
         - -c
         - |
-          mkdir -p /data/{raw-data,processed-data,checkpoint,warehouse,spark-logs}
+          mkdir -p /data/{raw-data,processed-data,checkpoint,warehouse,spark-logs,spark-jobs}
           minio server /data --console-address ":9001"
         env:
         - name: MINIO_ROOT_USER
@@ -46,7 +53,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "spark-3.5.fullname" . }}-minio
+  name: {{ include "spark.core.minio.fullname" . }}
   labels:
     app: minio
     {{- include "spark-3.5.labels" . | nindent 4 }}
