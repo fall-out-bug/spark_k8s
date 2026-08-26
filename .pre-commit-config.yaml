@@ -39,6 +39,9 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
+        # allow-multiple-documents: legit multi-doc manifests (e.g.
+        # scripts/manifests/*.yaml) are single files with --- separators
+        args: [--allow-multiple-documents]
         # Exclude: rendered/template YAML, evidence snapshots, and non-source dirs:
         #  - _archived/ : frozen legacy workflows (pre-existing multi-doc YAML quirks)
         #  - k8s/       : raw multi-document manifests (pre-chart legacy), not single-doc source
@@ -58,7 +61,10 @@ repos:
     rev: v0.11.0.1
     hooks:
       - id: shellcheck
-        args: [--severity=warning]
+        # severity=error matches CI (ci.yml runs `shellcheck -S error`) — a stricter
+        # local gate would fail on ~30 pre-existing SC2034/SC2155 warnings in
+        # docker/docker-base & docker/runtime build/test scripts.
+        args: [--severity=error]
         # Exclude: spec-kit upstream scripts, agent tooling, and generated smoke
         # scenarios. The smoke scenarios (scripts/tests/smoke/scenarios/*.sh) are
         # produced by a matrix generator that emits IMAGE_REPOSITORY="spark-custom"
