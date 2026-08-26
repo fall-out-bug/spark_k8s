@@ -936,7 +936,7 @@ def test_no_legacy_naming_in_charts() -> None:
     assert result.stdout == "", f"Legacy naming in charts:\n{result.stdout[:500]}"
 
 
-def test_aggregate_matrix_results_script() -> None:
+def test_aggregate_matrix_results_script(tmp_path) -> None:
     """aggregate-matrix-results.py produces machine-readable summary."""
     agg = PROJECT_ROOT / "scripts" / "aggregate-matrix-results.py"
     assert agg.exists()
@@ -950,7 +950,9 @@ def test_aggregate_matrix_results_script() -> None:
             "--filter",
             "id=SCENARIO-0009",
             "--output",
-            str(RESULTS_DIR / "matrix-summary-test.json"),
+            # Write into tmp_path: this file is regenerated on every run and
+            # must not dirty a tracked path in tests/results/.
+            str(tmp_path / "matrix-summary-test.json"),
             "--duration",
             "0",
         ],
@@ -960,8 +962,8 @@ def test_aggregate_matrix_results_script() -> None:
     )
     # Filter id=SCENARIO-0009 returns 1 scenario; dry-run creates scenario-SCENARIO-0009.json
     assert result.returncode == 0 or "No scenarios" in result.stderr
-    if (RESULTS_DIR / "matrix-summary-test.json").exists():
-        data = json.loads((RESULTS_DIR / "matrix-summary-test.json").read_text())
+    if (tmp_path / "matrix-summary-test.json").exists():
+        data = json.loads((tmp_path / "matrix-summary-test.json").read_text())
         assert "passed" in data
         assert "failed" in data
         assert "expected" in data
