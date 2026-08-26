@@ -39,6 +39,6 @@ jobs:
       - name: Generate summary
         if: always()
         run: |
-          python3 scripts/tests/load/matrix/aggregate-matrix-results.py \
-            --input tests/results/ \
-            --output tests/results/matrix-p1-summary.md || true
+          python3 scripts/aggregate-matrix-results.py \
+            --results-dir tests/results \
+            --output tests/results/matrix-p1-summary.md

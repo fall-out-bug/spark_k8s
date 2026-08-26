@@ -20,8 +20,8 @@ jobs:
         run: python3 scripts/tests/smoke/matrix/validate-smoke-matrix.py
       - name: Run P2 full tier
         run: |
-          # TODO: implement scripts/run-matrix-p2.sh that targets p2_weekly tier
-          # Currently delegates to run-matrix.sh with no filter (legacy behavior)
+          # No dedicated tier script yet: run-matrix.sh without a filter covers
+          # all 320 scenarios (superset of the planned p2_weekly tier).
           ./scripts/run-matrix.sh all
       - name: Check demo health (post-run)
         if: always()
@@ -36,6 +36,9 @@ jobs:
       - name: Generate report
         if: always()
         run: |
-          python3 scripts/tests/load/matrix/aggregate-matrix-results.py \
-            --input tests/results/ \
-            --output docs/reports/matrix-p2-weekly-$(date +%Y-%m-%d).md || true
+          mkdir -p docs/reports
+          # empty filter => aggregate every scenario, not just the k8s 96-cell subset
+          python3 scripts/aggregate-matrix-results.py \
+            --results-dir tests/results \
+            --filter "" \
+            --output docs/reports/matrix-p2-weekly-$(date +%Y-%m-%d).md
