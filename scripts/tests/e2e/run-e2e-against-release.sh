@@ -22,7 +22,10 @@ if [[ "${E2E_S3_ROUNDTRIP:-0}" == "1" ]]; then
         if [[ -n "${SHARED_INFRA_NS:-}" ]]; then
             S3_ENDPOINT="http://minio.${SHARED_INFRA_NS}.svc.cluster.local:9000"
         else
-            S3_ENDPOINT="http://${RELEASE}-minio.${NAMESPACE}.svc.cluster.local:9000"
+            # Service name varies by chart path (spark-3.5 renders
+            # <release>-spark-35-minio or honor fullnameOverride); discover it.
+            local_svc="$(kubectl get svc -n "$NAMESPACE" -l app=minio -o jsonpath='{.items[0].metadata.name}')"
+            S3_ENDPOINT="http://${local_svc}.${NAMESPACE}.svc.cluster.local:9000"
         fi
     fi
     # Full s3a set (also needed for connect/standalone submits that carry no
@@ -62,7 +65,10 @@ case "$DEPLOY_MODE" in
         if [[ -n "${SHARED_INFRA_NS:-}" ]]; then
             S3_ENDPOINT="http://minio.${SHARED_INFRA_NS}.svc.cluster.local:9000"
         else
-            S3_ENDPOINT="http://${RELEASE}-minio.${NAMESPACE}.svc.cluster.local:9000"
+            # Service name varies by chart path (spark-3.5 renders
+            # <release>-spark-35-minio or honor fullnameOverride); discover it.
+            local_svc="$(kubectl get svc -n "$NAMESPACE" -l app=minio -o jsonpath='{.items[0].metadata.name}')"
+            S3_ENDPOINT="http://${local_svc}.${NAMESPACE}.svc.cluster.local:9000"
         fi
         submitter_pod=$(kubectl get pods -n "$NAMESPACE" -l app.kubernetes.io/component=k8s-native-submitter -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
         if [[ -z "$submitter_pod" ]]; then
