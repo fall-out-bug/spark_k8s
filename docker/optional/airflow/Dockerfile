@@ -17,11 +17,15 @@ USER airflow
 #     every DAG importing airflow.operators.python will ImportError.
 #   - openlineage 2.x (was 1.7) — Airflow-3-compatible line
 #   - cncf-kubernetes 10.x (was 8.0) — tracks Airflow 3
-#   - apache-spark 9.x, amazon 9.x — 3.x-compatible floors
+#   - apache-spark 6.x (was 4.7) — Airflow-3-compatible provider line;
+#     provider majors track their own releases, NOT Airflow majors (9.x does
+#     not exist on PyPI; max is 6.x), amazon 9.x — 3.x-compatible floors
 # Quoted version specifiers to satisfy hadolint SC2261
-RUN pip install --no-cache-dir --no-deps \
+# python -m pip: base image /root/bin/pip wrapper is root-only (766) since 2025-06
+# digests — plain `pip` as USER airflow fails with Permission denied
+RUN python -m pip install --no-cache-dir --no-deps \
     "apache-airflow-providers-standard" \
-    "apache-airflow-providers-apache-spark>=9.0.0" \
+    "apache-airflow-providers-apache-spark>=6.0.0" \
     "apache-airflow-providers-cncf-kubernetes>=10.0.0" \
     "apache-airflow-providers-amazon>=9.0.0" \
     "apache-airflow-providers-openlineage>=2.18.0"
@@ -31,13 +35,13 @@ RUN pip install --no-cache-dir --no-deps \
 # (apache/airflow#53763) that crashes schedulers/triggerers. The previous 1.20.0
 # pin was an Airflow-2.11-specific workaround (T029) that is both unnecessary and
 # actively harmful on 3.x. 3.x uses a different OTel code path that works with 1.35+.
-RUN pip install --no-cache-dir \
+RUN python -m pip install --no-cache-dir \
     "opentelemetry-sdk>=1.35.0" \
     "opentelemetry-api>=1.35.0" \
     "opentelemetry-exporter-otlp-proto-http>=1.35.0" \
     "opentelemetry-proto>=1.35.0"
 
-RUN pip install --no-cache-dir \
+RUN python -m pip install --no-cache-dir \
     "pyspark>=3.5.0" \
     "boto3>=1.34.0"
 
