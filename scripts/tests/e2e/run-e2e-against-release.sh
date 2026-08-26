@@ -9,6 +9,33 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NAMESPACE="${NAMESPACE:?NAMESPACE required}"
 DEPLOY_MODE="${DEPLOY_MODE:-connect}"
 
+# Optional S3 round-trip stage: when E2E_S3_ROUNDTRIP=1 the workload writes its
+# aggregate to MinIO and reads it back (bucket must exist — spark-jobs is
+# provisioned by default via minio.buckets).
+S3_BUCKET="${S3_BUCKET:-spark-jobs}"
+RT_CONFS=""
+if [[ "${E2E_S3_ROUNDTRIP:-0}" == "1" ]]; then
+    S3_ACCESS_KEY="${S3_ACCESS_KEY:?S3_ACCESS_KEY required for E2E_S3_ROUNDTRIP}"
+    S3_SECRET_KEY="${S3_SECRET_KEY:?S3_SECRET_KEY required for E2E_S3_ROUNDTRIP}"
+    RELEASE="${RELEASE:?RELEASE required for E2E_S3_ROUNDTRIP}"
+    if [[ -z "${S3_ENDPOINT:-}" ]]; then
+        if [[ -n "${SHARED_INFRA_NS:-}" ]]; then
+            S3_ENDPOINT="http://minio.${SHARED_INFRA_NS}.svc.cluster.local:9000"
+        else
+            S3_ENDPOINT="http://${RELEASE}-minio.${NAMESPACE}.svc.cluster.local:9000"
+        fi
+    fi
+    # Full s3a set (also needed for connect/standalone submits that carry no
+    # s3a conf of their own); duplicate keys in k8s-native are identical and harmless.
+    RT_CONFS="--conf spark.e2e.s3.roundtrip=true \
+--conf spark.e2e.s3.path=s3a://${S3_BUCKET}/e2e-roundtrip/${RELEASE} \
+--conf spark.hadoop.fs.s3a.endpoint=${S3_ENDPOINT} \
+--conf spark.hadoop.fs.s3a.access.key=${S3_ACCESS_KEY} \
+--conf spark.hadoop.fs.s3a.secret.key=${S3_SECRET_KEY} \
+--conf spark.hadoop.fs.s3a.path.style.access=true \
+--conf spark.hadoop.fs.s3a.connection.ssl.enabled=false"
+fi
+
 e2e_script="${SCRIPT_DIR}/scripts/e2e_10k_agg_join.py"
 case "$DEPLOY_MODE" in
     connect)
@@ -22,6 +49,7 @@ case "$DEPLOY_MODE" in
             /opt/spark/bin/spark-submit \
                 --master local[*] \
                 --conf spark.driver.memory=1g \
+                $RT_CONFS \
                 /tmp/e2e_10k.py
         "
         ;;
@@ -56,6 +84,7 @@ case "$DEPLOY_MODE" in
                 --conf spark.hadoop.fs.s3a.path.style.access=true \
                 --conf spark.hadoop.fs.s3a.connection.ssl.enabled=false \
                 --conf spark.driver.memory=1g \
+                $RT_CONFS \
                 /tmp/e2e_10k.py
         "
         ;;
@@ -75,6 +104,7 @@ case "$DEPLOY_MODE" in
                 --conf spark.driver.host=\$driver_host \
                 --conf spark.driver.bindAddress=0.0.0.0 \
                 --conf spark.driver.memory=1g \
+                $RT_CONFS \
                 /tmp/e2e_10k.py
         "
         ;;
