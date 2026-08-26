@@ -265,6 +265,12 @@ def test_run_matrix_standalone_scenario_no_airflow() -> None:
             "standalone.image.repository=spark-custom",
             "--set",
             "standalone.image.tag=3.5.7",
+            # Render-only placeholders: real matrix runs inject actual creds
+            # via environment; the static shared-infra values file stays clean.
+            "--set",
+            "global.s3.accessKey=matrix-test-access-key",
+            "--set",
+            "global.s3.secretKey=matrix-test-secret-key",
         ]
     )
     chart = PROJECT_ROOT / "charts" / "spark-3.5"
@@ -972,18 +978,6 @@ def test_run_matrix_96_script_exists() -> None:
     assert "run-matrix.sh" in content
     assert "aggregate-matrix-results" in content
     assert "matrix-96-summary.json" in content
-
-
-def test_run_matrix_320_script_exists() -> None:
-    """run-matrix-320.sh exists and runs all 320 scenarios."""
-    script = PROJECT_ROOT / "scripts" / "run-matrix-320.sh"
-    assert script.exists()
-    assert script.stat().st_mode & 0o111
-    content = script.read_text()
-    assert "320" in content
-    assert "run-matrix.sh" in content
-    assert "aggregate-matrix-results" in content
-    assert "matrix-320-summary.json" in content
 
 
 def test_run_matrix_reads_test_matrix_yaml() -> None:

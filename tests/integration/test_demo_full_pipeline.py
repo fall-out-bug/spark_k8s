@@ -10,7 +10,22 @@ DEMO_VALUES = "charts/spark-3.5/values-demo-full-pipeline.yaml"
 def helm_template_demo() -> str:
     """Run helm template for demo and return output."""
     result = subprocess.run(
-        ["helm", "template", "full-demo", "charts/spark-3.5", "-f", DEMO_VALUES, "--namespace", "demo"],
+        [
+            "helm",
+            "template",
+            "full-demo",
+            "charts/spark-3.5",
+            "-f",
+            DEMO_VALUES,
+            "--namespace",
+            "demo",
+            # Render-only placeholders: chart values carry no default credentials
+            # by design (constitution §IV); fixtures must supply their own.
+            "--set",
+            "global.s3.accessKey=demo-test-access-key",
+            "--set",
+            "global.s3.secretKey=demo-test-secret-key",
+        ],
         capture_output=True,
         text=True,
     )
