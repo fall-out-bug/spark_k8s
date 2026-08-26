@@ -53,22 +53,7 @@ if ! kubectl get ns "$STAGING_NAMESPACE" &>/dev/null; then
     exit 1
 fi
 
-# Restore based on type
-case "$BACKUP_TYPE" in
-    hive)
-        restore_hive
-        ;;
-    minio)
-        restore_minio
-        ;;
-    airflow)
-        restore_airflow
-        ;;
-    *)
-        log_error "Unknown backup type: ${BACKUP_TYPE}"
-        exit 1
-        ;;
-esac
+# Restore functions (must be defined before the dispatch below)
 
 restore_hive() {
     log_info "Restoring Hive Metastore..."
@@ -81,7 +66,8 @@ restore_hive() {
     fi
 
     # Get Hive pod
-    local hive_pod=$(get_pod "$STAGING_NAMESPACE" "app=hive-metastore")
+    local hive_pod
+    hive_pod=$(get_pod "$STAGING_NAMESPACE" "app=hive-metastore")
 
     if [[ -z "$hive_pod" ]]; then
         log_error "Hive pod not found in ${STAGING_NAMESPACE}"
@@ -99,7 +85,8 @@ restore_hive() {
 
     # Verify
     log_info "Verifying restore..."
-    local db_count=$(kubectl exec -n "$STAGING_NAMESPACE" "$hive_pod" -- \
+    local db_count
+    db_count=$(kubectl exec -n "$STAGING_NAMESPACE" "$hive_pod" -- \
         psql -U hive -d metastore -t -A -c "SELECT COUNT(*) FROM DBS;")
 
     log_info "✓ Restored ${db_count} databases"
@@ -122,7 +109,8 @@ restore_minio() {
     fi
 
     # List restore data
-    local object_count=$(mc ls --recursive "minio/spark-backups/${backup_prefix}" | wc -l)
+    local object_count
+    object_count=$(mc ls --recursive "minio/spark-backups/${backup_prefix}" | wc -l)
 
     if [[ $object_count -eq 0 ]]; then
         log_error "No backup data found"
@@ -136,7 +124,8 @@ restore_minio() {
 
     mc cp --recursive "minio/spark-backups/${backup_prefix}/test/" "minio/spark-test-data/"
 
-    local test_objects=$(mc ls --recursive minio/spark-test-data | wc -l)
+    local test_objects
+    test_objects=$(mc ls --recursive minio/spark-test-data | wc -l)
     log_info "✓ Restored ${test_objects} test objects"
 
     log_info "✓ MinIO restore complete"
@@ -153,7 +142,8 @@ restore_airflow() {
     fi
 
     # Get PostgreSQL pod
-    local pg_pod=$(get_pod "$STAGING_NAMESPACE" "app=postgresql")
+    local pg_pod
+    pg_pod=$(get_pod "$STAGING_NAMESPACE" "app=postgresql")
 
     if [[ -z "$pg_pod" ]]; then
         log_error "PostgreSQL pod not found in ${STAGING_NAMESPACE}"
@@ -171,7 +161,8 @@ restore_airflow() {
     if kubectl exec -n "$STAGING_NAMESPACE" "$pg_pod" -- \
         psql -U airflow -d airflow -c "SELECT COUNT(*) FROM dag;" &>/dev/null; then
 
-        local dag_count=$(kubectl exec -n "$STAGING_NAMESPACE" "$pg_pod" -- \
+        local dag_count
+        dag_count=$(kubectl exec -n "$STAGING_NAMESPACE" "$pg_pod" -- \
             psql -U airflow -d airflow -t -A -c "SELECT COUNT(*) FROM dag;")
 
         log_info "✓ Airflow has ${dag_count} DAGs"
@@ -179,6 +170,23 @@ restore_airflow() {
 
     log_info "✓ Airflow restore complete"
 }
+
+# Restore based on type
+case "$BACKUP_TYPE" in
+    hive)
+        restore_hive
+        ;;
+    minio)
+        restore_minio
+        ;;
+    airflow)
+        restore_airflow
+        ;;
+    *)
+        log_error "Unknown backup type: ${BACKUP_TYPE}"
+        exit 1
+        ;;
+esac
 
 log_info "=== Restore Test Complete ==="
 
