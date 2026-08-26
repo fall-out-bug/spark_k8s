@@ -16,9 +16,6 @@ core:
 hiveMetastore:
   enabled: false
 
-historyServer:
-  enabled: false
-
 connect:
   enabled: false
 

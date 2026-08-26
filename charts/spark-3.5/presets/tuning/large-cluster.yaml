@@ -16,7 +16,6 @@ core:
 
     # High shuffle parallelism
     spark.sql.shuffle.partitions: "400"
-    spark.sql.files.maxPartitionBytes: "268435456"  # 256MB
 
     # Dynamic allocation for efficiency
     spark.dynamicAllocation.enabled: "true"
